@@ -1,49 +1,57 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { AUTH_ENABLED } from '../consts';
 ---
 
 <BaseLayout title="Your account" description="Your account and profile.">
   <section class="lesson">
     <div class="container">
       <h1>Your account</h1>
-      <div id="account-body">
-        <p class="summary">Checking your sign-in status…</p>
-      </div>
+      {AUTH_ENABLED ? (
+        <div id="account-body">
+          <p class="summary">Checking your sign-in status…</p>
+        </div>
+      ) : (
+        <p class="summary">Accounts are coming soon. For now, every lesson is free to watch — just pick a course and start.</p>
+      )}
     </div>
   </section>
 
-  <script is:inline>
-    (function () {
-      var body = document.getElementById('account-body');
-      function esc(s) {
-        return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
-          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
-        });
-      }
-      fetch('/.auth/me', { headers: { accept: 'application/json' } })
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (d) {
-          var p = d && d.clientPrincipal;
-          if (!p) {
+  {AUTH_ENABLED && (
+    <script is:inline>
+      (function () {
+        var body = document.getElementById('account-body');
+        if (!body) return;
+        function esc(s) {
+          return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+          });
+        }
+        fetch('/.auth/me', { headers: { accept: 'application/json' } })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (d) {
+            var p = d && d.clientPrincipal;
+            if (!p) {
+              body.innerHTML =
+                '<p class="summary">You are not signed in.</p>' +
+                '<p><a class="btn" href="/.auth/login/entraExternalId?post_login_redirect_uri=/account/">Sign in or create an account</a></p>';
+              return;
+            }
+            var roles = (p.userRoles || []).filter(function (r) { return r !== 'anonymous'; });
             body.innerHTML =
-              '<p class="summary">You are not signed in.</p>' +
-              '<p><a class="btn" href="/.auth/login/entraExternalId?post_login_redirect_uri=/account/">Sign in or create an account</a></p>';
-            return;
-          }
-          var roles = (p.userRoles || []).filter(function (r) { return r !== 'anonymous'; });
-          body.innerHTML =
-            '<p class="summary">You are signed in.</p>' +
-            '<div class="objectives">' +
-            '<p><strong>Name:</strong> ' + esc(p.userDetails) + '</p>' +
-            '<p><strong>Identity provider:</strong> ' + esc(p.identityProvider) + '</p>' +
-            '<p><strong>User ID:</strong> ' + esc(p.userId) + '</p>' +
-            '<p><strong>Roles:</strong> ' + esc(roles.join(', ') || 'authenticated') + '</p>' +
-            '</div>' +
-            '<p><a class="btn secondary" href="/.auth/logout?post_logout_redirect_uri=/">Sign out</a></p>';
-        })
-        .catch(function () {
-          body.innerHTML = '<p class="summary">Could not check sign-in status. Authentication may not be configured yet.</p>';
-        });
-    })();
-  </script>
+              '<p class="summary">You are signed in.</p>' +
+              '<div class="objectives">' +
+              '<p><strong>Name:</strong> ' + esc(p.userDetails) + '</p>' +
+              '<p><strong>Identity provider:</strong> ' + esc(p.identityProvider) + '</p>' +
+              '<p><strong>User ID:</strong> ' + esc(p.userId) + '</p>' +
+              '<p><strong>Roles:</strong> ' + esc(roles.join(', ') || 'authenticated') + '</p>' +
+              '</div>' +
+              '<p><a class="btn secondary" href="/.auth/logout?post_logout_redirect_uri=/">Sign out</a></p>';
+          })
+          .catch(function () {
+            body.innerHTML = '<p class="summary">Could not check sign-in status.</p>';
+          });
+      })();
+    </script>
+  )}
 </BaseLayout>
