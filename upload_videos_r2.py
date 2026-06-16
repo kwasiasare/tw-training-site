@@ -15,7 +15,7 @@ from botocore.config import Config
 from botocore.exceptions import ClientError
 
 ROOT = pathlib.Path(__file__).resolve().parent
-VIDEO_DIR = ROOT / "site" / "public" / "videos"
+VIDEO_DIR = ROOT / "course-materials" / "dami-ai-career" / "videos"
 
 
 def load_env(path: pathlib.Path) -> dict:

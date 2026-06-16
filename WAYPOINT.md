@@ -37,7 +37,7 @@ R2_PUBLIC_BASE=https://pub-xxxxx.r2.dev
 
 ## 🔧 How to restart the dev server (to test locally again)
 ```
-cd "C:\Users\KwasiAsare\OneDrive - Spreadcom Ltd\Desktop\claude-01\Dami\site"
+cd "C:\Users\KwasiAsare\OneDrive - Spreadcom Ltd\Desktop\claude-01\Training-website\site"
 npm run dev          # then open http://localhost:4321/
 ```
 

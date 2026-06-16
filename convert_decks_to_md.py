@@ -4,8 +4,9 @@ frontmatter (via PyYAML) for the Astro content collection."""
 import os, json, glob, yaml
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-DECKS = os.path.join(ROOT, 'videos', '_decks')
-TOPICS = os.path.join(ROOT, 'site', 'src', 'content', 'topics')
+COURSE = os.path.join(ROOT, 'course-materials', 'dami-ai-career')
+DECKS = os.path.join(COURSE, 'decks')
+TOPICS = os.path.join(COURSE, 'lessons')
 os.makedirs(TOPICS, exist_ok=True)
 
 ok, bad = 0, []
