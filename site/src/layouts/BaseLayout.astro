@@ -11,11 +11,20 @@ const fullTitle = title ? `${title} | ${SITE.title}` : `${SITE.title} — Course
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
+    {/* Apply the saved theme before paint to avoid a flash. Defaults to dark. */}
+    <script is:inline>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+        } catch (e) {}
+      })();
+    </script>
     <title>{fullTitle}</title>
     <meta name="description" content={description ?? SITE.tagline} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -27,6 +36,7 @@ const fullTitle = title ? `${title} | ${SITE.title}` : `${SITE.title} — Course
         <nav class="nav">
           <a href="/">Home</a>
           <a href="/#courses">Courses</a>
+          <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode"></button>
         </nav>
       </div>
     </header>
@@ -41,5 +51,20 @@ const fullTitle = title ? `${title} | ${SITE.title}` : `${SITE.title} — Course
         A self-study course. Built with Astro, hosted on Azure Static Web Apps.
       </div>
     </footer>
+    <script is:inline>
+      (function () {
+        var btn = document.getElementById('theme-toggle');
+        if (!btn) return;
+        function cur() { return document.documentElement.getAttribute('data-theme') || 'dark'; }
+        function paint() { btn.textContent = cur() === 'dark' ? '☀' : '☾'; }
+        paint();
+        btn.addEventListener('click', function () {
+          var next = cur() === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', next);
+          try { localStorage.setItem('theme', next); } catch (e) {}
+          paint();
+        });
+      })();
+    </script>
   </body>
 </html>

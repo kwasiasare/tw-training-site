@@ -11,10 +11,28 @@
   --bg: #ffffff;
   --bg-soft: #f4f7fa;
   --code-bg: #f2f4f7;
+  --card-bg: #ffffff;
+  --heading: var(--navy);
   --radius: 12px;
   --maxw: 1120px;
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --mono: "Cascadia Code", "Consolas", "SFMono-Regular", Menlo, monospace;
+}
+
+/* Dark theme — the site defaults to dark (see <html data-theme="dark">). */
+:root[data-theme="dark"] {
+  --navy: #12243b;
+  --navy-700: #0c1a2c;
+  --accent: #2e86c1;
+  --accent-600: #74b8ea;
+  --ink: #e6edf3;
+  --grey: #9fb0c0;
+  --line: #283442;
+  --bg: #0d1117;
+  --bg-soft: #131b24;
+  --code-bg: #11181f;
+  --card-bg: #131b24;
+  --heading: #eaf2fb;
 }
 
 * { box-sizing: border-box; }
@@ -41,6 +59,11 @@ a:hover { text-decoration: underline; }
 .brand:hover { text-decoration: none; opacity: .9; }
 .nav a { color: #cfe2f3; margin-left: 22px; font-weight: 600; font-size: .95rem; }
 .nav a:hover { color: #fff; text-decoration: none; }
+.theme-toggle {
+  background: transparent; border: 0; color: #cfe2f3; cursor: pointer;
+  font-size: 1.15rem; margin-left: 22px; line-height: 1; padding: 4px;
+}
+.theme-toggle:hover { color: #fff; }
 
 /* Hero */
 .hero { background: linear-gradient(160deg, var(--navy), var(--navy-700)); color: #fff; padding: 64px 0; }
@@ -58,18 +81,18 @@ a:hover { text-decoration: underline; }
 .grid.cols-2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
 section.block { padding: 56px 0; }
 section.block.soft { background: var(--bg-soft); }
-h2.section-title { font-size: 1.9rem; color: var(--navy); margin: 0 0 8px; }
+h2.section-title { font-size: 1.9rem; color: var(--heading); margin: 0 0 8px; }
 .section-sub { color: var(--grey); margin: 0 0 28px; }
 
 .card {
-  background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--card-bg); border: 1px solid var(--line); border-radius: var(--radius);
   padding: 22px; box-shadow: 0 1px 2px rgba(20,40,60,.04);
 }
 .card .badge {
   display: inline-block; background: var(--accent); color: #fff; font-weight: 700;
   border-radius: 999px; padding: 2px 12px; font-size: .85rem;
 }
-.card h3 { margin: 12px 0 6px; color: var(--navy); font-size: 1.25rem; }
+.card h3 { margin: 12px 0 6px; color: var(--heading); font-size: 1.25rem; }
 .card .theme { color: var(--grey); margin: 0 0 14px; }
 .topic-list { list-style: none; padding: 0; margin: 0; }
 .topic-list li { padding: 7px 0; border-top: 1px solid var(--line); font-size: .96rem; }
@@ -80,10 +103,10 @@ h2.section-title { font-size: 1.9rem; color: var(--navy); margin: 0 0 8px; }
 /* Lesson page */
 .lesson { padding: 40px 0 72px; }
 .breadcrumb { color: var(--grey); font-size: .9rem; margin-bottom: 10px; }
-.lesson h1 { color: var(--navy); font-size: 2.1rem; margin: 4px 0 6px; }
+.lesson h1 { color: var(--heading); font-size: 2.1rem; margin: 4px 0 6px; }
 .lesson .summary { color: var(--grey); font-size: 1.1rem; margin: 0 0 22px; }
 .lesson-body { font-size: 1.05rem; }
-.lesson-body h2 { color: var(--navy); margin-top: 34px; }
+.lesson-body h2 { color: var(--heading); margin-top: 34px; }
 .lesson-body h3 { color: var(--accent-600); }
 .lesson-body pre {
   background: var(--code-bg); padding: 16px 18px; border-radius: 10px; overflow-x: auto;
@@ -93,7 +116,7 @@ h2.section-title { font-size: 1.9rem; color: var(--navy); margin: 0 0 8px; }
 .lesson-body :not(pre) > code { background: var(--code-bg); padding: 1px 6px; border-radius: 5px; }
 
 .objectives { background: var(--bg-soft); border-radius: var(--radius); padding: 18px 24px; margin: 0 0 26px; }
-.objectives h3 { margin: 0 0 8px; color: var(--navy); }
+.objectives h3 { margin: 0 0 8px; color: var(--heading); }
 
 /* Video */
 .video-wrap { margin: 0 0 28px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); background:#000; }
@@ -104,28 +127,28 @@ h2.section-title { font-size: 1.9rem; color: var(--navy); margin: 0 0 8px; }
 }
 
 /* Quiz */
-.quiz { border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; margin: 36px 0; background:#fff; }
-.quiz h2 { margin: 0 0 6px; color: var(--navy); }
+.quiz { border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; margin: 36px 0; background: var(--card-bg); }
+.quiz h2 { margin: 0 0 6px; color: var(--heading); }
 .quiz .quiz-sub { color: var(--grey); margin: 0 0 18px; }
 .q { padding: 16px 0; border-top: 1px solid var(--line); }
 .q .qtext { font-weight: 700; margin-bottom: 10px; }
 .options { display: grid; gap: 8px; }
 .opt {
-  text-align: left; border: 1px solid var(--line); background: #fff; border-radius: 9px;
+  text-align: left; border: 1px solid var(--line); background: var(--card-bg); border-radius: 9px;
   padding: 10px 14px; cursor: pointer; font: inherit; color: var(--ink); transition: .12s;
 }
 .opt:hover { border-color: var(--accent); }
-.opt.correct { border-color: var(--green); background: #eafaf0; }
-.opt.wrong { border-color: #d99; background: #fdeded; }
+.opt.correct { border-color: var(--green); background: rgba(30,138,76,.16); }
+.opt.wrong { border-color: #d9534f; background: rgba(217,83,79,.16); }
 .opt[disabled] { cursor: default; }
 .reveal-btn { margin-top: 8px; }
-.explain { margin-top: 10px; padding: 10px 14px; border-left: 4px solid var(--green); background: #f0faf4; border-radius: 6px; color:#244; font-size:.95rem; display:none; }
+.explain { margin-top: 10px; padding: 10px 14px; border-left: 4px solid var(--green); background: rgba(30,138,76,.12); border-radius: 6px; color: var(--ink); font-size:.95rem; display:none; }
 .explain.show { display: block; }
-.short-answer .explain { border-left-color: var(--accent); background: #eef6fc; }
+.short-answer .explain { border-left-color: var(--accent); background: rgba(46,134,193,.12); }
 
 /* Resources + callouts */
 .resources ul { padding-left: 18px; }
-.callout { border-left: 5px solid var(--amber); background: #fff8ec; padding: 12px 16px; border-radius: 8px; margin: 18px 0; }
+.callout { border-left: 5px solid var(--amber); background: rgba(185,119,14,.12); padding: 12px 16px; border-radius: 8px; margin: 18px 0; }
 
 /* Footer + lesson nav */
 .lesson-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line); }
