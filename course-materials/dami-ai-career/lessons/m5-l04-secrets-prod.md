@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Environment & secrets in production
 month: 5
 monthTitle: Polish, Deploy, Go Public

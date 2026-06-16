@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Automated testing with pytest
 month: 2
 monthTitle: Data, SQL & Web APIs

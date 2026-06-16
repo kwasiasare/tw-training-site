@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Prompting & system prompts
 month: 3
 monthTitle: LLM Application Skills

@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Portfolio site + README craft
 month: 5
 monthTitle: Polish, Deploy, Go Public

@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Intro to APIs with the requests library
 month: 1
 monthTitle: Python Foundations + Git

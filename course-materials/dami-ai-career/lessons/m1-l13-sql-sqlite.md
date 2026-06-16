@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Intro to SQL with SQLite
 month: 1
 monthTitle: Python Foundations + Git

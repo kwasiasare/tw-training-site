@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: 'Frameworks: LangChain / LlamaIndex'
 month: 3
 monthTitle: LLM Application Skills

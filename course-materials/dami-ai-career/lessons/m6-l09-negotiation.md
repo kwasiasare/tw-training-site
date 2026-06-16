@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Negotiation, offers & evaluating roles
 month: 6
 monthTitle: Apply & Interview

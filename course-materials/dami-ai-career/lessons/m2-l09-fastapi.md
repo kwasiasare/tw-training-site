@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Building REST APIs with FastAPI
 month: 2
 monthTitle: Data, SQL & Web APIs

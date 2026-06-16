@@ -15,7 +15,9 @@ from botocore.config import Config
 from botocore.exceptions import ClientError
 
 ROOT = pathlib.Path(__file__).resolve().parent
-VIDEO_DIR = ROOT / "course-materials" / "dami-ai-career" / "videos"
+# Course-aware: set COURSE_SLUG=<slug> (default dami-ai-career).
+COURSE_SLUG = os.environ.get("COURSE_SLUG", "dami-ai-career")
+VIDEO_DIR = ROOT / "course-materials" / COURSE_SLUG / "videos"
 
 
 def load_env(path: pathlib.Path) -> dict:

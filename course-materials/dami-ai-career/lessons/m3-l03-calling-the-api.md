@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Calling the LLM API
 month: 3
 monthTitle: LLM Application Skills

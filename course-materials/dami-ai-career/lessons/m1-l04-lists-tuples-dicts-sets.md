@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Lists, tuples, dictionaries & sets
 month: 1
 monthTitle: Python Foundations + Git

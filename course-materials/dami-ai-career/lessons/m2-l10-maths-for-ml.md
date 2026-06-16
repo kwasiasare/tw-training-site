@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Maths-for-ML bridge
 month: 2
 monthTitle: Data, SQL & Web APIs

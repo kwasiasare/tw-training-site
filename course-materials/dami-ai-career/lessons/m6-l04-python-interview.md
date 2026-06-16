@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Python coding interview practice
 month: 6
 monthTitle: Apply & Interview

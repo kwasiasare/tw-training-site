@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Writing technical blog posts
 month: 5
 monthTitle: Polish, Deploy, Go Public

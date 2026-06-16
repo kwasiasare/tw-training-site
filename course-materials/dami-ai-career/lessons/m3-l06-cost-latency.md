@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Cost, latency & token management
 month: 3
 monthTitle: LLM Application Skills

@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: HTTP & REST deep dive
 month: 2
 monthTitle: Data, SQL & Web APIs

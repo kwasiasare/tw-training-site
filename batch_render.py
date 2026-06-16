@@ -5,7 +5,8 @@ import os, sys, glob, traceback
 import build_one_video
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-COURSE = os.path.join(ROOT, 'course-materials', 'dami-ai-career')
+# Course-aware: set COURSE_SLUG=<slug> in the environment (default dami-ai-career).
+COURSE = os.path.join(ROOT, 'course-materials', os.environ.get('COURSE_SLUG', 'dami-ai-career'))
 DECKS = os.path.join(COURSE, 'decks')
 SITE_VIDEOS = os.path.join(COURSE, 'videos')
 

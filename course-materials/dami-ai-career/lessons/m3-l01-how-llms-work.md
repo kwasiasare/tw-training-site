@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: 'How LLMs work: tokens, context, sampling'
 month: 3
 monthTitle: LLM Application Skills

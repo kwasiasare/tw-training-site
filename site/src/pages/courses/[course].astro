@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { COURSES, getCourse, courseModules } from '../../consts';
+
+export async function getStaticPaths() {
+  return COURSES.map((c) => ({ params: { course: c.slug } }));
+}
+
+const { course } = Astro.params;
+const meta = getCourse(course)!;
+const topics = await getCollection('topics');
+const modules = courseModules(topics, course);
+const totalLessons = modules.reduce((n, m) => n + m.lessons.length, 0);
+---
+
+<BaseLayout title={meta.title} description={meta.tagline}>
+  <section class="hero" style={`--accent:${meta.accent}`}>
+    <div class="container">
+      <div class="breadcrumb"><a href="/">Courses</a> &nbsp;/&nbsp; {meta.title}</div>
+      <h1>{meta.title}</h1>
+      <p>{meta.blurb}</p>
+      <p class="section-sub" style="margin-top:8px">{totalLessons} lessons · {modules.length} modules</p>
+    </div>
+  </section>
+
+  <section class="block soft">
+    <div class="container">
+      <div class="grid cols-2">
+        {modules.map((m) => (
+          <div class="card" style={`--accent:${meta.accent}`}>
+            <span class="badge" style={`background:${meta.accent}`}>Module {m.month}</span>
+            <h3>{m.monthTitle}</h3>
+            <ul class="topic-list">
+              {m.lessons.map((l, i) => (
+                <li class="has-video">
+                  <span class="lz">{String(i + 1).padStart(2, '0')}</span>
+                  <a href={`/topics/${l.id}/`}>{l.data.title}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>

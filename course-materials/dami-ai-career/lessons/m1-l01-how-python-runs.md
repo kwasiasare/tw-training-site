@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: How Python runs & your setup
 month: 1
 monthTitle: Python Foundations + Git

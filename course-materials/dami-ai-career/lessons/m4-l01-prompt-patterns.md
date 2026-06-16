@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Prompt-engineering patterns
 month: 4
 monthTitle: Portfolio Projects

@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: 'Advanced Python: comprehensions, generators, decorators'
 month: 2
 monthTitle: Data, SQL & Web APIs

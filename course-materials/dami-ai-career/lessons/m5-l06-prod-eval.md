@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Production evaluation & monitoring
 month: 5
 monthTitle: Polish, Deploy, Go Public

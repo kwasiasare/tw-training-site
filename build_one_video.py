@@ -10,7 +10,7 @@ from azure_tts import synth, get_token
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 FF = imageio_ffmpeg.get_ffmpeg_exe()
-SITE_VIDEOS = os.path.join(ROOT, 'course-materials', 'dami-ai-career', 'videos')
+SITE_VIDEOS = os.path.join(ROOT, 'course-materials', os.environ.get('COURSE_SLUG', 'dami-ai-career'), 'videos')
 
 FEMALE = 'en-US-JennyNeural'
 MALE = 'en-US-GuyNeural'

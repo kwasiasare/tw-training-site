@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Guardrails & hallucination control
 month: 4
 monthTitle: Portfolio Projects

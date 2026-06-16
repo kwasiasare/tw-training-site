@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: 'Pandas: clean, transform, group, merge'
 month: 2
 monthTitle: Data, SQL & Web APIs

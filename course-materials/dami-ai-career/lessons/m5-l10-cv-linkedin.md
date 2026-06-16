@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: CV & LinkedIn for AI roles
 month: 5
 monthTitle: Polish, Deploy, Go Public

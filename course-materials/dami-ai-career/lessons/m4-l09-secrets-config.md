@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Secrets & configuration management
 month: 4
 monthTitle: Portfolio Projects

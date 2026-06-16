@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Vector databases with Chroma
 month: 3
 monthTitle: LLM Application Skills

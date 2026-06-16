@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Take-home assignments strategy
 month: 6
 monthTitle: Apply & Interview

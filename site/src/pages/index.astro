@@ -1,24 +1,21 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { CURRICULUM, SITE } from '../consts';
+import { COURSES, courseLessonCount, courseModules } from '../consts';
 import { getCollection } from 'astro:content';
 
 const topics = await getCollection('topics');
-const liveSlugs = new Set(topics.map((t) => t.id));
-const totalTopics = CURRICULUM.reduce((n, m) => n + m.topics.length, 0);
+const totalLessons = topics.length;
 ---
 
 <BaseLayout>
   <section class="hero">
     <div class="container">
-      <h1>From maths graduate to an AI job — in six months.</h1>
+      <h1>Project-based courses to your first AI role.</h1>
       <p>
-        A project-based, self-study course built for a maths major with support
-        experience and little coding. Notes, interactive quizzes, instructor videos,
-        and a portfolio you can show employers.
+        Self-study courses built around what employers actually want: shipped projects.
+        In-depth notes, interactive quizzes, instructor videos, and a portfolio you can show.
       </p>
-      <a class="btn" href="/topics/m1-l06-functions/">Watch a sample lesson</a>
-      <a class="btn secondary" href="#curriculum" style="margin-left:10px">See the curriculum</a>
+      <a class="btn" href="#courses">Browse the courses</a>
     </div>
   </section>
 
@@ -26,42 +23,42 @@ const totalTopics = CURRICULUM.reduce((n, m) => n + m.topics.length, 0);
     <div class="container">
       <h2 class="section-title">How it works</h2>
       <p class="section-sub">
-        Six months, ~30 hrs/week. Each month ends in something you can show.
-        {totalTopics} lessons across {CURRICULUM.length} months — each with a video, notes, a quiz, and exercises.
+        Each course is a sequence of short lessons grouped into modules. Every lesson has a
+        video, in-depth notes, and an interactive quiz. {totalLessons} lessons across {COURSES.length} courses.
       </p>
       <div class="grid cols-2">
-        <div class="card"><h3>1. Learn</h3><p class="theme">Watch the lesson video and read the in-depth notes for each topic.</p></div>
-        <div class="card"><h3>2. Check</h3><p class="theme">Take the interactive quiz — instant feedback, no flipping to an answer key.</p></div>
-        <div class="card"><h3>3. Build</h3><p class="theme">Do the exercises and the monthly project. Push everything to GitHub.</p></div>
-        <div class="card"><h3>4. Ship</h3><p class="theme">Deploy, document, and present your work to land the first AI role.</p></div>
+        <div class="card"><h3>1. Learn</h3><p class="theme">Watch the lesson video and read the in-depth notes.</p></div>
+        <div class="card"><h3>2. Check</h3><p class="theme">Take the interactive quiz — instant feedback, no answer key.</p></div>
+        <div class="card"><h3>3. Build</h3><p class="theme">Do the exercises and the module deliverable. Push to GitHub.</p></div>
+        <div class="card"><h3>4. Ship</h3><p class="theme">Deploy, document, and present your work to land the role.</p></div>
       </div>
     </div>
   </section>
 
-  <section class="block soft" id="curriculum">
+  <section class="block soft" id="courses">
     <div class="container">
-      <h2 class="section-title">The curriculum</h2>
-      <p class="section-sub">A play button (&#9654;) marks lessons whose page is live. The rest are being produced.</p>
+      <h2 class="section-title">Courses</h2>
+      <p class="section-sub">Pick the path that matches where you're starting from.</p>
       <div class="grid cols-2">
-        {CURRICULUM.map((m) => (
-          <div class="card">
-            <span class="badge">Month {m.month}</span>
-            <h3>{m.title}</h3>
-            <p class="theme">{m.theme}</p>
-            <ul class="topic-list">
-              {m.topics.map((t, i) => {
-                const live = liveSlugs.has(t.slug);
-                return (
-                  <li class={live ? 'has-video' : 'todo'}>
-                    <span class="lz">{String(i + 1).padStart(2, '0')}</span>
-                    {live ? <a href={`/topics/${t.slug}/`}>{t.title}</a> : t.title}
-                  </li>
-                );
-              })}
-            </ul>
-            <p class="theme" style="margin-top:14px"><strong>Project:</strong> {m.project}</p>
-          </div>
-        ))}
+        {COURSES.map((c) => {
+          const mods = courseModules(topics, c.slug);
+          const count = courseLessonCount(topics, c.slug);
+          return (
+            <div class="card course-card" style={`--accent:${c.accent}`}>
+              <span class="badge" style={`background:${c.accent}`}>{count} lessons · {mods.length} modules</span>
+              <h3>{c.title}</h3>
+              <p class="theme">{c.blurb}</p>
+              <ul class="topic-list">
+                {mods.map((m) => (
+                  <li class="has-video"><span class="lz">{String(m.month).padStart(2, '0')}</span>{m.monthTitle}</li>
+                ))}
+              </ul>
+              <p style="margin-top:16px">
+                <a class="btn" href={`/courses/${c.slug}/`}>View course &rarr;</a>
+              </p>
+            </div>
+          );
+        })}
       </div>
     </div>
   </section>

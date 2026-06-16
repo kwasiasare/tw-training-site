@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 """Convert every videos/_decks/<slug>.json into a lesson Markdown page with valid
 frontmatter (via PyYAML) for the Astro content collection."""
-import os, json, glob, yaml
+import os, sys, json, glob, yaml
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-COURSE = os.path.join(ROOT, 'course-materials', 'dami-ai-career')
+# Course-aware: pass a course slug, e.g. `python convert_decks_to_md.py kwasi-GenAI`.
+COURSE_SLUG = sys.argv[1] if len(sys.argv) > 1 else 'dami-ai-career'
+COURSE = os.path.join(ROOT, 'course-materials', COURSE_SLUG)
 DECKS = os.path.join(COURSE, 'decks')
 TOPICS = os.path.join(COURSE, 'lessons')
 os.makedirs(TOPICS, exist_ok=True)
@@ -18,6 +20,7 @@ for path in sorted(glob.glob(os.path.join(DECKS, '*.json'))):
         bad.append((slug, f'JSON parse: {e}')); continue
     try:
         fm = {
+            'course': COURSE_SLUG,
             'title': deck['title'],
             'month': int(deck['month']),
             'monthTitle': deck['monthTitle'],

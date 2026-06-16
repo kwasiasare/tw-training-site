@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Streaming & structured output
 month: 3
 monthTitle: LLM Application Skills

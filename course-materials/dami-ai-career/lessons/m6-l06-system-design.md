@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: System-design-lite for LLM apps
 month: 6
 monthTitle: Apply & Interview

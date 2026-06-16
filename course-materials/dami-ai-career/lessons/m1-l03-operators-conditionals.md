@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Operators & conditionals
 month: 1
 monthTitle: Python Foundations + Git
