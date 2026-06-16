@@ -1,0 +1,204 @@
+{
+  "slug": "hd6-l06-defender-for-office-365",
+  "title": "Defender for Office 365 and threat protection",
+  "month": 6,
+  "monthTitle": "Microsoft 365 Administration (MS-102)",
+  "lesson": 6,
+  "video": "hd6-l06-defender-for-office-365.mp4",
+  "summary": "Learn how Exchange Online Protection and Defender for Office 365 layer up to stop phishing, spoofing, and malware, then walk the Tier-2 workflow for triaging a reported phishing email and a user who clicked a bad link.",
+  "objectives": [
+    "Explain the difference between Exchange Online Protection (EOP) and Defender for Office 365 Plan 1 and Plan 2",
+    "Describe how Safe Attachments detonation and Safe Links time-of-click protection work",
+    "Configure and reason about anti-phishing, anti-spam, and anti-malware policies",
+    "Manage quarantined messages and handle end-user release requests",
+    "Use Threat Explorer and reports to investigate a reported message",
+    "Run the Tier-2 triage workflow when a user reports phishing or clicks a malicious link"
+  ],
+  "quiz": [
+    {
+      "q": "Which capability is part of Defender for Office 365 rather than the baseline Exchange Online Protection?",
+      "options": [
+        "Anti-spam filtering",
+        "Connection filtering by IP",
+        "Safe Attachments detonation in a sandbox",
+        "Basic anti-malware scanning"
+      ],
+      "answer": 2,
+      "why": "EOP gives every Exchange Online mailbox anti-spam, anti-malware, and connection filtering. Safe Attachments (sandbox detonation) and Safe Links are Defender for Office 365 add-on features."
+    },
+    {
+      "q": "What does Safe Links protect against that a one-time scan at delivery cannot?",
+      "options": [
+        "A link that is weaponised after the email is delivered",
+        "Spelling mistakes in the subject line",
+        "Oversized attachments",
+        "Mailbox storage limits"
+      ],
+      "answer": 0,
+      "why": "Safe Links rewrites URLs and checks them at time-of-click, so a link that was clean at delivery but later points to a malicious site is still blocked when the user clicks it."
+    },
+    {
+      "q": "A user says a legitimate newsletter keeps landing in quarantine. As Tier 2, what is the cleanest fix?",
+      "options": [
+        "Disable anti-spam for the whole tenant",
+        "Turn off Defender for Office 365",
+        "Release it and tune the anti-spam or anti-phishing policy (allow the sender)",
+        "Tell the user to create an inbox rule"
+      ],
+      "answer": 2,
+      "why": "Release the message so the user gets it, then reduce future false positives by allowing the sender or adjusting the policy. Disabling protection tenant-wide is never the answer."
+    },
+    {
+      "q": "Where in the Microsoft Defender portal would a Tier-2 tech investigate all messages matching a reported phishing campaign?",
+      "options": [
+        "Azure AD Connect",
+        "Threat Explorer (Explorer)",
+        "The Teams admin center",
+        "Windows Update for Business"
+      ],
+      "answer": 1,
+      "why": "Threat Explorer (Explorer / Real-time detections) lets you search messages by sender, subject, URL, or detection and see who else received the same campaign."
+    },
+    {
+      "q": "In one sentence, what is the difference between EOP and Defender for Office 365 Plan 2?",
+      "answer": "EOP is the baseline anti-spam, anti-malware, and anti-phishing filtering included with Exchange Online, while Defender for Office 365 Plan 2 adds Safe Attachments, Safe Links, automated investigation and response (AIR), attack simulation training, and advanced hunting on top of Plan 1.",
+      "why": "Knowing the layering — EOP, then Plan 1, then Plan 2 — tells you which features a tenant actually has before you promise a customer a capability they may not be licensed for."
+    },
+    {
+      "q": "A user reports they clicked a link in a suspicious email. List the first Tier-2 triage steps.",
+      "answer": "Confirm what they clicked and whether they entered credentials; use the built-in Report phishing data and Threat Explorer to find the message and anyone else who got it; check Safe Links / URL click verdicts; if credentials were entered, reset the password and revoke sessions, then purge the message tenant-wide and escalate if needed.",
+      "why": "Triage is contain first (credentials/sessions), then scope the blast radius (who else received it), then remediate (purge) — a repeatable Tier-2 incident pattern, not guesswork."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Microsoft Learn — Microsoft Defender for Office 365 overview",
+      "url": "https://learn.microsoft.com/en-us/defender-office-365/mdo-about"
+    },
+    {
+      "label": "Microsoft Learn — Safe Attachments in Defender for Office 365",
+      "url": "https://learn.microsoft.com/en-us/defender-office-365/safe-attachments-about"
+    },
+    {
+      "label": "Microsoft Learn — Safe Links in Defender for Office 365",
+      "url": "https://learn.microsoft.com/en-us/defender-office-365/safe-links-about"
+    },
+    {
+      "label": "Microsoft Learn — MS-102: Microsoft 365 Administrator exam",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/exams/ms-102/"
+    }
+  ],
+  "body_markdown": "## The threat landscape and why layers matter\n\nMost attacks against an organisation arrive by email: **phishing** (tricking a user into giving up credentials), **spoofing** (forging a trusted sender), **malware** (a weaponised attachment or link), and **business email compromise** (a convincing message from a \"CEO\" asking for a wire transfer). No single filter stops all of these, so Microsoft 365 stacks protection in layers.\n\nThe baseline layer is **Exchange Online Protection (EOP)** — every Exchange Online mailbox gets it. EOP handles **anti-spam**, **anti-malware**, **anti-phishing** (spoof intelligence), and **connection filtering**. On top of EOP you can license **Microsoft Defender for Office 365**, sold as **Plan 1** (Safe Attachments, Safe Links, real-time detections) and **Plan 2** (everything in Plan 1 plus automated investigation and response, attack simulation training, and advanced hunting).\n\n## Safe Attachments and Safe Links\n\n**Safe Attachments** opens attachments in an isolated sandbox and watches their behaviour — this is called **detonation**. If the file does something malicious, it never reaches the inbox. **Safe Links** rewrites every URL and re-checks it at the moment the user clicks — **time-of-click** protection. This matters because attackers often send a clean link, then weaponise the destination after delivery, defeating a one-time scan.\n\n```text\nMicrosoft Defender portal > Email & collaboration > Policies & rules\n  > Threat policies > Safe Attachments  (and Safe Links)\n```\n\n## Anti-phishing, anti-spam, and anti-malware policies\n\nPolicies decide what happens to suspect mail. **Anti-phishing** policies add impersonation and mailbox-intelligence protection; **anti-spam** policies set spam actions and allow/block lists; **anti-malware** policies control the common-attachments filter. You can read them in **Exchange Online PowerShell**.\n\n```powershell\nConnect-ExchangeOnline\nGet-AntiPhishPolicy | Format-List Name,Enabled,EnableMailboxIntelligence\nGet-HostedContentFilterPolicy | Format-List Name,SpamAction,BulkThreshold\n```\n\n## Quarantine and end-user release\n\nMessages that policies block land in **quarantine**. As Tier 2 you review them, **release** false positives, and decide whether end users may request release themselves (governed by **quarantine policies**).\n\n```text\nMicrosoft Defender portal > Email & collaboration\n  > Review > Quarantine\n```\n\n```powershell\nGet-QuarantineMessage -RecipientAddress user@contoso.com\nRelease-QuarantineMessage -Identity <messageId> -ReleaseToAll\n```\n\nWhen a user emails \"why didn't I get this newsletter?\", the cleanest fix is to release the message and then allow the sender or tune the policy — never disable protection tenant-wide.\n\n## Threat Explorer, reporting, and the report buttons\n\n**Threat Explorer** (Explorer / Real-time detections) lets you search all mail by sender, subject, URL, or detection verdict, so you can see who else received a campaign. Users help you by clicking the built-in **Report phishing** / **Report message** button in Outlook, which feeds submissions you triage under **Submissions**.\n\n## The Tier-2 triage workflow\n\nWhen a user reports a suspicious email or admits they clicked a bad link, work a repeatable pattern: **contain**, then **scope**, then **remediate**.\n\n```text\n1. Contain: did they enter credentials? Reset password + revoke sessions.\n2. Scope: use Threat Explorer to find everyone who got the same message.\n3. Check Safe Links click verdicts to confirm what was blocked or allowed.\n4. Remediate: purge the message tenant-wide; block sender/URL.\n5. Document and escalate to security if the blast radius is wide.\n```\n\n## Your task\n\nIn the Microsoft Defender portal, open Threat policies and read your tenant's Safe Links, Safe Attachments, and anti-phishing policies. Then connect to Exchange Online PowerShell and run `Get-AntiPhishPolicy` and `Get-QuarantineMessage`, and write a short five-step triage note for a user who clicked a phishing link.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Defender for Office 365 and threat protection",
+      "sub": "Month 6 - Microsoft 365 Administration (MS-102)  |  Lesson 6",
+      "narration": "Welcome to Lesson Six of Month Six. As a Tier Two tech you'll spend real time on email threats, because that's how most attacks land. In this lesson we'll cover the baseline protection that comes with Exchange Online, the Defender for Office 365 add-ons on top of it, and most importantly the practical workflow you run when a user reports a phishing email or admits they clicked a bad link. This maps directly to the M S one oh two exam, and to your day job."
+    },
+    {
+      "type": "content",
+      "title": "The email threat landscape",
+      "bullets": [
+        "Phishing: tricking users out of credentials.",
+        "Spoofing: forging a trusted sender.",
+        "Malware: weaponised attachments or links.",
+        "BEC: a fake CEO asking for a wire transfer."
+      ],
+      "narration": "Let's set the scene. Most attacks against a company arrive by email. Phishing tricks a user into handing over their credentials. Spoofing forges a trusted sender so the message looks legitimate. Malware hides in an attachment or a link. And business email compromise, or B E C, is that convincing message from a so-called C E O asking finance to wire money urgently. No single filter stops all of these, which is exactly why Microsoft stacks protection in layers."
+    },
+    {
+      "type": "content",
+      "title": "EOP: the baseline layer",
+      "bullets": [
+        "Every Exchange Online mailbox gets EOP.",
+        "Anti-spam, anti-malware, anti-phishing.",
+        "Connection filtering and spoof intelligence.",
+        "It's the floor, not the ceiling."
+      ],
+      "narration": "The baseline layer is Exchange Online Protection, which everyone shortens to E O P. Every single Exchange Online mailbox gets it automatically. E O P handles anti-spam, anti-malware, anti-phishing with spoof intelligence, and connection filtering by I P. Think of it as the floor of your protection. It's solid, but for modern attacks you usually want more on top, and that's where Defender comes in."
+    },
+    {
+      "type": "content",
+      "title": "Defender for Office 365: Plan 1 vs Plan 2",
+      "bullets": [
+        "Add-on licence layered on top of EOP.",
+        "Plan 1: Safe Attachments, Safe Links, real-time detections.",
+        "Plan 2: adds AIR, attack simulation, advanced hunting.",
+        "Check the licence before you promise a feature."
+      ],
+      "narration": "Microsoft Defender for Office 365 is a paid add-on that layers on top of E O P. It comes in two plans. Plan One gives you Safe Attachments, Safe Links, and real-time detections. Plan Two adds automated investigation and response, attack simulation training, and advanced hunting. The Tier Two lesson here: always check what the tenant is actually licensed for before you promise a customer a feature they may not have."
+    },
+    {
+      "type": "content",
+      "title": "Safe Attachments and Safe Links",
+      "bullets": [
+        "Safe Attachments detonates files in a sandbox.",
+        "Malicious files never reach the inbox.",
+        "Safe Links rewrites URLs and checks at click time.",
+        "Time-of-click beats a one-time delivery scan."
+      ],
+      "code": "Microsoft Defender portal > Email & collaboration\n  > Policies & rules > Threat policies\n  > Safe Attachments  (and Safe Links)",
+      "narration": "Two flagship features. Safe Attachments opens every attachment in an isolated sandbox and watches what it does. We call that detonation. If the file misbehaves, it never reaches the inbox. Safe Links rewrites every U R L and re-checks it at the exact moment the user clicks, which we call time-of-click protection. That matters because attackers love to send a clean link and then weaponise the destination after delivery, which defeats a one-time scan at delivery."
+    },
+    {
+      "type": "content",
+      "title": "Threat policies",
+      "bullets": [
+        "Anti-phishing: impersonation and mailbox intelligence.",
+        "Anti-spam: spam actions and allow/block lists.",
+        "Anti-malware: common-attachments filter.",
+        "Read them in Exchange Online PowerShell."
+      ],
+      "code": "Connect-ExchangeOnline\nGet-AntiPhishPolicy | Format-List Name,Enabled\nGet-HostedContentFilterPolicy | Format-List Name,SpamAction",
+      "narration": "Policies decide what actually happens to suspect mail. Anti-phishing policies add impersonation protection and mailbox intelligence. Anti-spam policies set the spam action and your allow and block lists. Anti-malware policies control the common-attachments filter. You can read all of these from Exchange Online PowerShell. Connect with Connect dash Exchange Online, then run Get dash Anti Phish Policy. Get into the habit of inspecting policy before you change it."
+    },
+    {
+      "type": "content",
+      "title": "Quarantine and end-user release",
+      "bullets": [
+        "Blocked messages land in quarantine.",
+        "Tier 2 reviews and releases false positives.",
+        "Quarantine policies govern end-user requests.",
+        "Never disable protection to fix one message."
+      ],
+      "code": "Get-QuarantineMessage -RecipientAddress user@contoso.com\nRelease-QuarantineMessage -Identity <id> -ReleaseToAll",
+      "narration": "When a policy blocks a message it lands in quarantine. As Tier Two you review the quarantine, release genuine false positives, and decide whether end users can request release themselves, which is controlled by quarantine policies. So when a user asks why they never got that newsletter, the clean fix is to release it and then allow the sender or tune the policy. Never, ever disable protection tenant-wide just to fix one stuck message."
+    },
+    {
+      "type": "content",
+      "title": "Threat Explorer and the report buttons",
+      "bullets": [
+        "Threat Explorer searches all mail by sender, URL, verdict.",
+        "See who else received the same campaign.",
+        "Users click Report phishing / Report message in Outlook.",
+        "Submissions land in the Defender portal for triage."
+      ],
+      "code": "Microsoft Defender portal > Email & collaboration\n  > Explorer (Threat Explorer)\n  > Review > Submissions",
+      "narration": "Threat Explorer, sometimes called Explorer or Real-time detections, is your investigation hub. You can search every message by sender, subject, U R L, or detection verdict, and crucially see who else in the org received the same campaign. Your users help you here: the built-in Report phishing and Report message button in Outlook feeds submissions that you triage in the Defender portal under Submissions. Encourage users to use that button instead of forwarding."
+    },
+    {
+      "type": "content",
+      "title": "The Tier-2 triage workflow",
+      "bullets": [
+        "Contain: credentials entered? Reset and revoke sessions.",
+        "Scope: use Threat Explorer to find all recipients.",
+        "Remediate: purge tenant-wide, block sender/URL.",
+        "Document, and escalate if the blast radius is wide."
+      ],
+      "code": "1. Contain  (reset password, revoke sessions)\n2. Scope    (Threat Explorer: who else got it?)\n3. Verify   (Safe Links click verdicts)\n4. Remediate(purge tenant-wide, block sender)\n5. Document & escalate",
+      "narration": "Here's the workflow that turns panic into a process. First, contain: ask whether they entered credentials, and if so reset the password and revoke their sessions immediately. Second, scope it: use Threat Explorer to find everyone who received the same message. Third, verify what Safe Links actually blocked or allowed. Fourth, remediate: purge the message tenant-wide and block the sender or U R L. Finally, document it and escalate to security if the blast radius is wide. Contain, scope, remediate, every time."
+    },
+    {
+      "type": "content",
+      "title": "Recap & your task",
+      "bullets": [
+        "EOP is the baseline; Defender Plan 1 and 2 add Safe Links and Safe Attachments.",
+        "Policies decide actions; quarantine holds the blocked mail.",
+        "Threat Explorer scopes a campaign; users report with the button.",
+        "Task: read your threat policies and write a 5-step triage note."
+      ],
+      "narration": "Let's recap. E O P is the baseline protection on every mailbox; Defender for Office 365 Plan One and Plan Two add Safe Attachments and Safe Links on top. Policies decide what happens to suspect mail, and quarantine holds what's blocked. Threat Explorer lets you scope a campaign, and your users report threats with the built-in button. Your task: in the Defender portal, read your tenant's Safe Links, Safe Attachments, and anti-phishing policies, run Get dash Anti Phish Policy and Get dash Quarantine Message in Exchange Online PowerShell, and write a short five-step triage note for a user who clicked a phishing link. See you in the next lesson."
+    }
+  ]
+}

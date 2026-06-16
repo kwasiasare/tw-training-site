@@ -1,0 +1,206 @@
+{
+  "slug": "hd6-l03-exchange-online-and-email-support",
+  "title": "Exchange Online and email support",
+  "month": 6,
+  "monthTitle": "Microsoft 365 Administration (MS-102)",
+  "lesson": 3,
+  "video": "hd6-l03-exchange-online-and-email-support.mp4",
+  "summary": "Learn how Exchange Online delivers cloud email, the mailbox types and permissions you manage, and the day-to-day tickets you will fix with the Exchange admin center, message trace, and PowerShell.",
+  "objectives": [
+    "Describe Exchange Online and the main mailbox types: user, shared, and resource/room",
+    "Grant shared mailbox access and explain Full Access, Send As, and Send on Behalf",
+    "Choose between a distribution group and a Microsoft 365 group for a given need",
+    "Explain mail flow basics: connectors and transport (mail flow) rules",
+    "Run a message trace to answer 'did my email arrive?' tickets and check quarantine",
+    "Triage common email tickets: can't send/receive, out of office, mailbox full, calendar sharing"
+  ],
+  "quiz": [
+    {
+      "q": "A team wants a no-license inbox like info@contoso.com that several agents read and reply from. Which mailbox type fits best?",
+      "options": [
+        "A resource mailbox",
+        "A shared mailbox",
+        "A second user mailbox with a paid license",
+        "A distribution group"
+      ],
+      "answer": 1,
+      "why": "A shared mailbox has no license requirement (under 50 GB) and lets multiple users open it and send from the shared address, which is exactly the info@ scenario."
+    },
+    {
+      "q": "You add a user with Full Access to a shared mailbox, but they complain their replies still come from their own address. What else do they need?",
+      "options": [
+        "A new Outlook profile",
+        "Send As or Send on Behalf permission",
+        "A mailbox license",
+        "Owner role on a distribution group"
+      ],
+      "answer": 1,
+      "why": "Full Access only lets a user open and read the mailbox. To send from the shared address they also need Send As (appears purely as the mailbox) or Send on Behalf permission."
+    },
+    {
+      "q": "Which statement best distinguishes a distribution group from a Microsoft 365 group?",
+      "options": [
+        "A distribution group includes a shared SharePoint site and Teams",
+        "A Microsoft 365 group is email-only with no shared resources",
+        "A distribution group just forwards mail to members; a Microsoft 365 group adds shared mailbox, calendar, SharePoint and Teams",
+        "They are identical and interchangeable"
+      ],
+      "answer": 2,
+      "why": "A distribution group is for one-way email distribution to members; a Microsoft 365 group is a collaboration identity with a shared inbox, calendar, SharePoint site and Teams integration."
+    },
+    {
+      "q": "A user says 'I sent an email an hour ago but they never got it.' Which tool answers what actually happened to that message?",
+      "options": [
+        "Message trace in the Exchange admin center",
+        "Connection filter policy",
+        "A mail flow (transport) rule",
+        "Outlook's Focused Inbox"
+      ],
+      "answer": 0,
+      "why": "Message trace follows a specific message through Exchange Online and shows its status (Delivered, Pending, Failed, Quarantined), which is the fastest way to confirm whether and where it arrived."
+    },
+    {
+      "q": "In one sentence, what is the difference between Send As and Send on Behalf?",
+      "answer": "Send As makes the message appear to come purely from the shared mailbox, while Send on Behalf shows 'Sender on behalf of Mailbox' so the recipient can see who actually sent it.",
+      "why": "Both let a delegate send from another address, but Send on Behalf preserves the real sender's identity in the From line, which matters for transparency and auditing."
+    },
+    {
+      "q": "A ticket says 'my mailbox is full and I can't receive new mail.' Name two things you would check or do.",
+      "answer": "Check the mailbox storage quota and current size (Get-Mailbox / Get-MailboxStatistics), then have the user clear large items and empty Deleted Items, or raise the quota / archive policy if appropriate.",
+      "why": "Mailbox-full tickets are about quota versus usage; you confirm the limit, see how much is used, and either free space (delete/archive) or adjust the quota and enable archiving."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Microsoft Learn — Exchange Online overview",
+      "url": "https://learn.microsoft.com/en-us/exchange/exchange-online"
+    },
+    {
+      "label": "Microsoft Learn — About shared mailboxes",
+      "url": "https://learn.microsoft.com/en-us/microsoft-365/admin/email/about-shared-mailboxes"
+    },
+    {
+      "label": "Microsoft Learn — Mail flow rules (transport rules) in Exchange Online",
+      "url": "https://learn.microsoft.com/en-us/exchange/security-and-compliance/mail-flow-rules/mail-flow-rules"
+    },
+    {
+      "label": "Microsoft Learn — Exam MS-102: Microsoft 365 Administrator",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/exams/ms-102/"
+    }
+  ],
+  "body_markdown": "## Exchange Online: cloud email, managed centrally\n\n**Exchange Online** is the hosted email service inside Microsoft 365. Instead of running an on-premises Exchange server, mailboxes live in Microsoft's cloud and you administer them from the **Exchange admin center (EAC)** at `admin.exchange.microsoft.com` or from **Exchange Online PowerShell**. As a Tier 2 tech, this is where most email tickets land, so knowing the moving parts pays off fast.\n\nConnect to PowerShell once and you can do almost anything the portal can, faster:\n\n```powershell\nConnect-ExchangeOnline -UserPrincipalName admin@contoso.com\nGet-Mailbox -ResultSize 50 | Format-Table DisplayName,RecipientTypeDetails,PrimarySmtpAddress\n```\n\n## Mailbox types you will manage\n\nThere are three types you meet daily. A **user mailbox** belongs to a licensed person. A **shared mailbox** (think `info@` or `support@`) needs no license under 50 GB and lets several people read and send from one address. A **resource mailbox** represents a **room** or **equipment** you book in Outlook calendars.\n\n```powershell\nNew-Mailbox -Shared -Name \"Support\" -PrimarySmtpAddress support@contoso.com\nNew-Mailbox -Room -Name \"Boardroom\"\n```\n\n## Shared mailbox access and permissions\n\nThree permissions cover almost every shared-mailbox request. **Full Access** lets someone open and read the mailbox. **Send As** makes their messages appear to come purely from the shared address. **Send on Behalf** shows \"User on behalf of Mailbox\". A common ticket: a user has Full Access but replies still show their own name — they are missing Send As.\n\n```powershell\nAdd-MailboxPermission -Identity support@contoso.com -User joe@contoso.com -AccessRights FullAccess -AutoMapping $true\nAdd-RecipientPermission -Identity support@contoso.com -Trustee joe@contoso.com -AccessRights SendAs\n```\n\n## Groups: distribution vs Microsoft 365\n\nA **distribution group** simply forwards mail to its members — one address in, many copies out. A **Microsoft 365 group** is a collaboration identity: a shared inbox, calendar, **SharePoint** site and **Teams** all under one membership. Rule of thumb: announcements only -> distribution group; a team that also needs shared files and chat -> Microsoft 365 group.\n\n## Mail flow, message trace, and quarantine\n\n**Mail flow** is how messages move in and out. **Connectors** define routing to or from partner systems, and **mail flow rules** (transport rules) apply conditions and actions — for example, add a disclaimer or block an attachment type. When a user asks \"did my email arrive?\", run a **message trace**:\n\n```powershell\nGet-MessageTrace -SenderAddress joe@contoso.com -StartDate (Get-Date).AddHours(-4) -EndDate (Get-Date)\n```\n\nStatuses like **Delivered**, **Pending**, **Failed**, or **Quarantined** tell you the next step. If it is **Quarantined**, check the quarantine in the Microsoft Defender portal and release it if it is a false positive.\n\n```text\nExchange admin center -> Mail flow -> Message trace -> set sender/recipient + time range -> Search\n```\n\n## Your task\n\nIn a test tenant, create a shared mailbox `helpdesk@yourdomain`, grant a colleague **Full Access** and **Send As**, then send a test message and run a **message trace** to confirm it was Delivered. Note where you would look if the status came back Quarantined instead.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Exchange Online and email support",
+      "sub": "Month 6 - Microsoft 365 Administration (MS-102)  |  Lesson 3",
+      "narration": "Welcome back. In this lesson we're consolidating the email skills every Tier Two tech needs: Exchange Online. Email is the single biggest source of helpdesk tickets, so by the end of this lesson you'll know the mailbox types you manage, how to grant shared mailbox access, how groups differ, and how to answer that classic question, did my email actually arrive. This maps directly to the M S one oh two exam, so it counts twice."
+    },
+    {
+      "type": "content",
+      "title": "What is Exchange Online?",
+      "bullets": [
+        "Microsoft 365's hosted, cloud email service.",
+        "No on-prem server — mailboxes live in the cloud.",
+        "Manage via the Exchange admin center or PowerShell.",
+        "Where most of your email tickets land."
+      ],
+      "code": "Connect-ExchangeOnline -UserPrincipalName admin@contoso.com",
+      "narration": "Let's start with the big picture. Exchange Online is the hosted email service inside Microsoft 365. Instead of running your own Exchange server in a cupboard, the mailboxes live in Microsoft's cloud. You manage everything from the Exchange admin center, in your browser, or from Exchange Online PowerShell. You connect to PowerShell with Connect dash Exchange Online, and from there you can do almost everything the portal can, only faster."
+    },
+    {
+      "type": "content",
+      "title": "Mailbox types you manage",
+      "bullets": [
+        "User mailbox: a licensed person.",
+        "Shared mailbox: info@ or support@, no license under 50 GB.",
+        "Resource mailbox: a room or equipment you book.",
+        "Pick the type that matches the real need."
+      ],
+      "code": "New-Mailbox -Shared -Name \"Support\" -PrimarySmtpAddress support@contoso.com\nNew-Mailbox -Room -Name \"Boardroom\"",
+      "narration": "There are three mailbox types you'll meet every day. A user mailbox belongs to one licensed person. A shared mailbox, like info or support, needs no license under fifty gigabytes, and lets several people read and reply from one address. And a resource mailbox represents a room or a piece of equipment that people book in their Outlook calendars. Match the type to the real need and most design questions answer themselves."
+    },
+    {
+      "type": "content",
+      "title": "Shared mailbox permissions",
+      "bullets": [
+        "Full Access: open and read the mailbox.",
+        "Send As: appears purely as the shared address.",
+        "Send on Behalf: shows 'User on behalf of Mailbox'.",
+        "Classic ticket: Full Access but replies show own name."
+      ],
+      "code": "Add-MailboxPermission -Identity support@contoso.com -User joe@contoso.com -AccessRights FullAccess\nAdd-RecipientPermission -Identity support@contoso.com -Trustee joe@contoso.com -AccessRights SendAs",
+      "narration": "Three permissions cover nearly every shared mailbox request. Full Access lets someone open and read the mailbox. Send As makes their messages look like they came purely from the shared address. And Send on Behalf shows the recipient that the user sent on behalf of the mailbox. Here's a ticket you'll see a lot: a user has Full Access, but their replies still show their own name. The fix is simple, they're missing Send As."
+    },
+    {
+      "type": "content",
+      "title": "Distribution vs Microsoft 365 groups",
+      "bullets": [
+        "Distribution group: forwards mail to members, one to many.",
+        "Microsoft 365 group: shared inbox, calendar, SharePoint, Teams.",
+        "Announcements only? Distribution group.",
+        "Team needing files and chat? Microsoft 365 group."
+      ],
+      "narration": "People mix these two up constantly. A distribution group simply forwards mail to its members. One address goes in, many copies go out, and that's all it does. A Microsoft 365 group is much bigger: it's a collaboration identity with a shared inbox, a shared calendar, a SharePoint site and Teams, all under one membership. Rule of thumb: if it's just announcements, use a distribution group. If it's a team that also needs shared files and chat, use a Microsoft 365 group."
+    },
+    {
+      "type": "content",
+      "title": "Mail flow: connectors and rules",
+      "bullets": [
+        "Mail flow is how messages move in and out.",
+        "Connectors define routing to partner systems.",
+        "Mail flow (transport) rules apply conditions and actions.",
+        "Examples: add a disclaimer, block an attachment type."
+      ],
+      "code": "Exchange admin center -> Mail flow -> Rules -> Add a rule",
+      "narration": "Next, mail flow, which is just how messages move in and out of your organisation. Connectors define routing to or from partner systems, for example a secure link to a supplier. Mail flow rules, sometimes called transport rules, apply conditions and actions to messages. You might add a legal disclaimer to every outbound email, or block a particular attachment type. You'll find both under Mail flow in the Exchange admin center."
+    },
+    {
+      "type": "content",
+      "title": "Did my email arrive? Message trace",
+      "bullets": [
+        "Message trace follows one message through Exchange.",
+        "Statuses: Delivered, Pending, Failed, Quarantined.",
+        "The fastest answer to 'they never got it' tickets.",
+        "Search by sender, recipient and time range."
+      ],
+      "code": "Get-MessageTrace -SenderAddress joe@contoso.com -StartDate (Get-Date).AddHours(-4) -EndDate (Get-Date)",
+      "narration": "Here's the tool that saves your day: message trace. When someone says I sent it an hour ago but they never got it, message trace follows that specific message through Exchange Online and tells you exactly what happened. The status will read Delivered, Pending, Failed, or Quarantined. You can run it in the admin center, under Mail flow, message trace, or with Get dash Message Trace in PowerShell. Set the sender, recipient and a time window, and search."
+    },
+    {
+      "type": "content",
+      "title": "Quarantine and common tickets",
+      "bullets": [
+        "Quarantined? Check Defender portal, release if false positive.",
+        "Can't send/receive: check quota, mail flow, and trace.",
+        "Out of office: set automatic replies for the user.",
+        "Mailbox full: check quota vs size, archive or raise limit."
+      ],
+      "narration": "If a trace comes back Quarantined, head to the Microsoft Defender portal, review the message, and release it if it's a false positive. The other tickets cluster into a few patterns. Can't send or receive? Check the quota, the mail flow, and run a trace. Out of office requests just need automatic replies set. And mailbox full means the storage quota is hit, so you check size against the limit, then clear large items, enable archiving, or raise the quota."
+    },
+    {
+      "type": "content",
+      "title": "Calendar sharing and wrap-up",
+      "bullets": [
+        "Calendar sharing: grant folder permissions in Outlook or PowerShell.",
+        "Use Add-MailboxFolderPermission for calendar access.",
+        "Most tickets = permissions, quota, or mail flow.",
+        "Always confirm with a message trace when in doubt."
+      ],
+      "code": "Add-MailboxFolderPermission -Identity user@contoso.com:\\Calendar -User joe@contoso.com -AccessRights Reviewer",
+      "narration": "One more frequent request is calendar sharing. You grant access to someone's calendar folder, in Outlook or with Add dash Mailbox Folder Permission, choosing a level like Reviewer for read only. Step back and you'll notice nearly every email ticket comes down to three things: permissions, quota, or mail flow. And when you're unsure what happened to a message, a trace gives you the truth."
+    },
+    {
+      "type": "content",
+      "title": "Recap & your task",
+      "bullets": [
+        "Exchange Online = cloud email, managed in EAC or PowerShell.",
+        "Mailbox types: user, shared, resource; mind the permissions.",
+        "Distribution group vs Microsoft 365 group: scope decides.",
+        "Message trace answers 'did it arrive?'; check quarantine.",
+        "Task: create a shared mailbox, grant access, trace a test."
+      ],
+      "narration": "Let's recap. Exchange Online is your cloud email, managed in the Exchange admin center or PowerShell. You manage user, shared and resource mailboxes, and you watch the permissions: Full Access, Send As, and Send on Behalf. Choose a distribution group for announcements, a Microsoft 365 group for collaboration. And message trace answers did it arrive, with quarantine as your next stop. Your task: in a test tenant, create a shared mailbox called helpdesk, grant a colleague Full Access and Send As, send a test message, and run a message trace to confirm it was delivered. Note where you'd look if it came back quarantined. See you in the next lesson."
+    }
+  ]
+}

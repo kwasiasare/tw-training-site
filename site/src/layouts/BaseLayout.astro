@@ -36,6 +36,7 @@ const fullTitle = title ? `${title} | ${SITE.title}` : `${SITE.title} — Course
         <nav class="nav">
           <a href="/">Home</a>
           <a href="/#courses">Courses</a>
+          <span id="auth-area" class="auth-area"><a href="/.auth/login/entraExternalId?post_login_redirect_uri=/account/">Sign in</a></span>
           <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode"></button>
         </nav>
       </div>
@@ -64,6 +65,23 @@ const fullTitle = title ? `${title} | ${SITE.title}` : `${SITE.title} — Course
           try { localStorage.setItem('theme', next); } catch (e) {}
           paint();
         });
+      })();
+    </script>
+    <script is:inline>
+      (function () {
+        var area = document.getElementById('auth-area');
+        if (!area) return;
+        fetch('/.auth/me', { headers: { accept: 'application/json' } })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (d) {
+            var p = d && d.clientPrincipal;
+            if (p) {
+              var name = (p.userDetails || 'Account').replace(/[<>&"]/g, '');
+              area.innerHTML = '<a href="/account/">' + name + '</a> ' +
+                '<a href="/.auth/logout?post_logout_redirect_uri=/">Sign out</a>';
+            }
+          })
+          .catch(function () {});
       })();
     </script>
   </body>

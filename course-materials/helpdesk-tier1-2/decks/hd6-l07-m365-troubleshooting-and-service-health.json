@@ -1,0 +1,205 @@
+{
+  "slug": "hd6-l07-m365-troubleshooting-and-service-health",
+  "title": "Microsoft 365 troubleshooting and service health",
+  "month": 6,
+  "monthTitle": "Microsoft 365 Administration (MS-102)",
+  "lesson": 7,
+  "video": "hd6-l07-m365-troubleshooting-and-service-health.mp4",
+  "summary": "Learn a structured way to triage Microsoft 365 problems — is it one user, many users, or a Microsoft outage? — using the Service health dashboard, Message center, connectivity tests, and the Support and Recovery Assistant before you escalate.",
+  "objectives": [
+    "Apply a scoping methodology: one user, many users, or a service-wide outage",
+    "Use the Service health dashboard and Message center to rule out a Microsoft-side incident before troubleshooting locally",
+    "Run the Microsoft 365 connectivity test and admin diagnostics to confirm where a problem lives",
+    "Use the Support and Recovery Assistant (SARA) for common Outlook and Office issues",
+    "Check licences, MFA, and Conditional Access as common root causes",
+    "Open a Microsoft support request with the right detail and document the escalation cleanly"
+  ],
+  "quiz": [
+    {
+      "q": "A user reports they cannot send mail in Outlook. Following a structured cloud troubleshooting method, what should you check FIRST?",
+      "options": [
+        "Reinstall Office on the user's machine",
+        "Whether the problem affects only this user, many users, or is a Microsoft-side outage",
+        "Reset the user's password immediately",
+        "Open a Microsoft support request straight away"
+      ],
+      "answer": 1,
+      "why": "Scoping is the first move: confirm whether it is one user, many users, or a service outage. That single question tells you whether to look at the user, the tenant, or Microsoft's own status before you waste hours."
+    },
+    {
+      "q": "Where in the Microsoft 365 admin center do you confirm whether Microsoft is currently reporting an active incident affecting your services?",
+      "options": [
+        "Billing > Your products",
+        "Settings > Org settings",
+        "Health > Service health",
+        "Users > Active users"
+      ],
+      "answer": 2,
+      "why": "Health > Service health lists active incidents and advisories Microsoft has acknowledged. Checking it early prevents you from troubleshooting a problem that Microsoft is already fixing."
+    },
+    {
+      "q": "What is the Message center primarily used for?",
+      "options": [
+        "Reading planned changes, new features, and required actions from Microsoft",
+        "Resetting user passwords in bulk",
+        "Viewing real-time mail flow queues",
+        "Configuring Conditional Access policies"
+      ],
+      "answer": 0,
+      "why": "The Message center is Microsoft's communication channel for upcoming changes, new and retiring features, and actions you must take — distinct from Service health, which reports live incidents."
+    },
+    {
+      "q": "Several users in one department suddenly cannot access SharePoint, but Service health is all green. What is the most likely category of root cause to investigate?",
+      "options": [
+        "A global Microsoft datacentre failure",
+        "A configuration issue such as licensing, a group, or a Conditional Access policy scoped to that department",
+        "A faulty network cable at Microsoft",
+        "Expired root certificates on Microsoft's servers"
+      ],
+      "answer": 1,
+      "why": "When Microsoft reports healthy but a defined subset of users is affected, the cause is almost always local scoping — a licence, group membership, or a Conditional Access policy targeting that population."
+    },
+    {
+      "q": "Name the Microsoft tool you would download and run to automatically diagnose and often fix common Outlook and Office sign-in or activation problems on a user's device.",
+      "answer": "The Support and Recovery Assistant (SARA).",
+      "why": "SARA runs guided automated diagnostics on the client for Outlook, Office activation, and Microsoft 365 sign-in issues, and either fixes the problem or collects logs to attach to a support case."
+    },
+    {
+      "q": "In one or two sentences, list what you should include when opening a Microsoft support request for a service issue.",
+      "answer": "A clear description of the impact, the scope (how many users and which ones), exact error messages, timestamps and time zone, affected service and region, steps already tried, and any diagnostic logs or connectivity test results.",
+      "why": "A well-scoped request with errors, timestamps, scope, and diagnostics lets Microsoft engineers reproduce and triage immediately instead of bouncing the ticket back for more information."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Microsoft Learn — How to check Microsoft 365 service health",
+      "url": "https://learn.microsoft.com/en-us/microsoft-365/enterprise/view-service-health"
+    },
+    {
+      "label": "Microsoft Learn — Message center in the Microsoft 365 admin center",
+      "url": "https://learn.microsoft.com/en-us/microsoft-365/admin/manage/message-center"
+    },
+    {
+      "label": "Microsoft Learn — About the Microsoft Support and Recovery Assistant",
+      "url": "https://learn.microsoft.com/en-us/microsoft-365/troubleshoot/administration/microsoft-support-and-recovery-assistant"
+    },
+    {
+      "label": "Microsoft Learn — Exam MS-102: Microsoft 365 Administrator",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/exams/ms-102/"
+    }
+  ],
+  "body_markdown": "## Start by scoping the problem\n\nThe biggest time-waster in cloud support is fixing the wrong layer. Before you touch anything, answer one question: **is this one user, many users, or a service outage?** That single decision changes everything you do next.\n\n- **One user** → look at *that* user: licence, mailbox, MFA registration, device, client.\n- **Many users / a whole department** → look at *configuration*: a group, a policy, a **Conditional Access** rule, a licence pool.\n- **Everyone, suddenly** → suspect a **Microsoft-side incident** before you suspect yourself.\n\nWrite the scope down at the top of your ticket. It is the most important line you will record.\n\n## Rule out Microsoft first: Service health and Message center\n\nIf the scope smells like \"everyone\", check Microsoft's own status before you debug for hours.\n\n```text\nMicrosoft 365 admin center (admin.microsoft.com)\n  > Health > Service health   (active incidents & advisories)\n  > Health > Message center   (planned changes & required actions)\n```\n\n**Service health** lists incidents Microsoft has acknowledged, the affected services, and an estimated time to resolution. If your symptom matches an active incident, your job switches from *fixing* to *communicating* — post status, link the incident ID, and wait. The **Message center** is different: it announces upcoming changes, new and retiring features, and actions you must take. A change announced there last week often explains \"it stopped working\" today.\n\n## Confirm where the problem lives: client vs service\n\nWhen Service health is green, the problem is on your side — but is it the **client** or the **service**? Test from a second device or a browser session. If Outlook on the web works but the desktop client fails, it is a **client** problem. Use the connectivity test and basic checks:\n\n```powershell\n# Reachability and DNS sanity from the user's machine\nTest-Connection outlook.office365.com -Count 4\nResolve-DnsName outlook.office365.com\n```\n\nThe **Microsoft 365 connectivity test** (connectivity.office.com) and the admin center's diagnostics run guided checks and surface known issues automatically.\n\n## Check the usual cloud root causes\n\nMost \"can't access\" tickets come down to a handful of causes. Verify them directly rather than guessing:\n\n```powershell\n# Verify the user's licence assignment and account state\nGet-MgUser -UserId user@contoso.com -Property AssignedLicenses,AccountEnabled\n\n# Verify mailbox exists and type is correct\nGet-Mailbox user@contoso.com | Format-List Name,RecipientTypeDetails,LitigationHoldEnabled\n```\n\nThe big three: a **missing or wrong licence**, an **MFA** registration problem, and a **Conditional Access** policy blocking the sign-in (check the Entra sign-in logs for the failure reason). These explain far more outages than broken software does.\n\n## Use SARA for client-side Office issues\n\nFor Outlook, Office activation, and Microsoft 365 sign-in problems on a device, download and run the **Support and Recovery Assistant (SARA)**. It runs automated diagnostics, fixes many issues on the spot, and when it cannot, it collects logs you can attach to a support case — saving a round-trip with Microsoft.\n\n## Escalate cleanly when it is genuinely Microsoft's\n\nIf you have confirmed it is a service issue and there is no published incident, open a support request from **Help & support** in the admin center. Include: impact, **scope** (who and how many), exact error text, **timestamps with time zone**, the affected service and region, what you have already tried, and diagnostic or connectivity-test output. Document the same in your ticket so the next tech is not starting from zero.\n\n## Your task\n\nTake a real or sample ticket and write out its troubleshooting trail: state the scope (one user / many / outage), record the Service health result, note client-vs-service, list the three root-cause checks you ran, and draft the support-request summary you would send Microsoft.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Microsoft 365 troubleshooting and service health",
+      "sub": "Month 6 - Microsoft 365 Administration (MS-102)  |  Lesson 7",
+      "narration": "Welcome to Lesson Seven of Month Six. Today we tackle one of the most valuable skills a Tier Two cloud tech can have: troubleshooting Microsoft 365 in a structured way. By the end you'll know how to scope a problem, how to tell a Microsoft outage apart from a local issue, which tools to reach for, and how to escalate cleanly when it really is Microsoft's fault. This maps directly to the M S one oh two exam, and just as importantly, it's how you stop wasting hours fixing the wrong thing."
+    },
+    {
+      "type": "content",
+      "title": "Step one: scope the problem",
+      "bullets": [
+        "Ask: one user, many users, or an outage?",
+        "One user means look at that user.",
+        "Many users means look at configuration.",
+        "Everyone, suddenly, means suspect Microsoft."
+      ],
+      "narration": "The single biggest time-waster in cloud support is fixing the wrong layer. So before you touch anything, ask one question: is this one user, many users, or a service outage? If it's one user, you look at that user's licence, mailbox, and device. If it's many users or a whole department, you look at configuration, like a group or a policy. And if it's suddenly everyone, you suspect a Microsoft-side incident before you suspect yourself. Write that scope at the top of your ticket. It's the most important line you'll record."
+    },
+    {
+      "type": "content",
+      "title": "Rule out Microsoft: Service health",
+      "bullets": [
+        "Health > Service health in the admin center.",
+        "Lists incidents Microsoft has acknowledged.",
+        "Shows affected services and time to resolve.",
+        "If it matches, you communicate, not fix."
+      ],
+      "code": "admin.microsoft.com\n  > Health > Service health",
+      "narration": "If the scope smells like everyone, check Microsoft's own status before you debug for hours. In the Microsoft 365 admin center, go to Health, then Service health. This lists incidents Microsoft has already acknowledged, the affected services, and an estimated time to resolution. If your symptom matches an active incident, your job changes completely: you stop trying to fix it and you start communicating. Post a status update, quote the incident I D, and wait for Microsoft. That's not giving up; that's the correct response."
+    },
+    {
+      "type": "content",
+      "title": "Message center vs Service health",
+      "bullets": [
+        "Service health = live incidents happening now.",
+        "Message center = planned changes and actions.",
+        "New, changing, or retiring features land here.",
+        "Last week's change often explains today's break."
+      ],
+      "code": "admin.microsoft.com\n  > Health > Message center",
+      "narration": "It's easy to confuse two things, so let's be clear. Service health is about live incidents happening right now. The Message center is different: it announces upcoming changes, new features, retiring features, and actions you must take. Here's why that matters. A change that Microsoft announced in the Message center last week is very often the explanation for something that, quote, stopped working, today. So when a tech says it broke for no reason, the Message center is one of the first places to look."
+    },
+    {
+      "type": "content",
+      "title": "Client or service? Test to find out",
+      "bullets": [
+        "Service health green means it's on your side.",
+        "Test from a browser or a second device.",
+        "Web works but desktop fails = client issue.",
+        "Use the Microsoft 365 connectivity test."
+      ],
+      "code": "Test-Connection outlook.office365.com -Count 4\nResolve-DnsName outlook.office365.com",
+      "narration": "When Service health is all green, the problem is on your side, but you still need to know: is it the client or the service? The fastest test is to try a second device or a browser session. If Outlook on the web works fine but the desktop client fails, that's a client problem, not a service one. From the user's machine you can run Test dash Connection against outlook dot office three six five dot com, and Resolve dash Dns Name to check that name resolution is healthy. For deeper checks, the Microsoft 365 connectivity test at connectivity dot office dot com runs guided diagnostics for you."
+    },
+    {
+      "type": "content",
+      "title": "Check the usual root causes",
+      "bullets": [
+        "Missing or wrong licence is number one.",
+        "MFA registration problems are number two.",
+        "Conditional Access blocking sign-in is number three.",
+        "Verify directly; don't guess."
+      ],
+      "code": "Get-MgUser -UserId user@contoso.com -Property AssignedLicenses,AccountEnabled",
+      "narration": "Most can't-access tickets come down to a small handful of causes, so verify them directly instead of guessing. The big three are: a missing or wrong licence, an M F A registration problem, and a Conditional Access policy quietly blocking the sign-in. You can confirm a user's licence and whether their account is enabled with Get dash M g User, pulling the assigned licenses and account-enabled properties. And for Conditional Access, the Entra sign-in logs will tell you exactly which policy blocked the attempt and why. These three explain far more outages than broken software ever does."
+    },
+    {
+      "type": "content",
+      "title": "Verify the mailbox too",
+      "bullets": [
+        "Confirm the mailbox actually exists.",
+        "Check the recipient type is correct.",
+        "Watch for holds that change behaviour.",
+        "Exchange Online PowerShell is your friend."
+      ],
+      "code": "Get-Mailbox user@contoso.com | Format-List Name,RecipientTypeDetails,LitigationHoldEnabled",
+      "narration": "For mail problems specifically, confirm the mailbox itself. Get dash Mailbox shows you whether the mailbox exists, what type it is, a user mailbox versus a shared one for example, and whether something like a litigation hold is changing its behaviour. A surprising number of mail tickets turn out to be a mailbox that was never the type the user assumed, or a configuration left behind by an old policy. Connecting to Exchange Online PowerShell and running this one line answers the question in seconds."
+    },
+    {
+      "type": "content",
+      "title": "SARA for Outlook and Office issues",
+      "bullets": [
+        "Support and Recovery Assistant runs on the device.",
+        "Automated diagnostics for Outlook and Office.",
+        "Often fixes sign-in and activation issues.",
+        "If it can't, it collects logs for your case."
+      ],
+      "narration": "For client-side problems with Outlook, Office activation, or Microsoft 365 sign-in, reach for the Support and Recovery Assistant, often just called SARA. You download and run it on the user's device, and it runs guided automated diagnostics. A lot of the time it simply fixes the problem on the spot. And when it can't, it collects the right logs for you to attach to a support case, which saves a frustrating round-trip with Microsoft asking you to gather exactly those logs. It's one of the highest-value tools in your kit."
+    },
+    {
+      "type": "content",
+      "title": "Escalate cleanly to Microsoft",
+      "bullets": [
+        "Open from Help & support in the admin center.",
+        "Include impact, scope, and exact errors.",
+        "Add timestamps with time zone and the region.",
+        "List what you tried and attach diagnostics."
+      ],
+      "narration": "If you've confirmed it's genuinely a service issue and there's no published incident, open a support request from Help and support in the admin center. The quality of your request decides how fast it gets solved. Include the impact, the scope of who and how many are affected, the exact error text, timestamps with the time zone, the affected service and region, what you've already tried, and any diagnostic or connectivity-test output. A well-scoped request gets triaged immediately. A vague one just bounces back asking for all of that, costing you a day."
+    },
+    {
+      "type": "content",
+      "title": "Recap & your task",
+      "bullets": [
+        "Scope first: one user, many, or outage.",
+        "Service health and Message center rule out Microsoft.",
+        "Test client vs service; check licence, MFA, CA.",
+        "SARA for Office; escalate with full detail.",
+        "Task: write out a full troubleshooting trail."
+      ],
+      "narration": "Let's recap. Always scope first: one user, many users, or a service outage. Use Service health and the Message center to rule out Microsoft before you debug locally. When it's on your side, test client versus service, then check the big three: licence, M F A, and Conditional Access. Use SARA for Office and Outlook problems on the device, and when you escalate, give Microsoft the full picture. Your task before the next lesson: take a real or sample ticket and write out its complete troubleshooting trail. State the scope, record the Service health result, note client versus service, list the three root-cause checks you ran, and draft the support-request summary you'd send Microsoft. Nail this and you'll troubleshoot like a Tier Two should. See you next lesson."
+    }
+  ]
+}
