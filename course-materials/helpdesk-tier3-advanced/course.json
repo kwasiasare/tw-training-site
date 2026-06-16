@@ -1,0 +1,20 @@
+{
+  "slug": "helpdesk-tier3-advanced",
+  "title": "Helpdesk Tier 3: Advanced Endpoint Engineering",
+  "description": "An advanced, deliverable-driven follow-on for working Tier 2 technicians: deep root-cause analysis, PowerShell & Microsoft Graph automation at scale, advanced endpoint security & identity, and AIOps with agentic automation for modern endpoint operations.",
+  "audience": "Working Tier 2 helpdesk / desktop support technicians moving into senior, escalation and endpoint-engineering roles.",
+  "modules": 4,
+  "lessons": 32,
+  "layout": {
+    "decks": "decks",
+    "lessons": "lessons",
+    "videos": "videos",
+    "studyPacks": "study-packs"
+  },
+  "moduleTitles": {
+    "1": "Advanced Troubleshooting & Root Cause Analysis",
+    "2": "Automation: PowerShell & Microsoft Graph at Scale",
+    "3": "Advanced Endpoint Security & Identity",
+    "4": "AIOps, Monitoring & Agentic Automation"
+  }
+}

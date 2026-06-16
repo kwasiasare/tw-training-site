@@ -1,0 +1,1 @@
+create a course for helpdesk beginner with no PC experience to tier 2 as first step and tier 3 as an advance course. Add use of AI tools and how they are used to resolve modern endpoint problems. structure course on A+, N+, MD-102, MS-102 and any relevant AI courses. Course should be maximum 6 months and should be very practical
