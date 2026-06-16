@@ -1,0 +1,22 @@
+{
+  "slug": "helpdesk-tier1-2",
+  "title": "Helpdesk: No Experience to Tier 2",
+  "description": "A practical, 6-month, 60-lesson course that takes a complete beginner with no PC experience to a job-ready IT Helpdesk Tier 1/2 technician. Built around CompTIA A+, Network+, Microsoft MD-102 and MS-102, with hands-on labs and modern AI tools for endpoint support.",
+  "audience": "Career changers and beginners with little or no PC experience aiming for a first IT support / helpdesk role.",
+  "modules": 6,
+  "lessons": 60,
+  "layout": {
+    "decks": "decks",
+    "lessons": "lessons",
+    "videos": "videos",
+    "studyPacks": "study-packs"
+  },
+  "moduleTitles": {
+    "1": "PC Hardware & How Computers Work (A+ Core 1)",
+    "2": "Networking Foundations (Network+)",
+    "3": "Windows, OS Support & Security (A+ Core 2)",
+    "4": "The Helpdesk Professional: ITIL, Ticketing & Soft Skills",
+    "5": "Modern Endpoint Management with AI (MD-102)",
+    "6": "Microsoft 365 Administration (MS-102)"
+  }
+}

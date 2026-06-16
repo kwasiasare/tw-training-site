@@ -5,6 +5,19 @@ import { getCollection } from 'astro:content';
 
 const topics = await getCollection('topics');
 const totalLessons = topics.length;
+
+// Build a small client-side search index over every lesson in every course.
+const courseTitle = Object.fromEntries(COURSES.map((c) => [c.slug, c.title]));
+const lessonIndex = topics
+  .map((t) => ({
+    id: t.id,
+    course: t.data.course,
+    courseTitle: courseTitle[t.data.course] ?? t.data.course,
+    title: t.data.title,
+    summary: t.data.summary,
+    module: t.data.monthTitle,
+  }))
+  .sort((a, b) => a.id.localeCompare(b.id));
 ---
 
 <BaseLayout>
@@ -19,7 +32,23 @@ const totalLessons = topics.length;
     </div>
   </section>
 
-  <section class="block">
+  <section class="block" id="search">
+    <div class="container">
+      <h2 class="section-title">Find a lesson</h2>
+      <p class="section-sub">Search across all {totalLessons} lessons in every course.</p>
+      <input
+        id="lesson-search"
+        class="search-input"
+        type="search"
+        placeholder="Search lessons by title or topic…"
+        autocomplete="off"
+        aria-label="Search lessons"
+      />
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+  </section>
+
+  <section class="block soft">
     <div class="container">
       <h2 class="section-title">How it works</h2>
       <p class="section-sub">
@@ -35,7 +64,7 @@ const totalLessons = topics.length;
     </div>
   </section>
 
-  <section class="block soft" id="courses">
+  <section class="block" id="courses">
     <div class="container">
       <h2 class="section-title">Courses</h2>
       <p class="section-sub">Pick the path that matches where you're starting from.</p>
@@ -62,4 +91,41 @@ const totalLessons = topics.length;
       </div>
     </div>
   </section>
+
+  <script type="application/json" id="lesson-index" set:html={JSON.stringify(lessonIndex)}></script>
+  <script is:inline>
+    (function () {
+      var el = document.getElementById('lesson-index');
+      var idx = [];
+      try { idx = JSON.parse(el.textContent || '[]'); } catch (e) {}
+      var input = document.getElementById('lesson-search');
+      var out = document.getElementById('search-results');
+      if (!input || !out) return;
+      function esc(s) {
+        return String(s).replace(/[&<>"]/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+        });
+      }
+      function render(q) {
+        q = q.trim().toLowerCase();
+        if (!q) { out.hidden = true; out.innerHTML = ''; return; }
+        var matches = idx.filter(function (l) {
+          return (l.title + ' ' + l.summary + ' ' + l.module + ' ' + l.courseTitle)
+            .toLowerCase().indexOf(q) !== -1;
+        }).slice(0, 40);
+        out.hidden = false;
+        if (!matches.length) {
+          out.innerHTML = '<p class="theme">No lessons match &ldquo;' + esc(q) + '&rdquo;.</p>';
+          return;
+        }
+        out.innerHTML =
+          '<p class="theme">' + matches.length + ' result' + (matches.length === 1 ? '' : 's') + '</p>' +
+          '<ul class="topic-list">' + matches.map(function (l) {
+            return '<li class="has-video"><a href="/topics/' + l.id + '/">' + esc(l.title) +
+              '</a> <span class="lz">' + esc(l.courseTitle) + ' &middot; ' + esc(l.module) + '</span></li>';
+          }).join('') + '</ul>';
+      }
+      input.addEventListener('input', function () { render(input.value); });
+    })();
+  </script>
 </BaseLayout>
