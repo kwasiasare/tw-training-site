@@ -1,0 +1,196 @@
+{
+  "slug": "hd4-l11-rmm-with-ninjaone",
+  "title": "RMM with NinjaOne: managing the whole fleet",
+  "month": 4,
+  "monthTitle": "The Helpdesk Professional: ITIL, Ticketing & Soft Skills",
+  "lesson": 11,
+  "video": "hd4-l11-rmm-with-ninjaone.mp4",
+  "summary": "Meet Remote Monitoring and Management (RMM) — the platform support teams use to monitor, patch, automate and remote into an entire fleet of devices — using NinjaOne as a worked example.",
+  "objectives": [
+    "Explain what an RMM platform is and the role of the agent",
+    "Contrast proactive RMM with reactive one-to-one remote support",
+    "List the core RMM capabilities: monitoring, alerting, patching, scripting, remote access, reporting",
+    "Describe how a Tier 1/2 technician uses NinjaOne day to day",
+    "Explain why RMM access is a security-sensitive, high-privilege target",
+    "Name common RMM alternatives and how the concepts transfer"
+  ],
+  "quiz": [
+    {
+      "q": "What does RMM stand for, and what is its core purpose?",
+      "options": [
+        "Remote Machine Maintenance — to image PCs",
+        "Remote Monitoring and Management — to monitor and manage a fleet of devices from one console",
+        "Rapid Malware Mitigation — to remove viruses",
+        "Resource Metering Module — to bill customers"
+      ],
+      "answer": 1,
+      "why": "RMM = Remote Monitoring and Management: agent-based monitoring, patching, automation and remote access across many devices from a single console."
+    },
+    {
+      "q": "How does an RMM differ from a remote-support tool like Quick Assist?",
+      "options": [
+        "It is the same thing with a different name",
+        "RMM agents are always on and proactive across the whole fleet; remote support is reactive, one machine at a time",
+        "RMM only works on servers",
+        "Remote support can patch; RMM cannot"
+      ],
+      "answer": 1,
+      "why": "Remote support is ad-hoc remote control of a single machine on request; RMM runs always-on agents to monitor and manage the entire fleet proactively."
+    },
+    {
+      "q": "Which of these is a typical RMM capability?",
+      "options": [
+        "Designing the office network cabling",
+        "Patch management across the fleet",
+        "Replacing a failed motherboard",
+        "Negotiating the SLA contract"
+      ],
+      "answer": 1,
+      "why": "Patch management — approving and deploying updates across many devices on a schedule — is a core RMM feature."
+    },
+    {
+      "q": "Why is the RMM console a high-value target for attackers?",
+      "options": [
+        "It stores customer credit cards",
+        "Its agents run with high privilege on every endpoint, so it can push code to the whole fleet",
+        "It is always offline",
+        "It cannot use MFA"
+      ],
+      "answer": 1,
+      "why": "RMM agents are high-privilege on every device; abusing the console lets an attacker push malware fleet-wide — which is why MFA and least privilege are essential."
+    },
+    {
+      "q": "Name two things a Tier 1/2 technician would do in an RMM console on a typical day.",
+      "answer": "Triage dashboard alerts (e.g. low disk, failed backup) and act on a device — run an automation/script, approve patches, or remote in to fix an issue.",
+      "why": "Daily RMM work is alert triage plus acting on devices: scripts/automations, patching, and remote access, with tickets kept in sync."
+    },
+    {
+      "q": "Name two RMM platforms other than NinjaOne.",
+      "answer": "Any two of: Datto RMM, ConnectWise Automate, Atera, Kaseya (Microsoft Intune overlaps for cloud device management).",
+      "why": "The market has several RMMs; the concepts transfer, so learning one prepares you for the rest."
+    }
+  ],
+  "resources": [
+    {
+      "label": "NinjaOne — What is RMM? (guide)",
+      "url": "https://www.ninjaone.com/what-is-rmm/"
+    },
+    {
+      "label": "NinjaOne documentation",
+      "url": "https://www.ninjaone.com/docs/"
+    },
+    {
+      "label": "CISA — Protecting against malicious use of remote monitoring and management software",
+      "url": "https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-025a"
+    },
+    {
+      "label": "Atera — RMM explained (vendor-neutral primer)",
+      "url": "https://www.atera.com/blog/what-is-rmm/"
+    }
+  ],
+  "body_markdown": "## What RMM actually is\n\nA **Remote Monitoring and Management** tool — RMM for short — is the platform IT teams use to look after *every* computer they are responsible for, all from one screen. You install a small background program called an **agent** on each device, and from then on the RMM can see the machine's health, alert you when something is wrong, install updates, run scripts, and let you remote in — across hundreds or thousands of devices at once.\n\nThis is the day-to-day cockpit for support teams in managed service providers (MSPs) and in-house IT departments alike. **NinjaOne** is one of the most popular modern RMM platforms, and it is a great example to learn the concepts on.\n\n## RMM vs. the remote-support tools you already met\n\nIn the remote-support lesson you learned to connect *into one machine* when a user asks for help — that is reactive and one-at-a-time. RMM is different: the agents are **always on**, so the platform is **proactive**. It watches the whole fleet and tells you a disk is nearly full *before* the user calls. Remote control is just one feature inside an RMM, not the whole point.\n\n## The core capabilities\n\n- **Monitoring & alerting** — device health, disk space, CPU, memory, services, and custom conditions; you get an alert (or a ticket) when something crosses a threshold.\n- **Patch management** — approve and deploy Windows and third-party updates across the fleet on a schedule.\n- **Automation & scripting** — run a PowerShell script or a built-in automation against one device or a whole group (e.g. clear temp files, restart a service).\n- **Software deployment** — push or update applications remotely.\n- **Remote access** — jump onto a device (NinjaOne integrates remote control) without interrupting the user.\n- **Inventory & reporting** — a live asset list and reports for audits and reviews.\n\n## A day in NinjaOne for a Tier 1/2 tech\n\nYou start at the **dashboard**: red and amber alerts at the top. You triage them — a failed backup here, a low-disk warning there. You open a device, check its health and recent activity, run an automation to free space, and confirm the alert clears. A patch policy flags machines missing this month's updates, so you approve the rollout. Throughout, NinjaOne can raise and update **tickets** automatically, and it integrates with the ticketing systems from the earlier lesson so monitoring and your queue stay in sync.\n\n## Why security matters here\n\nAn RMM agent runs with **high privilege** on every endpoint, so the RMM console is a powerful — and attractive — target. Real-world attacks have abused RMM tools to push malware to whole fleets. Treat access seriously: enforce **multi-factor authentication**, give each technician the least privilege they need, and review who can run scripts. The same power that helps you fix 500 machines can harm 500 machines.\n\n## Where it fits among the alternatives\n\nNinjaOne sits alongside tools like **Datto RMM, ConnectWise Automate, Atera and Kaseya**. Microsoft **Intune** (covered next module) overlaps for cloud device management. The concepts transfer: learn one RMM well and you can pick up any of them.\n\n## Your task\n\nSign up for a free NinjaOne trial or watch a product demo. Find and name these five panels: the **dashboard/alerts**, a **device's health page**, **patch management**, **automations/scripts**, and **remote access**. Write one sentence on how an RMM differs from the remote-support tool you used earlier.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "RMM with NinjaOne",
+      "sub": "Module 4 - The Helpdesk Professional  |  Lesson 11",
+      "narration": "Welcome back. In this lesson we meet the cockpit that professional support teams live in: the R M M, or Remote Monitoring and Management platform. We'll use NinjaOne, a popular modern example, to learn the ideas. By the end you'll know what an R M M does, how it differs from the remote support tools you already met, and what a Tier One or Two technician actually does inside it each day."
+    },
+    {
+      "type": "content",
+      "title": "What is an RMM?",
+      "bullets": [
+        "Manages every device from one screen.",
+        "A small 'agent' runs on each machine.",
+        "See health, alert, patch, script, remote in.",
+        "Scales to hundreds or thousands of devices."
+      ],
+      "narration": "So what is an R M M? It's the platform I T teams use to look after every computer they're responsible for, all from one screen. You install a small background program, called an agent, on each device. From then on the platform can see that machine's health, alert you when something's wrong, install updates, run scripts, and let you remote in, across your whole fleet at once. NinjaOne is one of the most popular modern examples."
+    },
+    {
+      "type": "content",
+      "title": "RMM vs. remote support",
+      "bullets": [
+        "Remote support = one machine, on request, reactive.",
+        "RMM agents are always on = proactive.",
+        "It warns you before the user calls.",
+        "Remote control is just one feature inside RMM."
+      ],
+      "narration": "It's important not to confuse this with the remote support tools from the earlier lesson. Remote support means connecting into one machine when a user asks, that's reactive and one at a time. R M M is different. The agents are always on, so the platform is proactive. It can tell you a disk is nearly full before the user ever calls. Remote control is just one feature inside an R M M, not the whole point."
+    },
+    {
+      "type": "content",
+      "title": "Monitoring & alerting",
+      "bullets": [
+        "Watches disk, CPU, memory, services.",
+        "Custom conditions and thresholds.",
+        "Raises an alert — or a ticket — automatically."
+      ],
+      "narration": "The heart of an R M M is monitoring and alerting. It continuously watches each device's health: disk space, C P U, memory, whether key services are running, and any custom conditions you define. When something crosses a threshold, it raises an alert, and it can open a ticket automatically so the problem lands in your queue without anyone phoning in."
+    },
+    {
+      "type": "content",
+      "title": "Patch management",
+      "bullets": [
+        "Approve and deploy Windows + third-party updates.",
+        "On a schedule, across the whole fleet.",
+        "See which machines are missing patches."
+      ],
+      "narration": "Next, patch management. From one console you approve and deploy Windows updates, and crucially third party updates too, on a schedule across the whole fleet. The dashboard shows you exactly which machines are missing this month's patches, so keeping everything up to date becomes a managed process instead of hoping each user clicks update."
+    },
+    {
+      "type": "content",
+      "title": "Automation & scripting",
+      "bullets": [
+        "Run PowerShell or built-in automations.",
+        "Target one device or a whole group.",
+        "E.g. clear temp files, restart a service."
+      ],
+      "code": "# Example: an automation NinjaOne can run on a group\nClear-Host\nGet-Service -Name Spooler | Restart-Service",
+      "narration": "Then there's automation and scripting, where R M M really saves time. You can run a PowerShell script or a built in automation against a single device or an entire group with one click. Common examples: clear temporary files, restart the print spooler service, or deploy a setting. Fix it once, apply it everywhere."
+    },
+    {
+      "type": "content",
+      "title": "A day in NinjaOne",
+      "bullets": [
+        "Start at the dashboard: red and amber alerts.",
+        "Triage: failed backup, low disk, offline device.",
+        "Open a device, run an automation, confirm it clears.",
+        "Approve a patch rollout; tickets stay in sync."
+      ],
+      "narration": "Let's walk through a typical day. You start at the dashboard, where red and amber alerts sit at the top. You triage them, a failed backup here, a low disk warning there. You open a device, check its health and recent activity, run an automation to free some space, and watch the alert clear. A patch policy flags machines missing updates, so you approve the rollout. All the while, NinjaOne keeps your tickets in sync with the systems from the ticketing lesson."
+    },
+    {
+      "type": "content",
+      "title": "Security: handle with care",
+      "bullets": [
+        "Agents run with high privilege on every endpoint.",
+        "The console is a high-value attacker target.",
+        "Enforce MFA + least privilege; review script rights.",
+        "Power to fix 500 machines = power to harm 500."
+      ],
+      "narration": "A serious word on security. The R M M agent runs with high privilege on every endpoint, which makes the console a powerful, and attractive, target. Real attacks have abused R M M tools to push malware to entire fleets at once. So treat access seriously: enforce multi factor authentication, give each technician only the privileges they need, and review who's allowed to run scripts. The same power that lets you fix five hundred machines could harm five hundred machines."
+    },
+    {
+      "type": "content",
+      "title": "The wider landscape",
+      "bullets": [
+        "NinjaOne, Datto RMM, ConnectWise, Atera, Kaseya.",
+        "Microsoft Intune overlaps for cloud devices.",
+        "Learn one well — the concepts transfer."
+      ],
+      "narration": "NinjaOne is one of several. You'll also hear of Datto R M M, ConnectWise Automate, Atera and Kaseya, and Microsoft Intune, which we cover next module, overlaps for cloud device management. The good news is the concepts are the same everywhere. Learn one R M M properly and you can pick up any of them quickly."
+    },
+    {
+      "type": "content",
+      "title": "Recap & your task",
+      "bullets": [
+        "RMM = manage the whole fleet from one console.",
+        "Monitor, alert, patch, script, remote, report.",
+        "Proactive, agent-based, high privilege — secure it.",
+        "Task: tour a NinjaOne trial; name the five panels."
+      ],
+      "narration": "To recap: an R M M lets you manage your whole fleet from one console, monitoring, alerting, patching, scripting, remote access and reporting. It's proactive and agent based, and because those agents are high privilege you must secure access with M F A and least privilege. Your task: sign up for a free NinjaOne trial or watch a demo, and find and name five panels, the dashboard, a device's health page, patch management, automations, and remote access. Then write one sentence on how an R M M differs from a plain remote support tool. See you next lesson."
+    }
+  ]
+}
