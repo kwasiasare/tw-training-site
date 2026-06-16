@@ -9,6 +9,11 @@ export const SITE = {
   videoCdnBase: import.meta.env.PUBLIC_VIDEO_CDN_BASE ?? '/videos',
 };
 
+// Authentication (Entra External ID) is gated behind a build-time flag so the
+// sign-in UI only appears once the provider is wired. Set PUBLIC_AUTH_ENABLED=true
+// (a GitHub Actions variable) to turn it on.
+export const AUTH_ENABLED = import.meta.env.PUBLIC_AUTH_ENABLED === 'true';
+
 // Course-level catalog metadata. The per-module/lesson tree is derived from the
 // lessons themselves (see courseModules / courseOrder below) so it never drifts.
 export type Course = {
@@ -38,6 +43,24 @@ export const COURSES: Course[] = [
       'A deliverable-driven roadmap: direct API fluency, retrieval-augmented generation, agents & orchestration, and production engineering — leaning into your security edge.',
     sample: 'g1-l01-how-llms-behave',
     accent: '#0ea5e9',
+  },
+  {
+    slug: 'helpdesk-tier1-2',
+    title: 'Helpdesk: No Experience → Tier 2',
+    tagline: 'From zero PC experience to a job-ready IT support technician in six months.',
+    blurb:
+      'A hands-on, 60-lesson path built around CompTIA A+, Network+, Microsoft MD-102 and MS-102: PC hardware, networking, Windows support, the helpdesk craft (ITIL & ticketing), modern endpoint management, and AI tools for resolving real endpoint problems.',
+    sample: 'hd4-l04-troubleshooting-methodology',
+    accent: '#16a34a',
+  },
+  {
+    slug: 'helpdesk-tier3-advanced',
+    title: 'Helpdesk Tier 3: Advanced Endpoint Engineering',
+    tagline: 'Step up from Tier 2 to senior escalation and endpoint engineering.',
+    blurb:
+      'An advanced follow-on for working technicians: deep root-cause analysis, PowerShell & Microsoft Graph automation at scale, advanced endpoint security & identity, and AIOps with agentic automation for modern endpoint operations.',
+    sample: 'ht4-l05-building-an-ai-triage-agent',
+    accent: '#db2777',
   },
 ];
 

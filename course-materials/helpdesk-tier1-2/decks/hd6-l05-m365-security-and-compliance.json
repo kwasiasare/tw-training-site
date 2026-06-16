@@ -1,0 +1,205 @@
+{
+  "slug": "hd6-l05-m365-security-and-compliance",
+  "title": "Microsoft 365 security and compliance basics",
+  "month": 6,
+  "monthTitle": "Microsoft 365 Administration (MS-102)",
+  "lesson": 5,
+  "video": "hd6-l05-m365-security-and-compliance.mp4",
+  "summary": "Learn how security and compliance work in Microsoft 365: read and act on Secure Score, navigate Microsoft Purview, and understand DLP, sensitivity and retention labels, audit search, and eDiscovery as a Tier 2 tech.",
+  "objectives": [
+    "Explain the shared-responsibility model and why M365 security and compliance matter",
+    "Read Microsoft Secure Score and act on a recommended improvement action",
+    "Describe what Microsoft Purview is and the role of a DLP policy",
+    "Tell the difference between sensitivity labels and retention labels/policies",
+    "Run an audit log search to find who did what, and explain eDiscovery at a high level",
+    "Recognise GDPR and other compliance frameworks at an awareness level"
+  ],
+  "quiz": [
+    {
+      "q": "Under the shared-responsibility model for Microsoft 365 (SaaS), who is responsible for the data, accounts, and identities in the tenant?",
+      "options": [
+        "The customer, while Microsoft secures the underlying platform",
+        "Microsoft handles everything, including your data",
+        "Only the internet service provider",
+        "Nobody — SaaS removes the need for security"
+      ],
+      "answer": 0,
+      "why": "In SaaS, Microsoft secures the physical datacentre and platform, but the customer always owns and must protect their own data, identities, and access — that's the part a helpdesk supports."
+    },
+    {
+      "q": "What does Microsoft Secure Score give you?",
+      "options": [
+        "A list of users who failed sign-in",
+        "A measurement of your security posture with prioritised improvement actions",
+        "A bill for your M365 licences",
+        "An automatic firewall configuration"
+      ],
+      "answer": 1,
+      "why": "Secure Score scores your current security configuration and recommends ranked improvement actions (like enabling MFA), so you can see posture and prioritise what to fix."
+    },
+    {
+      "q": "A DLP (data loss prevention) policy is designed to do what?",
+      "options": [
+        "Back up mailboxes nightly",
+        "Delete old emails automatically",
+        "Detect and stop sensitive data such as credit-card numbers from leaving the organisation",
+        "Reset user passwords on a schedule"
+      ],
+      "answer": 2,
+      "why": "DLP inspects content for sensitive information types (e.g. credit-card or national-ID numbers) and can warn, block, or restrict sharing so that data does not leak out."
+    },
+    {
+      "q": "Which statement best describes the difference between sensitivity labels and retention labels?",
+      "options": [
+        "They are the same feature with two names",
+        "Sensitivity labels delete data; retention labels encrypt it",
+        "Both only apply to Teams chats",
+        "Sensitivity labels classify and protect (encrypt/mark) data; retention labels control how long data is kept or when it is deleted"
+      ],
+      "answer": 3,
+      "why": "Sensitivity labels classify and protect content (encryption, watermarks, access limits); retention labels and policies govern lifecycle — how long items are retained and when they are deleted."
+    },
+    {
+      "q": "What is the purpose of audit log search in Microsoft Purview, and where would a Tier 2 tech start it?",
+      "answer": "Audit log search records who did what across M365 (sign-ins, file access, sharing, admin changes). You start it in the Microsoft Purview portal under Audit, then filter by date, user, and activity to investigate an incident or answer a 'who did this' question.",
+      "why": "Auditing gives the accountability trail. A Tier 2 tech reads and reports on it — for example, confirming who deleted a file or shared a document externally — rather than authoring deep policy."
+    },
+    {
+      "q": "In one or two sentences, explain what eDiscovery is and why GDPR awareness matters to a helpdesk role.",
+      "answer": "eDiscovery is the process of searching for, holding, and exporting electronic content (email, files, chats) for legal cases or investigations. GDPR awareness matters because it sets rules on protecting and handling personal data, and helpdesk staff routinely touch user data, so knowing the obligations helps avoid mishandling it.",
+      "why": "eDiscovery finds and preserves relevant content for legal/compliance needs; GDPR is a key data-protection framework, and front-line staff must handle personal data responsibly even if they don't own the policy."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Microsoft Learn — Microsoft Secure Score",
+      "url": "https://learn.microsoft.com/en-us/defender-xdr/microsoft-secure-score"
+    },
+    {
+      "label": "Microsoft Learn — Learn about data loss prevention (DLP)",
+      "url": "https://learn.microsoft.com/en-us/purview/dlp-learn-about-dlp"
+    },
+    {
+      "label": "Microsoft Learn — Learn about sensitivity labels",
+      "url": "https://learn.microsoft.com/en-us/purview/sensitivity-labels"
+    },
+    {
+      "label": "Microsoft Learn — Exam MS-102: Microsoft 365 Administrator",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/exams/ms-102/"
+    }
+  ],
+  "body_markdown": "## Shared responsibility, and why this matters\n\nMoving to Microsoft 365 does not move security off your plate. Under the **shared-responsibility model**, Microsoft secures the physical datacentres and the underlying platform, but the **customer always owns their data, identities, and access**. That is exactly the layer a helpdesk touches every day — accounts, sharing, and the content users create.\n\nSecurity and compliance are two sides of the same coin. **Security** keeps attackers and accidents from harming data; **compliance** proves you are handling data according to rules like **GDPR**. As a Tier 2 tech you won't author deep policy, but you must read these tools, report what you find, and take simple corrective actions.\n\n## Microsoft Secure Score\n\n**Microsoft Secure Score** measures your tenant's security posture as a percentage and gives a ranked list of **improvement actions** — for example, enabling multi-factor authentication or blocking legacy authentication. Each action shows the points gained and the user impact.\n\n```text\nMicrosoft 365 Defender portal (security.microsoft.com)\n  > Secure Score\n    > Recommended actions  (sort by points / status)\n    > pick an action > Manage in integrations\n```\n\nReading it is a skill: look at the highest-value, lowest-impact actions first, and report progress over time.\n\n## Microsoft Purview: the compliance hub\n\n**Microsoft Purview** (at `compliance.microsoft.com` / `purview.microsoft.com`) is where compliance lives — data classification, **data loss prevention**, labels, auditing, and eDiscovery all sit here.\n\n**DLP policies** detect **sensitive information types** (credit-card numbers, passport or national-ID numbers) and can warn a user, block sharing, or restrict access when that data tries to leave.\n\n```text\nMicrosoft Purview portal\n  > Data loss prevention > Policies\n    > review policy > Locations (Exchange, SharePoint, OneDrive, Teams)\n    > Rules > conditions (sensitive info types) > actions (block / notify)\n```\n\n## Labels: classify, protect, and retain\n\nTwo label families do different jobs:\n\n- **Sensitivity labels** *classify and protect* content — they can mark a document **Confidential**, add a watermark, or apply encryption that follows the file.\n- **Retention labels** and **retention policies** *control lifecycle* — how long an item is kept and when it is deleted.\n\n```text\nMicrosoft Purview portal\n  > Information protection > Labels        (sensitivity)\n  > Data lifecycle management > Retention policies   (retain / delete)\n```\n\n## Auditing and eDiscovery\n\nThe **audit log** answers \"who did what\" — sign-ins, file access, external sharing, admin changes. You search it, filter, and report.\n\n```text\nMicrosoft Purview portal\n  > Audit > Search\n    > set date range, users, activities > Search > export results\n```\n\nYou can also check audit status with PowerShell:\n\n```powershell\nConnect-ExchangeOnline\nGet-AdminAuditLogConfig | Select UnifiedAuditLogIngestionEnabled\n```\n\n**eDiscovery** is the process of finding, holding, and exporting content (email, files, chats) for legal cases or investigations. At Tier 2 you should recognise the concept and where it lives in Purview, not run full legal cases.\n\n## Compliance frameworks at a glance\n\n**GDPR** is the headline data-protection framework: it governs how personal data is collected, stored, and handled. Others include **ISO 27001** and **HIPAA**. You don't need to memorise them — just know they drive the labels, DLP, and retention rules you support.\n\n## Your task\n\nOpen Secure Score and write down your tenant's current score plus the top three recommended actions. Then in Microsoft Purview, find one DLP policy and note what sensitive information type it protects and what action it takes.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Microsoft 365 security and compliance basics",
+      "sub": "Month 6 - Microsoft 365 Administration (MS-102)  |  Lesson 5",
+      "narration": "Welcome to Lesson Five of Month Six. In this lesson we consolidate the security and compliance side of Microsoft 365, the part employers really care about. By the end you'll understand shared responsibility, you'll be able to read Secure Score and act on it, and you'll know your way around Microsoft Purview, including D L P, labels, audit search, and eDiscovery, all aligned to the M S one-oh-two exam."
+    },
+    {
+      "type": "content",
+      "title": "Shared responsibility",
+      "bullets": [
+        "Microsoft secures the datacentres and platform.",
+        "You always own your data, identities, and access.",
+        "That owned layer is what helpdesk touches daily.",
+        "Moving to the cloud does not remove your duty."
+      ],
+      "narration": "Let's start with a mindset. Moving to Microsoft 365 does not move security off your plate. Under the shared-responsibility model, Microsoft secures the physical datacentres and the platform underneath, but the customer always owns their own data, identities, and access. That owned layer, the accounts and the content users create, is exactly what a helpdesk works with every single day. So security is still very much your job."
+    },
+    {
+      "type": "content",
+      "title": "Why security and compliance",
+      "bullets": [
+        "Security stops attackers and accidents harming data.",
+        "Compliance proves you handle data by the rules.",
+        "GDPR is the headline data-protection framework.",
+        "Tier 2: read, report, and take simple actions."
+      ],
+      "narration": "Security and compliance are two sides of the same coin. Security keeps attackers and accidents from harming data. Compliance proves you're handling that data according to rules, like G D P R, the General Data Protection Regulation. As a Tier Two tech you won't be writing deep policy from scratch. Your job is to read these tools, report clearly on what you find, and take simple corrective actions when asked."
+    },
+    {
+      "type": "content",
+      "title": "Microsoft Secure Score",
+      "bullets": [
+        "Scores your security posture as a percentage.",
+        "Gives ranked improvement actions with points.",
+        "Example: enable M F A, block legacy auth.",
+        "Track the score over time and report progress."
+      ],
+      "code": "security.microsoft.com\n  > Secure Score\n    > Recommended actions",
+      "narration": "Microsoft Secure Score is your posture dashboard. It measures how secure your tenant is as a percentage, and gives you a ranked list of improvement actions, each showing the points you'd gain and the impact on users. A classic example is turning on multi-factor authentication, or blocking older, weaker sign-in methods. You read it by tackling the highest-value, lowest-impact actions first, and you report on how the score improves over time."
+    },
+    {
+      "type": "content",
+      "title": "Microsoft Purview: the hub",
+      "bullets": [
+        "Purview is the compliance home in M365.",
+        "Holds classification, D L P, labels, and audit.",
+        "Reached at purview.microsoft.com.",
+        "One place for data-protection tooling."
+      ],
+      "code": "purview.microsoft.com\n  > Solutions: DLP, Labels,\n    Audit, eDiscovery",
+      "narration": "Microsoft Purview is the compliance hub. If Secure Score is about security posture, Purview is where compliance lives. You'll find data classification, data loss prevention, sensitivity and retention labels, the audit log, and eDiscovery, all under one roof. You reach it at purview dot microsoft dot com. Get comfortable navigating it, because almost every compliance task we discuss starts from here."
+    },
+    {
+      "type": "content",
+      "title": "Data loss prevention (DLP)",
+      "bullets": [
+        "Detects sensitive info types in content.",
+        "Examples: credit-card, passport, national-ID.",
+        "Can warn, block, or restrict sharing.",
+        "Stops sensitive data leaving the org."
+      ],
+      "code": "Purview > Data loss prevention\n  > Policies > Rules\n  conditions: sensitive info types\n  actions: block / notify",
+      "narration": "Data loss prevention, or D L P, is about stopping sensitive data from leaking out. A D L P policy scans content for sensitive information types, things like credit-card numbers, passport numbers, or national identity numbers. When it spots them trying to leave, say in an email or a shared file, it can warn the user, block the action, or restrict who can access it. As Tier Two you'll often be reading a policy to explain why a user's email was blocked."
+    },
+    {
+      "type": "content",
+      "title": "Sensitivity labels",
+      "bullets": [
+        "Classify content: Public, Confidential, etc.",
+        "Can apply encryption that travels with the file.",
+        "Can add markings like watermarks or headers.",
+        "Protection follows the document anywhere."
+      ],
+      "code": "Purview > Information protection\n  > Labels",
+      "narration": "Now to labels, and there are two families that do different jobs. Sensitivity labels classify and protect content. A label like Confidential can add a visible watermark, and it can apply encryption that travels with the file wherever it goes, even outside your organisation. So the protection follows the document, not just the location. Think of sensitivity labels as answering the question, how sensitive is this, and how should it be protected."
+    },
+    {
+      "type": "content",
+      "title": "Retention labels and policies",
+      "bullets": [
+        "Control how long data is kept.",
+        "Control when data is automatically deleted.",
+        "Retention policies apply broadly to locations.",
+        "Labels classify lifecycle for items or folders."
+      ],
+      "code": "Purview > Data lifecycle management\n  > Retention policies",
+      "narration": "The second label family is retention. Where sensitivity labels protect, retention labels and retention policies control lifecycle, that is, how long something is kept and when it's deleted. A retention policy can apply broadly across mailboxes or sites, while a retention label can mark specific items or folders. This matters for compliance, because regulations often say you must keep certain records for a set number of years, and then dispose of them properly."
+    },
+    {
+      "type": "content",
+      "title": "Audit log and eDiscovery",
+      "bullets": [
+        "Audit log answers 'who did what, when'.",
+        "Search by date, user, and activity, then export.",
+        "eDiscovery finds and holds content for legal cases.",
+        "Tier 2: read and report; recognise eDiscovery."
+      ],
+      "code": "Purview > Audit > Search\nConnect-ExchangeOnline\nGet-AdminAuditLogConfig",
+      "narration": "Two more tools to know. The audit log answers who did what and when, things like sign-ins, file access, external sharing, and admin changes. You go to Purview, then Audit, then Search, set your date range, user, and activity, and export the results. You can even confirm auditing is switched on with PowerShell, using Connect dash Exchange Online and Get dash Admin Audit Log Config. eDiscovery, meanwhile, is the process of finding, holding, and exporting content for legal cases. At Tier Two, just recognise the concept and where it lives."
+    },
+    {
+      "type": "content",
+      "title": "Frameworks and recap",
+      "bullets": [
+        "GDPR, ISO 27001, HIPAA drive the rules.",
+        "Secure Score = posture; Purview = compliance.",
+        "DLP stops leaks; labels classify, protect, retain.",
+        "Task: record score + top 3 actions, find one DLP policy."
+      ],
+      "narration": "Let's bring it together. Compliance frameworks like G D P R, I S O two-seven-thousand-one, and HIPAA are what drive the labels, D L P, and retention rules you support. Remember the map: Secure Score is your security posture, Purview is your compliance hub. D L P stops sensitive data leaking, sensitivity labels classify and protect, and retention controls how long data lives. Your task before the next lesson: open Secure Score and write down your current score plus the top three recommended actions, then in Purview find one D L P policy and note what it protects and what action it takes. Nicely done, and I'll see you in the next lesson."
+    }
+  ]
+}

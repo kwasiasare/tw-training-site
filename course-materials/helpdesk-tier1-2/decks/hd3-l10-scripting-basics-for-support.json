@@ -1,0 +1,205 @@
+{
+  "slug": "hd3-l10-scripting-basics-for-support",
+  "title": "Scripting basics for support technicians",
+  "month": 3,
+  "monthTitle": "Windows, OS Support & Security (A+ Core 2)",
+  "lesson": 10,
+  "video": "hd3-l10-scripting-basics-for-support.mp4",
+  "summary": "Learn just enough scripting to automate repetitive helpdesk tasks: read input, loop over items, make decisions with if/else, and run a script safely in PowerShell and Bash.",
+  "objectives": [
+    "Explain why automating repetitive tasks reduces errors and saves time",
+    "Store and use values in variables in PowerShell and Bash",
+    "Loop over a list of items with foreach / for",
+    "Make decisions in a script with if/else",
+    "Read a file line by line and act on each line",
+    "Run scripts safely and understand basic execution policy and permissions"
+  ],
+  "quiz": [
+    {
+      "q": "What is the main reason a support technician writes scripts?",
+      "options": [
+        "To make the computer run faster",
+        "To automate repetitive tasks consistently and avoid manual mistakes",
+        "To replace the operating system",
+        "To encrypt the hard drive"
+      ],
+      "answer": 1,
+      "why": "Scripting automates repetitive work so it runs the same way every time, which saves time and removes the human errors that creep into manual steps."
+    },
+    {
+      "q": "Which PowerShell loop runs a block of code once for each item in a list?",
+      "options": [
+        "foreach",
+        "Get-Help",
+        "Stop-Process",
+        "Set-Location"
+      ],
+      "answer": 0,
+      "why": "foreach iterates over a collection, running its block once per item; the others show help, stop a process, or change directory."
+    },
+    {
+      "q": "What does an if/else statement let a script do?",
+      "options": [
+        "Run faster",
+        "Choose between actions based on whether a condition is true",
+        "Delete files automatically",
+        "Connect to the internet"
+      ],
+      "answer": 1,
+      "why": "if/else branches the script: it runs one block when a condition is true and another when it is false, letting the script make decisions."
+    },
+    {
+      "q": "In PowerShell, which command reads the contents of a text file?",
+      "options": [
+        "Write-Host",
+        "Remove-Item",
+        "Get-Content",
+        "Start-Service"
+      ],
+      "answer": 2,
+      "why": "Get-Content reads a file and returns its lines, which you can then loop over; the others print text, delete items, or start a service."
+    },
+    {
+      "q": "In one sentence, what is a variable and why is it useful in a script?",
+      "answer": "A variable is a named container that stores a value (like a name, number or path) so you can reuse it and change it in one place instead of repeating the value throughout the script.",
+      "why": "Variables make scripts readable and maintainable: change the value once and every use updates, which avoids errors from repeating the same literal everywhere."
+    },
+    {
+      "q": "Why might a PowerShell script refuse to run, and how do you check the relevant setting?",
+      "answer": "The execution policy may block unsigned scripts; you check it with Get-ExecutionPolicy and, if appropriate and permitted, adjust it (for example to RemoteSigned) with Set-ExecutionPolicy.",
+      "why": "PowerShell's execution policy is a safety control against running untrusted scripts, so a blocked script usually means the policy needs checking with Get-ExecutionPolicy."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Microsoft Learn — PowerShell scripting overview",
+      "url": "https://learn.microsoft.com/en-us/powershell/scripting/overview"
+    },
+    {
+      "label": "Microsoft Learn — about_Execution_Policies",
+      "url": "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies"
+    },
+    {
+      "label": "Ubuntu — The Linux command line for beginners",
+      "url": "https://ubuntu.com/tutorials/command-line-for-beginners"
+    },
+    {
+      "label": "CompTIA — A+ certification",
+      "url": "https://www.comptia.org/certifications/a"
+    }
+  ],
+  "body_markdown": "## Why technicians script\n\nWhen you have done the same five-step fix forty times, you are not learning — you are wasting time and inviting mistakes. **Scripting** is the cure. A script is just a saved list of commands the computer runs for you, the same way every time. You do not need to be a programmer; four small ideas — **variables**, **loops**, **conditionals**, and reading **input** — cover most of the automation a Tier 1 technician needs. The two languages you will meet are **PowerShell** on Windows and **Bash** on Linux/macOS.\n\n## Variables: name your values\n\nA **variable** is a named box that holds a value, so you set it once and reuse it.\n\n```powershell\n$name = \"Kwasi\"\n$logPath = \"C:\\Logs\\app.log\"\nWrite-Host \"Checking log for $name at $logPath\"\n```\n\nIn Bash the same idea looks like this (note: no spaces around `=`):\n\n```bash\nname=\"Kwasi\"\nlogPath=\"/var/log/syslog\"\necho \"Checking log for $name at $logPath\"\n```\n\n## Loops: do it for every item\n\nA **loop** repeats an action for each item in a list — perfect for \"do this to every user\" or \"every file\".\n\n```powershell\n$services = \"Spooler\", \"W32Time\", \"BITS\"\nforeach ($svc in $services) {\n    $state = (Get-Service $svc).Status\n    Write-Host \"$svc is $state\"\n}\n```\n\nSample output:\n\n```powershell\nSpooler is Running\nW32Time is Running\nBITS is Stopped\n```\n\n## Conditionals: make decisions\n\nAn **if/else** lets the script decide. Here we restart a service only if it is stopped:\n\n```powershell\nforeach ($svc in $services) {\n    if ((Get-Service $svc).Status -eq \"Stopped\") {\n        Write-Host \"$svc is stopped - starting it\"\n        Start-Service $svc\n    } else {\n        Write-Host \"$svc is fine\"\n    }\n}\n```\n\nThe Bash equivalent uses `if ... then ... else ... fi` and tools like `systemctl is-active`.\n\n## Reading input from a file\n\nReal automation often reads a list — say, computer names — from a file. In PowerShell, **Get-Content** reads it and you loop over the lines:\n\n```powershell\nGet-Content \".\\computers.txt\" | foreach {\n    Write-Host \"Pinging $_\"\n    Test-Connection -ComputerName $_ -Count 1 -Quiet\n}\n```\n\nThe `$_` means \"the current line\". In Bash you would use `while read line; do ...; done < file`.\n\nPowerShell guards against untrusted scripts with an **execution policy**. If a script refuses to run, check it:\n\n```powershell\nGet-ExecutionPolicy\n# Restricted\nSet-ExecutionPolicy -Scope CurrentUser RemoteSigned\n```\n\nOn Linux you make a script runnable with `chmod +x script.sh` and run it as `./script.sh`. Always read a script before you run it, and test on a non-production machine first.\n\n## Your task\n\nWrite a short PowerShell script that defines a list of three service names, loops over them with `foreach`, and uses `if/else` to print whether each is Running or Stopped (use `Get-Service`). Save it as `check-services.ps1` and run it; if it is blocked, check `Get-ExecutionPolicy` and note what you would change. Bonus: create a `computers.txt` file with three names, then use `Get-Content` and a loop to print each line. Write two sentences on one repetitive helpdesk task you could automate this way.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Scripting basics for support technicians",
+      "sub": "Month 3 - Windows, OS Support & Security (A+ Core 2)  |  Lesson 10",
+      "narration": "Welcome to lesson ten, the final lesson of the month. When you've done the same fix forty times, scripting is the cure. In this lesson you'll learn just enough to automate repetitive helpdesk tasks: variables, loops, if-else decisions, and reading input from a file, in both PowerShell and Bash. By the end you'll have written a small script that checks services automatically."
+    },
+    {
+      "type": "content",
+      "title": "Why technicians script",
+      "bullets": [
+        "Repeating a fix by hand wastes time.",
+        "Manual steps invite mistakes.",
+        "A script runs the same way every time.",
+        "You don't need to be a programmer."
+      ],
+      "narration": "When you've done the same five-step fix forty times, you're not learning, you're wasting time and inviting mistakes. Scripting is the cure. A script is just a saved list of commands the computer runs for you, the same way every time. You don't need to be a programmer. Four small ideas, variables, loops, conditionals, and reading input, cover most of what a Tier one technician needs."
+    },
+    {
+      "type": "content",
+      "title": "Two languages you'll meet",
+      "bullets": [
+        "PowerShell on Windows.",
+        "Bash on Linux and macOS.",
+        "Same concepts, different syntax.",
+        "Learn the ideas, not just the commands."
+      ],
+      "narration": "There are two scripting languages you'll meet on the job. PowerShell on Windows, and Bash on Linux and macOS. The good news is they share the same core concepts; only the syntax differs. So focus on learning the ideas, variables, loops, and decisions, and you'll be able to read and adapt scripts in either language without starting from scratch each time."
+    },
+    {
+      "type": "content",
+      "title": "Variables: name your values",
+      "bullets": [
+        "A variable is a named box for a value.",
+        "Set it once, reuse it everywhere.",
+        "PowerShell uses a dollar sign prefix.",
+        "In Bash, no spaces around the equals sign."
+      ],
+      "code": "$name = \"Kwasi\"\n$logPath = \"C:\\Logs\\app.log\"\nWrite-Host \"Checking log for $name at $logPath\"",
+      "narration": "Start with variables. A variable is a named box that holds a value, so you set it once and reuse it. In PowerShell, variable names start with a dollar sign: dollar name equals quote Kwasi. Then Write dash Host can print it back. In Bash it's the same idea, but be careful: there are no spaces around the equals sign, or it breaks. Change the value in one place and every use updates."
+    },
+    {
+      "type": "content",
+      "title": "Loops: do it for every item",
+      "bullets": [
+        "A loop repeats an action per item.",
+        "foreach walks through a list.",
+        "Perfect for every user, file, or service.",
+        "Write the logic once, apply it to many."
+      ],
+      "code": "$services = \"Spooler\", \"W32Time\", \"BITS\"\nforeach ($svc in $services) {\n    Write-Host \"$svc is $((Get-Service $svc).Status)\"\n}",
+      "narration": "Next, loops. A loop repeats an action for each item in a list, perfect for do this to every user, or every file. In PowerShell, for-each walks through a list: for-each, dollar s-v-c in dollar services, then a block in curly braces that runs once per service. You write the logic once and it applies to every item. That's the heart of automation."
+    },
+    {
+      "type": "content",
+      "title": "Conditionals: make decisions",
+      "bullets": [
+        "if/else chooses based on a condition.",
+        "Run one block if true, another if false.",
+        "Example: start a service only if stopped.",
+        "PowerShell uses -eq for 'equals'."
+      ],
+      "code": "if ((Get-Service $svc).Status -eq \"Stopped\") {\n    Start-Service $svc\n} else {\n    Write-Host \"$svc is fine\"\n}",
+      "narration": "Now decisions. An if-else lets the script choose. It runs one block when a condition is true and another when it's false. Here we restart a service only if it's stopped: if its status equals Stopped, start it; else, report it's fine. Note PowerShell writes equals as dash e-q, not a double equals sign. With loops and if-else together, your script can react to whatever it finds."
+    },
+    {
+      "type": "content",
+      "title": "Reading input from a file",
+      "bullets": [
+        "Automation often reads a list from a file.",
+        "Get dash Content reads the lines.",
+        "Loop over each line and act on it.",
+        "$underscore means 'the current line'."
+      ],
+      "code": "Get-Content \".\\computers.txt\" | foreach {\n    Write-Host \"Pinging $_\"\n    Test-Connection -ComputerName $_ -Count 1 -Quiet\n}",
+      "narration": "Real automation often reads a list, say computer names, from a file. In PowerShell, Get dash Content reads the file, and you pipe it into for-each to handle each line. The dollar underscore means the current line. Here we ping each computer in the list. In Bash you'd write while read line, do something, done, with the file fed in. Either way, the script handles the whole list for you."
+    },
+    {
+      "type": "content",
+      "title": "Running scripts safely",
+      "bullets": [
+        "PowerShell uses an execution policy.",
+        "Get dash ExecutionPolicy shows the setting.",
+        "RemoteSigned is a common safe choice.",
+        "On Linux: chmod +x, then ./script.sh."
+      ],
+      "code": "Get-ExecutionPolicy\nSet-ExecutionPolicy -Scope CurrentUser RemoteSigned",
+      "narration": "Finally, run scripts safely. PowerShell guards against untrusted scripts with an execution policy. If a script refuses to run, check it with Get dash Execution-Policy. A common safe setting is Remote-Signed, set with Set dash Execution-Policy for the current user. On Linux, you make a script runnable with ch-mod plus x, then run it with dot slash script. And always read a script before you run it, and test on a non-production machine first."
+    },
+    {
+      "type": "content",
+      "title": "Always test first",
+      "bullets": [
+        "Read a script before running it.",
+        "Test on a spare or virtual machine.",
+        "Add Write-Host lines to see what it does.",
+        "Never run untrusted scripts as admin."
+      ],
+      "narration": "One safety habit worth repeating: always test first. Read any script before you run it, and run it on a spare or virtual machine before production. Sprinkle in Write dash Host lines so you can see what the script is doing as it runs. And never run a script you don't understand with administrator or root rights. A careful technician automates boldly but tests carefully."
+    },
+    {
+      "type": "content",
+      "title": "Recap & your task",
+      "bullets": [
+        "Scripts automate repetitive work reliably.",
+        "Variables, loops, if/else, file input.",
+        "PowerShell and Bash share the concepts.",
+        "Check execution policy if a script is blocked.",
+        "Task: write check-services.ps1 with a loop."
+      ],
+      "narration": "Let's recap the month's final lesson. Scripts automate repetitive work reliably. The four ideas are variables, loops, if-else, and reading input from a file, and PowerShell and Bash share those concepts. If a script is blocked, check the execution policy. Your task: write a PowerShell script that lists three service names, loops over them with for-each, and uses if-else with Get dash Service to print whether each is Running or Stopped. Save it as check dash services dot p-s-one and run it. Congratulations on finishing Month three."
+    }
+  ]
+}

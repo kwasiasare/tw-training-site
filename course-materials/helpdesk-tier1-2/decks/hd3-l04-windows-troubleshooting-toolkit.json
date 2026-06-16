@@ -1,0 +1,204 @@
+{
+  "slug": "hd3-l04-windows-troubleshooting-toolkit",
+  "title": "The Windows troubleshooting toolkit",
+  "month": 3,
+  "monthTitle": "Windows, OS Support & Security (A+ Core 2)",
+  "lesson": 4,
+  "video": "hd3-l04-windows-troubleshooting-toolkit.mp4",
+  "summary": "Build a mental toolbox of the core Windows repair tools and learn when to reach for each one. By the end you can read Event Viewer, repair system files, check disks and memory, and boot into Safe Mode with confidence.",
+  "objectives": [
+    "Apply a logical troubleshooting order instead of guessing",
+    "Use Event Viewer to find the error behind a vague symptom",
+    "Repair corrupt system files with sfc and DISM",
+    "Check disks and memory with chkdsk and Windows Memory Diagnostic",
+    "Use Safe Mode and System Restore to recover a broken PC",
+    "Document the cause and fix so the next tech benefits"
+  ],
+  "quiz": [
+    {
+      "q": "A PC shows random crashes. Where do you look first to find the underlying error messages logged by Windows?",
+      "options": [
+        "Disk Cleanup",
+        "Event Viewer",
+        "Snipping Tool",
+        "Calculator"
+      ],
+      "answer": 1,
+      "why": "Event Viewer records System, Application and Security logs. Filtering for Errors and Critical events around the crash time usually reveals the offending component or driver."
+    },
+    {
+      "q": "You suspect corrupt protected system files are causing instability. Which command scans and repairs them?",
+      "options": [
+        "chkdsk /f",
+        "ipconfig /all",
+        "sfc /scannow",
+        "tasklist"
+      ],
+      "answer": 2,
+      "why": "sfc /scannow (System File Checker) scans protected system files and restores correct versions. If sfc can't fix the underlying component store, you then run DISM."
+    },
+    {
+      "q": "sfc reports it could not repair some files. What is the correct next step before re-running sfc?",
+      "options": [
+        "Reinstall Windows immediately",
+        "Run DISM /Online /Cleanup-Image /RestoreHealth to repair the component store",
+        "Run chkdsk to format the disk",
+        "Disable the antivirus permanently"
+      ],
+      "answer": 1,
+      "why": "DISM repairs the underlying Windows image / component store that sfc draws from. After DISM completes, re-running sfc /scannow can then succeed."
+    },
+    {
+      "q": "A user reports the PC won't start normally after installing a bad driver. Which startup option loads Windows with a minimal set of drivers so you can remove it?",
+      "options": [
+        "Full Screen Mode",
+        "Sleep Mode",
+        "Safe Mode",
+        "Airplane Mode"
+      ],
+      "answer": 2,
+      "why": "Safe Mode boots Windows with only essential drivers and services, letting you uninstall the bad driver or run repairs without the faulty component loading."
+    },
+    {
+      "q": "In one sentence, what does chkdsk /f do and why might it ask to run at next restart?",
+      "answer": "chkdsk /f checks the disk for file-system errors and fixes them; it schedules itself for restart when the volume is in use (such as the system drive) because it needs exclusive access to repair it.",
+      "why": "A volume that is currently in use can't be locked, so chkdsk defers to the next boot when it can get exclusive access to the drive."
+    },
+    {
+      "q": "In one sentence, why should you document the root cause and fix at the end of a troubleshooting job?",
+      "answer": "So the resolution is searchable for the next technician and the same problem can be recognised and fixed faster, or prevented entirely.",
+      "why": "Documentation closes the loop in the troubleshooting methodology and turns one solved ticket into reusable knowledge for the whole team."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Microsoft Learn — Use the System File Checker tool (sfc)",
+      "url": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/deployment/system-file-checker"
+    },
+    {
+      "label": "Microsoft Learn — Repair a Windows image with DISM",
+      "url": "https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/repair-a-windows-image"
+    },
+    {
+      "label": "Microsoft Support — Start your PC in Safe Mode in Windows",
+      "url": "https://support.microsoft.com/en-us/windows/start-your-pc-in-safe-mode-in-windows-92c27cff-db89-8644-1ce4-b3e5e56fe234"
+    },
+    {
+      "label": "CompTIA — A+ Core 2 (220-1102) exam objectives",
+      "url": "https://www.comptia.org/certifications/a"
+    }
+  ],
+  "body_markdown": "## Troubleshoot in order, don't guess\n\nGood techs don't randomly try fixes — they follow a method. Identify the **problem** and gather symptoms, form a **theory** of the likely cause, **test** the theory, fix it, **verify** full functionality, and finally **document** what you did. The tools below slot into that flow: most begin with *finding the evidence* before changing anything.\n\nA quick triage habit: ask what changed. New driver, new update, new app, or new hardware right before the problem started is your strongest lead.\n\n## Event Viewer: find the real error\n\nVague symptoms (\"it just crashes\") hide specific errors in the logs. Open **Event Viewer** (`eventvwr.msc`) and look under **Windows Logs > System** and **Application**. Filter for **Error** and **Critical** around the time of the fault.\n\n```powershell\nGet-EventLog -LogName System -EntryType Error -Newest 5\n\nIndex Time          Source        Message\n----- ----          ------        -------\n 4821 Jun 16 09:14  disk          The device has a bad block.\n 4810 Jun 16 09:02  Service Ctrl  A service terminated unexpectedly.\n```\n\nThat \"bad block\" line instantly points you at the disk — now your testing is targeted, not guesswork.\n\n## Repairing system files: sfc then DISM\n\nWhen Windows itself behaves oddly, suspect corrupt **system files**. Run **System File Checker** from an elevated terminal:\n\n```cmd\nsfc /scannow\n\nVerification 100% complete.\nWindows Resource Protection found corrupt files and successfully repaired them.\n```\n\nIf sfc reports it *couldn't* repair everything, the underlying component store is damaged. Repair it with **DISM**, then run sfc again:\n\n```cmd\nDISM /Online /Cleanup-Image /RestoreHealth\n```\n\n## Disk and memory checks\n\nFor file-system errors or a failing drive, run **chkdsk**. With `/f` it fixes errors; on the system drive it schedules itself for the next restart because it needs exclusive access.\n\n```cmd\nchkdsk C: /f\n```\n\nFor random crashes that smell like bad RAM, run **Windows Memory Diagnostic**:\n\n```cmd\nmdsched\n```\n\nIt restarts the PC and tests memory before Windows loads, then reports results after boot.\n\n## Recovery: Safe Mode and System Restore\n\nWhen Windows won't start normally — often after a bad driver — boot into **Safe Mode**, which loads only essential drivers so you can remove the culprit. You reach it from `msconfig` (Boot tab > Safe boot) or the recovery menu. If a recent change broke things, **System Restore** rolls protected system files and settings back to an earlier **restore point** without touching personal files.\n\nThe last step of the method is **documentation**. Note the symptom, the root cause, and the exact fix. One solved ticket then becomes searchable knowledge that helps the whole team solve the next one faster.\n\n## Your task\n\nOn a test PC, open Event Viewer and find one Error or Warning in the System log — note its Source and time. Open an elevated terminal and run `sfc /scannow`, then record the result line. (Do not run chkdsk /f on your only drive unless you can reboot.) Finally, open `msconfig`, look at the Boot tab and confirm where you would enable Safe boot — then write a short 'troubleshooting note' documenting an imaginary crash: symptom, the log evidence you'd look for, and the tool you'd use to fix it.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "The Windows troubleshooting toolkit",
+      "sub": "Month 3 - Windows, OS Support & Security (A+ Core 2)  |  Lesson 4",
+      "narration": "This is the lesson where you stop guessing and start diagnosing. We're building a mental toolbox of the core Windows repair tools, and just as importantly, learning when to reach for each one. By the end you'll read Event Viewer, repair system files, check disks and memory, and recover a broken PC with Safe Mode and System Restore."
+    },
+    {
+      "type": "content",
+      "title": "Follow a method, don't guess",
+      "bullets": [
+        "Identify the problem and gather symptoms.",
+        "Form a theory, then test it.",
+        "Fix, verify full functionality, then document.",
+        "Ask first: what changed recently?"
+      ],
+      "narration": "Good technicians don't randomly try fixes; they follow a method. You identify the problem and gather symptoms, form a theory of the likely cause, test that theory, apply the fix, verify full functionality, and finally document what you did. And here's a powerful triage habit: always ask what changed. A new driver, update, app, or piece of hardware right before the problem started is usually your strongest lead."
+    },
+    {
+      "type": "content",
+      "title": "Event Viewer: find the real error",
+      "bullets": [
+        "Vague symptoms hide specific logged errors.",
+        "Open eventvwr.msc; check System and Application.",
+        "Filter for Error and Critical around the fault time.",
+        "Now your testing is targeted, not guesswork."
+      ],
+      "code": "Get-EventLog -LogName System -EntryType Error -Newest 5",
+      "narration": "Vague symptoms like it just crashes hide very specific errors in the logs. Open Event Viewer by typing event v w r dot m s c, then look under Windows Logs, System and Application. Filter for Error and Critical events around the time of the fault. You can also do this from PowerShell with Get dash Event Log. When you spot a line like the device has a bad block, your testing suddenly becomes targeted instead of guesswork."
+    },
+    {
+      "type": "content",
+      "title": "Repair system files with sfc",
+      "bullets": [
+        "Odd Windows behaviour? Suspect corrupt system files.",
+        "Run sfc /scannow from an elevated terminal.",
+        "It scans and restores protected system files.",
+        "Read the result line carefully."
+      ],
+      "code": "sfc /scannow",
+      "narration": "When Windows itself behaves oddly, suspect corrupt system files. From an elevated terminal, run s f c space slash scannow. That's the System File Checker. It scans all protected system files and restores the correct versions of any that are damaged. When it finishes, read the result line: it'll tell you whether it found corruption and whether it successfully repaired it."
+    },
+    {
+      "type": "content",
+      "title": "When sfc can't fix it: DISM",
+      "bullets": [
+        "sfc draws from the Windows component store.",
+        "If that store is damaged, sfc can't repair fully.",
+        "Run DISM RestoreHealth to repair the store.",
+        "Then re-run sfc /scannow."
+      ],
+      "code": "DISM /Online /Cleanup-Image /RestoreHealth",
+      "narration": "Sometimes s f c reports that it couldn't repair everything. That usually means the underlying component store it draws from is itself damaged. The fix is dism — D I S M — with the online, cleanup dash image, restore health switches. This repairs the Windows image, and once it completes, you re-run s f c slash scannow, which can now succeed. So the order is: s f c, and if that fails, dism, then s f c again."
+    },
+    {
+      "type": "content",
+      "title": "Check disk and memory",
+      "bullets": [
+        "chkdsk /f fixes file-system errors.",
+        "On the system drive it runs at next restart.",
+        "mdsched runs Windows Memory Diagnostic.",
+        "It tests RAM before Windows loads."
+      ],
+      "code": "chkdsk C: /f\nmdsched",
+      "narration": "For file-system errors or a failing drive, run check disk — chkdsk — with slash f to fix errors. On your system drive it'll schedule itself for the next restart, because it needs exclusive access to the drive. And for random crashes that smell like bad memory, run m d sched, the Windows Memory Diagnostic. It restarts the P C and tests the R A M before Windows even loads, then shows the result after boot."
+    },
+    {
+      "type": "content",
+      "title": "Recover with Safe Mode",
+      "bullets": [
+        "Windows won't start? Often a bad driver.",
+        "Safe Mode loads only essential drivers.",
+        "Reach it from msconfig Boot tab or recovery menu.",
+        "Then uninstall the culprit safely."
+      ],
+      "narration": "When Windows won't start normally, the cause is often a bad driver. The recovery tool is Safe Mode, which boots Windows with only the essential drivers and services. Because the faulty component doesn't load, you can get in and uninstall it, or run your repairs. You reach Safe Mode from m s config, on the Boot tab where it says Safe boot, or from the recovery menu when Windows can't start at all."
+    },
+    {
+      "type": "content",
+      "title": "Roll back with System Restore",
+      "bullets": [
+        "A recent change broke things?",
+        "System Restore reverts system files and settings.",
+        "It uses an earlier restore point.",
+        "Personal files are left untouched."
+      ],
+      "narration": "If a recent change broke things and you'd rather rewind than hunt, use System Restore. It rolls protected system files and settings back to an earlier restore point — a snapshot Windows takes before major changes. Crucially, System Restore does not touch your personal files, only system state. It's a fast, safe way to undo a bad update or install when you're not sure exactly what went wrong."
+    },
+    {
+      "type": "content",
+      "title": "Always document the fix",
+      "bullets": [
+        "Documentation is the final step of the method.",
+        "Record symptom, root cause, and exact fix.",
+        "It becomes searchable knowledge.",
+        "The next tech solves it faster."
+      ],
+      "narration": "The very last step of the troubleshooting method, and the one people skip, is documentation. Write down the symptom, the root cause you found, and the exact fix you applied. That turns one solved ticket into searchable knowledge for the whole team. The next technician who sees the same symptom finds your note and solves it in minutes instead of hours. Closing this loop is what makes a team good."
+    },
+    {
+      "type": "content",
+      "title": "Recap & your task",
+      "bullets": [
+        "Follow the method; ask what changed.",
+        "Event Viewer finds the real error.",
+        "sfc then DISM repair system files.",
+        "chkdsk, mdsched, Safe Mode, System Restore.",
+        "Task: read a log, run sfc, document a fix."
+      ],
+      "narration": "Let's recap your toolkit. Follow the troubleshooting method and always ask what changed. Event Viewer finds the real error behind vague symptoms. S f c, and then dism if needed, repair corrupt system files. Check disk and memory diagnostic test your hardware, while Safe Mode and System Restore recover a broken PC. And you always document the fix. Your task: open Event Viewer and note one Error's source and time, run s f c slash scannow and record the result, confirm where Safe boot lives in m s config, and write a short troubleshooting note for an imaginary crash. See you in the final lesson of the month."
+    }
+  ]
+}

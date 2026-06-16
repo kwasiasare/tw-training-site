@@ -1,0 +1,169 @@
+{
+  "slug": "hd5-l03-windows-autopilot",
+  "title": "Windows Autopilot deployment",
+  "month": 5,
+  "monthTitle": "Modern Endpoint Management with AI (MD-102)",
+  "lesson": 3,
+  "video": "hd5-l03-windows-autopilot.mp4",
+  "summary": "Learn how Windows Autopilot turns a factory-fresh device into a fully configured, user-ready PC with zero imaging, and how registration, deployment profiles, and the Enrollment Status Page make it happen.",
+  "objectives": [
+    "Explain what Windows Autopilot is and how it removes the need for imaging",
+    "Describe how a device is registered using its hardware hash",
+    "Configure and assign a Windows Autopilot deployment profile",
+    "Compare user-driven and self-deploying deployment modes",
+    "Explain the purpose of the Enrollment Status Page (ESP) during OOBE",
+    "Walk through the Autopilot screens in the Intune admin center"
+  ],
+  "quiz": [
+    {
+      "q": "What is the main benefit of Windows Autopilot for a helpdesk team?",
+      "options": ["It replaces antivirus on the device", "It removes the need to build and apply custom images", "It encrypts the network traffic", "It backs up the device to tape"],
+      "answer": 1,
+      "why": "Autopilot provisions devices from the factory OS using cloud configuration, so technicians no longer build, store, and apply custom Windows images."
+    },
+    {
+      "q": "What uniquely identifies a device so it can be registered for Autopilot?",
+      "options": ["The MAC address", "The Wi-Fi SSID", "The hardware hash (hardware ID)", "The user's password"],
+      "answer": 2,
+      "why": "Autopilot registration uses the device's hardware hash (a hardware ID derived from the device), often supplied by the OEM or collected with a script."
+    },
+    {
+      "q": "Which deployment mode requires NO user to sign in during setup and is used for kiosks or shared devices?",
+      "options": ["User-driven mode", "Hybrid join mode", "Co-management mode", "Self-deploying mode"],
+      "answer": 3,
+      "why": "Self-deploying mode provisions the device with no user credentials, making it ideal for kiosks, digital signage, and shared devices."
+    },
+    {
+      "q": "What does the Enrollment Status Page (ESP) do during the out-of-box experience?",
+      "options": ["Shows setup progress and blocks use until apps and policies are applied", "Resets the local administrator password", "Wipes the device", "Captures the hardware hash"],
+      "answer": 0,
+      "why": "The ESP shows provisioning progress and can prevent the user from reaching the desktop until required apps, certificates, and policies are installed."
+    },
+    {
+      "q": "Where in the Intune admin center do you find and manage Autopilot devices and profiles?",
+      "answer": "Intune admin center > Devices > Enrollment > Windows (under Windows Autopilot), where you manage Devices, Deployment profiles, and the Enrollment Status Page.",
+      "why": "Autopilot registration, profiles, and the ESP all live under the Windows enrollment area of the Intune admin center."
+    },
+    {
+      "q": "In one sentence, explain the difference between user-driven and self-deploying Autopilot modes.",
+      "answer": "User-driven mode has the end user sign in with their work account so the device is set up and joined for that user, while self-deploying mode provisions the device with no user sign-in for kiosk or shared use.",
+      "why": "The key difference is whether a user authenticates during OOBE: user-driven requires it, self-deploying does not."
+    }
+  ],
+  "resources": [
+    {"label": "Overview of Windows Autopilot", "url": "https://learn.microsoft.com/en-us/autopilot/overview"},
+    {"label": "Register devices to Windows Autopilot", "url": "https://learn.microsoft.com/en-us/autopilot/add-devices"},
+    {"label": "Windows Autopilot Enrollment Status Page", "url": "https://learn.microsoft.com/en-us/autopilot/enrollment-status"},
+    {"label": "MD-102: Endpoint Administrator exam", "url": "https://learn.microsoft.com/en-us/credentials/certifications/exams/md-102/"}
+  ],
+  "body_markdown": "## What Windows Autopilot is\n\n**Windows Autopilot** is a cloud-driven way to set up and configure brand-new Windows devices. The goal is **zero-touch provisioning**: a device ships from the factory with a standard Windows install, and when the user turns it on and connects to the internet, it automatically becomes a fully configured, corporate-ready PC - joined to **Entra ID**, enrolled in **Intune**, with policies and apps applied. The technician never touches the box.\n\nThe big win for helpdesk teams is the end of **imaging**. Traditionally you built a custom Windows image, stored it, and applied it to every machine - slow, version-sensitive work. With Autopilot you start from the OEM's factory OS and let the cloud do the configuration. Less time per device, fewer images to maintain, and devices can be drop-shipped straight to users.\n\n## Registering a device (hardware hash)\n\nFor Autopilot to recognize a device, that device must be **registered** to your tenant. Registration is keyed on the **hardware hash** (also called the hardware ID) - a value derived from the device's hardware. There are three common ways it gets registered:\n\n- The **OEM or reseller** registers it at purchase (the smoothest path).\n- You **collect the hash** from an existing device and import it.\n- A **distributor** uploads it on your behalf.\n\nTo collect the hash yourself from a device:\n\n```powershell\n# Run in an elevated PowerShell session\nInstall-Script -Name Get-WindowsAutopilotInfo -Force\nGet-WindowsAutopilotInfo -OutputFile C:\\HWID\\AutopilotHWID.csv\n```\n\nYou then import that CSV into Intune so the device shows up as an Autopilot device.\n\n## Deployment profiles\n\nA **deployment profile** is the set of rules that tells Autopilot how to configure a device: which **join type** (Entra joined or hybrid joined), what the out-of-box experience should hide or show, the naming convention, and which mode to use. You build the profile once and **assign** it to a group; any registered device in that group picks it up automatically.\n\n## User-driven vs self-deploying modes\n\nThere are two main modes:\n\n- **User-driven** - the end user signs in with their **work account** during setup. The device is provisioned and assigned to that user. This is the common choice for normal staff laptops.\n- **Self-deploying** - **no user signs in**. The device provisions itself end-to-end. This is for **kiosks, digital signage, and shared devices** where there is no single owner.\n\n## OOBE and the Enrollment Status Page\n\nWhen the device first boots, the user sees the **Out-of-Box Experience (OOBE)** - the standard Windows setup screens. Autopilot customizes OOBE based on the profile, then hands off to the **Enrollment Status Page (ESP)**. The ESP shows provisioning **progress** and can **block** the user from reaching the desktop until required apps, certificates, and policies are installed - so users don't start working on a half-configured machine.\n\n```text\nIntune admin center (intune.microsoft.com)\n> Devices > Enrollment > Windows\n> Windows Autopilot:  Devices  |  Deployment profiles  |  Enrollment Status Page\n```\n\nFrom here you confirm a device is registered, create or edit a deployment profile, assign it to a group, and configure the ESP behavior.\n\n## Your task\n\nIn the Intune admin center, navigate to Devices > Enrollment > Windows and open the Windows Autopilot area. Review the Devices, Deployment profiles, and Enrollment Status Page sections. Then describe, in three to four sentences, how you would take a brand-new laptop from its box to a user's hands using Autopilot - name the hardware hash registration step, the deployment profile, the mode you would choose (user-driven), and the role the ESP plays during OOBE.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Windows Autopilot deployment",
+      "sub": "Month 5 - Modern Endpoint Management with AI (MD-102)  |  Lesson 3",
+      "narration": "Welcome to Lesson Three of Month Five. In this lesson we'll look at Windows Autopilot - Microsoft's way of taking a brand-new device from the factory to a fully configured, user-ready P-C without anyone building an image. For a helpdesk team, this changes how you deploy machines, so let's see how it works."
+    },
+    {
+      "type": "content",
+      "title": "What is Windows Autopilot?",
+      "bullets": [
+        "A cloud-driven way to set up brand-new Windows devices.",
+        "Goal is zero-touch provisioning.",
+        "Device joins Entra ID and enrolls in Intune automatically.",
+        "The technician never has to touch the box."
+      ],
+      "narration": "Let's start with the idea. Windows Autopilot is a cloud-driven way to set up brand-new Windows devices. The goal is zero-touch provisioning - the device ships with a standard Windows install, the user powers it on, connects to the internet, and it turns itself into a fully configured corporate P-C. It joins Entra I-D, enrolls in Intune, and pulls down policies and apps. Ideally, you the technician never even open the box."
+    },
+    {
+      "type": "content",
+      "title": "Goodbye, imaging",
+      "bullets": [
+        "Traditional way: build, store, and apply custom images.",
+        "Imaging is slow and sensitive to Windows versions.",
+        "Autopilot starts from the OEM factory OS instead.",
+        "Devices can be drop-shipped straight to users."
+      ],
+      "narration": "The biggest win is saying goodbye to imaging. The old way was to build a custom Windows image, store it, and apply it to every machine - slow work that broke every time Windows updated. Autopilot flips that: you start from the manufacturer's factory operating system and let the cloud do the configuration. Fewer images to maintain, less time per device, and you can drop-ship laptops straight to your users."
+    },
+    {
+      "type": "content",
+      "title": "Registering a device: the hardware hash",
+      "bullets": [
+        "Autopilot must recognize the device first - it has to be registered.",
+        "Registration is keyed on the hardware hash, or hardware ID.",
+        "OEM or reseller can register it at purchase.",
+        "Or you collect the hash and import it into Intune."
+      ],
+      "narration": "Before any of that magic happens, Autopilot has to recognize the device - it must be registered to your tenant. Registration is keyed on the hardware hash, sometimes called the hardware I-D, which is a value derived from the device's hardware. The smoothest path is for the O-E-M or reseller to register it at the time of purchase. If that didn't happen, you can collect the hash from the device yourself and import it into Intune."
+    },
+    {
+      "type": "content",
+      "title": "Collecting the hash with PowerShell",
+      "bullets": [
+        "Use the Get-WindowsAutopilotInfo script.",
+        "Run it in an elevated PowerShell session.",
+        "It outputs a CSV with the hardware hash.",
+        "Import that CSV into Intune to register the device."
+      ],
+      "code": "Install-Script -Name Get-WindowsAutopilotInfo -Force\nGet-WindowsAutopilotInfo -OutputFile C:\\HWID\\AutopilotHWID.csv",
+      "narration": "Here's how you grab the hash yourself. In an elevated PowerShell window, you install the script called Get-Windows-Autopilot-Info, then run it with an output-file parameter pointing to a C-S-V. The script writes the hardware hash into that C-S-V file. You then upload the C-S-V into Intune, and the device shows up as an Autopilot device, ready to be assigned a profile."
+    },
+    {
+      "type": "content",
+      "title": "Deployment profiles",
+      "bullets": [
+        "A profile is the rule set for how a device is configured.",
+        "Sets the join type, naming, and which OOBE screens appear.",
+        "You build it once and assign it to a group.",
+        "Any registered device in that group picks it up automatically."
+      ],
+      "narration": "Next comes the deployment profile. Think of a profile as the rule book for how a device gets configured. It sets the join type - Entra joined or hybrid joined - the device naming convention, which out-of-box screens to show or hide, and the deployment mode. You build the profile once, assign it to a group, and then any registered device that lands in that group picks it up automatically. No per-device fiddling."
+    },
+    {
+      "type": "content",
+      "title": "User-driven vs self-deploying",
+      "bullets": [
+        "User-driven: the end user signs in with their work account.",
+        "Used for normal staff laptops, assigned to one person.",
+        "Self-deploying: no user signs in at all.",
+        "Used for kiosks, signage, and shared devices."
+      ],
+      "narration": "There are two main modes, and the difference is simple: does a user sign in during setup? In user-driven mode, the end user signs in with their work account, and the device gets provisioned and assigned to that person. That's your everyday staff laptop. In self-deploying mode, nobody signs in - the device configures itself end to end. That's what you use for kiosks, digital signage, and shared devices that don't belong to one owner."
+    },
+    {
+      "type": "content",
+      "title": "OOBE and the Enrollment Status Page",
+      "bullets": [
+        "OOBE is the standard Windows out-of-box setup experience.",
+        "Autopilot customizes OOBE based on the profile.",
+        "The Enrollment Status Page shows provisioning progress.",
+        "It can block the desktop until required apps and policies apply."
+      ],
+      "narration": "When the device first boots, the user sees the Out-of-Box Experience, or O-O-B-E - the familiar Windows setup screens. Autopilot tailors those screens based on the profile, then hands off to the Enrollment Status Page, the E-S-P. The E-S-P shows provisioning progress and, importantly, it can block the user from reaching the desktop until your required apps, certificates, and policies are installed. That stops people from starting work on a half-built machine."
+    },
+    {
+      "type": "content",
+      "title": "Where it lives in Intune",
+      "bullets": [
+        "Intune admin center > Devices > Enrollment > Windows.",
+        "Under Windows Autopilot: Devices, Deployment profiles, ESP.",
+        "Confirm a device is registered and assign a profile.",
+        "Configure the Enrollment Status Page behavior here."
+      ],
+      "code": "intune.microsoft.com > Devices > Enrollment > Windows > Windows Autopilot",
+      "narration": "Let's see where all of this lives. In the Intune admin center, go to Devices, then Enrollment, then Windows. Under the Windows Autopilot area you'll find Devices, Deployment profiles, and the Enrollment Status Page. From here you confirm a device is registered, create or edit a deployment profile, assign it to a group, and set how the E-S-P behaves. This one area ties the whole Autopilot flow together."
+    },
+    {
+      "type": "content",
+      "title": "Recap & your task",
+      "bullets": [
+        "Autopilot gives zero-touch provisioning - no imaging.",
+        "Register by hardware hash, then assign a deployment profile.",
+        "Pick user-driven or self-deploying mode; ESP gates OOBE.",
+        "Task: describe taking a new laptop box-to-user via Autopilot."
+      ],
+      "narration": "Let's recap. Windows Autopilot delivers zero-touch provisioning, which means no more imaging. The flow is: register the device by its hardware hash, assign a deployment profile, choose user-driven or self-deploying mode, and let the Enrollment Status Page gate the out-of-box experience until everything is in place. For your task, go to the Intune admin center, open Devices, Enrollment, Windows, and review the Autopilot Devices, Deployment profiles, and Enrollment Status Page sections. Then write three to four sentences describing how you'd take a brand-new laptop from its box to a user's hands - naming the hardware hash registration, the deployment profile, the user-driven mode, and the role of the E-S-P during O-O-B-E."
+    }
+  ]
+}

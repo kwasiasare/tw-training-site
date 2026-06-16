@@ -1,0 +1,204 @@
+{
+  "slug": "hd6-l09-tier2-capstone",
+  "title": "Tier 2 capstone: end-to-end incident handling",
+  "month": 6,
+  "monthTitle": "Microsoft 365 Administration (MS-102)",
+  "lesson": 9,
+  "video": "hd6-l09-tier2-capstone.mp4",
+  "summary": "Work one realistic account-compromise incident from first report to post-incident notes, pulling together everything you learned across the course. You will rule out an outage, investigate sign-ins, contain the account, clean up attacker persistence, and document the root cause.",
+  "objectives": [
+    "Triage a user report and rule out a service outage before assuming compromise",
+    "Investigate suspicious sign-ins in Microsoft Entra ID and confirm scope",
+    "Contain a compromised account by resetting credentials and revoking active sessions",
+    "Find and remove attacker persistence such as inbox rules and mail forwarding",
+    "Use message trace, quarantine, and Defender to assess spread and remediate",
+    "Communicate, escalate, and write clear root-cause and post-incident notes in the ticket"
+  ],
+  "quiz": [
+    {
+      "q": "A user reports they cannot send email and that colleagues received strange messages from their address. What should you check FIRST before assuming the account is compromised?",
+      "options": [
+        "Microsoft 365 Service health to rule out a wider outage",
+        "Immediately delete the user's mailbox",
+        "Buy the user a new laptop",
+        "Reinstall Outlook on every device in the office"
+      ],
+      "answer": 0,
+      "why": "Service health tells you whether the symptoms come from a known Microsoft outage. Confirming scope first stops you from chasing a compromise that is really a platform incident — and vice versa."
+    },
+    {
+      "q": "In Microsoft Entra ID, which signal most strongly suggests an account was compromised rather than the user simply travelling?",
+      "options": [
+        "A single successful sign-in from the user's usual city",
+        "Successful sign-ins from an unfamiliar country plus impossible-travel and legacy-auth attempts",
+        "The user changing their display name",
+        "A failed sign-in once on Monday morning"
+      ],
+      "answer": 1,
+      "why": "Impossible travel, an unfamiliar location, and legacy or basic-auth sign-ins together are classic compromise indicators. One normal sign-in or a single typo'd password is not."
+    },
+    {
+      "q": "After confirming compromise, what is the correct CONTAINMENT order for the account?",
+      "options": [
+        "Tell the user to ignore it and monitor for a week",
+        "Revoke sessions only and leave the old password active",
+        "Reset the password, then revoke active sessions, then re-confirm MFA",
+        "Delete the account permanently with no investigation"
+      ],
+      "answer": 2,
+      "why": "Resetting the password stops new sign-ins with the stolen credential, revoking sessions kills tokens the attacker already holds, and re-confirming MFA restores trusted access. Skipping the revoke leaves live tokens working."
+    },
+    {
+      "q": "Why must you check the mailbox for inbox rules and mail forwarding after a compromise?",
+      "options": [
+        "Rules make Outlook load faster",
+        "Forwarding is required for MFA to work",
+        "Inbox rules store the user's password",
+        "Attackers plant rules to hide replies or auto-forward mail, giving them persistence after the password change"
+      ],
+      "answer": 3,
+      "why": "A planted rule that deletes or forwards security mail lets the attacker keep reading messages and hide their tracks even after you reset the password. Removing persistence is part of remediation, not optional."
+    },
+    {
+      "q": "Name the Exchange Online tool you would use to see whether messages were actually sent from the mailbox and where they were delivered.",
+      "answer": "Message trace (Get-MessageTrace in PowerShell, or the message trace report in the Exchange admin center / Defender portal).",
+      "why": "Message trace shows the path and status of individual messages, so you can confirm what the attacker sent, to whom, and whether it was delivered or blocked."
+    },
+    {
+      "q": "In one or two sentences, what belongs in your post-incident / root-cause note once the account is secured?",
+      "answer": "A short timeline of what happened, the likely root cause (e.g. phishing link harvested the credential), the actions you took to contain and remediate, and any follow-ups such as user security awareness or tightening conditional access.",
+      "why": "Good post-incident notes let the next tech understand the incident at a glance, support escalation or audit, and feed prevention so the same compromise does not recur."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Microsoft Learn — Respond to a compromised account in Microsoft 365",
+      "url": "https://learn.microsoft.com/en-us/defender-office-365/responding-to-a-compromised-email-account"
+    },
+    {
+      "label": "Microsoft Learn — Investigate risk with Microsoft Entra ID Protection",
+      "url": "https://learn.microsoft.com/en-us/entra/id-protection/howto-identity-protection-investigate-risk"
+    },
+    {
+      "label": "Microsoft Learn — Run a message trace in Exchange Online",
+      "url": "https://learn.microsoft.com/en-us/exchange/monitoring/trace-an-email-message/run-a-message-trace-and-view-results"
+    },
+    {
+      "label": "Microsoft Learn — Exam MS-102: Microsoft 365 Administrator",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/exams/ms-102/"
+    }
+  ],
+  "body_markdown": "## The ticket lands\n\nA user, Priya, raises a ticket: she **can't send email**, and two colleagues have asked her why she emailed them a strange \"shared invoice\" link. This is your capstone. Everything you learned this course — hardware and OS basics, networking, identity, email, security, and Microsoft 365 admin — comes together in one incident. You will work it end to end like a real **Tier 2** tech.\n\nDon't jump to a fix. Start with **triage**: when did it start, what exactly does \"can't send\" look like (a bounce? a block?), and has anything changed. Log it in the ticket as you go.\n\n## Rule out an outage first\n\nBefore you assume compromise, confirm scope. Open the Microsoft 365 admin center and check **Service health**.\n\n```text\nMicrosoft 365 admin center > Health > Service health > Exchange Online\n```\n\nIf there's an active advisory affecting send/receive, this may be a platform incident, not Priya. No advisory, and only Priya is affected with odd outbound mail? That points at an **account compromise** — likely the aftermath of a phishing link that harvested her password.\n\n## Investigate the sign-ins\n\nGo to **Microsoft Entra ID** and review Priya's sign-in logs. You're looking for **impossible travel**, sign-ins from an unfamiliar country, and **legacy authentication** attempts.\n\n```powershell\nConnect-MgGraph -Scopes \"AuditLog.Read.All\",\"User.ReadWrite.All\"\nGet-MgAuditLogSignIn -Filter \"userPrincipalName eq 'priya@contoso.com'\" -Top 25 |\n  Select-Object createdDateTime, ipAddress, @{n='City';e={$_.Location.City}}, status\n```\n\nA successful sign-in from another continent minutes after a normal one confirms it. Note the timeline in the ticket.\n\n## Contain the account\n\nNow stop the bleeding, in order. **Reset the password**, then **revoke active sessions** so any tokens the attacker already holds stop working, then re-confirm **MFA**.\n\n```powershell\n# Disable sign-in while you work, then revoke live tokens\nUpdate-MgUser -UserId priya@contoso.com -AccountEnabled:$false\nRevoke-MgUserSignInSession -UserId priya@contoso.com\n```\n\nReset the password in the admin center, re-enable the account, and confirm MFA is registered. The stolen credential is now useless.\n\n## Remove persistence and assess spread\n\nA password reset alone is not enough. Attackers plant **inbox rules** and **mail forwarding** to keep reading mail and hide replies. Connect to Exchange Online and check.\n\n```powershell\nConnect-ExchangeOnline\nGet-InboxRule -Mailbox priya@contoso.com | Format-List Name, Description, ForwardTo, DeleteMessage\nGet-Mailbox priya@contoso.com | Format-List ForwardingSmtpAddress\n```\n\nDelete any rule you didn't expect. Then run a **message trace** to see what actually went out and to whom, and check **quarantine** and **Microsoft Defender for Office 365** for the phishing message and its blast radius.\n\n```powershell\nGet-MessageTrace -SenderAddress priya@contoso.com -StartDate (Get-Date).AddDays(-2) -EndDate (Get-Date)\n```\n\n## Communicate, escalate, document\n\nTell Priya what happened in plain language and that her account is secure. Warn the colleagues who received the link **not to click it**. If the spread is wide or other accounts look affected, **escalate** to Tier 3 / security. Finally, write the **root-cause and post-incident note** in the ticket: timeline, likely cause (phishing), actions taken, and follow-ups such as security-awareness training and tighter conditional access.\n\n## Your task\n\nWrite the full incident up as a single ticket: triage notes, the outage check, the sign-in evidence, your containment steps, the persistence you removed, the message-trace findings, and a three-line root-cause note. Treat it as the write-up you'd hand to a hiring manager.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Tier 2 capstone: end-to-end incident handling",
+      "sub": "Month 6 - Microsoft 365 Administration (MS-102)  |  Lesson 9",
+      "narration": "Welcome to your capstone lesson. This is the one where everything comes together. Across this whole course you've learned hardware and operating systems, networking, identity, email, security, and Microsoft 365 administration. Today we take all of it and work one realistic incident from the very first report all the way to the post-incident notes, exactly the way a Tier Two technician would on the job. Let's get into it."
+    },
+    {
+      "type": "content",
+      "title": "The ticket lands",
+      "bullets": [
+        "Priya can't send email.",
+        "Colleagues got a strange invoice link from her.",
+        "Triage before you fix: when, what, what changed.",
+        "Log everything in the ticket as you go."
+      ],
+      "narration": "Here's our incident. A user named Priya raises a ticket. She can't send email, and two colleagues have asked why she emailed them a strange shared invoice link. Resist the urge to jump straight to a fix. Start with triage. When did it start? What does can't send actually look like, a bounce or a block? Has anything changed? And write all of it down in the ticket as you go, because good notes are half the job."
+    },
+    {
+      "type": "content",
+      "title": "Rule out an outage first",
+      "bullets": [
+        "Check Microsoft 365 Service health before blaming the account.",
+        "An active Exchange advisory means platform, not Priya.",
+        "No advisory, only Priya affected, odd outbound mail?",
+        "That points to account compromise."
+      ],
+      "code": "Microsoft 365 admin center > Health > Service health > Exchange Online",
+      "narration": "Before you assume the account is compromised, confirm the scope. Open the Microsoft 365 admin center and check Service health under Exchange Online. If there's an active advisory affecting sending mail, this could be a wider Microsoft outage, not Priya specifically. But if there's no advisory, and only Priya is affected, and there's strange outbound mail going to her colleagues, that strongly points to an account compromise, most likely the aftermath of a phishing link that stole her password."
+    },
+    {
+      "type": "content",
+      "title": "Investigate the sign-ins",
+      "bullets": [
+        "Open Microsoft Entra ID sign-in logs for Priya.",
+        "Look for impossible travel and unfamiliar countries.",
+        "Watch for legacy authentication attempts.",
+        "Note the timeline in the ticket."
+      ],
+      "code": "Connect-MgGraph -Scopes \"AuditLog.Read.All\",\"User.ReadWrite.All\"\nGet-MgAuditLogSignIn -Filter \"userPrincipalName eq 'priya@contoso.com'\" -Top 25",
+      "narration": "Now go to Microsoft Entra I D and review Priya's sign-in logs. You connect with Connect dash M G Graph, then pull her recent sign-ins. What you're hunting for is impossible travel, a successful sign-in from an unfamiliar country, and legacy authentication attempts. If you see a sign-in from another continent just minutes after a normal one from her usual city, that's your confirmation. Capture that timeline in the ticket."
+    },
+    {
+      "type": "content",
+      "title": "Contain the account",
+      "bullets": [
+        "Reset the password to kill the stolen credential.",
+        "Revoke active sessions to kill live tokens.",
+        "Re-confirm MFA to restore trusted access.",
+        "Order matters: reset, revoke, then MFA."
+      ],
+      "code": "Update-MgUser -UserId priya@contoso.com -AccountEnabled:$false\nRevoke-MgUserSignInSession -UserId priya@contoso.com",
+      "narration": "Time to stop the bleeding, and order matters here. First reset the password, which makes the stolen credential useless. Then revoke active sessions, because the attacker may already be holding live tokens that keep working even after a password change. Revoking sign-in sessions kills those tokens. Then re-confirm M F A so trusted access is restored. A common mistake is resetting the password but forgetting to revoke sessions, which leaves the attacker logged in."
+    },
+    {
+      "type": "content",
+      "title": "Remove attacker persistence",
+      "bullets": [
+        "A password reset alone is not enough.",
+        "Attackers plant inbox rules and mail forwarding.",
+        "Check Get-InboxRule and ForwardingSmtpAddress.",
+        "Delete anything you didn't expect."
+      ],
+      "code": "Connect-ExchangeOnline\nGet-InboxRule -Mailbox priya@contoso.com | Format-List Name, ForwardTo, DeleteMessage\nGet-Mailbox priya@contoso.com | Format-List ForwardingSmtpAddress",
+      "narration": "Here's the step people forget. A password reset on its own is not enough. Attackers plant inbox rules and mail forwarding so they can keep reading mail and hide their replies, even after you've changed the password. So connect to Exchange Online, list the inbox rules with Get dash Inbox Rule, and check the mailbox forwarding address. If you find a rule or a forward you didn't expect, delete it. That's how you remove their persistence."
+    },
+    {
+      "type": "content",
+      "title": "Assess the spread",
+      "bullets": [
+        "Run a message trace to see what actually went out.",
+        "Check who received the phishing message.",
+        "Review quarantine and Microsoft Defender for Office 365.",
+        "Understand the blast radius before you close out."
+      ],
+      "code": "Get-MessageTrace -SenderAddress priya@contoso.com -StartDate (Get-Date).AddDays(-2) -EndDate (Get-Date)",
+      "narration": "Now assess how far it spread. Run a message trace with Get dash Message Trace to see exactly what was sent from Priya's mailbox over the last couple of days and where it was delivered. Then check quarantine and Microsoft Defender for Office three sixty five to find the phishing message and understand its blast radius. You need to know who actually received the bad link before you can say the incident is contained."
+    },
+    {
+      "type": "content",
+      "title": "Communicate and escalate",
+      "bullets": [
+        "Tell Priya in plain language that she's secure.",
+        "Warn colleagues not to click the link.",
+        "Escalate to Tier 3 or security if spread is wide.",
+        "Keep the ticket updated throughout."
+      ],
+      "narration": "Technical work isn't the whole job. Communicate. Tell Priya, in plain language, what happened and that her account is now secure. Warn the colleagues who received the link not to click it. And if the spread is wide, or you see other accounts that look affected, escalate to Tier Three or your security team rather than trying to carry it alone. All the while, keep the ticket updated so anyone picking it up knows exactly where things stand."
+    },
+    {
+      "type": "content",
+      "title": "Document the root cause",
+      "bullets": [
+        "Write a clear timeline of the incident.",
+        "State the likely root cause, e.g. phishing.",
+        "List the actions you took to contain and remediate.",
+        "Add follow-ups: awareness training, conditional access."
+      ],
+      "narration": "Finally, document the root cause. Once the account is secured, write a short post-incident note in the ticket. Include a timeline of what happened, the likely root cause such as a phishing link that harvested the password, the actions you took to contain and remediate, and any follow-ups, like security awareness training for the user or tightening conditional access policies. This note is what lets the next tech, or a hiring manager, understand the whole incident at a glance."
+    },
+    {
+      "type": "content",
+      "title": "Recap & your task",
+      "bullets": [
+        "Triage, rule out outage, investigate sign-ins.",
+        "Contain: reset, revoke, MFA. Remove persistence.",
+        "Message trace, quarantine, Defender, then communicate.",
+        "Task: write the whole incident up as one ticket."
+      ],
+      "narration": "Let's recap the capstone. You triaged the report and ruled out an outage with Service health. You investigated the sign-ins in Entra. You contained the account by resetting the password, revoking sessions, and confirming M F A. You removed the attacker's inbox rules and forwarding, ran a message trace, and checked Defender. Then you communicated, escalated, and documented the root cause. Your task: write this entire incident up as a single ticket, with triage notes, your outage check, the sign-in evidence, your containment steps, the persistence you removed, the message-trace findings, and a three-line root-cause note. Treat it as the write-up you'd proudly hand to a hiring manager. That's your whole course, brought together. Well done."
+    }
+  ]
+}
