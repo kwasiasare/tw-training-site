@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Variables, data types & strings
 month: 1
 monthTitle: Python Foundations + Git

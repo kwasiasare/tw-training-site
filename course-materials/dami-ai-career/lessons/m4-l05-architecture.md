@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Application architecture
 month: 4
 monthTitle: Portfolio Projects

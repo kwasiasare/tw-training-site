@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Evaluation harnesses
 month: 4
 monthTitle: Portfolio Projects

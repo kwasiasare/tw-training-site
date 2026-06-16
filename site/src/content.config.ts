@@ -1,13 +1,20 @@
 import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
 
-// Each lesson/topic is a Markdown file with rich frontmatter so the whole course
+// Each lesson/topic is a Markdown file with rich frontmatter so a whole course
 // can be generated uniformly. Body = the lesson notes; quiz/resources/video are data.
-// Lessons live inside their self-contained course folder under course-materials/.
-// The id (and therefore the /topics/<slug> URL) is the filename without extension.
+// Lessons live inside their self-contained course folder under course-materials/:
+//   course-materials/<course>/lessons/<slug>.md
+// The id (and therefore the /topics/<slug> URL) is the filename without extension;
+// slugs are globally unique across courses (e.g. m1-l01… vs g1-l01…).
 const topics = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: '../course-materials/dami-ai-career/lessons' }),
+  loader: glob({
+    pattern: '*/lessons/**/*.md',
+    base: '../course-materials',
+    generateId: ({ entry }) => entry.split(/[\\/]/).pop()!.replace(/\.md$/, ''),
+  }),
   schema: z.object({
+    course: z.string(),
     title: z.string(),
     month: z.number(),
     monthTitle: z.string(),

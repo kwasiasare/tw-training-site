@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Errors & exception handling
 month: 1
 monthTitle: Python Foundations + Git

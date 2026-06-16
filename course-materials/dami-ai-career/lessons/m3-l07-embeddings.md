@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Embeddings & semantic similarity
 month: 3
 monthTitle: LLM Application Skills

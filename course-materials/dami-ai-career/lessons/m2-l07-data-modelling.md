@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Relational data modelling
 month: 2
 monthTitle: Data, SQL & Web APIs

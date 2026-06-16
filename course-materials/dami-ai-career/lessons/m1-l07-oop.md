@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Object-oriented programming
 month: 1
 monthTitle: Python Foundations + Git

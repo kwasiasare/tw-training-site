@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: AI/LLM concept interview questions
 month: 6
 monthTitle: Apply & Interview

@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Chunking strategies
 month: 3
 monthTitle: LLM Application Skills

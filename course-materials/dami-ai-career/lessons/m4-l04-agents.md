@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Agents & multi-step workflows
 month: 4
 monthTitle: Portfolio Projects

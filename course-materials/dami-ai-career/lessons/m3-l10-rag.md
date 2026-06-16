@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Retrieval-Augmented Generation (RAG)
 month: 3
 monthTitle: LLM Application Skills

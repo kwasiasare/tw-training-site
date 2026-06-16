@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Tool / function calling
 month: 3
 monthTitle: LLM Application Skills

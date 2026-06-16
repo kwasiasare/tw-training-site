@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Data visualisation with matplotlib
 month: 2
 monthTitle: Data, SQL & Web APIs

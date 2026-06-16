@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Virtual environments & pip
 month: 1
 monthTitle: Python Foundations + Git

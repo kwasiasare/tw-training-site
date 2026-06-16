@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Tailoring CVs & ATS basics
 month: 6
 monthTitle: Apply & Interview

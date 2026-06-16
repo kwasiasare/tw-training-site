@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Deployment platforms
 month: 5
 monthTitle: Polish, Deploy, Go Public

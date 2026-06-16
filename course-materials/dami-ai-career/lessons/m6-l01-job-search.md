@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Job-search strategy & role targeting
 month: 6
 monthTitle: Apply & Interview

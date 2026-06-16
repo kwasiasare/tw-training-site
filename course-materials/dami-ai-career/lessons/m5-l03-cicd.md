@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: CI/CD with GitHub Actions
 month: 5
 monthTitle: Polish, Deploy, Go Public

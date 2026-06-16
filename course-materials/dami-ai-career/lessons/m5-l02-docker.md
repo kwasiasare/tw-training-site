@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Docker basics
 month: 5
 monthTitle: Polish, Deploy, Go Public

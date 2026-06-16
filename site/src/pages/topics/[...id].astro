@@ -3,7 +3,7 @@ import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Quiz from '../../components/Quiz.astro';
 import VideoEmbed from '../../components/VideoEmbed.astro';
-import { CURRICULUM } from '../../consts';
+import { getCourse, courseModules } from '../../consts';
 
 export async function getStaticPaths() {
   const topics = await getCollection('topics');
@@ -14,19 +14,21 @@ const { topic } = Astro.props;
 const { Content } = await render(topic);
 const d = topic.data;
 
-// Build prev/next within the same month from the curriculum order.
-const month = CURRICULUM.find((m) => m.month === d.month);
-const idx = month ? month.topics.findIndex((t) => t.slug === topic.id) : -1;
-const prev = month && idx > 0 ? month.topics[idx - 1] : undefined;
-const next = month && idx >= 0 && idx < month.topics.length - 1 ? month.topics[idx + 1] : undefined;
-const liveSlugs = new Set((await getCollection('topics')).map((t) => t.id));
+const allTopics = await getCollection('topics');
+const course = getCourse(d.course);
+// Build a flat, ordered list of this course's lessons for prev/next navigation.
+const ordered = courseModules(allTopics, d.course).flatMap((m) => m.lessons);
+const idx = ordered.findIndex((t) => t.id === topic.id);
+const prev = idx > 0 ? ordered[idx - 1] : undefined;
+const next = idx >= 0 && idx < ordered.length - 1 ? ordered[idx + 1] : undefined;
 ---
 
 <BaseLayout title={d.title} description={d.summary}>
   <article class="lesson">
     <div class="container">
       <div class="breadcrumb">
-        <a href="/#curriculum">Month {d.month}: {d.monthTitle}</a> &nbsp;/&nbsp; Lesson {d.lesson}
+        <a href={`/courses/${d.course}/`}>{course?.title ?? 'Course'}</a>
+        &nbsp;/&nbsp; Module {d.month}: {d.monthTitle} &nbsp;/&nbsp; Lesson {d.lesson}
       </div>
       <h1>{d.title}</h1>
       <p class="summary">{d.summary}</p>
@@ -58,8 +60,8 @@ const liveSlugs = new Set((await getCollection('topics')).map((t) => t.id));
       )}
 
       <nav class="lesson-nav">
-        {prev && liveSlugs.has(prev.slug) ? <a class="btn secondary" href={`/topics/${prev.slug}/`}>&larr; {prev.title}</a> : <span></span>}
-        {next && liveSlugs.has(next.slug) ? <a class="btn" href={`/topics/${next.slug}/`}>{next.title} &rarr;</a> : <span></span>}
+        {prev ? <a class="btn secondary" href={`/topics/${prev.id}/`}>&larr; {prev.data.title}</a> : <span></span>}
+        {next ? <a class="btn" href={`/topics/${next.id}/`}>{next.data.title} &rarr;</a> : <span></span>}
       </nav>
     </div>
   </article>

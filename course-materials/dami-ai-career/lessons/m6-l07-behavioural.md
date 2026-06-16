@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Behavioural interviews (STAR) & your narrative
 month: 6
 monthTitle: Apply & Interview

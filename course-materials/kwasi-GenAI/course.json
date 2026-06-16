@@ -1,0 +1,22 @@
+{
+  "slug": "kwasi-GenAI",
+  "title": "Cloud Engineer to Applied GenAI Engineer",
+  "description": "A deliverable-driven roadmap that turns a cloud/DevOps/security engineer into an interview-ready Applied / Generative AI Engineer: API fluency, RAG, agents, and production engineering.",
+  "audience": "Engineers with cloud, automation, and security experience moving into applied GenAI.",
+  "modules": 6,
+  "lessons": 35,
+  "layout": {
+    "decks": "decks",
+    "lessons": "lessons",
+    "videos": "videos",
+    "studyPacks": "study-packs"
+  },
+  "moduleTitles": {
+    "1": "LLM Foundations & API Fluency",
+    "2": "Retrieval-Augmented Generation (RAG)",
+    "3": "Agents & Orchestration",
+    "4": "Production Engineering",
+    "5": "Python for Production Apps",
+    "6": "Capstone & Career"
+  }
+}

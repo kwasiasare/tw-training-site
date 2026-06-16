@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: FastAPI for AI apps
 month: 4
 monthTitle: Portfolio Projects

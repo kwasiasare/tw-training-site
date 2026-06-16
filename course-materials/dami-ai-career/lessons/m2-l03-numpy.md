@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: NumPy & vectorised operations
 month: 2
 monthTitle: Data, SQL & Web APIs

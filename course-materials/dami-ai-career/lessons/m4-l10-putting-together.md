@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Putting it together
 month: 4
 monthTitle: Portfolio Projects

@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: Building UIs with Streamlit
 month: 4
 monthTitle: Portfolio Projects

@@ -1,4 +1,5 @@
 ---
+course: dami-ai-career
 title: 'SQL in depth: joins, GROUP BY, subqueries'
 month: 2
 monthTitle: Data, SQL & Web APIs
