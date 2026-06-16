@@ -44,7 +44,6 @@ jobs:
           action: upload
           app_location: site/dist   # pre-built output
           skip_app_build: true
-          skip_api_build: true
 
   close_preview:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
