@@ -5,8 +5,9 @@ import os, sys, glob, traceback
 import build_one_video
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-DECKS = os.path.join(ROOT, 'videos', '_decks')
-SITE_VIDEOS = os.path.join(ROOT, 'site', 'public', 'videos')
+COURSE = os.path.join(ROOT, 'course-materials', 'dami-ai-career')
+DECKS = os.path.join(COURSE, 'decks')
+SITE_VIDEOS = os.path.join(COURSE, 'videos')
 
 force = '--force' in sys.argv
 only = [a for a in sys.argv[1:] if not a.startswith('--')]

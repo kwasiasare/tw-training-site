@@ -15,9 +15,10 @@ dist/
 .astro/
 
 # ─── Large media (served from Cloudflare R2, never committed) ─
-# Final rendered lesson videos:
+# Rendered lesson videos live inside each self-contained course folder:
+course-materials/*/videos/*.mp4
+# Legacy local video path (kept for safety) + render/narration scratch:
 site/public/videos/*.mp4
-# Intermediate render / narration artifacts:
 videos/_render/
 videos/_auditions/
 videos/M1_Functions/
@@ -25,9 +26,8 @@ videos/M1_Functions/
 *.wav
 *.mp3
 
-# Keep the lesson decks — they are the source of truth for pages + videos.
-!videos/_decks/
-!videos/_decks/*.json
+# Keep the per-course videos/ folder present on clone (it is otherwise empty).
+!course-materials/*/videos/.gitkeep
 
 # ─── OS / editor noise ─────────────────────────────────────
 .DS_Store
