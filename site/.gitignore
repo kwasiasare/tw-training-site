@@ -1,0 +1,5 @@
+﻿dist/
+node_modules/
+.astro/
+# Large media: serve from Azure Blob + CDN in production, do not commit.
+public/videos/*.mp4

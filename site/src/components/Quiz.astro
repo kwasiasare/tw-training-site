@@ -1,0 +1,72 @@
+---
+// Interactive quiz. MCQ questions (with `options`) are click-to-answer with
+// instant right/wrong feedback; short-answer questions have a reveal button.
+interface QuizItem {
+  q: string;
+  options?: string[];
+  answer: number | string;
+  why?: string;
+}
+interface Props {
+  questions: QuizItem[];
+  title?: string;
+}
+const { questions, title = 'Check your understanding' } = Astro.props;
+---
+
+{questions.length > 0 && (
+  <section class="quiz" data-quiz>
+    <h2>{title}</h2>
+    <p class="quiz-sub">{questions.length} questions — answer to see instant feedback.</p>
+
+    {questions.map((item, i) => (
+      <div class={`q ${item.options ? 'mcq' : 'short-answer'}`} data-answer={String(item.answer)}>
+        <div class="qtext">Q{i + 1}. {item.q}</div>
+
+        {item.options ? (
+          <div class="options">
+            {item.options.map((opt, j) => (
+              <button class="opt" type="button" data-index={j}>{opt}</button>
+            ))}
+          </div>
+        ) : (
+          <button class="btn secondary reveal-btn" type="button" data-reveal>Reveal answer</button>
+        )}
+
+        {(item.why || !item.options) && (
+          <div class="explain">
+            {!item.options && <><strong>Answer:</strong> {String(item.answer)}<br /></>}
+            {item.why}
+          </div>
+        )}
+      </div>
+    ))}
+  </section>
+)}
+
+<script>
+  document.querySelectorAll('[data-quiz]').forEach((quiz) => {
+    quiz.querySelectorAll('.q.mcq').forEach((q) => {
+      const correct = Number(q.getAttribute('data-answer'));
+      const explain = q.querySelector('.explain');
+      q.querySelectorAll('.opt').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const chosen = Number(btn.getAttribute('data-index'));
+          q.querySelectorAll('.opt').forEach((b, idx) => {
+            b.setAttribute('disabled', 'true');
+            if (idx === correct) b.classList.add('correct');
+          });
+          if (chosen !== correct) btn.classList.add('wrong');
+          if (explain) explain.classList.add('show');
+        });
+      });
+    });
+    quiz.querySelectorAll('[data-reveal]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const explain = btn.parentElement?.querySelector('.explain');
+        if (explain) explain.classList.add('show');
+        btn.setAttribute('disabled', 'true');
+      });
+    });
+  });
+</script>

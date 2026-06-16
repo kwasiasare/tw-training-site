@@ -1,0 +1,35 @@
+# ─── Secrets ───────────────────────────────────────────────
+.env
+*.env
+!.env.example
+
+# ─── Python ────────────────────────────────────────────────
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# ─── Node / Astro (site) ───────────────────────────────────
+node_modules/
+dist/
+.astro/
+
+# ─── Large media (served from Cloudflare R2, never committed) ─
+# Final rendered lesson videos:
+site/public/videos/*.mp4
+# Intermediate render / narration artifacts:
+videos/_render/
+videos/_auditions/
+videos/M1_Functions/
+*.mp4
+*.wav
+*.mp3
+
+# Keep the lesson decks — they are the source of truth for pages + videos.
+!videos/_decks/
+!videos/_decks/*.json
+
+# ─── OS / editor noise ─────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp

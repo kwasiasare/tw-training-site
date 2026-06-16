@@ -1,0 +1,24 @@
+---
+import { videoUrl } from '../consts';
+interface Props {
+  src?: string; // filename (served from CDN base) or full URL
+  title?: string;
+}
+const { src, title } = Astro.props;
+const url = videoUrl(src);
+---
+
+{url ? (
+  <div class="video-wrap">
+    <video controls preload="metadata" playsinline>
+      <source src={url} type="video/mp4" />
+      Your browser does not support the video tag.
+      <a href={url}>Download the video</a>.
+    </video>
+  </div>
+) : (
+  <div class="video-missing">
+    <strong>Instructor video coming soon.</strong>
+    <div>{title ? `"${title}"` : 'This lesson'} will have a narrated video here.</div>
+  </div>
+)}

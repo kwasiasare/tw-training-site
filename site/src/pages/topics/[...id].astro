@@ -1,0 +1,66 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Quiz from '../../components/Quiz.astro';
+import VideoEmbed from '../../components/VideoEmbed.astro';
+import { CURRICULUM } from '../../consts';
+
+export async function getStaticPaths() {
+  const topics = await getCollection('topics');
+  return topics.map((topic) => ({ params: { id: topic.id }, props: { topic } }));
+}
+
+const { topic } = Astro.props;
+const { Content } = await render(topic);
+const d = topic.data;
+
+// Build prev/next within the same month from the curriculum order.
+const month = CURRICULUM.find((m) => m.month === d.month);
+const idx = month ? month.topics.findIndex((t) => t.slug === topic.id) : -1;
+const prev = month && idx > 0 ? month.topics[idx - 1] : undefined;
+const next = month && idx >= 0 && idx < month.topics.length - 1 ? month.topics[idx + 1] : undefined;
+const liveSlugs = new Set((await getCollection('topics')).map((t) => t.id));
+---
+
+<BaseLayout title={d.title} description={d.summary}>
+  <article class="lesson">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="/#curriculum">Month {d.month}: {d.monthTitle}</a> &nbsp;/&nbsp; Lesson {d.lesson}
+      </div>
+      <h1>{d.title}</h1>
+      <p class="summary">{d.summary}</p>
+
+      <VideoEmbed src={d.video} title={d.title} />
+
+      {d.objectives.length > 0 && (
+        <div class="objectives">
+          <h3>What you'll be able to do</h3>
+          <ul>{d.objectives.map((o) => <li>{o}</li>)}</ul>
+        </div>
+      )}
+
+      <div class="lesson-body">
+        <Content />
+      </div>
+
+      <Quiz questions={d.quiz} />
+
+      {d.resources.length > 0 && (
+        <div class="resources">
+          <h2>Resources</h2>
+          <ul>
+            {d.resources.map((r) => (
+              <li>{r.url ? <a href={r.url} target="_blank" rel="noopener">{r.label}</a> : r.label}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <nav class="lesson-nav">
+        {prev && liveSlugs.has(prev.slug) ? <a class="btn secondary" href={`/topics/${prev.slug}/`}>&larr; {prev.title}</a> : <span></span>}
+        {next && liveSlugs.has(next.slug) ? <a class="btn" href={`/topics/${next.slug}/`}>{next.title} &rarr;</a> : <span></span>}
+      </nav>
+    </div>
+  </article>
+</BaseLayout>

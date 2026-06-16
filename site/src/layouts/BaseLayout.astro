@@ -1,0 +1,46 @@
+---
+import '../styles/global.css';
+import { SITE } from '../consts';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+const { title, description } = Astro.props;
+const fullTitle = title ? `${title} | ${SITE.title}` : `${SITE.title} — Course`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description ?? SITE.tagline} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <a class="brand" href="/">{SITE.title}</a>
+        <nav class="nav">
+          <a href="/">Home</a>
+          <a href="/#curriculum">Curriculum</a>
+          <a href="/topics/m1-l06-functions/">Sample lesson</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <strong>{SITE.title}</strong> — {SITE.tagline}.<br />
+        A self-study course. Built with Astro, hosted on Azure Static Web Apps.
+      </div>
+    </footer>
+  </body>
+</html>
