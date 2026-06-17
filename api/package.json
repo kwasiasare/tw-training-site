@@ -1,0 +1,13 @@
+{
+  "name": "tw-training-api",
+  "version": "1.0.0",
+  "description": "Progress-tracking API (SWA managed Azure Functions) for the training platform.",
+  "main": "src/functions/*.js",
+  "scripts": {
+    "start": "func start"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.5.0",
+    "@azure/cosmos": "^4.1.1"
+  }
+}

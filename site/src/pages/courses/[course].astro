@@ -21,6 +21,7 @@ const totalLessons = modules.reduce((n, m) => n + m.lessons.length, 0);
       <h1>{meta.title}</h1>
       <p>{meta.blurb}</p>
       <p class="section-sub" style="margin-top:8px">{totalLessons} lessons · {modules.length} modules</p>
+      <p id="course-progress" class="course-progress" hidden></p>
     </div>
   </section>
 
@@ -33,7 +34,7 @@ const totalLessons = modules.reduce((n, m) => n + m.lessons.length, 0);
             <h3>{m.monthTitle}</h3>
             <ul class="topic-list">
               {m.lessons.map((l, i) => (
-                <li class="has-video">
+                <li class="has-video" data-slug={l.id} data-course={course}>
                   <span class="lz">{String(i + 1).padStart(2, '0')}</span>
                   <a href={`/topics/${l.id}/`}>{l.data.title}</a>
                 </li>
