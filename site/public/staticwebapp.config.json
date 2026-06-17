@@ -1,5 +1,21 @@
 {
   "$schema": "https://json.schemastore.org/staticwebapp.config.json",
+  "auth": {
+    "identityProviders": {
+      "customOpenIdConnectProviders": {
+        "entraExternalId": {
+          "registration": {
+            "clientIdSettingName": "ENTRA_CLIENT_ID",
+            "clientCredential": { "clientSecretSettingName": "ENTRA_CLIENT_SECRET" },
+            "openIdConnectConfiguration": {
+              "wellKnownOpenIdConfiguration": "https://twtraining.ciamlogin.com/5afbd9ae-47c9-4043-bdb4-d32557aae15d/v2.0/.well-known/openid-configuration"
+            }
+          },
+          "login": { "scopes": ["openid", "profile", "email"] }
+        }
+      }
+    }
+  },
   "navigationFallback": {
     "rewrite": "/404.html",
     "exclude": ["/videos/*", "/*.{png,jpg,svg,css,js,mp4,webm}"]
