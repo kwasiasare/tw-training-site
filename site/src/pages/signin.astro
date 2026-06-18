@@ -1,0 +1,37 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Sign in to continue" description="Create a free account to continue the course.">
+  <section class="lesson">
+    <div class="container">
+      <h1>Free account required to continue</h1>
+      <p class="summary">
+        The first two lessons of every course are free to preview. Create a free account
+        (or sign in) to keep going with the rest — it also saves your progress so you can
+        pick up where you left off.
+      </p>
+      <p>
+        <a class="btn" id="signin-btn" href="/.auth/login/entraExternalId">Sign in / create a free account</a>
+      </p>
+      <p><a href="/#courses">&larr; Back to the courses</a></p>
+    </div>
+  </section>
+
+  <script is:inline>
+    // After signing in, return to the lesson the user was trying to reach (best effort).
+    (function () {
+      var btn = document.getElementById('signin-btn');
+      if (!btn) return;
+      var target = '/';
+      try {
+        var ref = document.referrer;
+        if (ref) {
+          var u = new URL(ref);
+          if (u.origin === location.origin && u.pathname.indexOf('/topics/') === 0) target = u.pathname;
+        }
+      } catch (e) {}
+      btn.href = '/.auth/login/entraExternalId?post_login_redirect_uri=' + encodeURIComponent(target);
+    })();
+  </script>
+</BaseLayout>

@@ -1,0 +1,60 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Admin dashboard" description="Platform analytics.">
+  <section class="block">
+    <div class="container">
+      <h1>Admin dashboard</h1>
+      <div id="admin-body"><p class="summary">Loading analytics…</p></div>
+    </div>
+  </section>
+
+  <script is:inline>
+    (function () {
+      var body = document.getElementById('admin-body');
+      function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+        });
+      }
+      function card(label, val) {
+        return '<div class="card"><h3>' + (val == null ? '0' : esc(val)) + '</h3><p class="theme">' + label + '</p></div>';
+      }
+      function list(arr, fn) {
+        if (!arr || !arr.length) return '<p class="theme">None yet.</p>';
+        return '<ul class="topic-list">' + arr.map(fn).join('') + '</ul>';
+      }
+      fetch('/api/admin/stats', { headers: { accept: 'application/json' } })
+        .then(function (r) {
+          if (r.status === 401 || r.status === 403) {
+            body.innerHTML = '<p class="summary">You need administrator access to view this page.</p>';
+            return null;
+          }
+          return r.ok ? r.json() : null;
+        })
+        .then(function (d) {
+          if (!d) return;
+          var t = d.totals || {};
+          var html = '<div class="grid cols-2">' +
+            card('Users', t.users) + card('Enrollments', t.enrollments) +
+            card('Lessons completed', t.completions) +
+            card('Avg quiz score', t.avgQuiz == null ? '—' : t.avgQuiz + '%') + '</div>';
+          html += '<h2>Completions by course</h2>' + list(Object.keys(d.byCourse || {}), function (c) {
+            return '<li>' + esc(c) + ' — <strong>' + d.byCourse[c] + '</strong></li>';
+          });
+          html += '<h2>Most-completed lessons</h2>' + list(d.topLessons, function (l) {
+            return '<li>' + esc(l.lesson) + ' — <strong>' + l.count + '</strong></li>';
+          });
+          html += '<h2>Users</h2>' + list(d.users, function (u) {
+            return '<li>' + esc(u.user) + ' — ' + u.completed + ' completed</li>';
+          });
+          html += '<h2>Recent activity</h2>' + list(d.recent, function (r) {
+            return '<li>' + esc(r.user) + ' · ' + esc(r.course) + ' / ' + esc(r.lesson) + ' · ' + esc(r.status) + '</li>';
+          });
+          body.innerHTML = html;
+        })
+        .catch(function () { body.innerHTML = '<p class="summary">Could not load analytics.</p>'; });
+    })();
+  </script>
+</BaseLayout>
