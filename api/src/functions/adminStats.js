@@ -57,7 +57,7 @@ app.http('adminStats', {
       };
     } catch (err) {
       context.error('adminStats error', err);
-      return { status: 500, jsonBody: { error: 'server_error' } };
+      return { status: 500, jsonBody: { error: 'server_error', detail: String((err && err.message) || err) } };
     }
   },
 });
