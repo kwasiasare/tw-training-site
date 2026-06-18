@@ -35,6 +35,8 @@ const next = idx >= 0 && idx < ordered.length - 1 ? ordered[idx + 1] : undefined
 
       <VideoEmbed src={d.video} title={d.title} />
 
+      <div id="lesson-progress" class="lesson-progress" data-course={d.course} data-lesson={topic.id} hidden></div>
+
       {d.objectives.length > 0 && (
         <div class="objectives">
           <h3>What you'll be able to do</h3>

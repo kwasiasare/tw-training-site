@@ -86,5 +86,6 @@ const fullTitle = title ? `${title} | ${SITE.title}` : `${SITE.title} — Course
         })();
       </script>
     )}
+    {AUTH_ENABLED && <script is:inline src="/progress.js" defer></script>}
   </body>
 </html>
