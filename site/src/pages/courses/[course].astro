@@ -22,6 +22,7 @@ const totalLessons = modules.reduce((n, m) => n + m.lessons.length, 0);
       <p>{meta.blurb}</p>
       <p class="section-sub" style="margin-top:8px">{totalLessons} lessons · {modules.length} modules</p>
       <p id="course-progress" class="course-progress" hidden></p>
+      <p><a id="course-resume" class="btn" hidden>Resume where you left off &rarr;</a></p>
     </div>
   </section>
 

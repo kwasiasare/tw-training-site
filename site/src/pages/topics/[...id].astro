@@ -48,7 +48,7 @@ const next = idx >= 0 && idx < ordered.length - 1 ? ordered[idx + 1] : undefined
         <Content />
       </div>
 
-      <Quiz questions={d.quiz} />
+      <Quiz questions={d.quiz} course={d.course} lesson={topic.id} />
 
       {d.resources.length > 0 && (
         <div class="resources">
