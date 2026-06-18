@@ -31,7 +31,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             body.innerHTML = '<p class="summary">You need administrator access to view this page.</p>';
             return null;
           }
-          return r.ok ? r.json() : null;
+          if (!r.ok) {
+            return r.text().then(function (t) {
+              body.innerHTML = '<p class="summary">Analytics failed to load (HTTP ' + r.status + '). ' + esc(t.slice(0, 400)) + '</p>';
+              return null;
+            });
+          }
+          return r.json();
         })
         .then(function (d) {
           if (!d) return;
