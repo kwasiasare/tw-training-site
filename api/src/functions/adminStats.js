@@ -4,7 +4,7 @@ const { getContainer } = require('../shared/cosmos');
 
 // GET /api/admin/stats — platform analytics for admins. SWA restricts the route
 // to the 'administrator' role; we re-check the role here as defence in depth.
-app.http('adminStats', {
+app.http('adminstats', {
   methods: ['GET'],
   authLevel: 'anonymous',
   route: 'adminstats',
