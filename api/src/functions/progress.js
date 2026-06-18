@@ -30,16 +30,26 @@ app.http('progress', {
       if (!course || !lesson) {
         return { status: 400, jsonBody: { error: 'course_and_lesson_required' } };
       }
+      const id = `${user.userId}:${course}:${lesson}`;
+      // Merge into any existing record so marking complete and saving a quiz
+      // score (separate actions) don't overwrite each other.
+      let existing = null;
+      try {
+        existing = (await container.item(id, user.userId).read()).resource;
+      } catch {
+        existing = null;
+      }
       const doc = {
-        id: `${user.userId}:${course}:${lesson}`,
+        id,
         userId: user.userId,
         type: 'progress',
         course,
         lesson,
-        status: status || 'completed',
+        status: status || (existing && existing.status) || 'completed',
         updatedAt: new Date().toISOString(),
       };
-      if (typeof quizScore === 'number') doc.quizScore = quizScore;
+      const score = typeof quizScore === 'number' ? quizScore : existing && existing.quizScore;
+      if (typeof score === 'number') doc.quizScore = score;
 
       const { resource } = await container.items.upsert(doc);
       return { jsonBody: { ok: true, item: resource } };

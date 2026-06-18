@@ -52,17 +52,31 @@
   function initCourse(completed) {
     var items = document.querySelectorAll('li[data-slug][data-course]');
     if (!items.length) return;
-    var total = 0, doneN = 0;
+    var total = 0, doneN = 0, firstIncomplete = null;
     items.forEach(function (li) {
       total++;
-      if (completed.has(key(li.getAttribute('data-course'), li.getAttribute('data-slug')))) {
+      var slug = li.getAttribute('data-slug');
+      if (completed.has(key(li.getAttribute('data-course'), slug))) {
         li.classList.add('lesson-done'); doneN++;
+      } else if (!firstIncomplete) {
+        firstIncomplete = slug;
       }
     });
     var bar = document.getElementById('course-progress');
     if (bar && total) {
       bar.hidden = false;
       bar.textContent = doneN + ' / ' + total + ' lessons complete (' + Math.round((doneN / total) * 100) + '%)';
+    }
+    var resume = document.getElementById('course-resume');
+    if (resume && total) {
+      if (firstIncomplete) {
+        resume.setAttribute('href', '/topics/' + firstIncomplete + '/');
+        resume.hidden = false;
+      } else {
+        resume.textContent = 'Course complete ✓';
+        resume.removeAttribute('href');
+        resume.hidden = false;
+      }
     }
   }
 

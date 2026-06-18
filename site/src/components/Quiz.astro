@@ -10,12 +10,14 @@ interface QuizItem {
 interface Props {
   questions: QuizItem[];
   title?: string;
+  course?: string;
+  lesson?: string;
 }
-const { questions, title = 'Check your understanding' } = Astro.props;
+const { questions, title = 'Check your understanding', course, lesson } = Astro.props;
 ---
 
 {questions.length > 0 && (
-  <section class="quiz" data-quiz>
+  <section class="quiz" data-quiz data-course={course} data-lesson={lesson}>
     <h2>{title}</h2>
     <p class="quiz-sub">{questions.length} questions — answer to see instant feedback.</p>
 
@@ -46,9 +48,26 @@ const { questions, title = 'Check your understanding' } = Astro.props;
 
 <script>
   document.querySelectorAll('[data-quiz]').forEach((quiz) => {
-    quiz.querySelectorAll('.q.mcq').forEach((q) => {
+    const mcqs = quiz.querySelectorAll('.q.mcq');
+    const total = mcqs.length;
+    const course = quiz.getAttribute('data-course');
+    const lesson = quiz.getAttribute('data-lesson');
+    let answered = 0;
+    let correctCount = 0;
+    // When all MCQs are answered, record the quiz score (and completion).
+    // Anonymous users get a 401 here, which is harmless and ignored.
+    function maybeRecord() {
+      if (total === 0 || answered < total || !course || !lesson) return;
+      fetch('/api/progress', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ course, lesson, quizScore: Math.round((correctCount / total) * 100), status: 'completed' }),
+      }).catch(() => {});
+    }
+    mcqs.forEach((q) => {
       const correct = Number(q.getAttribute('data-answer'));
       const explain = q.querySelector('.explain');
+      let done = false;
       q.querySelectorAll('.opt').forEach((btn) => {
         btn.addEventListener('click', () => {
           const chosen = Number(btn.getAttribute('data-index'));
@@ -58,6 +77,12 @@ const { questions, title = 'Check your understanding' } = Astro.props;
           });
           if (chosen !== correct) btn.classList.add('wrong');
           if (explain) explain.classList.add('show');
+          if (!done) {
+            done = true;
+            answered++;
+            if (chosen === correct) correctCount++;
+            maybeRecord();
+          }
         });
       });
     });
