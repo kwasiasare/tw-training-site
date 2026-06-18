@@ -1,6 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/staticwebapp.config.json",
   "auth": {
+    "rolesSource": "/api/GetRoles",
     "identityProviders": {
       "customOpenIdConnectProviders": {
         "entraExternalId": {
@@ -25,13 +26,26 @@
     ".webm": "video/webm"
   },
   "routes": [
-    {
-      "route": "/api/*",
-      "allowedRoles": ["authenticated"]
-    },
+    { "route": "/api/GetRoles", "allowedRoles": ["anonymous", "authenticated"] },
+    { "route": "/api/admin/*", "allowedRoles": ["administrator"] },
+    { "route": "/api/*", "allowedRoles": ["authenticated"] },
+    { "route": "/admin", "allowedRoles": ["administrator"] },
+    { "route": "/admin/*", "allowedRoles": ["administrator"] },
+    { "route": "/topics/m1-l01-how-python-runs*", "allowedRoles": ["anonymous", "authenticated"] },
+    { "route": "/topics/m1-l02-variables-types-strings*", "allowedRoles": ["anonymous", "authenticated"] },
+    { "route": "/topics/g1-l01-how-llms-behave*", "allowedRoles": ["anonymous", "authenticated"] },
+    { "route": "/topics/g1-l02-where-llms-fail*", "allowedRoles": ["anonymous", "authenticated"] },
+    { "route": "/topics/hd1-l01-how-a-computer-works*", "allowedRoles": ["anonymous", "authenticated"] },
+    { "route": "/topics/hd1-l02-inside-the-pc*", "allowedRoles": ["anonymous", "authenticated"] },
+    { "route": "/topics/ht1-l01-the-tier3-mindset-and-rca*", "allowedRoles": ["anonymous", "authenticated"] },
+    { "route": "/topics/ht1-l02-advanced-windows-internals*", "allowedRoles": ["anonymous", "authenticated"] },
+    { "route": "/topics/*", "allowedRoles": ["authenticated"] },
     {
       "route": "/videos/*",
       "headers": { "cache-control": "public, max-age=31536000, immutable" }
     }
-  ]
+  ],
+  "responseOverrides": {
+    "401": { "redirect": "/signin/", "statusCode": 302 }
+  }
 }

@@ -42,6 +42,7 @@ app.http('progress', {
       const doc = {
         id,
         userId: user.userId,
+        userDetails: user.userDetails,
         type: 'progress',
         course,
         lesson,
