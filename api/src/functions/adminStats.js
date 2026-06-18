@@ -7,7 +7,7 @@ const { getContainer } = require('../shared/cosmos');
 app.http('adminStats', {
   methods: ['GET'],
   authLevel: 'anonymous',
-  route: 'admin/stats',
+  route: 'adminstats',
   handler: async (request, context) => {
     const user = getUser(request);
     if (!user) return { status: 401, jsonBody: { error: 'not_authenticated' } };
