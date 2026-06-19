@@ -1,0 +1,190 @@
+{
+  "slug": "aad-m3-l01-introduction-to-llm-agents-and-tool-use",
+  "title": "Introduction to LLM Agents and Tool Use",
+  "month": 3,
+  "monthTitle": "Agents, Tools, and APIs",
+  "lesson": 1,
+  "video": "aad-m3-l01-introduction-to-llm-agents-and-tool-use.mp4",
+  "summary": "This lesson introduces LLM agents: systems that use a language model to reason, plan, and call external tools to complete multi-step tasks autonomously. You'll learn the agent loop, how tool calling works, common agent patterns like ReAct, and practical considerations for building reliable agents.",
+  "objectives": [
+    "Explain what an LLM agent is and how it differs from a single LLM prompt",
+    "Describe the agent reasoning loop (observe, think, act) and the ReAct pattern",
+    "Define tools and write tool schemas the model can call",
+    "Trace how an agent selects and invokes a tool, then incorporates results",
+    "Identify common failure modes and guardrails for reliable agents"
+  ],
+  "quiz": [
+    {
+      "q": "What best distinguishes an LLM agent from a single LLM prompt?",
+      "options": [
+        "The agent uses a larger model",
+        "The agent runs the LLM in a loop that reasons, acts via tools, and repeats",
+        "The agent never produces text",
+        "The agent does not need any prompt"
+      ],
+      "answer": 1,
+      "why": "An agent wraps the model in an iterative loop that lets it choose actions, call tools, observe results, and continue until the goal is met—unlike a single one-shot prompt."
+    },
+    {
+      "q": "In tool calling, who actually executes the tool/function?",
+      "options": [
+        "The LLM runs the code internally",
+        "Your application code executes it and returns the result",
+        "The JSON schema executes itself",
+        "The user manually runs every call"
+      ],
+      "answer": 1,
+      "why": "The model only proposes a structured tool call with arguments; your application runs the function and feeds the result back. This separation is key for control and safety."
+    },
+    {
+      "q": "What does the ReAct pattern interleave?",
+      "options": [
+        "Requests and Acknowledgements",
+        "Reasoning (thoughts) and Acting (tool calls)",
+        "Retrieval and Caching",
+        "Rendering and Compiling"
+      ],
+      "answer": 1,
+      "why": "ReAct stands for Reasoning + Acting: the model alternates between reasoning thoughts and taking actions like tool calls, using observations to inform the next step."
+    },
+    {
+      "q": "Which is a sensible guardrail against runaway agent loops?",
+      "options": [
+        "Remove all tools",
+        "Set a maximum number of iterations",
+        "Always trust tool outputs blindly",
+        "Disable logging"
+      ],
+      "answer": 1,
+      "why": "A max-iteration limit stops the agent from looping forever. Other guardrails include input validation, human approval, timeouts, and tracing."
+    },
+    {
+      "q": "In one short sentence, why are clear tool names and descriptions important?",
+      "answer": "The model uses the names and descriptions to decide which tool to call, so clear ones lead to better tool selection.",
+      "why": "The agent selects tools based on their metadata; vague descriptions cause wrong or missed tool choices."
+    },
+    {
+      "q": "Name one capability a tool can give an LLM that the model lacks on its own.",
+      "answer": "Access to live/real-time data (e.g., current weather or prices), reliable math, database queries, or taking actions like sending email.",
+      "why": "Tools fill gaps such as the knowledge cutoff, unreliable arithmetic, and inability to act in the real world."
+    }
+  ],
+  "resources": [
+    {
+      "label": "OpenAI Function Calling / Tools Guide",
+      "url": "https://platform.openai.com/docs/guides/function-calling"
+    },
+    {
+      "label": "ReAct: Synergizing Reasoning and Acting in Language Models (paper)",
+      "url": "https://arxiv.org/abs/2210.03629"
+    },
+    {
+      "label": "LangChain Agents Documentation",
+      "url": "https://python.langchain.com/docs/concepts/agents/"
+    },
+    {
+      "label": "Anthropic: Building Effective Agents",
+      "url": "https://www.anthropic.com/research/building-effective-agents"
+    }
+  ],
+  "body_markdown": "## What Is an LLM Agent?\n\nA plain LLM call takes a prompt and returns text in one shot. An **agent** wraps the LLM in a loop that lets it *reason about a goal, decide on actions, call external tools, observe the results, and repeat* until the task is done.\n\nThe key shift: the model is no longer just generating an answer—it is **driving a process**. It chooses what to do next based on what it has learned so far.\n\n## Why Agents?\n\nLLMs alone are limited: they have a knowledge cutoff, can't do reliable math, can't fetch live data, and can't take real-world actions. **Tools** close these gaps.\n\n- Need today's weather? Call a weather API.\n- Need exact arithmetic? Call a calculator.\n- Need company data? Query a database or search documents.\n- Need to send an email or create a ticket? Call that service.\n\nThe agent decides *when* and *how* to use each tool.\n\n## The Agent Loop\n\nMost agents follow a cycle:\n\n1. **Observe** – read the goal and any new information (tool outputs).\n2. **Think** – reason about the next step (often hidden \"scratchpad\" text).\n3. **Act** – either call a tool or produce a final answer.\n4. **Repeat** until the model decides it is finished.\n\nThis is the basis of the **ReAct** pattern (Reasoning + Acting), where the model interleaves thoughts and actions.\n\n```\nThought: I need the current price of BTC.\nAction: get_price(symbol=\"BTC\")\nObservation: 64200\nThought: Now I can answer.\nFinal Answer: Bitcoin is about $64,200.\n```\n\n## How Tool Calling Works\n\nModern LLM APIs support **function/tool calling**. You give the model a list of tools, each described by a JSON schema (name, description, parameters). The model responds with a structured request to call a tool and the arguments it chose. Your code executes the function and feeds the result back.\n\n```json\n{\n  \"name\": \"get_weather\",\n  \"description\": \"Get current weather for a city\",\n  \"parameters\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"city\": {\"type\": \"string\", \"description\": \"City name\"}\n    },\n    \"required\": [\"city\"]\n  }\n}\n```\n\nThe model does **not** run the code—your application does. The model only proposes the call. This separation is critical for safety and control.\n\n## A Minimal Agent in Pseudocode\n\n```python\nmessages = [{\"role\": \"user\", \"content\": goal}]\nwhile True:\n    resp = llm.chat(messages, tools=tools)\n    if resp.tool_call:\n        result = run_tool(resp.tool_call.name, resp.tool_call.args)\n        messages.append(resp.message)\n        messages.append({\"role\": \"tool\", \"content\": result})\n    else:\n        return resp.content  # final answer\n```\n\nNotice the loop keeps appending the model's actions and the tool outputs to the conversation so the model has full context each turn.\n\n## Designing Good Tools\n\n- **Clear names and descriptions** – the model picks tools based on these.\n- **Tight parameter schemas** – fewer, well-typed arguments reduce errors.\n- **Small, composable tools** beat one giant do-everything tool.\n- **Return concise, structured results** – trim noise so the model isn't overwhelmed.\n\n## Failure Modes and Guardrails\n\nAgents can loop forever, hallucinate tool arguments, or call tools with bad data. Practical safeguards:\n\n- **Max-iteration limit** to stop runaway loops.\n- **Input validation** before executing tool calls.\n- **Human-in-the-loop approval** for risky actions (payments, deletes).\n- **Timeouts and error handling** so a failed tool returns a usable message.\n- **Logging/tracing** every thought, action, and observation for debugging.\n\n## Putting It Together\n\nAn effective agent = a capable model + well-described tools + a controlled loop + guardrails. Start simple (one or two tools, a strict iteration cap), observe traces, then expand. In later lessons you'll connect real APIs and frameworks to build production agents.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Introduction to LLM Agents and Tool Use",
+      "sub": "Agents, Tools, and APIs",
+      "narration": "Welcome. In this lesson we'll explore LLM agents—systems that let a language model reason, plan, and call external tools to complete multi-step tasks on their own. By the end you'll understand the agent loop and how tool calling actually works."
+    },
+    {
+      "type": "content",
+      "title": "From Prompt to Agent",
+      "bullets": [
+        "A plain LLM call: prompt in, text out, one shot",
+        "An agent: the LLM drives a loop toward a goal",
+        "It decides the next action based on what it learns",
+        "Moves the model from answering to doing"
+      ],
+      "narration": "A normal LLM call is a single exchange: you send a prompt and get text back. An agent wraps that model in a loop. Instead of just answering once, the model decides what to do next, takes an action, sees the result, and continues until the goal is met. The mindset shifts from generating an answer to driving a process."
+    },
+    {
+      "type": "content",
+      "title": "Why Agents Need Tools",
+      "bullets": [
+        "LLMs have a knowledge cutoff and can't fetch live data",
+        "They're unreliable at exact math and actions",
+        "Tools: APIs, calculators, databases, search, email",
+        "The agent chooses when and how to use each tool"
+      ],
+      "narration": "Language models alone are limited. They have a knowledge cutoff, can't reliably do arithmetic, and can't take real-world actions. Tools fill these gaps: a weather API for live data, a calculator for math, a database query for company facts, an email service to send messages. The agent's job is deciding which tool to use and when."
+    },
+    {
+      "type": "content",
+      "title": "The Agent Loop",
+      "bullets": [
+        "Observe: read goal and new information",
+        "Think: reason about the next step",
+        "Act: call a tool or give a final answer",
+        "Repeat until done"
+      ],
+      "code": "Thought: I need today's BTC price.\nAction: get_price(symbol=\"BTC\")\nObservation: 64200\nFinal Answer: Bitcoin is about $64,200.",
+      "narration": "Most agents follow a simple cycle: observe the current state, think about the next step, then act by either calling a tool or producing a final answer—then repeat. This interleaving of reasoning and acting is the ReAct pattern. The example shows the model thinking, calling a price tool, reading the observation, and then answering."
+    },
+    {
+      "type": "content",
+      "title": "How Tool Calling Works",
+      "bullets": [
+        "You provide tools as JSON schemas: name, description, parameters",
+        "The model returns a structured call with chosen arguments",
+        "Your code runs the function—not the model",
+        "Result is fed back into the conversation"
+      ],
+      "code": "{\n  \"name\": \"get_weather\",\n  \"parameters\": {\n    \"type\": \"object\",\n    \"properties\": {\"city\": {\"type\": \"string\"}},\n    \"required\": [\"city\"]\n  }\n}",
+      "narration": "Modern APIs support function or tool calling. You describe each tool with a JSON schema. The model responds with a structured request naming the tool and its arguments. Crucially, the model does not execute anything—your application runs the function and returns the result. This separation keeps you in control and is essential for safety."
+    },
+    {
+      "type": "content",
+      "title": "A Minimal Agent Loop",
+      "bullets": [
+        "Keep a running message history",
+        "Call the model with the tool list",
+        "If it requests a tool, run it and append the result",
+        "Otherwise return the final answer"
+      ],
+      "code": "while True:\n    resp = llm.chat(messages, tools=tools)\n    if resp.tool_call:\n        out = run_tool(resp.tool_call.name, resp.tool_call.args)\n        messages += [resp.message, {\"role\":\"tool\",\"content\":out}]\n    else:\n        return resp.content",
+      "narration": "Here's the loop in pseudocode. You maintain a message history, call the model with available tools, and check the response. If the model requests a tool, you execute it and append both the request and the result to the history. If not, you return the final answer. Appending everything keeps the model fully informed each turn."
+    },
+    {
+      "type": "content",
+      "title": "Designing Good Tools",
+      "bullets": [
+        "Clear names and descriptions guide selection",
+        "Tight, well-typed parameter schemas",
+        "Small composable tools over one giant tool",
+        "Return concise, structured results"
+      ],
+      "narration": "Tool design strongly affects agent reliability. The model picks tools based on their names and descriptions, so make them clear. Keep parameter schemas tight and well-typed to avoid bad arguments. Prefer several small, focused tools over one do-everything tool, and return concise structured results so you don't overwhelm the model with noise."
+    },
+    {
+      "type": "content",
+      "title": "Failure Modes and Guardrails",
+      "bullets": [
+        "Cap max iterations to prevent infinite loops",
+        "Validate tool inputs before running",
+        "Human approval for risky actions",
+        "Timeouts, error handling, and full tracing"
+      ],
+      "narration": "Agents can misbehave: loop forever, hallucinate arguments, or call tools with bad data. Add guardrails—a maximum iteration limit, input validation, human-in-the-loop approval for risky actions like payments or deletes, plus timeouts and error handling. Log every thought, action, and observation so you can debug. Start simple and expand as you trust the traces."
+    },
+    {
+      "type": "content",
+      "title": "Putting It Together",
+      "bullets": [
+        "Agent = model + tools + controlled loop + guardrails",
+        "Start with one or two tools and a strict cap",
+        "Inspect traces, then expand capabilities",
+        "Next: connect real APIs and frameworks"
+      ],
+      "narration": "To summarize, an effective agent combines a capable model, well-described tools, a controlled loop, and guardrails. Begin small with one or two tools and a strict iteration limit, study the execution traces, and grow from there. In the next lessons we'll wire up real APIs and agent frameworks to build production-ready applications."
+    }
+  ]
+}

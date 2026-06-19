@@ -1,0 +1,193 @@
+{
+  "slug": "aad-m4-l01-building-an-api-backend-with-fastapi",
+  "title": "Building an API Backend with FastAPI",
+  "month": 4,
+  "monthTitle": "Deployment and Capstone Project",
+  "lesson": 1,
+  "video": "aad-m4-l01-building-an-api-backend-with-fastapi.mp4",
+  "summary": "Learn to expose your LLM-powered application as a production-ready REST API using FastAPI. This lesson covers input validation with Pydantic, streaming token-by-token responses with Server-Sent Events, structured error handling, and patterns for keeping API keys secure and requests resilient.",
+  "objectives": [
+    "Scaffold a FastAPI application and define typed request/response models with Pydantic",
+    "Validate and sanitize user input before passing it to an LLM",
+    "Implement streaming responses so tokens reach clients incrementally",
+    "Add robust error handling with appropriate HTTP status codes and structured error payloads",
+    "Apply security and reliability practices such as API key management, timeouts, and CORS"
+  ],
+  "quiz": [
+    {
+      "q": "What HTTP status code does FastAPI return by default when a request fails Pydantic validation?",
+      "options": [
+        "400",
+        "422",
+        "500",
+        "404"
+      ],
+      "answer": 1,
+      "why": "FastAPI returns 422 Unprocessable Entity with detailed field errors when request data violates the Pydantic model constraints."
+    },
+    {
+      "q": "Which media type should a streaming SSE endpoint set on its StreamingResponse?",
+      "options": [
+        "application/json",
+        "text/plain",
+        "text/event-stream",
+        "multipart/form-data"
+      ],
+      "answer": 2,
+      "why": "Server-Sent Events use the text/event-stream media type, and each message is prefixed with 'data: '."
+    },
+    {
+      "q": "Why is async support particularly valuable for an LLM API backend?",
+      "options": [
+        "It makes the model produce better answers",
+        "Most latency is I/O waiting on the provider, so async frees workers to handle other requests",
+        "It reduces token costs",
+        "It encrypts requests automatically"
+      ],
+      "answer": 1,
+      "why": "LLM calls are I/O-bound; async lets a worker handle other requests while awaiting the provider response, improving throughput."
+    },
+    {
+      "q": "Which status code best represents an upstream model provider timing out?",
+      "options": [
+        "200",
+        "404",
+        "504",
+        "301"
+      ],
+      "answer": 2,
+      "why": "504 Gateway Timeout signals that an upstream service (the model provider) did not respond in time."
+    },
+    {
+      "q": "Name one practice for keeping API keys secure in a FastAPI deployment.",
+      "answer": "Load them from environment variables instead of hardcoding them in source.",
+      "why": "Storing secrets in environment variables (or a secrets manager) keeps them out of source control and out of client responses."
+    },
+    {
+      "q": "What is the purpose of declaring a response_model on an endpoint?",
+      "answer": "It validates and documents the response shape, ensuring clients receive a consistent, typed payload.",
+      "why": "response_model lets FastAPI serialize, validate, and auto-document the output, filtering out unexpected fields."
+    }
+  ],
+  "resources": [
+    {
+      "label": "FastAPI Official Documentation",
+      "url": "https://fastapi.tiangolo.com/"
+    },
+    {
+      "label": "FastAPI: Custom Response & StreamingResponse",
+      "url": "https://fastapi.tiangolo.com/advanced/custom-response/"
+    },
+    {
+      "label": "Pydantic Field Validation Docs",
+      "url": "https://docs.pydantic.dev/latest/concepts/fields/"
+    },
+    {
+      "label": "Uvicorn Deployment Guide",
+      "url": "https://www.uvicorn.org/deployment/"
+    }
+  ],
+  "body_markdown": "## Why FastAPI for AI Apps\n\nFastAPI is the de-facto choice for shipping Python-based AI services. It gives you:\n\n- **Type-driven validation** via Pydantic — fewer bad requests reach your model.\n- **Async support** — essential when most of your latency is waiting on an LLM provider.\n- **Auto-generated docs** at `/docs` (Swagger) and `/redoc`.\n- **Native streaming** through `StreamingResponse`, which pairs perfectly with token streaming from LLMs.\n\n## Project Scaffold\n\nInstall the essentials:\n\n```bash\npip install fastapi uvicorn[standard] pydantic openai\n```\n\nA minimal app:\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI(title=\"AI Chat API\")\n\n@app.get(\"/health\")\ndef health():\n    return {\"status\": \"ok\"}\n```\n\nRun it with `uvicorn main:app --reload`.\n\n## Input Validation with Pydantic\n\nNever trust raw input. Define a request model that enforces constraints:\n\n```python\nfrom pydantic import BaseModel, Field\n\nclass ChatRequest(BaseModel):\n    prompt: str = Field(min_length=1, max_length=4000)\n    temperature: float = Field(default=0.7, ge=0.0, le=2.0)\n    max_tokens: int = Field(default=512, ge=1, le=4096)\n\nclass ChatResponse(BaseModel):\n    reply: str\n    tokens_used: int\n```\n\nIf a client sends an empty prompt or a temperature of 5, FastAPI returns a `422` with a clear message — before any expensive model call.\n\n## A Basic Chat Endpoint\n\n```python\nfrom openai import OpenAI\nclient = OpenAI()\n\n@app.post(\"/chat\", response_model=ChatResponse)\nasync def chat(req: ChatRequest):\n    completion = client.chat.completions.create(\n        model=\"gpt-4o-mini\",\n        messages=[{\"role\": \"user\", \"content\": req.prompt}],\n        temperature=req.temperature,\n        max_tokens=req.max_tokens,\n    )\n    choice = completion.choices[0].message.content\n    return ChatResponse(reply=choice, tokens_used=completion.usage.total_tokens)\n```\n\n## Streaming Responses\n\nUsers expect ChatGPT-style streaming. Use `StreamingResponse` with a generator that yields chunks as they arrive. Server-Sent Events (SSE) is a simple, browser-friendly format.\n\n```python\nfrom fastapi.responses import StreamingResponse\n\n@app.post(\"/chat/stream\")\nasync def chat_stream(req: ChatRequest):\n    def event_generator():\n        stream = client.chat.completions.create(\n            model=\"gpt-4o-mini\",\n            messages=[{\"role\": \"user\", \"content\": req.prompt}],\n            stream=True,\n        )\n        for chunk in stream:\n            delta = chunk.choices[0].delta.content\n            if delta:\n                yield f\"data: {delta}\\n\\n\"\n        yield \"data: [DONE]\\n\\n\"\n    return StreamingResponse(event_generator(), media_type=\"text/event-stream\")\n```\n\nKey points: set `media_type=\"text/event-stream\"`, prefix lines with `data: `, and signal completion with a sentinel like `[DONE]`.\n\n## Error Handling\n\nWrap provider calls and translate failures into meaningful HTTP responses. Avoid leaking stack traces or API keys.\n\n```python\nfrom fastapi import HTTPException\nfrom fastapi.responses import JSONResponse\nfrom fastapi.requests import Request\n\n@app.exception_handler(Exception)\nasync def unhandled(request: Request, exc: Exception):\n    return JSONResponse(status_code=500, content={\"error\": \"internal_error\", \"detail\": \"Something went wrong.\"})\n\n@app.post(\"/chat\")\nasync def chat(req: ChatRequest):\n    try:\n        ...\n    except TimeoutError:\n        raise HTTPException(status_code=504, detail=\"Upstream model timed out\")\n    except Exception:\n        raise HTTPException(status_code=502, detail=\"Model provider error\")\n```\n\nUse the right status codes: `422` validation, `429` rate limited, `502/504` upstream issues, `500` for unexpected bugs.\n\n## Security and Reliability\n\n- **Secrets**: load API keys from environment variables (e.g. `os.environ[\"OPENAI_API_KEY\"]`), never hardcode.\n- **CORS**: add `CORSMiddleware` and restrict `allow_origins` to your known frontends.\n- **Timeouts**: set client timeouts so a hanging provider doesn't pin your workers.\n- **Rate limiting**: protect against abuse and runaway costs (e.g. `slowapi`).\n- **Auth**: require an API key header or JWT for non-public endpoints.\n\n```python\nfrom fastapi.middleware.cors import CORSMiddleware\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=[\"https://myapp.com\"],\n    allow_methods=[\"POST\", \"GET\"],\n    allow_headers=[\"*\"],\n)\n```\n\n## Deployment Notes\n\nRun in production with multiple workers behind a process manager: `uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4` or use Gunicorn with Uvicorn workers. Containerize with Docker, set env vars, and add a `/health` probe for orchestration.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Building an API Backend with FastAPI",
+      "sub": "Deployment and Capstone Project",
+      "narration": "Welcome. In this lesson we'll turn your LLM-powered app into a robust REST API using FastAPI. We'll cover input validation, streaming responses, error handling, and the security practices you need before shipping to production."
+    },
+    {
+      "type": "content",
+      "title": "Why FastAPI for AI Apps",
+      "bullets": [
+        "Type-driven validation with Pydantic",
+        "Async support for I/O-bound LLM calls",
+        "Auto-generated docs at /docs and /redoc",
+        "Native streaming via StreamingResponse"
+      ],
+      "narration": "FastAPI is the standard choice for Python AI services. Pydantic gives you type-driven validation so malformed requests never reach your model. Async support matters because most of your latency is just waiting on the LLM provider. You also get free interactive docs and built-in streaming, which pairs perfectly with token streaming from models."
+    },
+    {
+      "type": "content",
+      "title": "Scaffold the App",
+      "bullets": [
+        "pip install fastapi uvicorn pydantic openai",
+        "Create a FastAPI() instance",
+        "Add a /health endpoint",
+        "Run with uvicorn main:app --reload"
+      ],
+      "code": "from fastapi import FastAPI\napp = FastAPI(title=\"AI Chat API\")\n\n@app.get(\"/health\")\ndef health():\n    return {\"status\": \"ok\"}",
+      "narration": "Start by installing FastAPI, the Uvicorn server, Pydantic, and your provider SDK. Create the app instance and add a simple health endpoint — orchestration platforms use it for readiness probes. Run locally with uvicorn and the reload flag for fast iteration."
+    },
+    {
+      "type": "content",
+      "title": "Validate Input with Pydantic",
+      "bullets": [
+        "Define request and response models",
+        "Use Field constraints: min/max length, ranges",
+        "Bad input returns 422 automatically",
+        "Validation happens before any model call"
+      ],
+      "code": "class ChatRequest(BaseModel):\n    prompt: str = Field(min_length=1, max_length=4000)\n    temperature: float = Field(default=0.7, ge=0.0, le=2.0)\n    max_tokens: int = Field(default=512, ge=1, le=4096)",
+      "narration": "Never trust raw input. Define a Pydantic request model with Field constraints — a minimum prompt length, a temperature range, and a token cap. If a client sends an empty prompt or an absurd temperature, FastAPI automatically returns a 422 with a clear message, saving you from an expensive and pointless model call."
+    },
+    {
+      "type": "content",
+      "title": "A Basic Chat Endpoint",
+      "bullets": [
+        "Mark the handler async",
+        "Call the provider with validated fields",
+        "Return a typed response model",
+        "response_model documents and validates output"
+      ],
+      "code": "@app.post(\"/chat\", response_model=ChatResponse)\nasync def chat(req: ChatRequest):\n    c = client.chat.completions.create(\n        model=\"gpt-4o-mini\",\n        messages=[{\"role\":\"user\",\"content\":req.prompt}],\n        temperature=req.temperature)\n    return ChatResponse(reply=c.choices[0].message.content,\n                        tokens_used=c.usage.total_tokens)",
+      "narration": "Here's a basic chat endpoint. It takes the validated request, calls the model with the typed fields, and returns a typed response. Declaring response_model means FastAPI validates and documents your output too, so clients always know the shape of what they get back."
+    },
+    {
+      "type": "content",
+      "title": "Streaming Responses",
+      "bullets": [
+        "Use StreamingResponse with a generator",
+        "Set media_type to text/event-stream",
+        "Yield chunks prefixed with 'data: '",
+        "End with a [DONE] sentinel"
+      ],
+      "code": "@app.post(\"/chat/stream\")\nasync def stream(req: ChatRequest):\n    def gen():\n        for chunk in client.chat.completions.create(\n            model=\"gpt-4o-mini\", stream=True,\n            messages=[{\"role\":\"user\",\"content\":req.prompt}]):\n            d = chunk.choices[0].delta.content\n            if d: yield f\"data: {d}\\n\\n\"\n        yield \"data: [DONE]\\n\\n\"\n    return StreamingResponse(gen(), media_type=\"text/event-stream\")",
+      "narration": "Users expect ChatGPT-style streaming. Wrap a generator in StreamingResponse and set the media type to text/event-stream for Server-Sent Events. As the provider yields tokens, you forward each one prefixed with 'data colon'. Finish with a DONE sentinel so the client knows the stream is complete. This dramatically improves perceived responsiveness."
+    },
+    {
+      "type": "content",
+      "title": "Error Handling",
+      "bullets": [
+        "Wrap provider calls in try/except",
+        "Map failures to correct status codes",
+        "422 validation, 429 rate limit, 502/504 upstream",
+        "Never leak stack traces or secrets"
+      ],
+      "code": "try:\n    ...\nexcept TimeoutError:\n    raise HTTPException(504, \"Upstream model timed out\")\nexcept Exception:\n    raise HTTPException(502, \"Model provider error\")",
+      "narration": "Things will fail — providers time out, rate limits hit, networks drop. Wrap your calls and translate each failure into a meaningful HTTP status: 422 for validation, 429 for rate limits, 502 or 504 for upstream problems, 500 for unexpected bugs. Return structured JSON errors, and never leak stack traces or API keys to the client."
+    },
+    {
+      "type": "content",
+      "title": "Security and Reliability",
+      "bullets": [
+        "Load API keys from environment variables",
+        "Restrict CORS to known frontends",
+        "Set client timeouts to free up workers",
+        "Add rate limiting and auth"
+      ],
+      "code": "app.add_middleware(CORSMiddleware,\n    allow_origins=[\"https://myapp.com\"],\n    allow_methods=[\"POST\",\"GET\"],\n    allow_headers=[\"*\"])",
+      "narration": "Before shipping, lock things down. Load secrets from environment variables, never hardcode them. Restrict CORS to your real frontend origins. Set timeouts so a hanging provider doesn't pin all your workers. Add rate limiting to control abuse and runaway costs, and require auth on non-public endpoints."
+    },
+    {
+      "type": "content",
+      "title": "Deploy and Wrap Up",
+      "bullets": [
+        "Run multiple workers: uvicorn --workers 4",
+        "Containerize with Docker",
+        "Expose /health for probes",
+        "Validation + streaming + error handling = production-ready"
+      ],
+      "narration": "For production, run multiple workers behind a process manager, containerize with Docker, set your environment variables, and expose the health endpoint for orchestration. With typed validation, streaming, robust error handling, and security in place, your AI app is ready to ship. Next, you'll bring this together in the capstone."
+    }
+  ]
+}

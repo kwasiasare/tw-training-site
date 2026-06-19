@@ -75,6 +75,14 @@ export const COURSES: Course[] = [
     sample: 'ht4-l05-building-an-ai-triage-agent',
     accent: '#db2777',
   },
+  {
+    slug: 'ai-app-developer-2026',
+    title: 'AI Application Developer: Build and Ship LLM-Powered Apps',
+    tagline: 'Aspiring AI Application Developers with basic programming exposure who want to build and deploy real LLM-powered applications and land a job in the field.',
+    blurb: 'A hands-on, project-based course that takes you from Python foundations to deploying production-ready AI applications using LLMs, RAG pipelines, autonomous agents, and vector databases. You\'ll build a portfolio of real apps culminating in a deployed capstone project.',
+    sample: 'aad-m1-l01-python-essentials-for-ai-developers',
+    accent: '#7c3aed',
+  },
 ];
 
 export function getCourse(slug: string): Course | undefined {

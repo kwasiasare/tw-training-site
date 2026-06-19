@@ -1,0 +1,196 @@
+{
+  "slug": "aad-m1-l03-prompt-engineering-fundamentals",
+  "title": "Prompt Engineering Fundamentals",
+  "month": 1,
+  "monthTitle": "Python and LLM Foundations",
+  "lesson": 3,
+  "video": "aad-m1-l03-prompt-engineering-fundamentals.mp4",
+  "summary": "A practical introduction to prompt engineering: how to write structured prompts, use few-shot examples, and enforce reliable output formats so LLMs behave predictably in real applications.",
+  "objectives": [
+    "Explain the anatomy of an effective prompt (role, task, context, constraints, output format)",
+    "Apply zero-shot and few-shot prompting to improve accuracy and consistency",
+    "Specify and enforce structured outputs such as JSON for downstream parsing",
+    "Use system, user, and assistant message roles correctly in chat APIs",
+    "Diagnose and fix common prompt failures through iterative refinement"
+  ],
+  "quiz": [
+    {
+      "q": "Which chat message role should hold persistent rules and the model's assigned role?",
+      "options": [
+        "user",
+        "system",
+        "assistant",
+        "function"
+      ],
+      "answer": 1,
+      "why": "The system message sets persistent behavior and global constraints, making it the right place for the role and stable rules."
+    },
+    {
+      "q": "When is few-shot prompting most useful?",
+      "options": [
+        "When you want to save the most tokens",
+        "When the task format is hard to describe or the model repeats mistakes",
+        "Only for creative writing tasks",
+        "When you have no example inputs"
+      ],
+      "answer": 1,
+      "why": "Few-shot examples demonstrate the exact input-output mapping, which helps when a format is hard to describe in words or the model keeps making the same error."
+    },
+    {
+      "q": "What is the best practice after asking an LLM to return JSON?",
+      "options": [
+        "Trust the output and use it directly",
+        "Validate it in code and add a retry path for malformed output",
+        "Always increase temperature",
+        "Convert it to plain prose first"
+      ],
+      "answer": 1,
+      "why": "Models can produce malformed JSON, so you should validate (e.g., json.loads plus schema checks) and retry when parsing fails."
+    },
+    {
+      "q": "Which temperature setting is most appropriate for a deterministic classification task?",
+      "options": [
+        "Around 0 to 0.3",
+        "Around 0.7",
+        "Around 1.0",
+        "Above 1.5"
+      ],
+      "answer": 0,
+      "why": "Lower temperatures reduce randomness, producing more consistent and deterministic outputs suited to classification and extraction."
+    },
+    {
+      "q": "List the five common components of a well-structured prompt.",
+      "answer": "Role, task, context, constraints, and output format.",
+      "why": "These five elements remove ambiguity and reliably steer the model toward the desired behavior and output shape."
+    },
+    {
+      "q": "In one sentence, why should prompts be treated like code?",
+      "answer": "Because they directly determine output behavior and should be versioned, tested, and iteratively refined for reliability.",
+      "why": "Treating prompts as code emphasizes reproducibility, testing against real inputs, and controlled changes — essential for production reliability."
+    }
+  ],
+  "resources": [
+    {
+      "label": "OpenAI Prompt Engineering Guide",
+      "url": "https://platform.openai.com/docs/guides/prompt-engineering"
+    },
+    {
+      "label": "Anthropic Prompt Engineering Overview",
+      "url": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview"
+    },
+    {
+      "label": "Learn Prompting (open-source guide)",
+      "url": "https://learnprompting.org/"
+    },
+    {
+      "label": "OpenAI Structured Outputs Documentation",
+      "url": "https://platform.openai.com/docs/guides/structured-outputs"
+    }
+  ],
+  "body_markdown": "## Why Prompt Engineering Matters\n\nAn LLM is a powerful but literal collaborator: it does what your prompt implies, not what you secretly intended. Prompt engineering is the discipline of writing instructions that reliably steer model behavior for a specific task. For AI application developers, prompts are *code* — they should be versioned, tested, and made deterministic where possible.\n\n## Anatomy of a Good Prompt\n\nStrong prompts usually contain these components:\n\n- **Role**: who the model should act as (\"You are a senior support agent\").\n- **Task**: the precise instruction (\"Classify the ticket into one of these categories\").\n- **Context**: relevant data, examples, or background the model needs.\n- **Constraints**: tone, length, what to avoid, edge-case handling.\n- **Output format**: the exact shape of the response (JSON keys, bullet list, etc.).\n\nA vague prompt like \"Summarize this\" produces inconsistent output. A structured prompt removes ambiguity:\n\n```\nYou are a concise technical editor.\nSummarize the text below in exactly 3 bullet points.\nEach bullet must be under 15 words.\n\nText: \"\"\"{document}\"\"\"\n```\n\n## Chat Message Roles\n\nModern chat APIs separate messages into roles:\n\n- **system**: sets persistent behavior and rules. Put your role and global constraints here.\n- **user**: the task and input data.\n- **assistant**: prior model responses (used for multi-turn context or few-shot examples).\n\nKeep stable instructions in the system message and variable data in user messages so you can cache and reuse the system prompt.\n\n## Zero-Shot vs Few-Shot\n\n**Zero-shot** prompting just describes the task. It's fast and cheap and often enough for simple tasks.\n\n**Few-shot** prompting includes labeled examples that demonstrate the desired input-output mapping. Use few-shot when:\n\n- The task has a specific format you can't easily describe in words.\n- The model keeps making the same mistake.\n- You need consistent style or labeling.\n\n```\nClassify sentiment as positive, negative, or neutral.\n\nReview: \"Loved it, works great!\" -> positive\nReview: \"Broke after one day.\" -> negative\nReview: \"It's okay, nothing special.\" -> neutral\nReview: \"{new_review}\" ->\n```\n\nKeep examples diverse and representative of edge cases. 2–5 examples is a good starting range; more isn't always better and costs tokens.\n\n## Enforcing Output Format\n\nFor app integration, you usually need machine-parseable output. Tactics:\n\n- Ask explicitly for **JSON** and specify the schema and keys.\n- Say \"Respond with ONLY valid JSON, no markdown or prose.\"\n- Provide a sample of the exact output.\n- Use structured-output / JSON-mode features when the API offers them.\n\n```\nReturn a JSON object with this exact shape:\n{\"category\": string, \"priority\": \"low\"|\"medium\"|\"high\", \"needs_human\": boolean}\nDo not include any text outside the JSON.\n```\n\nAlways validate the output in code (e.g., `json.loads` plus schema checks) and add a retry path for malformed responses.\n\n## Iterative Refinement\n\nPrompt engineering is empirical. A practical loop:\n\n1. Write a first prompt and run it on several real inputs.\n2. Collect failures and categorize them (format errors, wrong content, hallucination).\n3. Add a constraint, example, or clarification targeting that failure class.\n4. Re-test against your input set to avoid regressions.\n\nKeep a small evaluation set of representative inputs so you can measure whether a change actually helps.\n\n## Common Pitfalls\n\n- **Overstuffing**: too many instructions dilute focus. Be concise and ordered.\n- **Conflicting rules**: contradictory constraints confuse the model.\n- **Implicit assumptions**: spell out edge-case handling (\"If unsure, return \\\"unknown\\\"\").\n- **Ignoring temperature**: lower temperature (0–0.3) for deterministic tasks like classification and extraction.\n",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Prompt Engineering Fundamentals",
+      "sub": "Reliably controlling LLM behavior for real tasks",
+      "narration": "Welcome. In this lesson we'll cover prompt engineering fundamentals: how to write structured prompts, use few-shot examples, and enforce reliable output formats. Think of prompts as part of your application code — something you design, test, and refine, not just type once and hope for the best."
+    },
+    {
+      "type": "content",
+      "title": "Why Prompts Are Code",
+      "bullets": [
+        "LLMs follow what you write, not what you mean",
+        "Prompts should be versioned and tested",
+        "Small wording changes shift behavior",
+        "Goal: predictable, repeatable outputs"
+      ],
+      "narration": "An LLM is a literal collaborator. It responds to the words you give it, not your unspoken intent. That means a prompt is effectively a piece of code: you should version it, test it against real inputs, and treat reliability as a feature. Small changes in wording can meaningfully change output, so being deliberate matters."
+    },
+    {
+      "type": "content",
+      "title": "Anatomy of a Good Prompt",
+      "bullets": [
+        "Role: who the model acts as",
+        "Task: the precise instruction",
+        "Context: data and background needed",
+        "Constraints: tone, length, edge cases",
+        "Output format: exact response shape"
+      ],
+      "code": "You are a concise technical editor.\nSummarize the text in exactly 3 bullets,\neach under 15 words.\nText: \"\"\"{document}\"\"\"",
+      "narration": "Effective prompts usually have five parts: a role, the task, context, constraints, and an output format. The example here combines all of them — it sets a role, gives a clear task, and pins down constraints like exactly three bullets under fifteen words. The more ambiguity you remove, the more consistent the output."
+    },
+    {
+      "type": "content",
+      "title": "Chat Message Roles",
+      "bullets": [
+        "system: persistent rules and role",
+        "user: task plus input data",
+        "assistant: prior replies or examples",
+        "Keep stable instructions in system",
+        "Variable data goes in user messages"
+      ],
+      "narration": "Chat APIs split messages into roles. The system message sets persistent behavior — your role and global rules go here. The user message carries the task and the data. The assistant role holds previous responses or few-shot examples. Keeping stable instructions in the system message lets you reuse and cache them while only the user data changes."
+    },
+    {
+      "type": "content",
+      "title": "Zero-Shot vs Few-Shot",
+      "bullets": [
+        "Zero-shot: just describe the task",
+        "Few-shot: include labeled examples",
+        "Use few-shot for tricky formats or recurring errors",
+        "2–5 diverse examples is a good start",
+        "More examples cost tokens, not always better"
+      ],
+      "code": "Review: \"Loved it!\" -> positive\nReview: \"Broke in a day.\" -> negative\nReview: \"{new_review}\" ->",
+      "narration": "Zero-shot prompting just describes the task and is great for simple cases. Few-shot prompting adds labeled examples that demonstrate the exact input-output mapping you want. Reach for few-shot when the format is hard to describe or the model keeps repeating a mistake. Start with two to five diverse examples covering edge cases — piling on more wastes tokens without much gain."
+    },
+    {
+      "type": "content",
+      "title": "Enforcing Output Format",
+      "bullets": [
+        "Ask explicitly for JSON with a schema",
+        "Say 'ONLY valid JSON, no prose'",
+        "Show a sample of the exact output",
+        "Use JSON-mode if the API supports it",
+        "Always validate and add a retry path"
+      ],
+      "code": "Return ONLY JSON:\n{\"category\": string,\n \"priority\": \"low\"|\"medium\"|\"high\",\n \"needs_human\": boolean}",
+      "narration": "For real apps you usually need machine-parseable output. Specify the exact JSON schema, demand only JSON with no surrounding prose, and show a sample. If your API has a JSON or structured-output mode, use it. Critically, never trust the output blindly — validate it in code with something like json.loads and a schema check, and add a retry when it comes back malformed."
+    },
+    {
+      "type": "content",
+      "title": "Iterative Refinement Loop",
+      "bullets": [
+        "Run the prompt on real inputs",
+        "Categorize failures by type",
+        "Add a targeted constraint or example",
+        "Re-test to catch regressions",
+        "Keep a small evaluation set"
+      ],
+      "narration": "Prompt engineering is empirical. Run your prompt on several real inputs, group the failures — format errors, wrong content, hallucinations — then add a constraint or example aimed at that specific failure class. Re-test against your full input set so a fix doesn't break something else. A small, representative evaluation set is your safety net for measuring real improvement."
+    },
+    {
+      "type": "content",
+      "title": "Common Pitfalls",
+      "bullets": [
+        "Overstuffing dilutes focus",
+        "Conflicting rules confuse the model",
+        "Spell out edge-case handling",
+        "Lower temperature for deterministic tasks",
+        "Be concise and ordered"
+      ],
+      "narration": "Watch out for common traps. Overstuffing a prompt with instructions dilutes its focus, and contradictory rules just confuse the model. Always spell out edge-case handling — for example, what to return when the model is unsure. And for deterministic tasks like classification or extraction, lower the temperature toward zero. Keep prompts concise and logically ordered."
+    },
+    {
+      "type": "content",
+      "title": "Key Takeaways",
+      "bullets": [
+        "Structure: role, task, context, constraints, format",
+        "Few-shot fixes format and consistency issues",
+        "Demand and validate structured output",
+        "Refine iteratively with real test inputs"
+      ],
+      "narration": "To recap: structure your prompts with a role, task, context, constraints, and output format. Use few-shot examples when you need consistency or a specific format. Always demand and then validate structured output in code. And treat prompting as an iterative, test-driven process. Do these well and your LLM features become dependable parts of your application."
+    }
+  ]
+}

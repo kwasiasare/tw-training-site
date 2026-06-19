@@ -1,0 +1,190 @@
+{
+  "slug": "aad-m2-l01-understanding-embeddings-and-vector-databases",
+  "title": "Understanding Embeddings and Vector Databases",
+  "month": 2,
+  "monthTitle": "Building RAG Applications with Vector Databases",
+  "lesson": 1,
+  "video": "aad-m2-l01-understanding-embeddings-and-vector-databases.mp4",
+  "summary": "Learn how text embeddings turn language into vectors that capture meaning, and how vector databases like Chroma and Pinecone store and search those vectors for fast semantic retrieval. This lesson builds the foundation for RAG (Retrieval-Augmented Generation) applications.",
+  "objectives": [
+    "Explain what text embeddings are and why they enable semantic search",
+    "Generate embeddings using an embedding model (e.g., OpenAI or sentence-transformers)",
+    "Describe how vector databases index and search vectors using similarity metrics",
+    "Store and query embeddings in Chroma and understand the Pinecone equivalent",
+    "Choose appropriate distance metrics and chunking strategies for retrieval quality"
+  ],
+  "quiz": [
+    {
+      "q": "What is a text embedding?",
+      "options": [
+        "A compressed zip file of text",
+        "A numeric vector representing the meaning of text",
+        "A keyword index of a document",
+        "An encrypted version of the text"
+      ],
+      "answer": 1,
+      "why": "An embedding is a vector of floats that captures semantic meaning, allowing similar texts to be close in vector space."
+    },
+    {
+      "q": "Which similarity metric is most commonly used for text embeddings?",
+      "options": [
+        "Cosine similarity",
+        "Hamming distance",
+        "Jaccard index",
+        "Levenshtein distance"
+      ],
+      "answer": 0,
+      "why": "Cosine similarity measures the angle between vectors and is the standard choice for most text embedding models."
+    },
+    {
+      "q": "Why must you use the same embedding model for indexing and querying?",
+      "options": [
+        "To save API costs",
+        "Because vectors from different models live in different spaces and aren't comparable",
+        "Because databases only support one model",
+        "To keep dimensions under 512"
+      ],
+      "answer": 1,
+      "why": "Different models produce vectors in incompatible spaces, so mixing them yields meaningless similarity scores."
+    },
+    {
+      "q": "What does a vector database use to avoid comparing a query against every stored vector?",
+      "options": [
+        "A SQL JOIN",
+        "An approximate nearest neighbor (ANN) index like HNSW",
+        "A full-text keyword index",
+        "A relational primary key"
+      ],
+      "answer": 1,
+      "why": "ANN indexes such as HNSW let the database find close matches quickly without an exhaustive scan."
+    },
+    {
+      "q": "In one sentence, why do we chunk documents before embedding them?",
+      "answer": "Chunking splits long documents into smaller pieces so retrieval is precise and chunks fit within the model's context, while overlap preserves meaning across boundaries.",
+      "why": "Chunking balances retrieval precision with retaining enough context, and overlap avoids cutting ideas mid-sentence."
+    },
+    {
+      "q": "What is the key difference between Chroma and Pinecone in how embeddings are handled?",
+      "answer": "Chroma can generate embeddings for you and runs locally, while Pinecone is a managed cloud service that requires you to supply the vectors yourself.",
+      "why": "Chroma is convenient for local prototyping with optional built-in embedding; Pinecone scales in the cloud but expects pre-computed vectors."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Chroma documentation",
+      "url": "https://docs.trychroma.com/"
+    },
+    {
+      "label": "Pinecone documentation",
+      "url": "https://docs.pinecone.io/"
+    },
+    {
+      "label": "OpenAI Embeddings guide",
+      "url": "https://platform.openai.com/docs/guides/embeddings"
+    },
+    {
+      "label": "Sentence-Transformers documentation",
+      "url": "https://www.sbert.net/"
+    }
+  ],
+  "body_markdown": "## What Are Embeddings?\n\nAn **embedding** is a numeric vector (a list of floating-point numbers) that represents the *meaning* of a piece of text. An embedding model maps text into a high-dimensional space (commonly 384, 768, or 1536 dimensions) where semantically similar texts land close together.\n\nFor example, \"How do I reset my password?\" and \"I forgot my login credentials\" produce vectors that are near each other, even though they share few words. This is the core idea behind **semantic search**: we match by meaning rather than by exact keywords.\n\n## How Similarity Is Measured\n\nVector databases compare vectors using a **distance/similarity metric**:\n\n- **Cosine similarity** — measures the angle between vectors; most common for text embeddings. Ranges from -1 to 1 (higher = more similar).\n- **Dot product** — useful when vectors are normalized.\n- **Euclidean (L2) distance** — straight-line distance; lower = more similar.\n\nMost text embedding models are tuned for cosine similarity. Pick the metric your model recommends.\n\n## Generating Embeddings\n\nYou can generate embeddings with a hosted API or a local model.\n\n```python\n# Hosted: OpenAI\nfrom openai import OpenAI\nclient = OpenAI()\nresp = client.embeddings.create(\n    model=\"text-embedding-3-small\",\n    input=\"How do I reset my password?\"\n)\nvector = resp.data[0].embedding  # list of 1536 floats\n```\n\n```python\n# Local: sentence-transformers\nfrom sentence_transformers import SentenceTransformer\nmodel = SentenceTransformer(\"all-MiniLM-L6-v2\")  # 384 dims\nvector = model.encode(\"How do I reset my password?\")\n```\n\nKey practical points: embeddings from different models are **not** comparable, so use the same model for indexing and querying. Costs and latency differ between hosted and local options.\n\n## What Is a Vector Database?\n\nA **vector database** stores embeddings alongside metadata and supports fast **approximate nearest neighbor (ANN)** search. Instead of comparing your query against every stored vector (slow at scale), it uses an index (e.g., HNSW) to find the closest matches in milliseconds.\n\nPopular options:\n- **Chroma** — open-source, easy to run locally, great for prototyping.\n- **Pinecone** — fully managed cloud service, scales to billions of vectors.\n- Others: Weaviate, Qdrant, Milvus, pgvector.\n\n## Chunking Documents\n\nBefore embedding long documents, split them into **chunks** (e.g., 200–500 tokens with some overlap). Each chunk is embedded and stored separately. Good chunking balances:\n- Chunks small enough to be precise and fit in context\n- Chunks large enough to retain meaning\n- Overlap to avoid cutting ideas mid-sentence\n\n## Storing and Querying in Chroma\n\n```python\nimport chromadb\nclient = chromadb.Client()\ncollection = client.create_collection(\"docs\")\n\n# Add documents (Chroma can embed for you, or pass your own vectors)\ncollection.add(\n    documents=[\"Reset your password from Settings.\", \"Contact billing for refunds.\"],\n    ids=[\"doc1\", \"doc2\"],\n    metadatas=[{\"topic\": \"auth\"}, {\"topic\": \"billing\"}]\n)\n\n# Semantic query\nresults = collection.query(\n    query_texts=[\"I forgot my login\"],\n    n_results=2\n)\nprint(results[\"documents\"])\n```\n\n## The Pinecone Equivalent\n\n```python\nfrom pinecone import Pinecone\npc = Pinecone(api_key=\"...\")\nindex = pc.Index(\"docs\")\n\n# Upsert vectors you generated yourself\nindex.upsert(vectors=[\n    {\"id\": \"doc1\", \"values\": vector1, \"metadata\": {\"text\": \"Reset your password...\"}}\n])\n\n# Query with a query vector\nindex.query(vector=query_vector, top_k=2, include_metadata=True)\n```\n\nNote: Pinecone expects you to supply the vectors, so you run the embedding model yourself. Chroma can optionally handle embedding for you.\n\n## How This Fits Into RAG\n\nIn a RAG pipeline: (1) embed and store your knowledge base, (2) embed the user's question, (3) retrieve the top-k most similar chunks, (4) inject them into the LLM prompt as context. The vector database is the **retrieval** engine that grounds the model in your data.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Understanding Embeddings and Vector Databases",
+      "sub": "The retrieval foundation of RAG applications",
+      "narration": "Welcome. In this lesson we'll explore embeddings and vector databases — the two core pieces that let an LLM application search your data by meaning. By the end you'll know how to turn text into vectors and store them for fast semantic search."
+    },
+    {
+      "type": "content",
+      "title": "What Is an Embedding?",
+      "bullets": [
+        "A numeric vector that captures the meaning of text",
+        "Similar meanings produce vectors that are close together",
+        "Common sizes: 384, 768, or 1536 dimensions",
+        "Enables search by meaning, not just keywords"
+      ],
+      "narration": "An embedding is simply a list of numbers that represents the meaning of a piece of text. An embedding model places text in a high-dimensional space where similar ideas land near each other. So 'I forgot my login' and 'how do I reset my password' end up close, even with different words. This is what makes semantic search possible."
+    },
+    {
+      "type": "content",
+      "title": "Measuring Similarity",
+      "bullets": [
+        "Cosine similarity: angle between vectors, most common for text",
+        "Dot product: works well with normalized vectors",
+        "Euclidean (L2): straight-line distance, lower is closer",
+        "Use the metric your embedding model recommends"
+      ],
+      "narration": "To find similar vectors, databases use a distance metric. Cosine similarity, which measures the angle between two vectors, is the most common choice for text. Dot product and Euclidean distance are alternatives. The important rule: match the metric to what your embedding model was trained for."
+    },
+    {
+      "type": "content",
+      "title": "Generating Embeddings",
+      "bullets": [
+        "Hosted APIs: OpenAI text-embedding-3-small",
+        "Local models: sentence-transformers (all-MiniLM-L6-v2)",
+        "Always use the SAME model for indexing and querying",
+        "Vectors from different models are not comparable"
+      ],
+      "code": "from openai import OpenAI\nclient = OpenAI()\nresp = client.embeddings.create(\n    model=\"text-embedding-3-small\",\n    input=\"How do I reset my password?\")\nvector = resp.data[0].embedding",
+      "narration": "You can generate embeddings with a hosted API like OpenAI, or locally with sentence-transformers. Hosted is convenient; local is free and private. The critical detail: use the same model when you store data and when you query, because vectors from different models live in different spaces and can't be compared."
+    },
+    {
+      "type": "content",
+      "title": "What Is a Vector Database?",
+      "bullets": [
+        "Stores embeddings plus metadata",
+        "Uses ANN indexes (e.g., HNSW) for millisecond search",
+        "Avoids comparing every vector one-by-one",
+        "Examples: Chroma, Pinecone, Qdrant, Weaviate, pgvector"
+      ],
+      "narration": "A vector database stores your embeddings and supports fast approximate nearest neighbor search. Instead of comparing your query to every vector, it uses an index like HNSW to return close matches in milliseconds, even with millions of records. Chroma is great for local prototyping; Pinecone is a managed cloud service that scales big."
+    },
+    {
+      "type": "content",
+      "title": "Chunking Your Documents",
+      "bullets": [
+        "Split long docs into 200–500 token chunks",
+        "Add overlap so ideas aren't cut mid-sentence",
+        "Smaller chunks = more precise retrieval",
+        "Larger chunks = more context retained"
+      ],
+      "narration": "Before embedding long documents, split them into chunks. Each chunk gets its own vector. The goal is to balance precision and context: chunks too large dilute relevance, chunks too small lose meaning. A small overlap between chunks prevents splitting an idea awkwardly across boundaries."
+    },
+    {
+      "type": "content",
+      "title": "Storing and Querying in Chroma",
+      "bullets": [
+        "Open-source and runs locally",
+        "Can embed documents for you automatically",
+        "Supports metadata filtering",
+        "query() returns the most similar chunks"
+      ],
+      "code": "import chromadb\nclient = chromadb.Client()\nc = client.create_collection(\"docs\")\nc.add(documents=[\"Reset your password in Settings.\"],\n      ids=[\"doc1\"], metadatas=[{\"topic\":\"auth\"}])\nres = c.query(query_texts=[\"I forgot my login\"], n_results=2)",
+      "narration": "Here's Chroma in action. We create a collection, add documents with optional metadata, and then query using natural language. Chroma can embed the text for us, so prototyping is fast. Notice the query uses meaning — 'I forgot my login' retrieves the password-reset document even though the words differ."
+    },
+    {
+      "type": "content",
+      "title": "The Pinecone Equivalent",
+      "bullets": [
+        "Fully managed, scales to billions of vectors",
+        "You generate the vectors yourself",
+        "upsert() to add, query() with a vector",
+        "Store text in metadata for retrieval"
+      ],
+      "code": "index.upsert(vectors=[{\"id\":\"doc1\",\n  \"values\": vector1,\n  \"metadata\":{\"text\":\"Reset your password...\"}}])\nindex.query(vector=query_vector, top_k=2,\n            include_metadata=True)",
+      "narration": "Pinecone offers the same capability as a managed cloud service. The main difference: you supply the vectors yourself, so you run the embedding model first. You upsert vectors with metadata and query with a query vector. This is the production-grade path when you need scale and reliability."
+    },
+    {
+      "type": "content",
+      "title": "How This Powers RAG",
+      "bullets": [
+        "1. Embed and store your knowledge base",
+        "2. Embed the user's question",
+        "3. Retrieve top-k similar chunks",
+        "4. Inject chunks into the LLM prompt as context"
+      ],
+      "narration": "Putting it together: in a Retrieval-Augmented Generation pipeline, you embed and store your knowledge base, embed the incoming question, retrieve the most similar chunks, and feed them to the LLM as context. The vector database is the retrieval engine that grounds your model in real data — the foundation we'll build on next."
+    }
+  ]
+}

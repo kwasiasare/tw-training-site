@@ -1,0 +1,195 @@
+{
+  "slug": "aad-m2-l03-building-a-rag-pipeline-end-to-end",
+  "title": "Building a RAG Pipeline End to End",
+  "month": 2,
+  "monthTitle": "Building RAG Applications with Vector Databases",
+  "lesson": 3,
+  "video": "aad-m2-l03-building-a-rag-pipeline-end-to-end.mp4",
+  "summary": "Learn to build a complete Retrieval-Augmented Generation (RAG) pipeline that grounds LLM answers in your own documents, from ingestion and chunking through embedding, vector search, prompt assembly, and generation.",
+  "objectives": [
+    "Explain the components of a RAG pipeline and why retrieval grounds LLM responses",
+    "Ingest, chunk, and embed documents into a vector database",
+    "Implement semantic retrieval of relevant context for a user query",
+    "Assemble grounded prompts and generate answers with citations",
+    "Evaluate and improve RAG quality and reduce hallucinations"
+  ],
+  "quiz": [
+    {
+      "q": "Why must you use the same embedding model for documents and queries?",
+      "options": [
+        "To save on API costs",
+        "So vectors live in the same space and similarity is meaningful",
+        "Because vector databases require it",
+        "To make chunks the same size"
+      ],
+      "answer": 1,
+      "why": "Embeddings from different models occupy different vector spaces, so cosine similarity between them is meaningless. The same model ensures query and document vectors are comparable."
+    },
+    {
+      "q": "What is the main purpose of adding overlap between chunks?",
+      "options": [
+        "To increase the number of vectors stored",
+        "To prevent ideas spanning chunk boundaries from being lost",
+        "To reduce embedding costs",
+        "To improve LLM generation speed"
+      ],
+      "answer": 1,
+      "why": "Overlap ensures that a concept split across a chunk boundary still appears intact in at least one chunk, preserving its meaning for retrieval."
+    },
+    {
+      "q": "Which instruction most helps reduce hallucinations in a RAG prompt?",
+      "options": [
+        "Ask the model to be creative",
+        "Tell it to answer only from the provided context and say 'I don't know' otherwise",
+        "Increase the temperature setting",
+        "Remove all metadata from context"
+      ],
+      "answer": 1,
+      "why": "Explicitly constraining the model to the provided context and permitting an 'I don't know' response prevents it from fabricating answers from general training knowledge."
+    },
+    {
+      "q": "In the indexing phase, what is the correct order of steps?",
+      "options": [
+        "Embed, load, store, chunk",
+        "Load, chunk, embed, store",
+        "Chunk, store, load, embed",
+        "Retrieve, embed, generate, store"
+      ],
+      "answer": 1,
+      "why": "During offline indexing you load documents, chunk them into pieces, embed each chunk into a vector, then store those vectors with metadata in the vector database."
+    },
+    {
+      "q": "Name one metric used to evaluate the retrieval (not generation) quality of a RAG system.",
+      "answer": "recall@k",
+      "why": "Retrieval quality is measured by metrics like recall@k or hit rate, which check whether the correct relevant chunks appear in the top-k results."
+    },
+    {
+      "q": "What does the 'augment' step in RAG refer to?",
+      "options": [
+        "Increasing the size of the training dataset",
+        "Injecting retrieved context into the prompt before generation",
+        "Adding more documents to the vector store",
+        "Fine-tuning the embedding model"
+      ],
+      "answer": 1,
+      "why": "Augmentation means enriching the prompt with the retrieved relevant context so the LLM generates an answer grounded in that information."
+    }
+  ],
+  "resources": [
+    {
+      "label": "LangChain RAG documentation",
+      "url": "https://python.langchain.com/docs/tutorials/rag/"
+    },
+    {
+      "label": "Chroma vector database docs",
+      "url": "https://docs.trychroma.com/"
+    },
+    {
+      "label": "RAGAS: RAG evaluation framework",
+      "url": "https://docs.ragas.io/"
+    },
+    {
+      "label": "OpenAI embeddings guide",
+      "url": "https://platform.openai.com/docs/guides/embeddings"
+    }
+  ],
+  "body_markdown": "## What Is RAG and Why Use It\n\nRetrieval-Augmented Generation (RAG) combines a retrieval system with a generative LLM. Instead of relying only on the model's frozen training knowledge, you fetch relevant snippets from your own knowledge base at query time and inject them into the prompt. This lets the model answer questions about private, recent, or domain-specific data while reducing hallucinations and enabling citations.\n\nRAG is cheaper and faster than fine-tuning for keeping knowledge fresh: you just update the document store, no retraining needed.\n\n## The End-to-End Pipeline\n\nA RAG pipeline has two phases:\n\n**Indexing (offline):**\n1. **Load** documents (PDFs, web pages, markdown, databases).\n2. **Chunk** text into manageable pieces (e.g., 300–800 tokens with overlap).\n3. **Embed** each chunk into a vector using an embedding model.\n4. **Store** vectors + metadata in a vector database (Pinecone, Chroma, Weaviate, pgvector).\n\n**Querying (online):**\n1. **Embed** the user query with the same embedding model.\n2. **Retrieve** the top-k most similar chunks via vector similarity search.\n3. **Augment** the prompt with retrieved context.\n4. **Generate** an answer with the LLM, grounded in that context.\n\n## Chunking Strategy\n\nChunking matters more than people expect. Chunks that are too large dilute relevance and waste context window; too small lose meaning.\n\n- Start with ~500 tokens and 10–20% overlap so ideas spanning boundaries aren't lost.\n- Split on semantic boundaries (paragraphs, headings) when possible.\n- Attach metadata: source, title, page, section. This powers citations and filtering.\n\n## Embeddings and the Vector Store\n\nAn embedding model maps text to a dense vector where semantic similarity equals geometric closeness (cosine similarity). Use the **same model** for documents and queries.\n\n```python\nfrom openai import OpenAI\nimport chromadb\n\nclient = OpenAI()\ndb = chromadb.PersistentClient(path=\"./store\")\ncollection = db.get_or_create_collection(\"docs\")\n\ndef embed(texts):\n    resp = client.embeddings.create(model=\"text-embedding-3-small\", input=texts)\n    return [d.embedding for d in resp.data]\n\n# Index chunks\ncollection.add(\n    ids=[f\"c{i}\" for i in range(len(chunks))],\n    embeddings=embed(chunks),\n    documents=chunks,\n    metadatas=[{\"source\": s} for s in sources],\n)\n```\n\n## Retrieval and Prompt Assembly\n\nAt query time, embed the question, search for top-k chunks, then build a prompt that instructs the model to answer **only** from the provided context.\n\n```python\ndef answer(question, k=4):\n    q_emb = embed([question])[0]\n    hits = collection.query(query_embeddings=[q_emb], n_results=k)\n    context = \"\\n\\n\".join(hits[\"documents\"][0])\n    prompt = f\"\"\"Answer the question using ONLY the context below.\nIf the answer isn't in the context, say you don't know.\n\nContext:\n{context}\n\nQuestion: {question}\"\"\"\n    resp = client.chat.completions.create(\n        model=\"gpt-4o-mini\",\n        messages=[{\"role\": \"user\", \"content\": prompt}],\n    )\n    return resp.choices[0].message.content\n```\n\n## Reducing Hallucinations and Citing Sources\n\n- Explicitly instruct the model to say \"I don't know\" when context is insufficient.\n- Include source metadata in context so the model can cite it.\n- Return the retrieved chunks alongside the answer for transparency.\n\n## Evaluating RAG Quality\n\nMeasure two things separately:\n\n- **Retrieval quality:** are the right chunks returned? Use recall@k, hit rate.\n- **Generation quality:** is the answer faithful to the context (faithfulness) and does it address the question (relevance)?\n\nTools like RAGAS automate faithfulness and relevance scoring. Iterate on chunk size, k, embedding model, and prompt wording based on measured failures.\n\n## Common Pitfalls\n\n- Using different embedding models for index and query.\n- Forgetting overlap, splitting sentences mid-idea.\n- Stuffing too many chunks and exceeding context limits.\n- Not handling the \"no relevant docs\" case.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Building a RAG Pipeline End to End",
+      "sub": "Grounding LLM answers in your own knowledge base",
+      "narration": "Welcome. In this lesson we'll build a Retrieval-Augmented Generation pipeline from scratch. By the end you'll understand how to connect a vector database to an LLM so it can answer questions grounded in your own documents, with fewer hallucinations and real citations."
+    },
+    {
+      "type": "content",
+      "title": "Why RAG?",
+      "bullets": [
+        "LLMs have frozen, generic training knowledge",
+        "RAG injects your private and fresh data at query time",
+        "Reduces hallucinations and enables citations",
+        "Cheaper and faster than fine-tuning for knowledge updates"
+      ],
+      "narration": "Large language models only know what they were trained on, which is generic and quickly out of date. RAG solves this by retrieving relevant snippets from your own knowledge base and feeding them to the model at query time. This grounds answers in real sources, reduces hallucinations, and lets you cite where information came from. Crucially, updating knowledge just means updating documents, far cheaper than retraining."
+    },
+    {
+      "type": "content",
+      "title": "The Two-Phase Pipeline",
+      "bullets": [
+        "Indexing (offline): load, chunk, embed, store",
+        "Querying (online): embed query, retrieve, augment, generate",
+        "Same embedding model used for both phases",
+        "Vector DB holds vectors plus metadata"
+      ],
+      "narration": "A RAG system has two phases. Offline indexing: you load documents, split them into chunks, turn each chunk into an embedding vector, and store those in a vector database with metadata. Online querying: you embed the user's question with the same model, retrieve the most similar chunks, augment a prompt with that context, and generate the answer. Using the same embedding model in both phases is essential for the math to line up."
+    },
+    {
+      "type": "content",
+      "title": "Chunking Strategy",
+      "bullets": [
+        "Start around 500 tokens with 10-20% overlap",
+        "Split on paragraphs and headings when possible",
+        "Attach metadata: source, title, page, section",
+        "Too big dilutes relevance; too small loses meaning"
+      ],
+      "narration": "Chunking has an outsized impact on quality. Aim for around five hundred tokens with ten to twenty percent overlap so an idea spanning a boundary isn't lost. Split on natural semantic boundaries like paragraphs or headings. Always attach metadata such as the source and section, because that powers both citations and filtering. Chunks that are too large dilute relevance and waste your context window, while tiny chunks lose meaning."
+    },
+    {
+      "type": "content",
+      "title": "Embedding & Storing",
+      "bullets": [
+        "Embedding model maps text to dense vectors",
+        "Semantic similarity = cosine closeness",
+        "Store embeddings, documents, and metadata together",
+        "Use Chroma, Pinecone, Weaviate, or pgvector"
+      ],
+      "code": "collection.add(\n    ids=ids,\n    embeddings=embed(chunks),\n    documents=chunks,\n    metadatas=metas,\n)",
+      "narration": "An embedding model converts text into a dense vector where semantically similar text lands close together, measured by cosine similarity. We embed every chunk and store the vectors alongside the original text and metadata in a vector database. Here we use Chroma, but Pinecone, Weaviate, or Postgres with pgvector all work the same way. Notice we store the documents and metadata too, so we can return readable context and citations later."
+    },
+    {
+      "type": "content",
+      "title": "Retrieval & Prompt Assembly",
+      "bullets": [
+        "Embed the question with the same model",
+        "Query top-k most similar chunks",
+        "Inject context into the prompt",
+        "Instruct: answer only from context"
+      ],
+      "code": "hits = collection.query(query_embeddings=[q_emb], n_results=k)\ncontext = \"\\n\\n\".join(hits[\"documents\"][0])\nprompt = f\"Answer using ONLY this context:\\n{context}\\n\\nQ: {question}\"",
+      "narration": "At query time we embed the question, search for the top-k most similar chunks, and join them into a context block. Then we build a prompt that explicitly tells the model to answer only from the provided context and to admit when it doesn't know. This instruction is what keeps the model grounded instead of inventing answers from its general training."
+    },
+    {
+      "type": "content",
+      "title": "Reducing Hallucinations",
+      "bullets": [
+        "Tell the model to say 'I don't know' when unsure",
+        "Include source metadata so it can cite",
+        "Return retrieved chunks for transparency",
+        "Handle the 'no relevant docs' case explicitly"
+      ],
+      "narration": "To minimize hallucinations, give the model permission to say it doesn't know when the context lacks the answer. Include source metadata in the context so the model can cite where facts came from, and return the retrieved chunks to the user for transparency. Always handle the case where retrieval finds nothing relevant, rather than letting the model guess."
+    },
+    {
+      "type": "content",
+      "title": "Evaluating & Iterating",
+      "bullets": [
+        "Retrieval: recall@k, hit rate",
+        "Generation: faithfulness and answer relevance",
+        "Tools like RAGAS automate scoring",
+        "Tune chunk size, k, model, and prompt"
+      ],
+      "narration": "Evaluate retrieval and generation separately. For retrieval, measure whether the right chunks come back using recall at k or hit rate. For generation, check faithfulness, meaning the answer is supported by the context, and relevance to the question. Tools like RAGAS automate these scores. Use measured failures to guide tuning of chunk size, the number of chunks retrieved, the embedding model, and your prompt wording."
+    },
+    {
+      "type": "content",
+      "title": "Common Pitfalls & Wrap-Up",
+      "bullets": [
+        "Mismatched embedding models for index vs query",
+        "No overlap, splitting mid-idea",
+        "Too many chunks overflow the context window",
+        "Forgetting the no-results path"
+      ],
+      "narration": "To wrap up, watch for these common pitfalls: using different embedding models for indexing and querying, chunking without overlap, stuffing so many chunks you overflow the context window, and not handling empty retrieval results. Get the basics right and a RAG pipeline becomes a reliable, updatable way to ground your LLM apps in real knowledge. Next, try building one with your own documents."
+    }
+  ]
+}
