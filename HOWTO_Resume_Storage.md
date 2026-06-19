@@ -59,6 +59,9 @@ structured-output call (the one piece mocked in CI).
 ## Data handling notes
 - Résumés are stored only in the private `tw-resumes` bucket, keyed by user id.
 - Consent is required before upload; the consent flag is recorded with the advisor doc.
-- `DELETE /api/custom-plan` (later phase) removes a user's résumé + plan.
-- Retention: set an R2 lifecycle rule on `tw-resumes` to auto-expire objects (e.g. 180
-  days) once the retention policy is finalised (TW-67).
+- **Deletion:** `DELETE /api/custom-advisor` removes a user's résumé object + advisor/plan
+  docs; users can trigger it from the **"Forget my résumé & training data"** button on `/account`.
+- **Retention (action required):** set a **180-day** object lifecycle rule on `tw-resumes` in the
+  Cloudflare dashboard (R2 → `tw-resumes` → Settings → Object lifecycle rules). The app's scoped
+  token cannot set this via API (`AccessDenied`), so it must be done in the dashboard.
+- See `CUSTOM_ADVISOR.md` for the full privacy / security / content-safety review.

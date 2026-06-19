@@ -122,6 +122,31 @@ test('custom-advisor: GET returns nulls when the user has no plan yet', async ()
   assert.equal(res.jsonBody.generation, null);
 });
 
+test('custom-advisor: DELETE removes the résumé object + advisor/generation docs', async () => {
+  const container = makeContainer({ seed: [
+    { id: 'user-123:advisor', userId: 'user-123', type: 'advisor', resumeRef: { bucket: 'tw-resumes', key: 'user-123/r.pdf' } },
+    { id: 'gen:user-123', userId: 'user-123', type: 'generationRequest', status: 'queued' },
+  ] });
+  const deleted = [];
+  const handler = loadHandler('custom-advisor', 'custom-advisor', {
+    cosmosContainer: container,
+    resumes: { putResume: async () => ({}), deleteResume: async (key) => { deleted.push(key); } },
+  });
+  const res = await handler(makeRequest({ method: 'DELETE', user: authUser() }), makeContext());
+  assert.equal(res.status, 200);
+  assert.equal(res.jsonBody.ok, true);
+  assert.deepEqual(deleted, ['user-123/r.pdf'], 'résumé object deleted from R2');
+  assert.ok(container._calls.deletes.includes('user-123:advisor'), 'advisor doc deleted');
+  assert.ok(container._calls.deletes.includes('gen:user-123'), 'generation request deleted');
+});
+
+test('custom-advisor: DELETE is a no-op (200) when there is nothing to remove', async () => {
+  const handler = loadHandler('custom-advisor', 'custom-advisor', { cosmosContainer: makeContainer() });
+  const res = await handler(makeRequest({ method: 'DELETE', user: authUser() }), makeContext());
+  assert.equal(res.status, 200);
+  assert.equal(res.jsonBody.ok, true);
+});
+
 test('custom-advisor: a model refusal returns 422', async () => {
   const res = await advisorHandler({
     advisor: async () => { const e = new Error('refused'); e.code = 'refusal'; throw e; },
