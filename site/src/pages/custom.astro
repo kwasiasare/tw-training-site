@@ -1,0 +1,188 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { AUTH_ENABLED, CUSTOM_ADVISOR_ENABLED, COURSES } from '../consts';
+
+const enabled = AUTH_ENABLED && CUSTOM_ADVISOR_ENABLED;
+
+// Slug → title for rendering a matched course (build-time, trusted).
+const courseMeta = COURSES.map((c) => ({ slug: c.slug, title: c.title }));
+---
+
+<BaseLayout title="Custom training" description="Upload your résumé and get a personalized AI training plan.">
+  <section class="lesson">
+    <div class="container">
+      <h1>Build my custom training</h1>
+      <p class="summary">
+        Answer a few questions and upload your résumé (PDF). Our AI proposes realistic target roles with
+        time-to-hire, then matches you to a course — or builds a brand-new one tailored to you.
+      </p>
+      {enabled ? (
+        <div id="custom-body"><p class="summary">Loading…</p></div>
+      ) : (
+        <p class="summary">Custom training is coming soon.</p>
+      )}
+    </div>
+  </section>
+
+  {enabled && (
+    <>
+      <script type="application/json" id="course-meta" set:html={JSON.stringify(courseMeta)}></script>
+      <script is:inline>
+        (function () {
+          var body = document.getElementById('custom-body');
+          if (!body) return;
+
+          var courses = {};
+          try {
+            JSON.parse(document.getElementById('course-meta').textContent || '[]')
+              .forEach(function (c) { courses[c.slug] = c; });
+          } catch (e) {}
+
+          function esc(s) {
+            return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+              return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+            });
+          }
+          function title(slug) { return (courses[slug] && courses[slug].title) || slug; }
+
+          fetch('/.auth/me', { headers: { accept: 'application/json' } })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (me) {
+              var p = me && me.clientPrincipal;
+              if (!p) {
+                body.innerHTML =
+                  '<p class="summary">Sign in to build your custom training.</p>' +
+                  '<p><a class="btn" href="/.auth/login/entraExternalId?post_login_redirect_uri=/custom/">Sign in or create an account</a></p>';
+                return;
+              }
+              renderForm();
+            })
+            .catch(function () { body.innerHTML = '<p class="summary">Something went wrong. Please try again.</p>'; });
+
+          function renderForm() {
+            body.innerHTML =
+              '<form id="adv-form" class="objectives">' +
+                '<p><label for="outcome"><strong>What role or outcome are you aiming for?</strong></label><br>' +
+                '<input id="outcome" class="search-input" type="text" maxlength="120" required placeholder="e.g. My first AI developer job"></p>' +
+                '<p><label for="hours"><strong>Hours you can study per week</strong></label><br>' +
+                '<input id="hours" class="search-input" type="number" min="1" max="80" value="10"></p>' +
+                '<p><label for="background"><strong>Your background &amp; current skills</strong></label><br>' +
+                '<textarea id="background" class="search-input" rows="3" maxlength="1000" placeholder="Briefly describe your experience"></textarea></p>' +
+                '<p><label for="interests"><strong>Interests or constraints</strong></label><br>' +
+                '<textarea id="interests" class="search-input" rows="2" maxlength="500" placeholder="Anything we should factor in"></textarea></p>' +
+                '<p><label for="resume"><strong>Your résumé (PDF, max 5&nbsp;MB)</strong></label><br>' +
+                '<input id="resume" type="file" accept="application/pdf" required></p>' +
+                '<p><label><input id="consent" type="checkbox"> ' +
+                'I consent to my résumé being stored securely and analysed to build my training plan.</label></p>' +
+                '<p><button class="btn" id="adv-submit" type="submit">Build my plan</button> ' +
+                '<span id="adv-msg" class="theme" role="status" aria-live="polite"></span></p>' +
+              '</form>' +
+              '<div id="adv-result"></div>';
+
+            document.getElementById('adv-form').addEventListener('submit', onSubmit);
+          }
+
+          function readAsBase64(file) {
+            return new Promise(function (resolve, reject) {
+              var reader = new FileReader();
+              reader.onload = function () {
+                var s = String(reader.result || '');
+                var comma = s.indexOf(',');
+                resolve(comma >= 0 ? s.slice(comma + 1) : s);
+              };
+              reader.onerror = function () { reject(new Error('read failed')); };
+              reader.readAsDataURL(file);
+            });
+          }
+
+          function onSubmit(e) {
+            e.preventDefault();
+            var msg = document.getElementById('adv-msg');
+            var submit = document.getElementById('adv-submit');
+            var file = document.getElementById('resume').files[0];
+            var consent = document.getElementById('consent').checked;
+            var outcome = document.getElementById('outcome').value.trim();
+
+            if (!outcome) { msg.textContent = 'Please tell us your target outcome.'; return; }
+            if (!file) { msg.textContent = 'Please attach your résumé (PDF).'; return; }
+            if (file.type !== 'application/pdf') { msg.textContent = 'The résumé must be a PDF.'; return; }
+            if (file.size > 5 * 1024 * 1024) { msg.textContent = 'That PDF is over 5 MB — please upload a smaller file.'; return; }
+            if (!consent) { msg.textContent = 'Please tick the consent box to continue.'; return; }
+
+            submit.disabled = true;
+            msg.textContent = 'Analysing your résumé… this can take up to a minute.';
+
+            readAsBase64(file).then(function (b64) {
+              return fetch('/api/custom-advisor', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json', accept: 'application/json' },
+                body: JSON.stringify({
+                  consent: true,
+                  resumeBase64: b64,
+                  questionnaire: {
+                    targetOutcome: outcome,
+                    hoursPerWeek: Number(document.getElementById('hours').value) || null,
+                    background: document.getElementById('background').value.trim(),
+                    interests: document.getElementById('interests').value.trim(),
+                  },
+                }),
+              });
+            }).then(function (r) {
+              if (r.status === 401 || r.status === 403) {
+                msg.innerHTML = 'Your session expired. <a href="/.auth/login/entraExternalId?post_login_redirect_uri=/custom/">Sign in again</a>.';
+                return null;
+              }
+              return r.ok ? r.json() : r.json().catch(function () { return null; }).then(function (d) { throw new Error((d && d.error) || 'failed'); });
+            }).then(function (d) {
+              submit.disabled = false;
+              if (d) { msg.textContent = ''; renderResult(d); }
+            }).catch(function (err) {
+              submit.disabled = false;
+              msg.textContent = err && err.message === 'cannot_analyze'
+                ? 'We could not analyse that résumé. Please try a different file.'
+                : 'Something went wrong analysing your résumé. Please try again.';
+            });
+          }
+
+          function renderResult(d) {
+            var a = d.analysis || {};
+            var roles = a.targetRoles || [];
+            var html = '<h2>Your results</h2>';
+            if (a.summary) html += '<p class="theme">' + esc(a.summary) + '</p>';
+
+            if (roles.length) {
+              html += '<h3>Realistic roles for you</h3>' +
+                '<table class="topic-list" style="width:100%;border-collapse:collapse">' +
+                '<thead><tr><th align="left">Role</th><th align="left">Time to hire</th>' +
+                '<th align="left">Why</th><th align="left">Your leverage</th></tr></thead><tbody>' +
+                roles.map(function (r) {
+                  return '<tr>' +
+                    '<td><strong>' + esc(r.role) + '</strong></td>' +
+                    '<td>' + esc(r.timeToHire) + '</td>' +
+                    '<td>' + esc(r.why) + '</td>' +
+                    '<td>' + esc(r.leverage) + '</td></tr>';
+                }).join('') +
+                '</tbody></table>';
+            }
+
+            var o = d.outcome || {};
+            html += '<div class="objectives" style="margin-top:18px">';
+            if (o.type === 'matched') {
+              html += '<h3>You’re enrolled ✓</h3>' +
+                '<p>We matched you to <strong>' + esc(title(o.courseSlug)) + '</strong> and enrolled you.</p>' +
+                '<p><a class="btn" href="/courses/' + esc(o.courseSlug) + '/">Start the course</a></p>';
+            } else {
+              html += '<h3>We’re building your custom course 🛠️</h3>' +
+                '<p>No existing course was a close enough fit, so we’re creating one tailored to your résumé. ' +
+                'You’ll see it on your <a href="/account/">account</a> when it’s ready.</p>';
+            }
+            html += '</div>';
+
+            document.getElementById('adv-result').innerHTML = html;
+            document.getElementById('adv-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        })();
+      </script>
+    </>
+  )}
+</BaseLayout>

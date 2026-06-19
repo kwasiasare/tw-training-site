@@ -21,6 +21,12 @@ export const AUTH_ENABLED = import.meta.env.PUBLIC_AUTH_ENABLED === 'true';
 export const APPINSIGHTS_CONNECTION_STRING =
   import.meta.env.PUBLIC_APPINSIGHTS_CONNECTION_STRING ?? '';
 
+// Custom Training Advisor (TW-61). Gated behind a build-time flag so the feature
+// stays hidden until its backend (résumé bucket + ANTHROPIC_API_KEY) is wired in
+// the target environment. Set PUBLIC_CUSTOM_ADVISOR_ENABLED=true to turn it on.
+export const CUSTOM_ADVISOR_ENABLED =
+  import.meta.env.PUBLIC_CUSTOM_ADVISOR_ENABLED === 'true';
+
 // Course-level catalog metadata. The per-module/lesson tree is derived from the
 // lessons themselves (see courseModules / courseOrder below) so it never drifts.
 export type Course = {
