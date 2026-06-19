@@ -28,6 +28,7 @@
   "routes": [
     { "route": "/api/GetRoles", "allowedRoles": ["anonymous", "authenticated"] },
     { "route": "/api/stats", "allowedRoles": ["authenticated"] },
+    { "route": "/api/profile", "allowedRoles": ["authenticated"] },
     { "route": "/api/*", "allowedRoles": ["authenticated"] },
     { "route": "/admin", "allowedRoles": ["administrator"] },
     { "route": "/admin/*", "allowedRoles": ["administrator"] },
