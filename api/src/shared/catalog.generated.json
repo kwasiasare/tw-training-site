@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "slug": "cx-validation-test",
+    "title": "AI Application Developer: Building Production-Ready LLM Apps with RAG",
+    "summary": "A hands-on, project-based course that takes you from Python fundamentals to deploying retrieval-augmented generation (RAG) applications powered by large language models. You'll build a portfolio-ready AI app that answers questions over custom documents using embeddings, a vector store, and an LLM, w",
+    "targetProfile": {
+      "role": "AI Application Developer",
+      "level": "mid",
+      "skills": [
+        "python",
+        "llm apps",
+        "rag"
+      ]
+    }
+  }
+]

@@ -1,0 +1,193 @@
+{
+  "slug": "vt1-m1-l01-capstone-build-and-deploy-a-document-q-a-rag-app",
+  "title": "Capstone: Build and Deploy a Document Q&A RAG App with Python and an LLM",
+  "month": 1,
+  "monthTitle": "Building a RAG-Powered LLM Application in Python",
+  "lesson": 1,
+  "video": "vt1-m1-l01-capstone-build-and-deploy-a-document-q-a-rag-app.mp4",
+  "summary": "In this capstone lesson you build a complete Document Q&A application in Python that ingests files, chunks and embeds them into a vector store, retrieves relevant context, and uses an LLM with retrieval-augmented generation to answer questions with citations. You then wrap it in a simple web UI and deploy it as a portfolio-ready project.",
+  "objectives": [
+    "Design the end-to-end architecture of a RAG document Q&A application (ingest, embed, store, retrieve, generate).",
+    "Implement a Python ingestion pipeline that loads, chunks, and embeds documents into a vector store.",
+    "Build a retrieval + prompt-augmentation layer that grounds LLM answers in retrieved context and returns citations.",
+    "Wrap the app in a minimal web UI (Streamlit) and handle configuration, secrets, and errors.",
+    "Deploy the application to a hosting platform and document it as a portfolio project.",
+    "Evaluate answer quality and apply practical improvements like chunk tuning and reranking."
+  ],
+  "quiz": [
+    {
+      "q": "In a RAG pipeline, what is the correct order of the indexing phase?",
+      "options": [
+        "Embed question -> retrieve -> generate",
+        "Load -> chunk -> embed -> store in vector DB",
+        "Store -> retrieve -> chunk -> embed",
+        "Generate -> embed -> store -> load"
+      ],
+      "answer": 1,
+      "why": "The offline indexing phase loads documents, splits them into chunks, embeds each chunk into a vector, and stores those vectors in a vector database. Retrieval and generation happen later at query time."
+    },
+    {
+      "q": "Why set the LLM temperature to 0 for a factual document Q&A app?",
+      "options": [
+        "It makes the model faster",
+        "It produces more deterministic, grounded answers",
+        "It increases creativity for better summaries",
+        "It reduces the embedding cost"
+      ],
+      "answer": 1,
+      "why": "Temperature 0 minimizes randomness, giving deterministic answers that stick closely to the retrieved context — ideal for factual Q&A where you want consistency and minimal hallucination."
+    },
+    {
+      "q": "What is the main purpose of keeping metadata (like filename and page) on each chunk?",
+      "options": [
+        "To compress the vectors",
+        "To enable source citations in the answer",
+        "To speed up embedding",
+        "To avoid using a vector store"
+      ],
+      "answer": 1,
+      "why": "Metadata travels with each chunk so that when chunks are retrieved you can show which document and page the answer came from, providing trustworthy citations."
+    },
+    {
+      "q": "Which practice helps prevent the LLM from hallucinating answers not in your documents?",
+      "options": [
+        "Using a larger chunk size",
+        "Instructing the prompt to answer only from context and otherwise say 'I don't know'",
+        "Disabling the vector store",
+        "Raising the temperature"
+      ],
+      "answer": 1,
+      "why": "A strict prompt that limits the model to the provided context and allows it to admit when the answer isn't present is the primary guardrail against hallucination in RAG."
+    },
+    {
+      "q": "Name one reason RAG is often preferred over fine-tuning for a document Q&A app.",
+      "answer": "Knowledge stays fresh by re-indexing (no retraining), it grounds answers to reduce hallucination, and it is cheaper than training.",
+      "why": "RAG lets you update knowledge simply by re-indexing documents, grounds answers in real retrieved text, and avoids the cost and complexity of training a model."
+    },
+    {
+      "q": "Why should you persist (save) the vector index to disk in your capstone app?",
+      "answer": "To avoid re-embedding documents on every run, saving time and API cost.",
+      "why": "Embedding is the expensive step; saving the FAISS index lets you load it instantly instead of recomputing embeddings each time the app starts."
+    }
+  ],
+  "resources": [
+    {
+      "label": "LangChain RAG / Q&A documentation",
+      "url": "https://python.langchain.com/docs/tutorials/rag/"
+    },
+    {
+      "label": "FAISS vector store (Facebook AI Similarity Search)",
+      "url": "https://github.com/facebookresearch/faiss"
+    },
+    {
+      "label": "Streamlit deployment docs (Community Cloud)",
+      "url": "https://docs.streamlit.io/deploy/streamlit-community-cloud"
+    },
+    {
+      "label": "OpenAI Embeddings guide",
+      "url": "https://platform.openai.com/docs/guides/embeddings"
+    }
+  ],
+  "body_markdown": "## What You're Building\n\nYou will ship a **Document Q&A app**: users upload PDFs or text files, ask natural-language questions, and get answers grounded in *their* documents with source citations. This is the canonical RAG (Retrieval-Augmented Generation) pattern and an excellent portfolio piece because it touches data engineering, embeddings, LLM prompting, and deployment.\n\n## The RAG Architecture\n\nRAG has two phases:\n\n1. **Indexing (offline):** load documents -> split into chunks -> embed chunks -> store vectors.\n2. **Query (online):** embed the question -> retrieve top-k similar chunks -> build a prompt with that context -> call the LLM -> return the answer + sources.\n\n```\nDocs -> Loader -> Chunker -> Embeddings -> Vector Store\n                                              |\nQuestion -> Embed -> Similarity Search -------+--> Context\n                                              |\n                          Prompt(Context+Q) -> LLM -> Answer + Citations\n```\n\nWhy RAG instead of fine-tuning? It keeps knowledge **fresh and editable** (just re-index), reduces hallucination by grounding answers in real text, and is far cheaper than training.\n\n## Project Setup\n\n```bash\npython -m venv .venv && source .venv/bin/activate\npip install langchain langchain-openai langchain-community \\\n            faiss-cpu pypdf streamlit python-dotenv tiktoken\n```\n\nStore secrets in a `.env` file (never commit it):\n\n```\nOPENAI_API_KEY=sk-...\n```\n\n```python\nfrom dotenv import load_dotenv\nload_dotenv()  # reads .env into environment\n```\n\n## Step 1 — Ingestion and Chunking\n\nDocuments are too large to fit in a prompt, so we split them. **Chunk size** and **overlap** are the most important knobs: too large and retrieval is imprecise; too small and you lose context. A good starting point is ~800–1000 characters with 100–150 overlap.\n\n```python\nfrom langchain_community.document_loaders import PyPDFLoader\nfrom langchain.text_splitter import RecursiveCharacterTextSplitter\n\ndocs = PyPDFLoader(\"manual.pdf\").load()\nsplitter = RecursiveCharacterTextSplitter(\n    chunk_size=1000, chunk_overlap=150\n)\nchunks = splitter.split_documents(docs)\n```\n\nEach chunk keeps `metadata` (source filename, page) — essential for citations later.\n\n## Step 2 — Embeddings and Vector Store\n\nAn **embedding** turns text into a vector so semantic similarity becomes geometric distance. We store these in a vector index (FAISS runs locally, great for a capstone).\n\n```python\nfrom langchain_openai import OpenAIEmbeddings\nfrom langchain_community.vectorstores import FAISS\n\nembeddings = OpenAIEmbeddings(model=\"text-embedding-3-small\")\nstore = FAISS.from_documents(chunks, embeddings)\nstore.save_local(\"index\")  # persist so you don't re-embed every run\n```\n\n## Step 3 — Retrieval and Generation\n\nAt query time, retrieve the most relevant chunks and stuff them into the prompt. Use a strict prompt that tells the model to answer **only** from context and to say \"I don't know\" otherwise — this is your main anti-hallucination guardrail.\n\n```python\nfrom langchain_openai import ChatOpenAI\nfrom langchain.chains import RetrievalQA\nfrom langchain.prompts import PromptTemplate\n\nprompt = PromptTemplate.from_template(\n    \"\"\"Answer the question using ONLY the context below.\nIf the answer is not in the context, say you don't know.\n\nContext:\n{context}\n\nQuestion: {question}\nAnswer:\"\"\")\n\nretriever = store.as_retriever(search_kwargs={\"k\": 4})\nqa = RetrievalQA.from_chain_type(\n    llm=ChatOpenAI(model=\"gpt-4o-mini\", temperature=0),\n    retriever=retriever,\n    return_source_documents=True,\n    chain_type_kwargs={\"prompt\": prompt},\n)\nresult = qa.invoke({\"query\": \"What is the warranty period?\"})\nprint(result[\"result\"])\nfor d in result[\"source_documents\"]:\n    print(d.metadata)\n```\n\nSet `temperature=0` for factual Q&A to keep answers deterministic and grounded.\n\n## Step 4 — The Web UI (Streamlit)\n\n```python\nimport streamlit as st\n\nst.title(\"📄 Document Q&A\")\nfile = st.file_uploader(\"Upload a PDF\", type=\"pdf\")\nquestion = st.text_input(\"Ask a question\")\nif file and question:\n    # build/load index, run qa chain\n    answer = qa.invoke({\"query\": question})\n    st.write(answer[\"result\"])\n    st.caption(\"Sources: \" + \", \".join(\n        {d.metadata['source'] for d in answer['source_documents']}))\n```\n\nCache the index with `@st.cache_resource` so you don't re-embed on every interaction.\n\n## Step 5 — Deploy\n\nOptions for a free/cheap portfolio deploy:\n\n- **Streamlit Community Cloud** — push to GitHub, connect repo, add `OPENAI_API_KEY` as a secret. Easiest.\n- **Hugging Face Spaces** — supports Streamlit/Gradio apps.\n- **Docker + a VM/Render** — most control.\n\nAdd a `requirements.txt`, a `README.md` with screenshots and architecture diagram, and **never** commit your API key. Use the platform's secrets manager.\n\n## Evaluating and Improving\n\n- **Tune chunking:** experiment with size/overlap and re-test on sample questions.\n- **Increase k or add reranking:** retrieve more candidates, then rerank for precision.\n- **Add metadata filters** (e.g., by document or date).\n- **Track quality:** keep a small set of question/expected-answer pairs and spot-check after changes.\n- **Manage cost:** cache embeddings, use smaller embedding/LLM models, and limit context length.\n\n## Common Pitfalls\n\n- Re-embedding on every run (persist the index!).\n- Chunks too large to retrieve precisely.\n- No \"I don't know\" guardrail -> hallucinations.\n- Leaking API keys in the repo.\n- Forgetting to surface citations, which kills user trust.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Capstone: Build & Deploy a Document Q&A RAG App",
+      "sub": "Python + LLM + Retrieval-Augmented Generation",
+      "narration": "Welcome to the capstone lesson. Over the next few minutes we'll build an end-to-end Document Q&A application in Python. Users will upload their own documents, ask questions, and get answers grounded in those documents using retrieval-augmented generation. By the end you'll have a deployable portfolio project."
+    },
+    {
+      "type": "content",
+      "title": "What Is RAG and Why Use It",
+      "bullets": [
+        "RAG = retrieve relevant text, then generate an answer from it",
+        "Grounds the LLM in YOUR documents, reducing hallucination",
+        "Knowledge stays fresh — just re-index, no retraining",
+        "Cheaper and faster than fine-tuning"
+      ],
+      "narration": "RAG stands for retrieval-augmented generation. Instead of relying on what the model memorized during training, we retrieve relevant passages from your own documents and feed them into the prompt. This grounds answers in real text, dramatically reduces hallucination, and keeps knowledge up to date because you only need to re-index when documents change. It's also far cheaper than fine-tuning a model."
+    },
+    {
+      "type": "content",
+      "title": "The Two-Phase Architecture",
+      "bullets": [
+        "Indexing (offline): load -> chunk -> embed -> store",
+        "Query (online): embed question -> retrieve -> prompt -> answer",
+        "Vector store maps semantic similarity to distance",
+        "Always carry metadata for citations"
+      ],
+      "code": "Docs -> Chunker -> Embeddings -> Vector Store\nQuestion -> Embed -> Search -> Context -> LLM -> Answer",
+      "narration": "Every RAG app has two phases. The indexing phase happens offline: we load documents, split them into chunks, turn each chunk into an embedding vector, and store those vectors. The query phase happens live: we embed the user's question, search the store for the most similar chunks, build a prompt with that context, and call the LLM. Keep metadata like filename and page on each chunk so we can show citations."
+    },
+    {
+      "type": "content",
+      "title": "Setup & Ingestion",
+      "bullets": [
+        "Create a venv and install LangChain, FAISS, Streamlit",
+        "Load secrets from .env — never commit keys",
+        "Chunk with RecursiveCharacterTextSplitter (~1000 chars, 150 overlap)",
+        "Chunk size is your biggest quality knob"
+      ],
+      "code": "splitter = RecursiveCharacterTextSplitter(\n    chunk_size=1000, chunk_overlap=150)\nchunks = splitter.split_documents(docs)",
+      "narration": "Start by creating a virtual environment and installing LangChain, a vector store like FAISS, and Streamlit. Keep your API key in a dotenv file that is never committed. Then load and split your documents. Chunk size and overlap are the most important tuning knobs: around a thousand characters with a hundred-fifty character overlap is a solid starting point. Too big and retrieval gets imprecise; too small and you lose context."
+    },
+    {
+      "type": "content",
+      "title": "Embeddings & Vector Store",
+      "bullets": [
+        "Embeddings turn text into vectors capturing meaning",
+        "FAISS is local and perfect for a capstone",
+        "Persist the index — don't re-embed every run",
+        "text-embedding-3-small is cheap and effective"
+      ],
+      "code": "store = FAISS.from_documents(chunks, embeddings)\nstore.save_local(\"index\")",
+      "narration": "Next we embed the chunks. An embedding converts text into a numeric vector so that semantically similar text ends up close together in vector space. We store these in FAISS, which runs locally and is perfect for a capstone. Crucially, save the index to disk so you don't pay to re-embed everything on every run. The small embedding model is cheap and works well for most documents."
+    },
+    {
+      "type": "content",
+      "title": "Retrieval & Generation",
+      "bullets": [
+        "Retrieve top-k chunks as context",
+        "Strict prompt: answer ONLY from context, else 'I don't know'",
+        "temperature=0 for deterministic, factual answers",
+        "Return source_documents for citations"
+      ],
+      "code": "qa = RetrievalQA.from_chain_type(\n  llm=ChatOpenAI(model='gpt-4o-mini', temperature=0),\n  retriever=store.as_retriever(search_kwargs={'k':4}),\n  return_source_documents=True)",
+      "narration": "Now the core RAG step. We retrieve the top few most relevant chunks and put them into a carefully worded prompt that tells the model to answer only from the provided context, and to say it doesn't know otherwise. That instruction is your main guardrail against hallucination. Set temperature to zero for factual, repeatable answers, and ask the chain to return source documents so you can display citations."
+    },
+    {
+      "type": "content",
+      "title": "Web UI with Streamlit",
+      "bullets": [
+        "File uploader + text input = full interface in minutes",
+        "Cache the index with @st.cache_resource",
+        "Show the answer plus its sources",
+        "Handle missing files and empty questions gracefully"
+      ],
+      "code": "file = st.file_uploader('Upload a PDF', type='pdf')\nq = st.text_input('Ask a question')\nst.write(qa.invoke({'query': q})['result'])",
+      "narration": "To make this a usable product, wrap it in a Streamlit interface. A file uploader and a text input give you a complete UI in just a few lines. Use the cache-resource decorator so the index is built once and reused, not rebuilt on every keystroke. Always display the answer alongside its sources — citations are what make users trust the app — and handle edge cases like no file uploaded or an empty question."
+    },
+    {
+      "type": "content",
+      "title": "Deploy & Document",
+      "bullets": [
+        "Streamlit Cloud or Hugging Face Spaces = free deploy",
+        "Add requirements.txt and a README with architecture diagram",
+        "Store API keys in the platform's secret manager",
+        "Polish it as a portfolio piece with screenshots"
+      ],
+      "narration": "Finally, deploy. Streamlit Community Cloud and Hugging Face Spaces both offer free hosting: push your repo to GitHub, connect it, and add your API key through the platform's secrets manager — never in code. Include a requirements file and a strong README with an architecture diagram and screenshots. This is your portfolio piece, so treat the documentation as part of the deliverable."
+    },
+    {
+      "type": "content",
+      "title": "Evaluate & Improve",
+      "bullets": [
+        "Tune chunk size, overlap, and k",
+        "Add reranking for higher precision",
+        "Keep a small test set of Q&A pairs",
+        "Manage cost: cache, smaller models, limit context"
+      ],
+      "narration": "A shipped app is the start, not the end. Build a small set of question and expected-answer pairs and re-check quality whenever you change something. Experiment with chunk size, overlap, and the number of retrieved chunks. For tougher use cases, retrieve more candidates and rerank them for precision. And keep an eye on cost by caching embeddings, using smaller models, and limiting how much context you send."
+    }
+  ]
+}

@@ -75,6 +75,14 @@ export const COURSES: Course[] = [
     sample: 'ht4-l05-building-an-ai-triage-agent',
     accent: '#db2777',
   },
+  {
+    slug: 'cx-validation-test',
+    title: 'AI Application Developer: Building Production-Ready LLM Apps with RAG',
+    tagline: 'Aspiring AI Application Developers with basic programming exposure who want to build and ship real LLM-powered applications.',
+    blurb: 'A hands-on, project-based course that takes you from Python fundamentals to deploying retrieval-augmented generation (RAG) applications powered by large language models. You\'ll build a portfolio-ready AI app that answers questions over custom documents using embeddings, a vector store, and an LLM, while applying best practices in prompt design, evaluation, and deployment.',
+    sample: 'vt1-m1-l01-capstone-build-and-deploy-a-document-q-a-rag-app',
+    accent: '#7c3aed',
+  },
 ];
 
 export function getCourse(slug: string): Course | undefined {
