@@ -20,13 +20,37 @@ W, H = 1280, 720
 NAVY = (0x1F, 0x3A, 0x5F); ACCENT = (0x2E, 0x86, 0xC1); WHITE = (0xFF, 0xFF, 0xFF)
 DARK = (0x22, 0x2A, 0x33); GREY = (0x66, 0x66, 0x66); CODEBG = (0xF2, 0xF4, 0xF7)
 GREEN = (0x1E, 0x8A, 0x4C)
-F = 'C:/Windows/Fonts/'
-font_h = ImageFont.truetype(F + 'arialbd.ttf', 40)
-font_body = ImageFont.truetype(F + 'arial.ttf', 32)
-font_code = ImageFont.truetype(F + 'consola.ttf', 23)
-font_small = ImageFont.truetype(F + 'arial.ttf', 20)
-font_big = ImageFont.truetype(F + 'arialbd.ttf', 60)
-font_sub = ImageFont.truetype(F + 'arial.ttf', 30)
+# Resolve fonts cross-platform: Windows paths first (so local renders are unchanged),
+# then Linux (Liberation/DejaVu) and macOS fallbacks, then PIL's default.
+_FONT_DIRS = [
+    'C:/Windows/Fonts/',
+    '/usr/share/fonts/truetype/liberation/',
+    '/usr/share/fonts/truetype/dejavu/',
+    '/Library/Fonts/', '/System/Library/Fonts/Supplemental/',
+]
+_BOLD = ['arialbd.ttf', 'LiberationSans-Bold.ttf', 'DejaVuSans-Bold.ttf', 'Arial Bold.ttf']
+_REG = ['arial.ttf', 'LiberationSans-Regular.ttf', 'DejaVuSans.ttf', 'Arial.ttf']
+_MONO = ['consola.ttf', 'LiberationMono-Regular.ttf', 'DejaVuSansMono.ttf', 'Menlo.ttc']
+
+
+def _font(size, names):
+    for d in _FONT_DIRS:
+        for n in names:
+            p = d + n
+            if os.path.exists(p):
+                try:
+                    return ImageFont.truetype(p, size)
+                except OSError:
+                    pass
+    return ImageFont.load_default(size)
+
+
+font_h = _font(40, _BOLD)
+font_body = _font(32, _REG)
+font_code = _font(23, _MONO)
+font_small = _font(20, _REG)
+font_big = _font(60, _BOLD)
+font_sub = _font(30, _REG)
 
 
 def wrap(draw, text, font, max_w):

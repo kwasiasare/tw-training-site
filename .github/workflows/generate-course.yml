@@ -90,6 +90,10 @@ jobs:
       - name: Decks → lesson markdown
         run: python convert_decks_to_md.py "${{ inputs.slug }}"
 
+      - name: Install fonts for slide rendering
+        if: ${{ inputs.render_videos }}
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq fonts-liberation
+
       - name: Render narrated videos
         if: ${{ inputs.render_videos }}
         env:
