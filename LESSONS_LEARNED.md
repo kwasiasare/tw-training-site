@@ -51,6 +51,26 @@ and a course-production pipeline. Kept current as the project evolves.
 - **robocopy `/MOVE` beats a rename when a folder is locked.** Moving the project directory failed
   because a shell held it as its CWD; a file-level `robocopy /MOVE` relocated the contents anyway.
 
+## Azure SWA managed Functions + auth (hard-won)
+
+- **SWA returns 404 — not 403 — when a route's `allowedRoles` check fails.** A protected `/api/*`
+  route 404s for users lacking the role, which looks exactly like a missing endpoint. Gate API routes
+  at `authenticated` and enforce specific roles **inside the function** (return a real 403) so failures
+  are diagnosable.
+- **An edited managed-function may not re-register.** Renaming a function's `route`/name across deploys
+  had no effect (kept 404ing) while a brand-new function file deployed fine. When a function won't
+  update, **create a fresh file with a new name** rather than editing the cursed one.
+- **rolesSource roles attach at login.** Custom roles from the `rolesSource` function are stamped into
+  the session at sign-in; setting `ADMIN_EMAILS` (or changing role logic) requires a **fresh logout/login**
+  to take effect — `/.auth/me` after re-login is the source of truth for roles.
+- **App settings are per-environment.** `az staticwebapp appsettings set` targets production; preview
+  environments don't inherit them, so auth/DB-backed features can only be fully tested on prod.
+- **Custom OIDC (Entra External ID) needs the SWA Standard plan;** the Free plan only does the
+  preconfigured providers. The identity service itself is free under 50k MAU.
+- **Debug with evidence, not edits.** Two wrong fixes came from guessing the layer. A 12-line anonymous
+  `/api/ping` health-check (env presence + a Cosmos COUNT) proved functions deploy and Cosmos works,
+  which isolated the real cause in one shot. Peer-review the diagnosis before shipping a fix.
+
 ## Verification & ways of working
 
 - **Evidence over assertion.** Every change was proven: build page counts (66 → 103), `curl` status
