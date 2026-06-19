@@ -1,0 +1,28 @@
+---
+// Application Insights client telemetry (TW-42). Rendered only when a connection
+// string is configured (PUBLIC_APPINSIGHTS_CONNECTION_STRING), so local dev and
+// un-wired builds emit nothing. Captures page views, route changes, AJAX timing,
+// and unhandled JS exceptions — feeding the errors/latency/usage dashboards.
+import { APPINSIGHTS_CONNECTION_STRING } from '../consts';
+const enabled = !!APPINSIGHTS_CONNECTION_STRING;
+---
+
+{enabled && (
+  <script>
+    import { ApplicationInsights } from '@microsoft/applicationinsights-web';
+
+    const connectionString = import.meta.env.PUBLIC_APPINSIGHTS_CONNECTION_STRING;
+    if (connectionString) {
+      const ai = new ApplicationInsights({
+        config: {
+          connectionString,
+          enableAutoRouteTracking: true, // SPA-style route changes (defensive; site is MPA)
+          autoTrackPageVisitTime: true,
+          disableFetchTracking: false, // capture /api/* (same-origin) call timing + failures
+        },
+      });
+      ai.loadAppInsights();
+      ai.trackPageView();
+    }
+  </script>
+)}
