@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { SITE, AUTH_ENABLED } from '../consts';
+import { SITE, AUTH_ENABLED, CUSTOM_ADVISOR_ENABLED } from '../consts';
 import Analytics from '../components/Analytics.astro';
 
 interface Props {
@@ -38,6 +38,7 @@ const fullTitle = title ? `${title} | ${SITE.title}` : `${SITE.title} — Course
         <nav class="nav">
           <a href="/">Home</a>
           <a href="/#courses">Courses</a>
+          {AUTH_ENABLED && CUSTOM_ADVISOR_ENABLED && <a href="/custom">Custom training</a>}
           {AUTH_ENABLED && <span id="auth-area" class="auth-area"><a href="/.auth/login/entraExternalId?post_login_redirect_uri=/account/">Sign in</a></span>}
           <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode"></button>
         </nav>
