@@ -1,1 +1,21 @@
-[]
+[
+  {
+    "slug": "ai-product-manager",
+    "title": "AI Product Management: From Fundamentals to Shipping AI Products",
+    "summary": "A hands-on, project-based course that prepares you to lead AI and LLM-powered products end to end. You'll build AI literacy, master LLM capabilities and limits, craft product strategy and roadmaps, design evaluation frameworks and prompts, manage cross-functional stakeholders, and define metrics tha",
+    "targetProfile": {
+      "role": "AI Product Manager",
+      "level": "mid",
+      "skills": [
+        "ai literacy",
+        "llm capabilities and limits",
+        "product strategy",
+        "roadmapping",
+        "evals",
+        "prompt design",
+        "stakeholder management",
+        "metrics"
+      ]
+    }
+  }
+]

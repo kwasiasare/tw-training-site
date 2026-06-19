@@ -1,0 +1,179 @@
+{
+  "slug": "apm-m4-l01-stakeholder-management-aligning-eng-design-legal",
+  "title": "Stakeholder Management: Aligning Eng, Design, Legal, and Leadership",
+  "month": 4,
+  "monthTitle": "Stakeholders, Metrics, and Launch Capstone",
+  "lesson": 1,
+  "video": "apm-m4-l01-stakeholder-management-aligning-eng-design-legal.mp4",
+  "summary": "AI products carry unusual ambiguity and risk that strain cross-functional alignment. This lesson teaches AI PMs how to map stakeholders across Engineering, Design, Legal, and Leadership, tailor a communication plan to each group's incentives, and run alignment conversations that surface and resolve disagreement about model behavior, risk tolerance, and launch readiness.",
+  "objectives": [
+    "Map AI product stakeholders by influence, interest, and risk sensitivity using a structured matrix",
+    "Translate AI ambiguity (probabilistic outputs, evolving accuracy) into language each stakeholder group understands",
+    "Build a communication plan that defines cadence, format, and decision rights for Eng, Design, Legal, and Leadership",
+    "Run alignment conversations that surface disagreement early and convert it into documented decisions",
+    "Apply a RACI-style framework to AI launch decisions where risk ownership is shared",
+    "Diagnose and de-escalate common cross-functional conflicts unique to AI products"
+  ],
+  "quiz": [
+    {
+      "q": "What makes stakeholder alignment uniquely challenging for AI products compared to traditional software?",
+      "options": [
+        "AI products have more stakeholders by definition",
+        "AI is probabilistic and ambiguous, so stakeholders fill the uncertainty gap with their own assumptions",
+        "AI products never need legal review",
+        "Engineering is the only stakeholder that matters"
+      ],
+      "answer": 1,
+      "why": "AI's probabilistic, drifting behavior creates ambiguity, and each stakeholder fills that gap with different assumptions—which is the root of misalignment."
+    },
+    {
+      "q": "In the stakeholder map, what is the AI-specific behavior of Legal and Leadership to plan for?",
+      "options": [
+        "They are always highly engaged from day one",
+        "They have low influence throughout the project",
+        "They are low-interest until a risk surfaces, then become high-influence blockers",
+        "They only care about UI design"
+      ],
+      "answer": 2,
+      "why": "Legal and Leadership often appear low-interest until a risk emerges, at which point they become blocking high-influence stakeholders—so engage them early."
+    },
+    {
+      "q": "According to RACI best practice for AI launch decisions, how many Accountable owners should each decision have?",
+      "options": [
+        "As many as possible to spread risk",
+        "Exactly one",
+        "Zero—accountability is shared",
+        "One per function involved"
+      ],
+      "answer": 1,
+      "why": "Each decision needs exactly one Accountable owner. Shared accountability means no accountability, especially when AI risk is distributed across teams."
+    },
+    {
+      "q": "When communicating model performance to Leadership, which framing is best?",
+      "options": [
+        "'The model works great'",
+        "Raw precision and recall numbers only",
+        "Expected value, confidence ranges, and the cost of being wrong",
+        "Detailed eval pass rates and latency percentiles"
+      ],
+      "answer": 2,
+      "why": "Leadership thinks in business terms—expected value, confidence ranges, and downside cost—rather than engineering-level metrics."
+    },
+    {
+      "q": "Name one technique for presenting AI model performance honestly without giving false precision.",
+      "answer": "Use ranges and scenarios—e.g., state the success rate, the failure rate, the worst case, and the mitigation.",
+      "why": "Ranges and scenarios communicate genuine uncertainty and a plan, avoiding the false confidence of a single number or 'it works.'"
+    },
+    {
+      "q": "What is the single most important thing to do at the end of an alignment conversation?",
+      "answer": "Document the decision, its Accountable owner, and the revisit date.",
+      "why": "Undocumented decisions get re-litigated. Recording the decision, owner, and revisit date makes alignment durable and accountable."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Marty Cagan, 'INSPIRED' — chapters on cross-functional product teams",
+      "url": "https://www.svpg.com/inspired-how-to-create-products-customers-love/"
+    },
+    {
+      "label": "RACI Matrix explained (Atlassian)",
+      "url": "https://www.atlassian.com/work-management/project-management/raci-chart"
+    },
+    {
+      "label": "Google PAIR: People + AI Guidebook (communicating AI to stakeholders & users)",
+      "url": "https://pair.withgoogle.com/guidebook/"
+    },
+    {
+      "label": "Stakeholder mapping: Power/Interest grid (MindTools)",
+      "url": "https://www.mindtools.com/aol0rms/stakeholder-analysis"
+    }
+  ],
+  "body_markdown": "## Why Stakeholder Management Is Harder for AI Products\n\nTraditional software behaves deterministically: given an input, you get the same output. AI products are probabilistic—the same prompt can yield different answers, accuracy drifts over time, and failure modes are hard to enumerate in advance. This ambiguity multiplies the alignment problem because every stakeholder fills the uncertainty gap with their own assumptions.\n\n- **Engineering** worries about model reliability, latency, eval coverage, and maintainability.\n- **Design** worries about user trust, graceful failure, and how to communicate uncertainty in the UI.\n- **Legal/Compliance** worries about data usage, IP, bias, regulatory exposure, and liability for wrong outputs.\n- **Leadership** worries about strategic differentiation, cost, timeline, and reputational risk.\n\nYour job as the AI PM is to be the translation layer that keeps these groups aligned on a shared definition of \"good enough to ship.\"\n\n## Step 1: Map Your Stakeholders\n\nUse a simple 2x2 of **Influence vs. Interest**, then add a third dimension unique to AI: **Risk Sensitivity**.\n\n| Stakeholder | Influence | Interest | Risk Sensitivity | Engagement Strategy |\n|---|---|---|---|---|\n| Eng Lead | High | High | Medium | Co-own; daily/weekly sync |\n| Design Lead | High | High | Medium | Co-own; design reviews |\n| Legal Counsel | High | Low (until risk appears) | Very High | Manage closely; early risk reviews |\n| VP/Exec Sponsor | High | Medium | High | Keep satisfied; concise updates, decisions |\n| Data Science | Medium | High | Medium | Keep informed; eval results |\n\nThe AI twist: **Legal and Leadership are often low-interest until a risk surfaces, then become blocking high-influence stakeholders.** Engage them *before* the crisis, not during it.\n\n## Step 2: Translate AI Ambiguity per Audience\n\nNever present a model as \"it works.\" Frame outputs in terms each group can act on:\n\n- For **Eng**: precision/recall, latency p95, eval pass rates, regression risk.\n- For **Design**: confidence levels, when to show 'I'm not sure', fallback flows.\n- For **Legal**: data provenance, what the model can/can't be held accountable for, audit trail, bias testing results.\n- For **Leadership**: expected value, confidence ranges, downside scenarios, and the cost of being wrong.\n\nUse **ranges and scenarios** instead of false precision: \"In testing, the model resolves 78% of tickets correctly; the remaining 22% are escalated to a human. Worst case is X, and our mitigation is Y.\"\n\n## Step 3: Build the Communication Plan\n\nA communication plan answers: **who needs what information, how often, in what format, and who decides what.**\n\n| Audience | Cadence | Format | Their Decision |\n|---|---|---|---|\n| Eng + Design | Daily standup / weekly demo | Live working session | How to build it |\n| Legal | Milestone risk reviews | Written risk memo + meeting | Go/no-go on compliance |\n| Leadership | Biweekly | 1-page status + risk register | Funding, scope, launch approval |\n\nKeep a living **risk register** that every group can see. For AI, this is your single source of truth for known failure modes and mitigations.\n\n## Step 4: Clarify Decision Rights with RACI\n\nAI launches blur ownership because risk is shared. Use RACI (Responsible, Accountable, Consulted, Informed) to make it explicit. Critically, **name one Accountable owner per decision**—shared accountability means no accountability.\n\nExample: \"Launch the chatbot to 5% of users\" — PM is Accountable, Eng + Legal are Consulted, Leadership is Informed (or Accountable if it's high-risk).\n\n## Step 5: Run the Alignment Conversation\n\n1. **State the decision and the deadline.** Ambiguity loves a vacuum.\n2. **Surface positions and the why behind them.** Legal's 'no' usually hides a specific fear—find it.\n3. **Separate facts from judgments.** Pull up eval data to ground the debate.\n4. **Define 'good enough' thresholds together.** Agree on the accuracy/risk bar before launch, not after.\n5. **Document the decision, owner, and revisit date.** Write it down or it didn't happen.\n\n## Common AI Alignment Conflicts\n\n- **Eng vs. Leadership on timeline**: models need iterative eval; resist pressure to ship before the eval bar is met.\n- **Legal vs. Product on data**: resolve early by defining allowed training/inference data sources.\n- **Design vs. Eng on uncertainty UX**: agree on how confidence is surfaced to users.\n\nThe meta-skill: make disagreement *visible and early* rather than letting it explode at launch.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Stakeholder Management for AI Products",
+      "sub": "Aligning Eng, Design, Legal, and Leadership",
+      "narration": "Welcome. In this lesson we tackle one of the hardest parts of the AI PM role: keeping Engineering, Design, Legal, and Leadership aligned on a product whose behavior is inherently uncertain. We'll cover stakeholder mapping, tailored communication, decision rights, and how to run the alignment conversation itself."
+    },
+    {
+      "type": "content",
+      "title": "Why AI Makes Alignment Harder",
+      "bullets": [
+        "AI is probabilistic—same input, different outputs, drifting accuracy",
+        "Failure modes are hard to enumerate up front",
+        "Each stakeholder fills the uncertainty gap with their own assumptions",
+        "The PM must be the translation layer across functions"
+      ],
+      "narration": "Traditional software is deterministic, but AI is probabilistic. Accuracy drifts, outputs vary, and you can't list every failure mode in advance. This ambiguity is the root of misalignment: when people don't have clear answers, they fill the gap with their own assumptions. Engineering, Design, Legal, and Leadership each fill it differently. Your job is to be the translation layer that keeps everyone working from the same definition of success."
+    },
+    {
+      "type": "content",
+      "title": "Map Stakeholders: Influence, Interest, Risk",
+      "bullets": [
+        "Start with an Influence vs. Interest 2x2",
+        "Add a third AI-specific axis: Risk Sensitivity",
+        "Legal & Leadership: low interest until risk appears, then blocking",
+        "Engage high-risk-sensitivity stakeholders early, not in crisis"
+      ],
+      "narration": "Begin by mapping stakeholders on the classic influence-versus-interest grid. For AI, add a third dimension: risk sensitivity. The key insight is that Legal and Leadership often look low-interest until a risk surfaces—then they become high-influence blockers. Engage them before the crisis, during early risk reviews, rather than scrambling when something breaks."
+    },
+    {
+      "type": "content",
+      "title": "Translate Ambiguity per Audience",
+      "bullets": [
+        "Eng: precision/recall, latency p95, eval pass rates",
+        "Design: confidence levels, fallback flows, when to say 'I'm not sure'",
+        "Legal: data provenance, accountability, bias test results, audit trail",
+        "Leadership: expected value, confidence ranges, cost of being wrong"
+      ],
+      "code": "\"Resolves 78% of tickets correctly; 22% escalate to a human.\nWorst case is X; mitigation is Y.\"",
+      "narration": "Never tell stakeholders 'it works.' Frame model behavior in the language each group can act on. Engineers want precision, recall, and latency. Design needs to know when to surface uncertainty. Legal cares about data provenance and bias. Leadership thinks in expected value and downside risk. Always use ranges and scenarios instead of false precision—give a real number, the failure rate, and your mitigation."
+    },
+    {
+      "type": "content",
+      "title": "Build the Communication Plan",
+      "bullets": [
+        "Define who needs what, how often, in what format",
+        "Eng + Design: daily/weekly working sessions",
+        "Legal: milestone risk reviews with written memos",
+        "Leadership: biweekly 1-page status + risk register"
+      ],
+      "narration": "A communication plan specifies who needs what information, at what cadence, in what format, and who decides what. Engineering and Design need high-frequency working sessions. Legal needs milestone risk reviews backed by written memos. Leadership wants concise biweekly updates with a risk register. Tailor frequency and depth to each group's role in the decision."
+    },
+    {
+      "type": "content",
+      "title": "Clarify Decision Rights with RACI",
+      "bullets": [
+        "Responsible, Accountable, Consulted, Informed",
+        "Name exactly ONE Accountable owner per decision",
+        "Shared accountability = no accountability",
+        "Example: PM Accountable for rollout; Eng & Legal Consulted"
+      ],
+      "narration": "AI launches blur ownership because risk is shared across functions. RACI makes it explicit. The most important rule: every decision needs exactly one Accountable owner. Shared accountability means no accountability. For a staged rollout, the PM might be Accountable, with Eng and Legal Consulted and Leadership Informed—unless the risk is high enough that leadership owns the call."
+    },
+    {
+      "type": "content",
+      "title": "Run the Alignment Conversation",
+      "bullets": [
+        "State the decision and deadline—ambiguity loves a vacuum",
+        "Surface positions AND the why behind them",
+        "Ground debate in eval data, separate facts from judgments",
+        "Agree on 'good enough' thresholds before launch",
+        "Document decision, owner, and revisit date"
+      ],
+      "narration": "To run the actual conversation: state the decision and its deadline clearly. Surface each person's position and the reasoning behind it—Legal's 'no' usually hides a specific fear, so find it. Ground the debate in eval data to separate facts from opinions. Most importantly, agree on the accuracy and risk thresholds for 'good enough' before you launch, not after. Then document the decision, the owner, and when you'll revisit it."
+    },
+    {
+      "type": "content",
+      "title": "Common AI Conflicts & Takeaways",
+      "bullets": [
+        "Eng vs. Leadership: timeline pressure vs. eval bar",
+        "Legal vs. Product: allowed data sources—settle early",
+        "Design vs. Eng: how to surface uncertainty in the UI",
+        "Meta-skill: make disagreement visible and early"
+      ],
+      "narration": "Watch for recurring conflicts: leadership pushing to ship before the eval bar is met, legal and product clashing over data sources, and design and engineering disagreeing on how to communicate uncertainty to users. Resolve each early by defining shared thresholds. The meta-skill that ties everything together is making disagreement visible and early—so it gets resolved in a meeting, not at launch."
+    }
+  ]
+}

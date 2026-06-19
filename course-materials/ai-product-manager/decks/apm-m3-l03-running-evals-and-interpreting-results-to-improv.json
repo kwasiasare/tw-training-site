@@ -1,0 +1,190 @@
+{
+  "slug": "apm-m3-l03-running-evals-and-interpreting-results-to-improv",
+  "title": "Running Evals and Interpreting Results to Improve Quality",
+  "month": 3,
+  "monthTitle": "Building, Evaluating, and Prompting AI Features",
+  "lesson": 3,
+  "video": "apm-m3-l03-running-evals-and-interpreting-results-to-improv.mp4",
+  "summary": "A practical lesson on running evaluations against prompt variants, analyzing failure modes systematically, and translating results into a data-driven eval report that drives quality improvements for AI features.",
+  "objectives": [
+    "Set up and execute an eval run across multiple prompt variants using a representative dataset",
+    "Choose appropriate metrics (exact-match, rubric scoring, LLM-as-judge) for the task",
+    "Categorize and prioritize failure modes from eval results",
+    "Interpret aggregate and per-segment scores to compare variants confidently",
+    "Document findings and recommended changes in a structured eval report"
+  ],
+  "quiz": [
+    {
+      "q": "Why should an eval report include the distribution of scores, not just the average?",
+      "options": [
+        "Averages are harder to compute",
+        "A high average can hide a cluster of catastrophic low scores",
+        "Distributions are required by regulators",
+        "It makes the report longer"
+      ],
+      "answer": 1,
+      "why": "An average like 4.2 can mask a subset of severe failures (1s) that may be dealbreakers; the distribution reveals them."
+    },
+    {
+      "q": "When using LLM-as-judge for scoring, what is the most important safeguard?",
+      "options": [
+        "Use the cheapest possible model",
+        "Validate judge scores against human labels and pin the judge prompt/model",
+        "Run the judge at high temperature",
+        "Score only the best outputs"
+      ],
+      "answer": 1,
+      "why": "LLM judges can be biased or inconsistent, so you must validate them against human labels and fix the judge model and prompt for reproducibility."
+    },
+    {
+      "q": "You're comparing two prompt variants on a 60-example set; B scores 2% higher overall. What's the best next step?",
+      "options": [
+        "Ship B immediately",
+        "Look at per-example wins/losses and segments to check if the difference is real",
+        "Delete variant A",
+        "Double the temperature and rerun"
+      ],
+      "answer": 1,
+      "why": "A 2% gap on a small set may be within noise; paired per-example analysis and segmentation tell you whether the difference is meaningful."
+    },
+    {
+      "q": "Why keep a held-out set you never iterate against?",
+      "options": [
+        "To reduce API costs",
+        "To avoid overfitting your prompts to the eval examples",
+        "Because models require it",
+        "To increase dataset size automatically"
+      ],
+      "answer": 1,
+      "why": "If you tune prompts against every example, you risk overfitting; a held-out set gives an honest measure of generalization."
+    },
+    {
+      "q": "List three failure-mode buckets you might use when analyzing eval results.",
+      "answer": "Examples include hallucination/factual error, format or schema violation, refusal/over-caution, missing context handling, and tone/style mismatch.",
+      "why": "Bucketing failures into named categories lets you count them and map each to a specific cause and candidate fix."
+    },
+    {
+      "q": "Besides quality scores, name two product constraints an eval report should weigh when recommending a variant.",
+      "answer": "Cost and latency.",
+      "why": "A higher-quality variant may be too slow or expensive to ship, so cost and latency must be balanced against quality."
+    }
+  ],
+  "resources": [
+    {
+      "label": "OpenAI Evals framework (GitHub)",
+      "url": "https://github.com/openai/evals"
+    },
+    {
+      "label": "Anthropic: Building evals and test sets",
+      "url": "https://docs.anthropic.com/en/docs/test-and-evaluate/develop-tests"
+    },
+    {
+      "label": "Hugging Face Evaluate library",
+      "url": "https://huggingface.co/docs/evaluate"
+    },
+    {
+      "label": "Eugene Yan: Patterns for Building LLM-based Systems & Products (evals section)",
+      "url": "https://eugeneyan.com/writing/llm-patterns/"
+    }
+  ],
+  "body_markdown": "## Why Evals Matter\n\nShipping an AI feature without evals is like deploying code with no tests. Evals give you a repeatable, quantitative way to answer one question: *did this change make the product better or worse?* As an AI PM, you own the definition of \"better\" and the discipline of measuring it.\n\n## The Eval Loop\n\n1. **Define quality** — translate the user outcome into measurable criteria.\n2. **Build a dataset** — collect representative inputs plus expected outputs or rubrics.\n3. **Run variants** — execute each prompt/model variant against the same dataset.\n4. **Score** — apply metrics automatically and/or with human review.\n5. **Analyze** — segment results, find failure modes, form hypotheses.\n6. **Document & decide** — write the report, pick a winner, plan the next iteration.\n\n## Choosing Metrics\n\n- **Exact / fuzzy match**: good for classification, extraction, or short factual answers.\n- **Rubric scoring (1-5)**: for open-ended outputs scored by humans or an LLM judge against explicit criteria (accuracy, completeness, tone, safety).\n- **LLM-as-judge**: scalable and cheap, but must be validated against human labels and can carry bias. Pin the judge model and prompt.\n- **Programmatic checks**: JSON validity, length limits, forbidden phrases, citation presence.\n\nAlways report both an **aggregate score** and the **distribution** — an average of 4.2 can hide a cluster of catastrophic 1s.\n\n## Building a Good Eval Set\n\n- Aim for 50-200 examples to start; enough to detect meaningful differences.\n- Cover **happy paths, edge cases, and known-failure cases**.\n- Add **segments/tags** (language, query type, difficulty, user persona) so you can slice results.\n- Keep a held-out set you don't iterate against to avoid overfitting your prompts.\n\n## Running Variants Fairly\n\n- Change one thing at a time when possible, or run a clean A/B with everything else fixed.\n- Fix temperature, model version, and seed where you can for reproducibility.\n- Record metadata: model, prompt hash, date, cost, latency.\n\n## Analyzing Failure Modes\n\nDon't stop at the score. Read the failures and bucket them:\n\n- **Hallucination / factual error**\n- **Format / schema violation**\n- **Refusal or over-caution**\n- **Missing context handling**\n- **Tone / style mismatch**\n\nCount each bucket. A variant that scores slightly lower overall but eliminates a dangerous failure mode may still be the better ship decision. Tie each bucket to a hypothesized cause and a candidate fix (prompt instruction, few-shot example, retrieval change, model swap).\n\n## Interpreting Results\n\n- Compare variants on the **same examples** (paired comparison) for sensitivity.\n- Watch for **noise**: with small sets, a 2% difference may be within margin of error. Look at per-example wins/losses, not just the mean.\n- Segment: variant B may win overall but lose on the Spanish-language slice.\n- Balance quality against **cost and latency** — these are real product constraints.\n\n## The Eval Report\n\nA good report is decision-ready and includes:\n\n- **Goal & question** being tested\n- **Dataset** description and size\n- **Variants** compared (with prompt diffs)\n- **Metrics & results table** (aggregate + by segment)\n- **Top failure modes** with examples and counts\n- **Recommendation** and next steps\n\nKeep it short, link to raw data, and make the recommendation explicit so stakeholders can act.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Running Evals and Interpreting Results to Improve Quality",
+      "sub": "Building, Evaluating, and Prompting AI Features",
+      "narration": "Welcome. In this lesson we'll learn how to run evaluations on prompt variants, analyze why outputs fail, and turn those findings into a data-driven eval report. This is the core skill that separates guessing from systematically improving an AI feature."
+    },
+    {
+      "type": "content",
+      "title": "Why Evals Matter",
+      "bullets": [
+        "Evals are the unit tests of AI features",
+        "They answer: did this change make it better or worse?",
+        "The PM owns the definition of 'better'",
+        "Without them, prompt changes are guesswork"
+      ],
+      "narration": "Shipping an AI feature without evals is like deploying code with no tests. Evals give you a repeatable, quantitative way to answer the key question: did this change improve the product? As the AI PM, you own both the definition of quality and the discipline of measuring it consistently."
+    },
+    {
+      "type": "content",
+      "title": "The Eval Loop",
+      "bullets": [
+        "Define quality criteria",
+        "Build a representative dataset",
+        "Run prompt/model variants",
+        "Score with metrics and/or humans",
+        "Analyze, document, decide"
+      ],
+      "narration": "Evaluation is a loop. First define what quality means in measurable terms. Build a dataset of representative inputs with expected outputs or rubrics. Run each variant against the same data, score the results, then analyze failures, document findings, and make a decision. Then you iterate."
+    },
+    {
+      "type": "content",
+      "title": "Choosing the Right Metrics",
+      "bullets": [
+        "Exact/fuzzy match for classification and extraction",
+        "Rubric scoring 1-5 for open-ended outputs",
+        "LLM-as-judge: scalable but validate against humans",
+        "Programmatic checks: JSON validity, length, citations",
+        "Report aggregate AND distribution"
+      ],
+      "narration": "Pick metrics that fit the task. Use exact or fuzzy match for classification and extraction. Use a one-to-five rubric for open-ended answers. LLM-as-judge scales well and is cheap, but you must validate it against human labels and pin the judge model. Add programmatic checks for things like valid JSON. And always show the distribution, not just the average, because a mean of four-point-two can hide a cluster of catastrophic ones."
+    },
+    {
+      "type": "content",
+      "title": "Building a Good Eval Set",
+      "bullets": [
+        "Start with 50-200 examples",
+        "Cover happy paths, edge cases, and known failures",
+        "Tag examples by segment for slicing",
+        "Keep a held-out set to avoid overfitting"
+      ],
+      "narration": "A good eval set needs enough examples to detect real differences, typically fifty to two hundred to start. Cover the happy paths, the edge cases, and known failure cases. Tag examples by language, query type, or difficulty so you can slice results later. And hold out a set you never tune against, so you don't overfit your prompts to the test."
+    },
+    {
+      "type": "content",
+      "title": "Running Variants Fairly",
+      "bullets": [
+        "Change one variable at a time",
+        "Fix temperature, model version, and seed",
+        "Run variants on the identical dataset",
+        "Log metadata: model, prompt hash, cost, latency"
+      ],
+      "narration": "For fair comparisons, change one thing at a time or run a clean A/B with everything else fixed. Pin the temperature, model version, and seed for reproducibility. Run every variant on the exact same examples. And log metadata like the model, a prompt hash, cost, and latency so results are traceable and reproducible."
+    },
+    {
+      "type": "content",
+      "title": "Analyzing Failure Modes",
+      "bullets": [
+        "Read failures, don't just trust the score",
+        "Bucket: hallucination, format, refusal, missing context, tone",
+        "Count each bucket",
+        "Map each bucket to a cause and candidate fix"
+      ],
+      "narration": "The score is only the start. Read the actual failures and group them into buckets like hallucination, format violations, over-cautious refusals, missing context, and tone mismatches. Count how often each occurs. Then tie each bucket to a hypothesized cause and a candidate fix, whether that's a prompt instruction, a few-shot example, a retrieval change, or a model swap."
+    },
+    {
+      "type": "content",
+      "title": "Interpreting Results",
+      "bullets": [
+        "Use paired comparison on the same examples",
+        "Beware noise with small datasets",
+        "Segment: a winner overall may lose on a slice",
+        "Balance quality vs cost and latency"
+      ],
+      "narration": "Interpret carefully. Compare variants on the same examples for sensitivity, and look at per-example wins and losses, not just the mean, since small differences may be noise. Segment your results, because a variant that wins overall might lose on, say, the Spanish-language slice. And weigh quality against cost and latency, which are real product constraints."
+    },
+    {
+      "type": "content",
+      "title": "Writing the Eval Report",
+      "bullets": [
+        "Goal and question being tested",
+        "Dataset description and size",
+        "Variants and prompt diffs",
+        "Results table: aggregate + by segment",
+        "Top failure modes + explicit recommendation"
+      ],
+      "narration": "Finally, write a decision-ready report. State the goal and question, describe the dataset, list the variants with their prompt diffs, and show a results table with aggregate and per-segment scores. Highlight the top failure modes with example outputs and counts. End with an explicit recommendation and next steps so stakeholders can act immediately."
+    }
+  ]
+}

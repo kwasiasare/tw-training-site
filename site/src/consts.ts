@@ -75,6 +75,14 @@ export const COURSES: Course[] = [
     sample: 'ht4-l05-building-an-ai-triage-agent',
     accent: '#db2777',
   },
+  {
+    slug: 'ai-product-manager',
+    title: 'AI Product Management: From Fundamentals to Shipping AI Products',
+    tagline: 'Aspiring and transitioning product managers, technical PMs, founders, and analysts who want to lead AI/LLM products and need practical, portfolio-building experience to land an AI Product Manager role.',
+    blurb: 'A hands-on, project-based course that prepares you to lead AI and LLM-powered products end to end. You\'ll build AI literacy, master LLM capabilities and limits, craft product strategy and roadmaps, design evaluation frameworks and prompts, manage cross-functional stakeholders, and define metrics that prove impact. By the end, you\'ll have a portfolio-ready AI product spec, roadmap, eval suite, and launch plan.',
+    sample: 'apm-m1-l01-how-modern-ai-works-a-no-math-mental-model-for-p',
+    accent: '#7c3aed',
+  },
 ];
 
 export function getCourse(slug: string): Course | undefined {

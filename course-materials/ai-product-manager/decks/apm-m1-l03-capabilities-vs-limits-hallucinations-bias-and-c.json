@@ -1,0 +1,189 @@
+{
+  "slug": "apm-m1-l03-capabilities-vs-limits-hallucinations-bias-and-c",
+  "title": "Capabilities vs. Limits: Hallucinations, Bias, and Cost Realities",
+  "month": 1,
+  "monthTitle": "AI Literacy and LLM Foundations for PMs",
+  "lesson": 3,
+  "video": "apm-m1-l03-capabilities-vs-limits-hallucinations-bias-and-c.mp4",
+  "summary": "A practical lesson helping aspiring AI Product Managers map LLM strengths and weaknesses—covering hallucinations, bias, and cost realities—then translate that understanding into a concrete risk-and-mitigation document for a sample product idea.",
+  "objectives": [
+    "Distinguish tasks where LLMs reliably excel from those where they systematically fail",
+    "Explain why hallucinations occur and identify product patterns that reduce their impact",
+    "Recognize sources of bias in LLM outputs and the product-level mitigations available",
+    "Estimate and reason about the cost drivers (tokens, model tier, volume) of an LLM feature",
+    "Produce a risk-and-mitigation note for a sample AI product idea"
+  ],
+  "quiz": [
+    {
+      "q": "Which task is an LLM most reliably suited for?",
+      "options": [
+        "Recalling exact statistics from memory",
+        "Summarizing a document you provide",
+        "Performing precise multi-step arithmetic",
+        "Guaranteeing the same answer every time"
+      ],
+      "answer": 1,
+      "why": "LLMs excel at transforming or synthesizing text you hand them; summarization over provided context is a strong fit, while exact recall, math, and determinism are weak points."
+    },
+    {
+      "q": "What is the primary cause of hallucinations in LLMs?",
+      "options": [
+        "The model runs out of memory",
+        "The model optimizes for plausible text rather than truth",
+        "Insufficient compute at inference",
+        "Users typing poorly worded prompts"
+      ],
+      "answer": 1,
+      "why": "LLMs generate the most likely next tokens, with no built-in mechanism for verifying truth or signaling uncertainty, so they can produce confident but false output."
+    },
+    {
+      "q": "Which is the most effective product-level mitigation for hallucinations?",
+      "options": [
+        "Increasing the output token limit",
+        "Grounding responses in retrieved sources with citations",
+        "Using a larger frontier model only",
+        "Removing the system prompt"
+      ],
+      "answer": 1,
+      "why": "Retrieval-augmented generation grounds answers in real sources and lets you cite them, directly reducing fabricated facts; bigger models alone do not eliminate hallucination."
+    },
+    {
+      "q": "Which factor does NOT directly increase per-request LLM cost?",
+      "options": [
+        "Longer input context",
+        "More output tokens",
+        "Choosing a higher model tier",
+        "Caching repeated system prompts"
+      ],
+      "answer": 3,
+      "why": "Caching reduces cost by reusing work; input length, output length, and model tier all increase cost per request."
+    },
+    {
+      "q": "In one sentence, name two ways bias can show up in LLM outputs.",
+      "answer": "Bias can appear as stereotyped content skewed by gender, race, or geography, and as uneven response quality across different languages or user groups.",
+      "why": "Bias stems from patterns in training data and manifests both as skewed content and as inconsistent quality across populations, which is why segment testing matters."
+    },
+    {
+      "q": "What should an AI PM produce before writing detailed PRD requirements for an LLM feature?",
+      "answer": "A risk and mitigation note covering the task, capability fit, top failure modes, mitigations, an eval plan, and a cost estimate.",
+      "why": "This one-pager aligns engineering, design, and legal on what 'good' and 'risky' mean, grounding the roadmap in realistic capabilities before committing requirements."
+    }
+  ],
+  "resources": [
+    {
+      "label": "OpenAI Documentation: Prompt engineering and best practices",
+      "url": "https://platform.openai.com/docs/guides/prompt-engineering"
+    },
+    {
+      "label": "Anthropic: Reducing hallucinations and using retrieval",
+      "url": "https://docs.anthropic.com/en/docs/build-with-claude/reduce-hallucinations"
+    },
+    {
+      "label": "Google People + AI Guidebook (designing for AI errors and trust)",
+      "url": "https://pair.withgoogle.com/guidebook/"
+    },
+    {
+      "label": "OpenAI Pricing (token-based cost reference)",
+      "url": "https://openai.com/api/pricing/"
+    }
+  ],
+  "body_markdown": "## Why This Matters\n\nAs an AI PM, your edge is judgment: knowing what large language models (LLMs) can and cannot do *before* you commit a roadmap. Overpromising leads to broken trust; underusing leads to missed opportunity. This lesson gives you a mental model for capabilities, the three biggest failure modes (hallucination, bias, cost), and a lightweight artifact you can ship to your team.\n\n## What LLMs Do Well\n\nLLMs are strong at language transformation tasks where fluency matters more than ground truth, and where a human can verify output cheaply:\n\n- **Summarization & rewriting** — condensing, changing tone, translating.\n- **Drafting** — first-pass emails, code, marketing copy.\n- **Extraction & classification** — pulling fields from text, tagging sentiment.\n- **Synthesis over provided context** — answering from documents you give it (retrieval-augmented).\n\nThe common thread: the model is *manipulating text it was handed* or producing a draft a human reviews. Risk stays low.\n\n## Where LLMs Fail\n\n- **Factual recall without sources** — models predict plausible tokens, not truth.\n- **Precise math and counting** — unreliable without tools.\n- **Fresh or private knowledge** — training cutoff and no access to your data unless you supply it.\n- **Long-horizon reasoning & strict logic** — degrades over multi-step chains.\n- **Determinism** — the same prompt can yield different answers.\n\n## Hallucinations\n\nA hallucination is a confident, fluent output that is false or fabricated. It happens because the model optimizes for *likely* text, not *correct* text. There is no built-in 'I don't know.'\n\n**Product mitigations:**\n- Ground responses in retrieved sources (RAG) and cite them.\n- Constrain scope: narrow tasks hallucinate less than open-ended ones.\n- Add verification layers (rules, second model, human review) for high-stakes outputs.\n- Design UI that signals uncertainty and makes correction easy.\n- Measure: track a hallucination rate on a labeled eval set.\n\n## Bias\n\nLLMs learn patterns from internet-scale data, including societal biases. Outputs can skew by gender, race, geography, or reinforce stereotypes. Bias also appears as uneven quality across languages or user groups.\n\n**Product mitigations:**\n- Define fairness requirements for your use case early.\n- Test across representative user segments and edge cases.\n- Use system prompts and guardrails to set tone and refuse harmful asks.\n- Keep a human in the loop for consequential decisions (hiring, lending, moderation).\n- Document known limitations to users.\n\n## Cost Realities\n\nLLM cost is driven by **tokens** (roughly 0.75 words per token), split into input (prompt + context) and output tokens, multiplied by **price per token** for the chosen model tier and your **request volume**.\n\nKey levers:\n- **Model tier**: a frontier model can cost 10–30x a small one. Match model to task difficulty.\n- **Context size**: long RAG contexts and chat history inflate input tokens every call.\n- **Output length**: cap max tokens; ask for concise answers.\n- **Caching & batching**: reuse results; cache system prompts.\n- **Latency vs. cost vs. quality** is a triangle — you usually pick two.\n\nA rough unit-economics check: `cost per request = (input_tokens + output_tokens) / 1000 * price_per_1k`. Multiply by expected requests per user per month to sanity-check margins.\n\n## The Artifact: A Risk & Mitigation Note\n\nFor any AI feature, write a one-pager with: the task, why an LLM fits, top 3 failure modes, mitigations, an eval plan, and a cost estimate. Below is a template you'll fill in for a sample idea (e.g., an AI assistant that drafts customer-support replies from a help-center knowledge base).\n\n| Section | Content |\n|---|---|\n| Task | Draft support replies grounded in help docs |\n| Capability fit | Summarization + synthesis over provided context — strong fit |\n| Hallucination risk | May invent policies; mitigate with RAG + citations + agent review |\n| Bias risk | Tone may vary by customer name/locale; test segments, fix system prompt |\n| Cost | ~1.5k input + 0.3k output tokens/reply; pick mid-tier model; cap output |\n| Eval plan | 100 labeled tickets, track accuracy, hallucination rate, agent edit rate |\n\nShip this note before writing a single PRD requirement. It aligns engineering, design, and legal on what 'good' and 'risky' mean.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Capabilities vs. Limits",
+      "sub": "Hallucinations, Bias, and Cost Realities for AI PMs",
+      "narration": "Welcome. In this lesson we'll build a practical mental model of what large language models do well and where they break down. As an AI product manager, this judgment is your superpower. We'll cover capabilities, three key failure modes—hallucinations, bias, and cost—and end by writing a risk note for a real product idea."
+    },
+    {
+      "type": "content",
+      "title": "What LLMs Do Well",
+      "bullets": [
+        "Summarization, rewriting, translation",
+        "Drafting emails, code, copy",
+        "Extraction and classification",
+        "Synthesis over context you provide"
+      ],
+      "narration": "LLMs shine at language transformation. They summarize, rewrite, translate, draft first passes, extract structured fields, and answer questions over documents you hand them. The common thread: the model manipulates text it was given, or produces a draft a human reviews. In these cases risk stays low because verification is cheap."
+    },
+    {
+      "type": "content",
+      "title": "Where LLMs Fail",
+      "bullets": [
+        "Factual recall without sources",
+        "Precise math and counting",
+        "Fresh or private knowledge",
+        "Long, strict multi-step reasoning",
+        "Non-deterministic outputs"
+      ],
+      "narration": "Now the limits. Models predict plausible tokens, not truth, so unsourced factual recall is shaky. They struggle with exact math, they don't know fresh or private data unless you supply it, their logic degrades over long chains, and the same prompt can give different answers. Knowing these failure zones keeps you from designing features doomed to disappoint."
+    },
+    {
+      "type": "content",
+      "title": "Hallucinations",
+      "bullets": [
+        "Confident, fluent, but false output",
+        "Caused by optimizing for likely, not correct",
+        "No built-in 'I don't know'",
+        "Mitigate: RAG, narrow scope, verification, UI cues"
+      ],
+      "narration": "A hallucination is a confident answer that is simply wrong or fabricated. It happens because the model optimizes for likely text, with no internal sense of certainty. As a PM, mitigate by grounding answers in retrieved sources with citations, narrowing the task, adding verification layers for high stakes, and designing UI that signals uncertainty and makes correction easy. And always measure a hallucination rate on a labeled set."
+    },
+    {
+      "type": "content",
+      "title": "Bias",
+      "bullets": [
+        "Learned from internet-scale data",
+        "Skews by gender, race, geography, language",
+        "Shows as uneven quality across groups",
+        "Mitigate: test segments, guardrails, human-in-loop"
+      ],
+      "narration": "Because models learn from internet-scale data, they absorb societal biases and can deliver uneven quality across user groups or languages. Define fairness requirements early, test across representative segments and edge cases, use system prompts and guardrails, and keep a human in the loop for consequential decisions like hiring or lending. Document known limits honestly for your users."
+    },
+    {
+      "type": "content",
+      "title": "Cost Realities",
+      "bullets": [
+        "Cost = tokens x price x volume",
+        "Input + output tokens both count",
+        "Model tier varies 10-30x",
+        "Levers: smaller model, shorter context, caching"
+      ],
+      "code": "cost_per_req = (in_tokens + out_tokens)/1000 * price_per_1k",
+      "narration": "Cost is driven by tokens, the per-token price of your chosen model tier, and your request volume. Both the prompt context and the generated output count. A frontier model can cost ten to thirty times a small one, so match the model to task difficulty. Trim context, cap output length, and cache repeated work. Use this simple formula to sanity-check unit economics before you scale."
+    },
+    {
+      "type": "content",
+      "title": "The Cost-Quality-Latency Triangle",
+      "bullets": [
+        "Bigger model: better quality, more cost, slower",
+        "Smaller model: cheaper, faster, weaker",
+        "You usually pick two of three",
+        "Test cheaper tiers before defaulting to frontier"
+      ],
+      "narration": "Quality, cost, and latency form a triangle—you usually optimize two at the expense of the third. Don't reflexively reach for the most powerful model. Many tasks succeed on a cheaper, faster tier. Prototype on the smallest model that passes your eval bar, and only upgrade where quality demands it. This discipline protects your margins."
+    },
+    {
+      "type": "content",
+      "title": "The Risk & Mitigation Note",
+      "bullets": [
+        "Task + why an LLM fits",
+        "Top 3 failure modes",
+        "Mitigations for each",
+        "Eval plan + cost estimate"
+      ],
+      "narration": "Here's your deliverable. For any AI feature, write a one-pager: the task, why an LLM fits, the top three failure modes, mitigations, an evaluation plan, and a cost estimate. Take our sample—an assistant drafting support replies from help docs. Note the hallucination risk, ground it in retrieval with citations and agent review, test tone across customer segments, and estimate tokens per reply. Ship this note before any PRD requirement to align engineering, design, and legal."
+    },
+    {
+      "type": "content",
+      "title": "Key Takeaways",
+      "bullets": [
+        "LLMs transform text well, recall facts poorly",
+        "Hallucination, bias, cost are the big three",
+        "Mitigate with grounding, testing, right-sizing",
+        "Document risk before building"
+      ],
+      "narration": "To recap: LLMs excel at transforming and drafting text but fail at unsourced facts, math, and strict logic. The three risks to manage are hallucination, bias, and cost. Mitigate with grounding, segment testing, and right-sizing your model. And always write the risk-and-mitigation note first. That artifact turns your AI literacy into a shared product decision."
+    }
+  ]
+}
