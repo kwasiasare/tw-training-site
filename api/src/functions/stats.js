@@ -1,22 +1,23 @@
 const { app } = require('@azure/functions');
-const { getUser } = require('../shared/principal');
-const { getContainer } = require('../shared/cosmos');
 
-// GET /api/admin/stats — platform analytics for admins. SWA restricts the route
-// to the 'administrator' role; we re-check the role here as defence in depth.
-app.http('adminstats', {
+// Admin analytics. Route is gated to 'authenticated' in staticwebapp.config.json;
+// the 'administrator' role is enforced here (SWA returns 404, not 403, on a route
+// allowedRoles miss, which is undiagnosable). Lazy-requires shared modules inside
+// the handler (matches the known-working pattern).
+app.http('stats', {
   methods: ['GET'],
   authLevel: 'anonymous',
-  route: 'adminstats',
+  route: 'stats',
   handler: async (request, context) => {
+    const { getUser } = require('../shared/principal');
     const user = getUser(request);
     if (!user) return { status: 401, jsonBody: { error: 'not_authenticated' } };
     if (!(user.roles || []).includes('administrator')) {
       return { status: 403, jsonBody: { error: 'forbidden' } };
     }
     try {
-      const container = getContainer();
-      const { resources } = await container.items.query({ query: 'SELECT * FROM c' }).fetchAll();
+      const { getContainer } = require('../shared/cosmos');
+      const { resources } = await getContainer().items.query({ query: 'SELECT * FROM c' }).fetchAll();
       const progress = resources.filter((r) => r.type === 'progress');
       const enrollments = resources.filter((r) => r.type === 'enrollment');
       const completed = progress.filter((r) => r.status === 'completed');
@@ -56,7 +57,7 @@ app.http('adminstats', {
         },
       };
     } catch (err) {
-      context.error('adminStats error', err);
+      context.error('stats error', err);
       return { status: 500, jsonBody: { error: 'server_error', detail: String((err && err.message) || err) } };
     }
   },
