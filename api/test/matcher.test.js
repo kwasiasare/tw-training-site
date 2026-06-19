@@ -26,6 +26,19 @@ test('match assigns a helpdesk profile to helpdesk-tier1-2', () => {
   assert.equal(m.courseSlug, 'helpdesk-tier1-2');
 });
 
+test('match reuses a published generated course when it fits best', () => {
+  const generated = {
+    slug: 'cx-prompt-eng',
+    title: 'Prompt Engineering Pro',
+    summary: 'Custom generated course.',
+    targetProfile: { role: 'Prompt Engineer', level: 'mid', skills: ['prompting', 'evals', 'rag'] },
+  };
+  const library = [...BUILTIN_COURSES, generated];
+  const m = match({ role: 'Prompt Engineer', skills: ['prompting', 'evals'] }, library);
+  assert.ok(m);
+  assert.equal(m.courseSlug, 'cx-prompt-eng', 'generated course is reusable via the matcher');
+});
+
 test('match returns null when nothing meets the threshold', () => {
   const m = match(
     { role: 'Underwater Basket Weaver', skills: ['knitting', 'reeds'] },

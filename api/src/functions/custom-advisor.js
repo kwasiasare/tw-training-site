@@ -10,13 +10,29 @@ const { app } = require('@azure/functions');
 const MAX_RESUME_BYTES = 5 * 1024 * 1024; // 5 MB
 
 app.http('custom-advisor', {
-  methods: ['POST'],
+  methods: ['GET', 'POST'],
   authLevel: 'anonymous', // SWA enforces auth at the route level
   route: 'custom-advisor',
   handler: async (request, context) => {
     const { getUser } = require('../shared/principal');
     const user = getUser(request);
     if (!user) return { status: 401, jsonBody: { error: 'not_authenticated' } };
+
+    // GET — the user's saved analysis + any pending generation request (for /account).
+    if (request.method === 'GET') {
+      try {
+        const { getContainer } = require('../shared/cosmos');
+        const container = getContainer();
+        let advisor = null;
+        let generation = null;
+        try { advisor = (await container.item(`${user.userId}:advisor`, user.userId).read()).resource; } catch { advisor = null; }
+        try { generation = (await container.item(`gen:${user.userId}`, user.userId).read()).resource; } catch { generation = null; }
+        return { status: 200, headers: { 'cache-control': 'private, no-store' }, jsonBody: { advisor, generation } };
+      } catch (err) {
+        context.error('custom-advisor GET error', err);
+        return { status: 500, jsonBody: { error: 'server_error' } };
+      }
+    }
 
     try {
       const body = await request.json().catch(() => ({}));
@@ -42,10 +58,11 @@ app.http('custom-advisor', {
 
       // Analyse with Claude.
       const { analyzeResume } = require('../shared/advisor');
-      const { BUILTIN_COURSES, catalogSummary } = require('../shared/catalog');
+      const { allCourses, catalogSummary } = require('../shared/catalog');
+      const courses = allCourses(); // built-in + published AI-generated courses
       let analysis;
       try {
-        analysis = await analyzeResume({ pdfBase64: resumeBase64, questionnaire, catalogText: catalogSummary() });
+        analysis = await analyzeResume({ pdfBase64: resumeBase64, questionnaire, catalogText: catalogSummary(courses) });
       } catch (err) {
         if (err && err.code === 'refusal') {
           return { status: 422, jsonBody: { error: 'cannot_analyze' } };
@@ -53,11 +70,11 @@ app.http('custom-advisor', {
         throw err;
       }
 
-      // Match against the library, else enqueue a generation request.
+      // Match against the whole reusable library, else enqueue a generation request.
       const { match } = require('../shared/matcher');
       const m = match(
         { role: analysis.recommendedRole, skills: analysis.recommendedSkills },
-        BUILTIN_COURSES,
+        courses,
       );
 
       const { getContainer } = require('../shared/cosmos');

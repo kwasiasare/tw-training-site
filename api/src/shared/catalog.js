@@ -55,11 +55,29 @@ const BUILTIN_COURSES = [
   },
 ];
 
+// Published AI-generated courses (TW-66). build_catalog.py scans
+// course-materials/*/course.json and writes their target-profiles here at
+// generation time, so a published generated course becomes reusable by the
+// matcher. Ships as [] until the first course is generated.
+let GENERATED = [];
+try {
+  // eslint-disable-next-line global-require
+  GENERATED = require('./catalog.generated.json');
+  if (!Array.isArray(GENERATED)) GENERATED = [];
+} catch {
+  GENERATED = [];
+}
+
+// The full reusable library = built-in courses + published generated courses.
+function allCourses() {
+  return BUILTIN_COURSES.concat(GENERATED);
+}
+
 // Compact catalog text handed to Claude so recommendations map to real courses.
-function catalogSummary(courses = BUILTIN_COURSES) {
+function catalogSummary(courses = allCourses()) {
   return courses
     .map((c) => `- ${c.slug} — ${c.title} (target: ${c.targetProfile.role}). ${c.summary}`)
     .join('\n');
 }
 
-module.exports = { BUILTIN_COURSES, catalogSummary };
+module.exports = { BUILTIN_COURSES, allCourses, catalogSummary };
