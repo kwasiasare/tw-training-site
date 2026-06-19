@@ -1,17 +1,17 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { AUTH_ENABLED } from '../consts';
+import { AUTH_ENABLED, COURSES } from '../consts';
+
+// Course catalog for the onboarding prompt + enrolled-course names (build-time).
+const courseMeta = COURSES.map((c) => ({ slug: c.slug, title: c.title }));
 ---
 
-<BaseLayout title="Your account" description="Your account and profile.">
+<BaseLayout title="Your account" description="Your profile, courses, and progress.">
   <section class="lesson">
     <div class="container">
       <h1>Your account</h1>
       {AUTH_ENABLED ? (
-        <div id="account-body">
-          <p class="summary">Checking your sign-in status…</p>
-        </div>
-        <div id="account-progress"></div>
+        <div id="account-body"><p class="summary">Loading your account…</p></div>
       ) : (
         <p class="summary">Accounts are coming soon. For now, every lesson is free to watch — just pick a course and start.</p>
       )}
@@ -19,40 +19,112 @@ import { AUTH_ENABLED } from '../consts';
   </section>
 
   {AUTH_ENABLED && (
-    <script is:inline>
-      (function () {
-        var body = document.getElementById('account-body');
-        if (!body) return;
-        function esc(s) {
-          return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
-            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
-          });
-        }
-        fetch('/.auth/me', { headers: { accept: 'application/json' } })
-          .then(function (r) { return r.ok ? r.json() : null; })
-          .then(function (d) {
-            var p = d && d.clientPrincipal;
-            if (!p) {
-              body.innerHTML =
-                '<p class="summary">You are not signed in.</p>' +
-                '<p><a class="btn" href="/.auth/login/entraExternalId?post_login_redirect_uri=/account/">Sign in or create an account</a></p>';
-              return;
+    <>
+      <script type="application/json" id="course-meta" set:html={JSON.stringify(courseMeta)}></script>
+      <script is:inline>
+        (function () {
+          var body = document.getElementById('account-body');
+          if (!body) return;
+
+          var courses = {};
+          try {
+            JSON.parse(document.getElementById('course-meta').textContent || '[]')
+              .forEach(function (c) { courses[c.slug] = c; });
+          } catch (e) {}
+
+          function esc(s) {
+            return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+              return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+            });
+          }
+          function title(slug) { return (courses[slug] && courses[slug].title) || slug; }
+
+          fetch('/.auth/me', { headers: { accept: 'application/json' } })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (me) {
+              var p = me && me.clientPrincipal;
+              if (!p) {
+                body.innerHTML =
+                  '<p class="summary">You are not signed in.</p>' +
+                  '<p><a class="btn" href="/.auth/login/entraExternalId?post_login_redirect_uri=/account/">Sign in or create an account</a></p>';
+                return;
+              }
+              loadProfile();
+            })
+            .catch(function () { body.innerHTML = '<p class="summary">Could not load your account. Please try again.</p>'; });
+
+          function loadProfile() {
+            fetch('/api/profile', { headers: { accept: 'application/json' } })
+              .then(function (r) { return r.ok ? r.json() : null; })
+              .then(function (d) {
+                if (!d) { body.innerHTML = '<p class="summary">Could not load your profile. Please try again.</p>'; return; }
+                render(d);
+              })
+              .catch(function () { body.innerHTML = '<p class="summary">Could not load your profile. Please try again.</p>'; });
+          }
+
+          function render(d) {
+            var enrolled = d.enrolledCourses || [];
+            var allSlugs = Object.keys(courses);
+            var html = '';
+
+            // First-run onboarding: no courses started and no display name set yet.
+            if (!enrolled.length && !d.displayName) {
+              html +=
+                '<div class="objectives"><h3>Welcome! 👋</h3>' +
+                '<p>Choose a course to get started — your progress saves automatically as you go.</p>' +
+                '<ul class="topic-list">' +
+                allSlugs.map(function (s) {
+                  return '<li class="has-video"><a href="/courses/' + s + '/">' + esc(courses[s].title) + '</a></li>';
+                }).join('') +
+                '</ul></div>';
             }
-            var roles = (p.userRoles || []).filter(function (r) { return r !== 'anonymous'; });
-            body.innerHTML =
-              '<p class="summary">You are signed in.</p>' +
-              '<div class="objectives">' +
-              '<p><strong>Name:</strong> ' + esc(p.userDetails) + '</p>' +
-              '<p><strong>Identity provider:</strong> ' + esc(p.identityProvider) + '</p>' +
-              '<p><strong>User ID:</strong> ' + esc(p.userId) + '</p>' +
-              '<p><strong>Roles:</strong> ' + esc(roles.join(', ') || 'authenticated') + '</p>' +
-              '</div>' +
-              '<p><a class="btn secondary" href="/.auth/logout?post_logout_redirect_uri=/">Sign out</a></p>';
-          })
-          .catch(function () {
-            body.innerHTML = '<p class="summary">Could not check sign-in status.</p>';
-          });
-      })();
-    </script>
+
+            // Profile + editable display name.
+            html +=
+              '<h2>Profile</h2>' +
+              '<p class="theme"><strong>Email:</strong> ' + esc(d.email) + '</p>' +
+              '<p><label for="dn"><strong>Display name</strong></label><br>' +
+              '<input id="dn" class="search-input" type="text" maxlength="60" value="' + esc(d.displayName) + '" placeholder="Add a display name" autocomplete="name"> ' +
+              '<button class="btn" id="dn-save" type="button">Save</button> ' +
+              '<span id="dn-msg" class="theme" role="status" aria-live="polite"></span></p>';
+
+            // Enrolled / started courses.
+            html += '<h2>Your courses</h2>';
+            if (enrolled.length) {
+              html += '<ul class="topic-list">' + enrolled.map(function (e) {
+                return '<li class="has-video"><a href="/courses/' + esc(e.course) + '/">' + esc(title(e.course)) +
+                  '</a> <span class="lz">' + e.completed + ' completed</span></li>';
+              }).join('') + '</ul>';
+            } else {
+              html += '<p class="theme">You haven’t started a course yet. <a href="/#courses">Browse courses</a>.</p>';
+            }
+
+            html += '<p style="margin-top:18px"><a class="btn secondary" href="/.auth/logout?post_logout_redirect_uri=/">Sign out</a></p>';
+            body.innerHTML = html;
+
+            // Wire the display-name save.
+            var saveBtn = document.getElementById('dn-save');
+            var input = document.getElementById('dn');
+            var msg = document.getElementById('dn-msg');
+            saveBtn.addEventListener('click', function () {
+              saveBtn.disabled = true;
+              msg.textContent = 'Saving…';
+              fetch('/api/profile', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ displayName: input.value }),
+              })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (res) {
+                  saveBtn.disabled = false;
+                  msg.textContent = res && res.ok ? 'Saved ✓' : 'Could not save — please try again.';
+                })
+                .catch(function () { saveBtn.disabled = false; msg.textContent = 'Could not save — please try again.'; });
+            });
+          }
+        })();
+      </script>
+    </>
   )}
 </BaseLayout>
