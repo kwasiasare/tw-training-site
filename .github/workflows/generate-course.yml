@@ -103,7 +103,9 @@ jobs:
         run: COURSE_SLUG="${{ inputs.slug }}" python upload_videos_r2.py
 
       - name: Register course in the catalog
-        run: python add_course_to_consts.py "${{ inputs.slug }}"
+        run: |
+          python add_course_to_consts.py "${{ inputs.slug }}"
+          python build_catalog.py   # makes the generated course reusable by the matcher (TW-66)
 
       - name: Open a draft PR for review
         env:
@@ -114,7 +116,7 @@ jobs:
           git config user.name "course-generator[bot]"
           git config user.email "noreply@github.com"
           git checkout -b "$BRANCH"
-          git add "course-materials/${{ inputs.slug }}" site/src/consts.ts
+          git add "course-materials/${{ inputs.slug }}" site/src/consts.ts api/src/shared/catalog.generated.json
           git commit -m "Generated course: ${{ inputs.slug }} (${{ inputs.role }})"
           git push origin "$BRANCH"
           gh pr create --draft --base master --head "$BRANCH" \

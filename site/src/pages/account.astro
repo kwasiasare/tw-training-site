@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { AUTH_ENABLED, COURSES } from '../consts';
+import { AUTH_ENABLED, CUSTOM_ADVISOR_ENABLED, COURSES } from '../consts';
 
 // Course catalog for the onboarding prompt + enrolled-course names (build-time).
 const courseMeta = COURSES.map((c) => ({ slug: c.slug, title: c.title }));
@@ -10,6 +10,7 @@ const courseMeta = COURSES.map((c) => ({ slug: c.slug, title: c.title }));
   <section class="lesson">
     <div class="container">
       <h1>Your account</h1>
+      {AUTH_ENABLED && CUSTOM_ADVISOR_ENABLED && <div id="custom-training-slot"></div>}
       {AUTH_ENABLED ? (
         <div id="account-body"><p class="summary">Loading your account…</p></div>
       ) : (
@@ -126,5 +127,50 @@ const courseMeta = COURSES.map((c) => ({ slug: c.slug, title: c.title }));
         })();
       </script>
     </>
+  )}
+
+  {AUTH_ENABLED && CUSTOM_ADVISOR_ENABLED && (
+    <script is:inline>
+      (function () {
+        var slot = document.getElementById('custom-training-slot');
+        if (!slot) return;
+        var courses = {};
+        try {
+          JSON.parse(document.getElementById('course-meta').textContent || '[]')
+            .forEach(function (c) { courses[c.slug] = c; });
+        } catch (e) {}
+        function esc(s) {
+          return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+          });
+        }
+        function title(slug) { return (courses[slug] && courses[slug].title) || slug; }
+
+        fetch('/api/custom-advisor', { headers: { accept: 'application/json' } })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (d) {
+            if (!d || !d.advisor) return;
+            var o = (d.advisor && d.advisor.outcome) || {};
+            var html = '<div class="objectives"><h2>Your custom training</h2>';
+            if (o.type === 'matched') {
+              html += '<p>Matched to <strong>' + esc(title(o.courseSlug)) +
+                '</strong>. <a class="btn" href="/courses/' + esc(o.courseSlug) + '/">Continue</a></p>';
+            } else if (o.type === 'generating') {
+              var st = (d.generation && d.generation.status) || 'queued';
+              var label = st === 'queued'
+                ? 'Queued — we’ll start building your custom course shortly.'
+                : (st === 'generated' || st === 'pending-review')
+                  ? 'Your custom course is built and in final review.'
+                  : 'We’re building your custom course…';
+              html += '<p>' + esc(label) + '</p>';
+            } else {
+              html += '<p><a href="/custom">Build my custom training</a></p>';
+            }
+            html += '</div>';
+            slot.innerHTML = html;
+          })
+          .catch(function () {});
+      })();
+    </script>
   )}
 </BaseLayout>

@@ -102,6 +102,26 @@ test('custom-advisor: no match enqueues a generation request', async () => {
   assert.equal(gen.targetRole, 'Quantum Hardware Technician');
 });
 
+test('custom-advisor: GET returns the saved analysis + generation status', async () => {
+  const container = makeContainer({ seed: [
+    { id: 'user-123:advisor', userId: 'user-123', type: 'advisor', outcome: { type: 'generating' } },
+    { id: 'gen:user-123', userId: 'user-123', type: 'generationRequest', status: 'queued', targetRole: 'X' },
+  ] });
+  const handler = loadHandler('custom-advisor', 'custom-advisor', { cosmosContainer: container });
+  const res = await handler(makeRequest({ method: 'GET', user: authUser() }), makeContext());
+  assert.equal(res.status, 200);
+  assert.equal(res.jsonBody.advisor.outcome.type, 'generating');
+  assert.equal(res.jsonBody.generation.status, 'queued');
+});
+
+test('custom-advisor: GET returns nulls when the user has no plan yet', async () => {
+  const handler = loadHandler('custom-advisor', 'custom-advisor', { cosmosContainer: makeContainer() });
+  const res = await handler(makeRequest({ method: 'GET', user: authUser() }), makeContext());
+  assert.equal(res.status, 200);
+  assert.equal(res.jsonBody.advisor, null);
+  assert.equal(res.jsonBody.generation, null);
+});
+
 test('custom-advisor: a model refusal returns 422', async () => {
   const res = await advisorHandler({
     advisor: async () => { const e = new Error('refused'); e.code = 'refusal'; throw e; },
