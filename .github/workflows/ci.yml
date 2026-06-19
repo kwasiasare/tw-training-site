@@ -1,0 +1,41 @@
+name: CI
+
+# Runs the API test suite. Separate from the deploy workflow so it gates dev
+# pushes too (the deploy workflow only triggers on master / PRs to master).
+on:
+  push:
+    branches: [dev, master]
+    paths:
+      - 'api/**'
+      - 'site/public/staticwebapp.config.json'
+      - '.github/workflows/ci.yml'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'api/**'
+      - 'site/public/staticwebapp.config.json'
+      - '.github/workflows/ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  api_tests:
+    runs-on: ubuntu-latest
+    name: API tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22   # 22 LTS: native glob support for `node --test "<pattern>"`
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+
+      - name: Install API dependencies
+        working-directory: api
+        run: npm ci
+
+      - name: Run tests
+        working-directory: api
+        run: npm test

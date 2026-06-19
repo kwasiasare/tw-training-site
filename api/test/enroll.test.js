@@ -1,0 +1,53 @@
+'use strict';
+
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const { loadHandler, makeRequest, makeContext, makeContainer, authUser } = require('./harness');
+
+function enrollHandler(container) {
+  return loadHandler('enroll', 'enroll', { cosmosContainer: container });
+}
+
+test('enroll: anonymous request returns 401', async () => {
+  const res = await enrollHandler(makeContainer())(
+    makeRequest({ method: 'POST', body: { course: 'dami-ai-career' } }),
+    makeContext(),
+  );
+  assert.equal(res.status, 401);
+  assert.equal(res.jsonBody.error, 'not_authenticated');
+});
+
+test('enroll: missing course returns 400', async () => {
+  const res = await enrollHandler(makeContainer())(
+    makeRequest({ method: 'POST', user: authUser(), body: {} }),
+    makeContext(),
+  );
+  assert.equal(res.status, 400);
+  assert.equal(res.jsonBody.error, 'course_required');
+});
+
+test('enroll: records an enrollment for the signed-in user', async () => {
+  const container = makeContainer();
+  const res = await enrollHandler(container)(
+    makeRequest({ method: 'POST', user: authUser(), body: { course: 'dami-ai-career' } }),
+    makeContext(),
+  );
+  assert.equal(res.jsonBody.ok, true);
+  const doc = container._calls.upserts[0];
+  assert.equal(doc.id, 'user-123:enroll:dami-ai-career');
+  assert.equal(doc.userId, 'user-123');
+  assert.equal(doc.type, 'enrollment');
+  assert.equal(doc.course, 'dami-ai-career');
+  assert.ok(doc.enrolledAt, 'stamps enrolledAt');
+});
+
+test('enroll: a Cosmos failure surfaces as 500', async () => {
+  const container = makeContainer();
+  container.items.upsert = async () => { throw new Error('cosmos down'); };
+  const res = await enrollHandler(container)(
+    makeRequest({ method: 'POST', user: authUser(), body: { course: 'x' } }),
+    makeContext(),
+  );
+  assert.equal(res.status, 500);
+  assert.equal(res.jsonBody.error, 'server_error');
+});

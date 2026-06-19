@@ -60,3 +60,7 @@ app.http('video', {
     }
   },
 });
+
+// Exported for tests (kept in sync with the free-preview routes in
+// staticwebapp.config.json — see free-preview-sync.test.js).
+module.exports = { FREE_PREVIEW };
