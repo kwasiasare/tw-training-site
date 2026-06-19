@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { SITE, AUTH_ENABLED } from '../consts';
+import Analytics from '../components/Analytics.astro';
 
 interface Props {
   title?: string;
@@ -28,6 +29,7 @@ const fullTitle = title ? `${title} | ${SITE.title}` : `${SITE.title} — Course
     <title>{fullTitle}</title>
     <meta name="description" content={description ?? SITE.tagline} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <Analytics />
   </head>
   <body>
     <header class="site-header">

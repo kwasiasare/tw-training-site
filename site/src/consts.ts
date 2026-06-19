@@ -14,6 +14,13 @@ export const SITE = {
 // (a GitHub Actions variable) to turn it on.
 export const AUTH_ENABLED = import.meta.env.PUBLIC_AUTH_ENABLED === 'true';
 
+// Application Insights (TW-42). Client telemetry loads only when a connection
+// string is provided at build time via the PUBLIC_APPINSIGHTS_CONNECTION_STRING
+// GitHub Actions variable. The ingestion key it contains is write-only and is
+// intentionally embeddable in client pages. Empty in local dev → telemetry off.
+export const APPINSIGHTS_CONNECTION_STRING =
+  import.meta.env.PUBLIC_APPINSIGHTS_CONNECTION_STRING ?? '';
+
 // Course-level catalog metadata. The per-module/lesson tree is derived from the
 // lessons themselves (see courseModules / courseOrder below) so it never drifts.
 export type Course = {

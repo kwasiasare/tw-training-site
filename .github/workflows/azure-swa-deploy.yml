@@ -34,6 +34,7 @@ jobs:
         env:
           PUBLIC_VIDEO_CDN_BASE: ${{ vars.PUBLIC_VIDEO_CDN_BASE }}
           PUBLIC_AUTH_ENABLED: ${{ vars.PUBLIC_AUTH_ENABLED }}
+          PUBLIC_APPINSIGHTS_CONNECTION_STRING: ${{ vars.PUBLIC_APPINSIGHTS_CONNECTION_STRING }}
         run: |
           npm ci
           npm run build
