@@ -1,0 +1,191 @@
+{
+  "slug": "age-m2-l04-project-a-research-assistant-agent-with-rag-and-",
+  "title": "Project: A Research Assistant Agent with RAG and Memory",
+  "month": 2,
+  "monthTitle": "Reasoning, Memory, and Retrieval",
+  "lesson": 4,
+  "video": "age-m2-l04-project-a-research-assistant-agent-with-rag-and-.mp4",
+  "summary": "Build a production-minded research assistant agent that plans queries, retrieves from a document corpus with RAG, maintains short- and long-term memory, and answers with cited sources.",
+  "objectives": [
+    "Design an agent architecture that combines a planner, RAG retriever, and memory layers",
+    "Implement document ingestion, chunking, and embedding into a vector store",
+    "Build a retrieval pipeline that returns relevant passages with source metadata for citations",
+    "Add short-term (conversation) and long-term (persistent) memory to the agent",
+    "Compose the components into an answer-synthesis loop that grounds responses and cites sources",
+    "Evaluate the assistant for faithfulness, citation accuracy, and retrieval quality"
+  ],
+  "quiz": [
+    {
+      "q": "Why must chunk metadata (title, source_url, chunk_index) be stored alongside embeddings?",
+      "options": [
+        "It improves embedding quality",
+        "It is required to produce verifiable citations",
+        "It reduces vector storage size",
+        "It speeds up the embedding model"
+      ],
+      "answer": 1,
+      "why": "Citations require knowing which document and location a retrieved passage came from, which is exactly what the stored metadata provides."
+    },
+    {
+      "q": "What is the main purpose of instructing the synthesizer to 'say you don't know' when sources lack the answer?",
+      "options": [
+        "To shorten responses",
+        "To reduce hallucination by preventing ungrounded claims",
+        "To save tokens",
+        "To skip the retrieval step"
+      ],
+      "answer": 1,
+      "why": "Telling the model to refuse when the context doesn't support an answer is a key technique for keeping responses grounded and reducing fabrication."
+    },
+    {
+      "q": "Which memory type lets the agent resolve a follow-up like 'what about its limitations?'",
+      "options": [
+        "Long-term persistent memory",
+        "Short-term conversational memory",
+        "The vector index",
+        "The reranker"
+      ],
+      "answer": 1,
+      "why": "Short-term conversational memory holds the recent dialogue, enabling the planner to rewrite ambiguous follow-ups into standalone questions."
+    },
+    {
+      "q": "Why is chunk overlap used during ingestion?",
+      "options": [
+        "To increase the number of vectors for billing",
+        "So context isn't cut off mid-thought at chunk boundaries",
+        "To make embeddings deterministic",
+        "To avoid storing metadata"
+      ],
+      "answer": 1,
+      "why": "Overlap preserves continuity across chunk boundaries so a relevant idea split between two chunks is still retrievable in full."
+    },
+    {
+      "q": "Name one metric you would track to evaluate the research assistant's groundedness.",
+      "answer": "Faithfulness (or citation accuracy / retrieval recall)",
+      "why": "Faithfulness measures whether each claim is supported by a cited passage; citation accuracy and retrieval recall are also valid groundedness-related metrics."
+    },
+    {
+      "q": "Why should facts recalled from long-term memory be re-grounded against the corpus before being cited?",
+      "answer": "To ensure attribution is accurate and the cited source actually supports the claim",
+      "why": "Memory may store paraphrased or stale facts; re-grounding against the corpus ensures the citation points to a real, current source that supports the statement."
+    }
+  ],
+  "resources": [
+    {
+      "label": "RAGAS: Evaluation framework for RAG pipelines",
+      "url": "https://docs.ragas.io/"
+    },
+    {
+      "label": "LangChain RAG documentation",
+      "url": "https://python.langchain.com/docs/tutorials/rag/"
+    },
+    {
+      "label": "Chroma vector database docs",
+      "url": "https://docs.trychroma.com/"
+    },
+    {
+      "label": "OpenAI Embeddings guide",
+      "url": "https://platform.openai.com/docs/guides/embeddings"
+    }
+  ],
+  "body_markdown": "## Overview\n\nIn this capstone project you assemble the pieces from earlier lessons—planning, memory, and retrieval—into a single **research assistant agent**. The agent answers questions over a document corpus and backs every claim with citations to source passages.\n\nThe goal is not a toy demo but a pattern you can ship: clear ingestion, deterministic retrieval, grounded generation, and verifiable citations.\n\n## Architecture\n\nThe agent has four cooperating components:\n\n1. **Planner** — decomposes a user question into one or more retrieval queries and decides whether memory or fresh retrieval is needed.\n2. **Retriever (RAG)** — embeds queries, searches a vector store, and returns ranked chunks with source metadata.\n3. **Memory** — short-term conversational buffer plus long-term persistent store of facts and prior findings.\n4. **Synthesizer** — an LLM call that composes a grounded answer from retrieved context and inserts inline citations.\n\n```\nUser Q -> Planner -> {Memory lookup, Retrieval} -> Context -> Synthesizer -> Answer + Citations\n```\n\n## Step 1: Ingestion and Indexing\n\nBefore the agent can answer anything, build the corpus index.\n\n- **Load** documents (PDF, Markdown, HTML).\n- **Chunk** text into ~500-800 token passages with ~10-15% overlap so context isn't cut mid-thought.\n- **Embed** each chunk with an embedding model.\n- **Store** vectors plus metadata: `doc_id`, `title`, `source_url`, `chunk_index`.\n\n```python\nfrom chromadb import Client\nfrom openai import OpenAI\n\nclient = OpenAI()\ndb = Client()\ncollection = db.create_collection(\"research_corpus\")\n\ndef embed(text):\n    return client.embeddings.create(model=\"text-embedding-3-small\", input=text).data[0].embedding\n\nfor chunk in chunks:\n    collection.add(\n        ids=[chunk.id],\n        embeddings=[embed(chunk.text)],\n        documents=[chunk.text],\n        metadatas=[{\"title\": chunk.title, \"source_url\": chunk.url, \"chunk_index\": chunk.idx}],\n    )\n```\n\nMetadata is what makes citations possible—store it carefully.\n\n## Step 2: Retrieval with Citations\n\nRetrieval returns both the passage text and the metadata needed to cite it.\n\n```python\ndef retrieve(query, k=5):\n    results = collection.query(query_embeddings=[embed(query)], n_results=k)\n    passages = []\n    for doc, meta in zip(results[\"documents\"][0], results[\"metadatas\"][0]):\n        passages.append({\"text\": doc, \"title\": meta[\"title\"], \"url\": meta[\"source_url\"]})\n    return passages\n```\n\nConsider a **reranking** step (cross-encoder) for higher precision, and dedupe near-identical chunks.\n\n## Step 3: Memory Layers\n\n- **Short-term memory**: the running conversation, kept in a buffer or summarized when it grows. Lets the agent resolve follow-ups like \"what about its limitations?\"\n- **Long-term memory**: facts the agent has confirmed or summaries of past sessions, persisted in a store (often the same vector DB in a separate collection). Retrieved by relevance like any other source.\n\nKeep memory and corpus retrieval separate so you can attribute answers correctly: a fact recalled from memory should be re-grounded against the corpus before being cited as a source.\n\n## Step 4: The Planner Loop\n\nThe planner decides the strategy. A simple but effective pattern:\n\n1. Rewrite the user question into standalone form using conversation history.\n2. Generate 1-3 search queries (multi-query expansion improves recall).\n3. Retrieve for each, merge and dedupe passages.\n4. If retrieved context is weak (low scores), reformulate or ask a clarifying question.\n\n## Step 5: Grounded Synthesis with Citations\n\nPrompt the synthesizer to answer **only** from provided context and to cite using numbered references.\n\n```python\nSYSTEM = '''Answer using ONLY the numbered sources below.\nCite claims inline as [n]. If the sources do not contain the answer,\nsay you don't know. Do not invent citations.'''\n\ndef synthesize(question, passages):\n    context = \"\\n\".join(f\"[{i+1}] {p['text']} (Source: {p['title']})\"\n                        for i, p in enumerate(passages))\n    msg = f\"Sources:\\n{context}\\n\\nQuestion: {question}\"\n    return client.chat.completions.create(\n        model=\"gpt-4o\",\n        messages=[{\"role\":\"system\",\"content\":SYSTEM},\n                  {\"role\":\"user\",\"content\":msg}],\n    ).choices[0].message.content\n```\n\nThe \"say you don't know\" instruction is critical for reducing hallucination.\n\n## Step 6: Evaluation\n\nMeasure what matters before shipping:\n\n- **Faithfulness / groundedness**: is every claim supported by a cited passage?\n- **Citation accuracy**: do the cited sources actually contain the claim?\n- **Retrieval recall**: does the top-k contain the gold passage?\n- **Answer relevance**: does it address the question?\n\nUse a small labeled question set and an LLM-as-judge or frameworks like RAGAS. Track these metrics as you change chunking, k, or models.\n\n## Production Considerations\n\n- Cache embeddings and frequent queries.\n- Log retrieved passages with each answer for auditability.\n- Set a confidence threshold to fall back to \"I don't know.\"\n- Re-index when the corpus changes; version your index.\n",
+  "slides": [
+    {
+      "type": "title",
+      "title": "A Research Assistant Agent with RAG and Memory",
+      "narration": "Welcome to the capstone for this module. We'll combine everything we've learned about planning, memory, and retrieval into a single research assistant agent that answers questions over a document corpus and cites its sources. The emphasis is on patterns you can actually ship to production."
+    },
+    {
+      "type": "content",
+      "title": "What We're Building",
+      "bullets": [
+        "An agent that answers questions over your document corpus",
+        "Every claim backed by a citation to a source passage",
+        "Planner + Retriever + Memory + Synthesizer",
+        "Designed for groundedness, not just plausible text"
+      ],
+      "narration": "Our goal is a research assistant that does more than chat. It answers questions grounded in a real corpus and attaches citations so users can verify every claim. We achieve this with four cooperating components: a planner that decides strategy, a retriever for RAG, a memory layer, and a synthesizer that writes the grounded answer."
+    },
+    {
+      "type": "content",
+      "title": "The Architecture",
+      "bullets": [
+        "Planner: decompose question into retrieval queries",
+        "Retriever: vector search returning chunks + metadata",
+        "Memory: short-term conversation + long-term facts",
+        "Synthesizer: LLM grounds answer and inserts citations"
+      ],
+      "code": "User Q -> Planner -> {Memory, Retrieval} -> Context -> Synthesizer -> Answer + Citations",
+      "narration": "Here's the flow. A user question enters the planner, which may consult memory and issue retrieval queries. Retrieved context, plus relevant memory, feeds the synthesizer, which produces an answer with inline citations. Keeping these stages distinct makes the system easier to debug and to evaluate."
+    },
+    {
+      "type": "content",
+      "title": "Step 1: Ingestion & Indexing",
+      "bullets": [
+        "Load PDFs, Markdown, HTML",
+        "Chunk to 500-800 tokens with 10-15% overlap",
+        "Embed each chunk with an embedding model",
+        "Store vectors WITH metadata for citations"
+      ],
+      "code": "collection.add(ids=[c.id], embeddings=[embed(c.text)],\n  documents=[c.text],\n  metadatas=[{'title': c.title, 'source_url': c.url}])",
+      "narration": "Everything starts with a well-built index. Load your documents, chunk them with some overlap so ideas aren't split, embed each chunk, and store the vectors. The crucial detail is metadata—title, URL, and chunk index—because that metadata is exactly what lets us cite sources later."
+    },
+    {
+      "type": "content",
+      "title": "Step 2: Retrieval with Citations",
+      "bullets": [
+        "Embed the query, search top-k passages",
+        "Return text PLUS source metadata",
+        "Optional cross-encoder reranking for precision",
+        "Dedupe near-identical chunks"
+      ],
+      "code": "def retrieve(query, k=5):\n    r = collection.query(query_embeddings=[embed(query)], n_results=k)\n    return [{'text': d, 'title': m['title'], 'url': m['source_url']}\n            for d, m in zip(r['documents'][0], r['metadatas'][0])]",
+      "narration": "Retrieval embeds the query and pulls the top-k passages, returning both the text and its metadata. For higher quality, add a reranking step with a cross-encoder and remove duplicate chunks. Always carry the metadata through—without it you can't produce trustworthy citations."
+    },
+    {
+      "type": "content",
+      "title": "Step 3: Memory Layers",
+      "bullets": [
+        "Short-term: conversation buffer, summarized when large",
+        "Long-term: persisted facts and past findings",
+        "Retrieve long-term memory by relevance, like any source",
+        "Re-ground recalled facts against the corpus before citing"
+      ],
+      "narration": "Memory comes in two flavors. Short-term memory is the conversation buffer that lets the agent handle follow-ups. Long-term memory persists confirmed facts and prior session summaries, retrieved by relevance. Keep memory separate from corpus retrieval so attribution stays clean—if you recall a fact from memory, re-ground it against the corpus before citing it."
+    },
+    {
+      "type": "content",
+      "title": "Step 4 & 5: Planner Loop + Grounded Synthesis",
+      "bullets": [
+        "Rewrite question to standalone form using history",
+        "Generate 1-3 search queries (multi-query expansion)",
+        "Merge, dedupe, check retrieval strength",
+        "Synthesizer: answer ONLY from context, cite [n], else 'I don't know'"
+      ],
+      "code": "SYSTEM = '''Answer using ONLY the numbered sources.\nCite claims inline as [n]. If sources lack the answer,\nsay you don't know. Never invent citations.'''",
+      "narration": "The planner rewrites the question into standalone form, expands it into a few search queries to boost recall, then merges and dedupes results. If the retrieved context is weak it can reformulate or ask for clarification. The synthesizer is instructed to answer only from the provided numbered sources, cite inline, and admit when it doesn't know. That last instruction is your strongest defense against hallucination."
+    },
+    {
+      "type": "content",
+      "title": "Step 6: Evaluation & Production",
+      "bullets": [
+        "Faithfulness, citation accuracy, retrieval recall, relevance",
+        "Use a labeled question set + LLM-as-judge or RAGAS",
+        "Log retrieved passages for auditability",
+        "Cache embeddings; set a confidence fallback; version the index"
+      ],
+      "narration": "Before shipping, measure faithfulness, citation accuracy, retrieval recall, and answer relevance against a small labeled set, using something like RAGAS or an LLM judge. In production, log the passages behind each answer for auditing, cache embeddings, set a confidence threshold that falls back to 'I don't know,' and re-index and version your corpus whenever it changes."
+    },
+    {
+      "type": "content",
+      "title": "Summary",
+      "bullets": [
+        "Four parts: planner, retriever, memory, synthesizer",
+        "Metadata enables citations; instructions reduce hallucination",
+        "Separate memory from corpus for clean attribution",
+        "Evaluate groundedness before you ship"
+      ],
+      "narration": "To recap: a production research assistant is built from a planner, a citation-aware retriever, layered memory, and a grounded synthesizer. Carry metadata through the pipeline to enable citations, instruct the model to refuse when unsupported, keep memory and corpus separate for clean attribution, and always evaluate groundedness before shipping. You now have a reusable blueprint for RAG agents with memory."
+    }
+  ]
+}

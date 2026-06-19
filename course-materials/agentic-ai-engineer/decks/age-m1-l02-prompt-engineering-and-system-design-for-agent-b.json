@@ -1,0 +1,179 @@
+{
+  "slug": "age-m1-l02-prompt-engineering-and-system-design-for-agent-b",
+  "title": "Prompt Engineering and System Design for Agent Behavior",
+  "month": 1,
+  "monthTitle": "LLM Foundations and Tool-Using Agents",
+  "lesson": 2,
+  "video": "age-m1-l02-prompt-engineering-and-system-design-for-agent-b.mp4",
+  "summary": "Learn to design system prompts and few-shot patterns that reliably steer LLM agent behavior, control tone, enforce output formats, and reduce hallucinations in production agent workflows.",
+  "objectives": [
+    "Write structured system prompts that define an agent's role, constraints, and success criteria",
+    "Apply few-shot and exemplar patterns to shape output format, tone, and reasoning style",
+    "Implement guardrails and grounding techniques to reduce hallucinations",
+    "Design prompts that integrate cleanly with tool-calling and multi-step agent loops",
+    "Evaluate and iterate on prompts using measurable behavioral criteria"
+  ],
+  "quiz": [
+    {
+      "q": "Which prompt instruction is most likely to be followed reliably by a model?",
+      "options": [
+        "\"Don't make the response too long or complicated\"",
+        "\"Respond in valid JSON matching the provided schema\"",
+        "\"Try to be helpful and accurate when you can\"",
+        "\"Avoid being unclear in your answers\""
+      ],
+      "answer": 1,
+      "why": "Models follow concrete, positive, and specific instructions—like an explicit output format—far better than vague negative phrasing."
+    },
+    {
+      "q": "What is a primary technique for reducing hallucinations in a grounded agent?",
+      "options": [
+        "Increasing the temperature setting",
+        "Instructing the agent to answer only from retrieved context and cite sources",
+        "Removing all examples from the prompt",
+        "Forbidding the agent from ever saying 'I don't know'"
+      ],
+      "answer": 1,
+      "why": "Grounding answers in provided context and requiring citations keeps the model from inventing facts, while allowing uncertainty also helps."
+    },
+    {
+      "q": "Why should an agent's system prompt include an explicit stopping condition?",
+      "options": [
+        "To make the prompt longer",
+        "Because agents run in loops and need to know when the task is complete to avoid redundant or infinite cycles",
+        "To increase token usage",
+        "To replace the need for tools"
+      ],
+      "answer": 1,
+      "why": "Agents iterate over reasoning and tool calls, so a clear stopping condition prevents endless loops and tells the agent when to return the final answer."
+    },
+    {
+      "q": "How many few-shot examples are generally recommended, and what should they include?",
+      "options": [
+        "Ten or more identical examples",
+        "Zero examples in all cases",
+        "2-4 diverse examples including a tricky case and a refusal",
+        "One example covering only the easiest case"
+      ],
+      "answer": 2,
+      "why": "A small set of 2-4 diverse, high-quality examples—covering an edge case and a refusal—teaches format and behavior without wasting context budget."
+    },
+    {
+      "q": "In one or two sentences, why is allowing an agent to say 'I don't know' an effective anti-hallucination measure?",
+      "answer": "Because prompts that implicitly demand an answer push the model to fabricate one; giving it an explicit uncertainty or escalation path lets it decline rather than invent unsupported facts.",
+      "why": "Permitting uncertainty removes the implicit pressure to always produce an answer, which is a common driver of hallucination."
+    },
+    {
+      "q": "Name one reason to treat prompts like versioned code with an evaluation set.",
+      "answer": "So you can measure behavioral metrics, change one variable at a time, and catch regressions when improving one behavior breaks another.",
+      "why": "Systematic versioning and evals make prompt iteration measurable and prevent silent regressions."
+    }
+  ],
+  "resources": [
+    {
+      "label": "OpenAI Prompt Engineering Guide",
+      "url": "https://platform.openai.com/docs/guides/prompt-engineering"
+    },
+    {
+      "label": "Anthropic Prompt Engineering Documentation",
+      "url": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview"
+    },
+    {
+      "label": "DAIR.AI Prompt Engineering Guide",
+      "url": "https://www.promptingguide.ai/"
+    },
+    {
+      "label": "ReAct: Synergizing Reasoning and Acting in Language Models",
+      "url": "https://arxiv.org/abs/2210.03629"
+    }
+  ],
+  "body_markdown": "## Why Prompt Design Matters for Agents\n\nIn agentic systems, the system prompt is the agent's *operating contract*. Unlike a one-off chat, an agent runs in a loop—reasoning, calling tools, and acting on results—so small ambiguities compound across turns. A well-engineered prompt is the cheapest, fastest lever you have to control reliability before reaching for fine-tuning or complex orchestration.\n\n## Anatomy of an Effective System Prompt\n\nA production system prompt typically has these components, in roughly this order:\n\n1. **Role & identity** — who the agent is and its domain of competence.\n2. **Objective** — the single primary goal it optimizes for.\n3. **Constraints & policies** — what it must never do, safety rules, scope limits.\n4. **Tools & capabilities** — what actions are available and when to use them.\n5. **Output contract** — exact format expected (JSON schema, structure, length).\n6. **Reasoning guidance** — how to think (step-by-step, verify before answering).\n7. **Tone & persona** — voice, formality, audience.\n\nKeep each section terse and unambiguous. Models follow concrete, positive instructions (\"respond in valid JSON\") better than vague negatives (\"don't be too verbose\").\n\n## Few-Shot and Exemplar Patterns\n\nFew-shot examples teach by demonstration. Use them when:\n\n- The desired **output format** is hard to describe but easy to show.\n- You want a consistent **reasoning trace** or tone.\n- Edge cases need explicit handling.\n\nBest practices:\n\n- Show 2-4 high-quality, diverse examples—including at least one tricky case.\n- Make examples mirror the *exact* format you expect at inference time.\n- Include a counter-example showing how to refuse or escalate when appropriate.\n- Keep examples short to save context budget; quality beats quantity.\n\n## Reducing Hallucinations\n\nHallucinations drop sharply when you:\n\n- **Ground the model**: provide retrieved context and instruct it to answer *only* from that context.\n- **Permit uncertainty**: explicitly allow \"I don't know\" or escalation. Models hallucinate partly because prompts implicitly demand an answer.\n- **Cite sources**: require the agent to reference which document/tool result supports each claim.\n- **Separate retrieval from generation**: don't let the model invent facts it should look up via a tool.\n- **Verify before finalizing**: add a self-check step (\"List assumptions and confirm each is supported\").\n\n## Designing for the Agent Loop\n\nAgents reason, call tools, and observe results repeatedly. Your prompt should:\n\n- Define a clear **stopping condition** (\"Stop and return the final answer once the user's request is fully satisfied\").\n- Specify **how to handle tool errors** (retry once, then report).\n- Discourage redundant tool calls and infinite loops.\n- Reserve the output contract for the *final* answer, keeping intermediate reasoning separate.\n\n## Iterating and Evaluating\n\nTreat prompts like code: version them, and test against a fixed set of cases.\n\n- Define **behavioral metrics**: format adherence, factual accuracy, refusal correctness, tone.\n- Build a small **eval set** of representative and adversarial inputs.\n- Change one variable at a time; measure before and after.\n- Watch for regressions—improving one behavior can break another.\n\n## Quick Reference: Do / Don't\n\n- **Do** use positive, concrete instructions and explicit output schemas.\n- **Do** allow uncertainty and escalation paths.\n- **Don't** stack contradictory rules or bury critical constraints mid-paragraph.\n- **Don't** rely on a clever prompt to fix a problem that needs a tool or retrieval.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Prompt Engineering and System Design for Agent Behavior",
+      "sub": "Steering LLM agents with prompts, few-shot patterns, and guardrails",
+      "narration": "Welcome. In this lesson we'll learn how to design system prompts and few-shot patterns that reliably steer how an LLM agent behaves. Prompts are your first and cheapest control lever for building production-ready agents, so getting them right pays off across every workflow."
+    },
+    {
+      "type": "content",
+      "title": "The System Prompt as a Contract",
+      "bullets": [
+        "Agents run in loops—small ambiguities compound across turns",
+        "The system prompt defines the agent's operating contract",
+        "Cheapest lever before fine-tuning or complex orchestration",
+        "Clarity here prevents downstream reliability problems"
+      ],
+      "narration": "Unlike a single chat exchange, an agent reasons, calls tools, and acts on results repeatedly. That means any vagueness in your instructions gets amplified turn after turn. Think of the system prompt as a contract that governs the agent's entire run. Before you reach for fine-tuning or elaborate orchestration, invest in a precise prompt—it's the fastest, lowest-cost way to improve behavior."
+    },
+    {
+      "type": "content",
+      "title": "Anatomy of a System Prompt",
+      "bullets": [
+        "Role & identity, then a single clear objective",
+        "Constraints, policies, and scope limits",
+        "Available tools and when to use them",
+        "Output contract: exact format or schema",
+        "Reasoning guidance plus tone and persona"
+      ],
+      "narration": "An effective system prompt has a predictable structure. Start with the agent's role and a single primary objective. Then state constraints and safety policies, describe the available tools and when to use them, and define the exact output contract. Finish with reasoning guidance and tone. Keep each section terse. Models follow concrete, positive instructions far better than vague negatives."
+    },
+    {
+      "type": "content",
+      "title": "Few-Shot and Exemplar Patterns",
+      "bullets": [
+        "Teach by demonstration when format is hard to describe",
+        "Use 2-4 diverse, high-quality examples",
+        "Include a tricky case and a refusal example",
+        "Examples must mirror the exact inference format"
+      ],
+      "code": "Example:\nUser: What's our refund window?\nContext: [Policy: 30-day returns]\nAssistant: Per the policy, refunds are available within 30 days. (source: Policy)",
+      "narration": "Few-shot examples teach by showing rather than telling. Reach for them when the output format is easier to demonstrate than describe, or when you want a consistent reasoning trace. Use just two to four diverse, high-quality examples, including one tricky edge case and one that shows how to refuse or escalate. Crucially, your examples must match the exact format you expect at runtime, including citation style."
+    },
+    {
+      "type": "content",
+      "title": "Reducing Hallucinations",
+      "bullets": [
+        "Ground answers in retrieved context only",
+        "Explicitly permit 'I don't know' and escalation",
+        "Require citations for each factual claim",
+        "Separate retrieval (tools) from generation",
+        "Add a self-check step before finalizing"
+      ],
+      "narration": "Hallucinations drop dramatically with a few techniques. Ground the model by supplying retrieved context and instructing it to answer only from that context. Explicitly allow uncertainty—models often invent answers because the prompt implicitly demands one. Require citations, keep fact-lookup in tools rather than the model's memory, and add a verification step where the agent confirms each claim is supported before returning its answer."
+    },
+    {
+      "type": "content",
+      "title": "Designing for the Agent Loop",
+      "bullets": [
+        "Define a clear stopping condition for the final answer",
+        "Specify tool-error handling: retry once, then report",
+        "Discourage redundant calls and infinite loops",
+        "Keep intermediate reasoning separate from final output"
+      ],
+      "narration": "Because agents iterate, your prompt must manage the loop itself. Give a clear stopping condition so the agent knows when the task is done. Tell it how to handle tool errors—for example, retry once then report. Discourage redundant tool calls that waste tokens and risk loops. And reserve your strict output contract for the final answer, allowing freer intermediate reasoning along the way."
+    },
+    {
+      "type": "content",
+      "title": "Iterating Like an Engineer",
+      "bullets": [
+        "Version prompts the same way you version code",
+        "Build a fixed eval set of normal and adversarial cases",
+        "Track metrics: format, accuracy, refusal, tone",
+        "Change one variable at a time; watch for regressions"
+      ],
+      "narration": "Treat prompts as engineering artifacts. Version them, and maintain a fixed set of test cases including adversarial inputs. Define measurable behavioral metrics—format adherence, factual accuracy, correct refusals, and tone. When you tweak the prompt, change one thing at a time and measure before and after, because improving one behavior can easily regress another."
+    },
+    {
+      "type": "content",
+      "title": "Do and Don't Checklist",
+      "bullets": [
+        "Do: positive, concrete instructions and explicit schemas",
+        "Do: provide uncertainty and escalation paths",
+        "Don't: stack contradictory or buried rules",
+        "Don't: prompt around a problem that needs a tool"
+      ],
+      "narration": "To wrap up, a quick checklist. Do use positive, concrete instructions and explicit output schemas, and always give the agent a way to express uncertainty or escalate. Don't stack contradictory rules or bury critical constraints in the middle of a paragraph where they get ignored. And don't try to engineer around a problem that genuinely needs retrieval or a tool—prompts steer behavior, but they can't manufacture facts."
+    }
+  ]
+}

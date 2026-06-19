@@ -1,0 +1,192 @@
+{
+  "slug": "age-m2-l01-planning-and-reasoning-react-chain-of-thought-an",
+  "title": "Planning and Reasoning: ReAct, Chain-of-Thought, and Decomposition",
+  "month": 2,
+  "monthTitle": "Reasoning, Memory, and Retrieval",
+  "lesson": 1,
+  "video": "age-m2-l01-planning-and-reasoning-react-chain-of-thought-an.mp4",
+  "summary": "This lesson teaches the core reasoning strategies that turn an LLM into a goal-directed agent: Chain-of-Thought for explicit step-by-step thinking, ReAct for interleaving reasoning with tool calls, and task decomposition for breaking large goals into ordered, executable subtasks. You will learn when to use each pattern, how to implement them in production code, and how to keep reasoning reliable, observable, and cost-aware.",
+  "objectives": [
+    "Explain the differences between Chain-of-Thought, ReAct, and explicit decomposition, and choose the right pattern for a given task.",
+    "Implement a ReAct loop that interleaves Thought, Action, and Observation steps with tool calls.",
+    "Decompose a complex goal into an ordered, dependency-aware subtask plan an agent can execute.",
+    "Apply guardrails—step limits, validation, and structured output—to keep reasoning reliable and bounded.",
+    "Add observability and cost controls so reasoning traces can be debugged and monitored in production."
+  ],
+  "quiz": [
+    {
+      "q": "What three components make up each cycle of a ReAct loop?",
+      "options": [
+        "Prompt, Completion, Reward",
+        "Thought, Action, Observation",
+        "Plan, Execute, Verify",
+        "Input, Hidden, Output"
+      ],
+      "answer": 1,
+      "why": "ReAct interleaves a Thought (reasoning about what to do), an Action (a tool call), and an Observation (the tool's result), repeating until a final answer."
+    },
+    {
+      "q": "Which pattern is best for a pure math problem that needs no external data or tools?",
+      "options": [
+        "ReAct",
+        "Plan-and-execute",
+        "Chain-of-Thought",
+        "Interleaved replanning"
+      ],
+      "answer": 2,
+      "why": "Chain-of-Thought provides step-by-step internal reasoning and is cheap and fast for self-contained logic and math, with no need for tools."
+    },
+    {
+      "q": "Why is setting a maximum step limit important in a ReAct agent?",
+      "options": [
+        "It improves model accuracy",
+        "It prevents infinite loops and bounds cost",
+        "It increases the context window",
+        "It removes the need for tools"
+      ],
+      "answer": 1,
+      "why": "A step limit stops runaway loops and caps token/tool cost, ensuring the agent terminates even if it never reaches a clean final answer."
+    },
+    {
+      "q": "What is the main advantage of plan-and-execute over fully interleaved replanning?",
+      "options": [
+        "It is more adaptive to surprises",
+        "It is more predictable and cheaper",
+        "It never needs tools",
+        "It eliminates hallucination"
+      ],
+      "answer": 1,
+      "why": "Generating the full plan up front is cheaper and more predictable, though less adaptive than re-planning after every observation."
+    },
+    {
+      "q": "In one sentence, why does ReAct reduce hallucination compared to plain Chain-of-Thought?",
+      "answer": "Because it feeds real tool observations back into the reasoning, grounding the model's assumptions in actual external results instead of guessed facts.",
+      "why": "ReAct checks each reasoning step against concrete observations from tools, so the model corrects course rather than inventing unverified information."
+    },
+    {
+      "q": "Name one observability practice you should apply to a production reasoning agent.",
+      "answer": "Log/trace each step's thought, action, arguments, observation, latency, and cost (also acceptable: detect repeated actions, validate outputs against a schema).",
+      "why": "Per-step tracing is the primary way to debug agent behavior and monitor cost and reliability in production."
+    }
+  ],
+  "resources": [
+    {
+      "label": "ReAct: Synergizing Reasoning and Acting in Language Models (Yao et al., 2022)",
+      "url": "https://arxiv.org/abs/2210.03629"
+    },
+    {
+      "label": "Chain-of-Thought Prompting Elicits Reasoning in LLMs (Wei et al., 2022)",
+      "url": "https://arxiv.org/abs/2201.11903"
+    },
+    {
+      "label": "LangGraph: Planning and Agent Execution Patterns",
+      "url": "https://langchain-ai.github.io/langgraph/"
+    },
+    {
+      "label": "Plan-and-Solve Prompting (Wang et al., 2023)",
+      "url": "https://arxiv.org/abs/2305.04091"
+    }
+  ],
+  "body_markdown": "## Why Planning and Reasoning Matter\n\nA raw LLM answers in one shot. An *agent* must pursue a goal that spans multiple steps, calls tools, and adapts when reality differs from expectations. Planning and reasoning patterns are the scaffolding that turns a single prediction into a controllable, multi-step process.\n\nThree patterns dominate production systems:\n\n1. **Chain-of-Thought (CoT)** — the model reasons step by step before answering.\n2. **ReAct** — the model interleaves *reasoning* with *acting* (tool calls), observing results between steps.\n3. **Decomposition / Planning** — the model (or a planner) splits a goal into ordered subtasks, then executes them.\n\n## Chain-of-Thought (CoT)\n\nCoT prompts the model to produce intermediate reasoning steps rather than jumping to a final answer. This improves accuracy on math, logic, and multi-constraint tasks.\n\n- **Zero-shot CoT:** append a cue like *\"Let's think step by step.\"*\n- **Few-shot CoT:** show worked examples that include reasoning.\n- **Production note:** keep the *visible* reasoning out of the user-facing response when not needed. Use structured output so the final answer is machine-parseable, and consider hiding raw chain-of-thought from end users for safety and cost reasons.\n\nCoT is **internal** reasoning—no tools, no external state. It is cheap and fast but cannot fetch fresh information or act on the world.\n\n## ReAct: Reason + Act\n\nReAct (Yao et al., 2022) interleaves reasoning traces with actions. Each cycle has three parts:\n\n- **Thought** — what should I do next and why?\n- **Action** — call a tool with concrete arguments.\n- **Observation** — the tool's returned result, fed back into context.\n\nThe loop repeats until the model emits a final answer. ReAct grounds reasoning in real observations, reducing hallucination because the model checks its assumptions against tool output.\n\n```text\nThought: I need the current weather in Paris.\nAction: get_weather(city=\"Paris\")\nObservation: 14°C, light rain\nThought: I now have what I need.\nFinal Answer: It's 14°C and lightly raining in Paris.\n```\n\n### Implementing a ReAct loop\n\n```python\ndef react_agent(goal, tools, llm, max_steps=8):\n    history = []\n    for step in range(max_steps):\n        prompt = build_prompt(goal, tools, history)\n        out = llm(prompt)  # returns Thought + Action OR Final Answer\n        if out.is_final:\n            return out.answer\n        # parse and execute the chosen tool\n        result = tools[out.action.name](**out.action.args)\n        history.append((out.thought, out.action, result))\n    return \"Stopped: step limit reached\"\n```\n\nKey production concerns:\n\n- **Step limit** prevents infinite loops and runaway cost.\n- **Structured tool calls** (use the provider's function/tool-calling API rather than parsing free text) make actions reliable.\n- **Observation truncation** keeps the context window from exploding.\n\n## Decomposition and Planning\n\nFor complex goals, ask the model to *plan first*: produce an ordered list of subtasks with dependencies, then execute them. This separates **planning** from **execution**, which makes the system easier to debug and parallelize.\n\nTwo common styles:\n\n- **Plan-and-execute:** generate the full plan up front, then run each step. Cheaper and more predictable, but brittle if early assumptions break.\n- **Interleaved (ReAct-style) planning:** re-plan after each observation. More adaptive, more expensive.\n\nA practical hybrid: generate a coarse plan, execute, and allow **replanning** only when a step fails or an observation contradicts the plan.\n\n```python\nplan = llm_plan(goal)  # [{\"id\":1,\"task\":...,\"depends_on\":[]}, ...]\nresults = {}\nfor task in topological_order(plan):\n    results[task.id] = execute(task, context=results)\n    if failed(results[task.id]):\n        plan = llm_replan(goal, plan, results)\n```\n\n### Good decomposition principles\n\n- Each subtask should be **independently verifiable** and map to one tool or one clear action.\n- Capture **dependencies** so steps run in the correct order.\n- Keep subtasks **atomic**—if a step needs its own sub-steps, recurse.\n\n## Choosing the Right Pattern\n\n| Task | Pattern |\n|------|---------|\n| Pure logic/math, no external data | Chain-of-Thought |\n| Needs live data or tools, adaptive | ReAct |\n| Long multi-stage workflow | Plan-and-execute (+ replan) |\n\nMany real agents combine all three: a planner decomposes the goal, and each subtask is solved by a ReAct loop whose internal steps use CoT.\n\n## Reliability and Observability\n\n- **Bound everything:** max steps, max tokens, timeouts per tool.\n- **Validate outputs:** parse structured responses with a schema; retry on parse failure.\n- **Trace every step:** log thought, action, args, observation, latency, and cost. These traces are your primary debugging tool.\n- **Detect loops:** if the agent repeats the same action with the same args, break and escalate.\n- **Fail gracefully:** return partial results and a clear reason when limits are hit.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Planning and Reasoning",
+      "sub": "ReAct, Chain-of-Thought, and Decomposition",
+      "narration": "Welcome. In this lesson we'll cover the reasoning strategies that turn a one-shot language model into a goal-directed agent. We'll look at Chain-of-Thought, ReAct, and task decomposition, and how to make each one reliable in production."
+    },
+    {
+      "type": "content",
+      "title": "Why agents need reasoning",
+      "bullets": [
+        "A raw LLM answers once; agents pursue multi-step goals",
+        "Reasoning patterns add structure and control",
+        "They let agents call tools and adapt to results",
+        "Three core patterns: CoT, ReAct, decomposition"
+      ],
+      "narration": "A plain language model gives a single answer to a prompt. But an agent must pursue goals that span many steps, call tools, and adapt when reality differs from its expectations. Reasoning patterns are the scaffolding that turns a single prediction into a controllable process. We'll focus on three: Chain-of-Thought, ReAct, and decomposition."
+    },
+    {
+      "type": "content",
+      "title": "Chain-of-Thought (CoT)",
+      "bullets": [
+        "Model reasons step by step before answering",
+        "Zero-shot: 'Let's think step by step'",
+        "Few-shot: show worked reasoning examples",
+        "Internal only — no tools, no external state",
+        "Cheap and fast, but can't fetch live data"
+      ],
+      "narration": "Chain-of-Thought asks the model to produce intermediate reasoning steps instead of jumping to an answer. You can trigger it zero-shot with a cue like 'let's think step by step', or few-shot by showing worked examples. CoT is purely internal reasoning—no tools involved—so it's cheap and improves accuracy on math and logic, but it can't reach out to the world for fresh data."
+    },
+    {
+      "type": "content",
+      "title": "ReAct: Reason + Act",
+      "bullets": [
+        "Interleaves Thought, Action, and Observation",
+        "Each cycle: think, call a tool, observe result",
+        "Grounds reasoning in real tool output",
+        "Reduces hallucination by checking assumptions"
+      ],
+      "code": "Thought: I need Paris weather.\nAction: get_weather(city=\"Paris\")\nObservation: 14C, light rain\nFinal Answer: 14C and raining.",
+      "narration": "ReAct interleaves reasoning with acting. Each cycle has a Thought about what to do, an Action that calls a tool, and an Observation containing the result. That observation feeds back into the next thought. Because the model checks its assumptions against real tool output, ReAct grounds reasoning and reduces hallucination."
+    },
+    {
+      "type": "content",
+      "title": "Implementing a ReAct loop",
+      "bullets": [
+        "Loop until final answer or step limit",
+        "Use provider tool-calling, not text parsing",
+        "Truncate observations to protect context",
+        "Always cap steps to bound cost"
+      ],
+      "code": "for step in range(max_steps):\n    out = llm(build_prompt(goal, tools, history))\n    if out.is_final: return out.answer\n    result = tools[out.action.name](**out.action.args)\n    history.append((out.thought, out.action, result))",
+      "narration": "Here's the skeleton. We loop until the model gives a final answer or we hit a step limit. Inside, the model returns either a final answer or a tool action; we execute the tool and append the result to history. In production, use the provider's structured tool-calling API rather than parsing free text, truncate long observations, and always set a max-step limit to bound cost and prevent infinite loops."
+    },
+    {
+      "type": "content",
+      "title": "Decomposition and planning",
+      "bullets": [
+        "Plan first: ordered subtasks with dependencies",
+        "Plan-and-execute: full plan up front, predictable",
+        "Interleaved: re-plan after each observation",
+        "Hybrid: plan, execute, replan on failure"
+      ],
+      "code": "plan = llm_plan(goal)\nfor task in topological_order(plan):\n    results[task.id] = execute(task, results)\n    if failed(results[task.id]):\n        plan = llm_replan(goal, plan, results)",
+      "narration": "For complex goals, have the model plan first—produce an ordered list of subtasks with dependencies, then execute them. Plan-and-execute generates the whole plan up front, which is cheap and predictable. Interleaved planning re-plans after each step, which is adaptive but costly. A practical hybrid generates a coarse plan, executes it, and only replans when a step fails or an observation contradicts the plan."
+    },
+    {
+      "type": "content",
+      "title": "Good decomposition principles",
+      "bullets": [
+        "Each subtask independently verifiable",
+        "Map each step to one tool or clear action",
+        "Capture dependencies for correct ordering",
+        "Keep subtasks atomic; recurse if needed"
+      ],
+      "narration": "Good decomposition follows a few rules. Each subtask should be independently verifiable and map to a single tool or clear action. Capture dependencies so steps run in the right order. And keep subtasks atomic—if a step is itself complex, recurse and break it down further. This makes the plan easy to debug and even parallelize."
+    },
+    {
+      "type": "content",
+      "title": "Choosing the right pattern",
+      "bullets": [
+        "Pure logic/math, no data → Chain-of-Thought",
+        "Live data, adaptive → ReAct",
+        "Long multi-stage workflow → plan-and-execute",
+        "Real agents combine all three"
+      ],
+      "narration": "How do you choose? Pure logic or math with no external data calls for Chain-of-Thought. Tasks needing live data and adaptation call for ReAct. Long multi-stage workflows benefit from plan-and-execute with replanning. In practice, mature agents combine all three: a planner decomposes the goal, each subtask runs a ReAct loop, and the internal steps use chain-of-thought reasoning."
+    },
+    {
+      "type": "content",
+      "title": "Reliability and observability",
+      "bullets": [
+        "Bound everything: steps, tokens, timeouts",
+        "Validate outputs against a schema; retry",
+        "Trace thought, action, observation, cost",
+        "Detect repeated actions to break loops",
+        "Fail gracefully with partial results"
+      ],
+      "narration": "Finally, production reliability. Bound everything—max steps, max tokens, and per-tool timeouts. Validate structured outputs against a schema and retry on parse failure. Trace every step including thought, action, arguments, observation, latency, and cost; these traces are your primary debugging tool. Detect when the agent repeats the same action to break loops, and always fail gracefully with partial results and a clear reason."
+    }
+  ]
+}

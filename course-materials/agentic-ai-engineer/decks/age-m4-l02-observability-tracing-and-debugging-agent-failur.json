@@ -1,0 +1,181 @@
+{
+  "slug": "age-m4-l02-observability-tracing-and-debugging-agent-failur",
+  "title": "Observability, Tracing, and Debugging Agent Failures",
+  "month": 4,
+  "monthTitle": "Evaluation, Deployment, and Capstone",
+  "lesson": 2,
+  "video": "age-m4-l02-observability-tracing-and-debugging-agent-failur.mp4",
+  "summary": "Learn to instrument LLM agents with structured tracing, spans, and logging so you can diagnose loops, bad tool calls, and reasoning errors in production. Covers the anatomy of an agent trace, common failure modes, and a practical debugging workflow.",
+  "objectives": [
+    "Explain why observability is essential for non-deterministic LLM agents and how it differs from traditional app monitoring",
+    "Instrument an agent with spans, traces, and structured logs capturing prompts, tool calls, and token usage",
+    "Identify common agent failure modes: infinite loops, malformed tool calls, hallucinated arguments, and reasoning drift",
+    "Use trace data and evaluation metrics to localize and reproduce a failure",
+    "Apply a systematic debugging workflow and add guardrails to prevent recurrence"
+  ],
+  "quiz": [
+    {
+      "q": "What is the single most valuable artifact to capture on an LLM call span when debugging reasoning errors?",
+      "options": [
+        "The CPU usage during the call",
+        "The raw prompt and model completion",
+        "The number of active threads",
+        "The server hostname"
+      ],
+      "answer": 1,
+      "why": "Reasoning lives in the text. Seeing the exact prompt sent and the exact completion returned lets you tell whether the input was wrong or the model reasoned incorrectly."
+    },
+    {
+      "q": "In a trace, what is a 'span'?",
+      "options": [
+        "A single timed unit of work with status and attributes",
+        "The total cost of a request",
+        "A type of LLM model",
+        "A database connection pool"
+      ],
+      "answer": 0,
+      "why": "A span represents one timed operation (e.g., an LLM call or tool call) with a name, start/end time, status, and attributes; spans nest to form a trace."
+    },
+    {
+      "q": "An agent calls the same tool with identical arguments five times in a row. Which failure mode is this?",
+      "options": [
+        "Hallucinated arguments",
+        "Reasoning drift",
+        "Infinite/long loop",
+        "Silent tool failure"
+      ],
+      "answer": 2,
+      "why": "Repeated identical tool calls with climbing step count is the classic signature of a loop, often because the model ignores results or there's no progress check."
+    },
+    {
+      "q": "Which guardrail most directly prevents runaway loops?",
+      "options": [
+        "Higher temperature",
+        "Max-step and max-token budgets",
+        "Larger context window",
+        "More verbose logging"
+      ],
+      "answer": 1,
+      "why": "Hard budgets on steps and tokens cap how far an agent can run, terminating loops before they consume excessive cost or time."
+    },
+    {
+      "q": "Name one reason traditional stack-trace debugging is insufficient for LLM agents.",
+      "answer": "Agent logic lives in non-deterministic prompts and model outputs rather than in code paths, so there's no deterministic stack trace to read; you need recorded traces of prompts, completions, and tool calls.",
+      "why": "Agents are non-deterministic and their behavior is determined by text generation, so you must observe the actual recorded inputs/outputs of each step."
+    },
+    {
+      "q": "In the debugging workflow, what step ensures a fixed bug does not silently return?",
+      "answer": "Adding a regression evaluation/test case for the failure to your eval suite.",
+      "why": "Capturing the failing scenario as an eval case means future changes are checked against it, preventing silent regressions."
+    }
+  ],
+  "resources": [
+    {
+      "label": "OpenTelemetry Documentation",
+      "url": "https://opentelemetry.io/docs/"
+    },
+    {
+      "label": "LangSmith: Tracing and Observability for LLM Apps",
+      "url": "https://docs.smith.langchain.com/"
+    },
+    {
+      "label": "Langfuse: Open-Source LLM Engineering Platform",
+      "url": "https://langfuse.com/docs"
+    },
+    {
+      "label": "Arize Phoenix: LLM Tracing and Evaluation",
+      "url": "https://docs.arize.com/phoenix"
+    }
+  ],
+  "body_markdown": "## Why Observability Matters for Agents\n\nLLM agents are non-deterministic, multi-step systems. A single user request can fan out into dozens of LLM calls, tool invocations, and retries. When something goes wrong in production you cannot just re-read a stack trace — the 'logic' lives in prompts, model outputs, and tool responses. **Observability** gives you the data to answer: *what did the agent actually do, and why?*\n\nThree pillars apply, adapted for agents:\n- **Traces**: the end-to-end record of one request, broken into spans.\n- **Logs**: structured events (prompt sent, tool called, error raised).\n- **Metrics**: aggregates like latency, token cost, tool error rate, loop frequency.\n\n## Anatomy of an Agent Trace\n\nA trace is a tree of **spans**. Each span has a name, start/end time, status, and attributes. For an agent, model the hierarchy like this:\n\n```\nTrace: user_request (id=abc123)\n├─ span: agent_run\n│  ├─ span: llm_call (planning)        attrs: model, prompt, completion, tokens\n│  ├─ span: tool_call search_db        attrs: args, result, latency, error\n│  ├─ span: llm_call (reasoning)\n│  └─ span: tool_call send_email        attrs: args, result\n```\n\nCapture these attributes on every span:\n- Inputs: the full prompt or messages (or a hash + sample if PII-sensitive).\n- Outputs: raw model completion, parsed tool call.\n- Metadata: model name, temperature, token counts, cost, latency.\n- Status: success / error, with the exception message.\n- Correlation IDs: `trace_id`, `session_id`, `user_id` to stitch multi-turn conversations.\n\n## Instrumenting in Practice\n\nUse a tracing library (OpenTelemetry, LangSmith, Langfuse, Arize Phoenix) rather than print statements. Most agent frameworks have auto-instrumentation, but you'll still add custom spans.\n\n```python\nfrom opentelemetry import trace\ntracer = trace.get_tracer(\"agent\")\n\ndef call_tool(name, args):\n    with tracer.start_as_current_span(f\"tool.{name}\") as span:\n        span.set_attribute(\"tool.name\", name)\n        span.set_attribute(\"tool.args\", json.dumps(args))\n        try:\n            result = TOOLS[name](**args)\n            span.set_attribute(\"tool.result\", str(result)[:2000])\n            return result\n        except Exception as e:\n            span.record_exception(e)\n            span.set_status(trace.StatusCode.ERROR)\n            raise\n```\n\nLog the raw LLM request/response on the span — this is the single most valuable artifact when debugging reasoning errors.\n\n## Common Agent Failure Modes\n\n| Failure | Symptom in trace | Likely cause |\n|---|---|---|\n| Infinite/long loop | Same tool called repeatedly, step count climbs | No progress check, model ignores results |\n| Malformed tool call | JSON parse error span, retries | Schema unclear, model hallucinates fields |\n| Hallucinated arguments | Tool succeeds but with wrong/fake values | Missing context, over-confident model |\n| Reasoning drift | Final answer ignores tool output | Context window overflow, poor prompt |\n| Silent tool failure | Tool returns error string, agent treats as success | No status checking |\n\n## A Debugging Workflow\n\n1. **Reproduce**: find the failing `trace_id`; replay with the same inputs and seed/temperature if possible.\n2. **Localize**: walk the span tree to the first anomalous span — where did expected behavior diverge?\n3. **Inspect**: read the exact prompt and completion at that step. Was the input correct? Was the output malformed or wrong?\n4. **Classify**: map to a failure mode (loop, bad tool call, reasoning error).\n5. **Fix**: tighten the prompt/tool schema, add validation, or add a guardrail.\n6. **Prevent**: add an eval case to your regression suite so the bug can't silently return.\n\n## Guardrails That Prevent Recurrence\n\n- **Max-step / max-token budgets** to kill runaway loops.\n- **Loop detection**: hash recent (tool, args) tuples; halt or escalate on repeats.\n- **Schema validation** on tool args before execution (Pydantic / JSON Schema).\n- **Tool result validation** and explicit status checks.\n- **Cost/latency alerts** wired to your metrics backend.\n\nObservability is not a one-time setup — treat traces as the primary feedback loop driving prompt and tool improvements.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Observability, Tracing, and Debugging Agent Failures",
+      "sub": "Diagnosing loops, bad tool calls, and reasoning errors in production",
+      "narration": "Welcome. In this lesson we tackle one of the hardest parts of running agents in production: figuring out what went wrong when they fail. Because agents are non-deterministic and multi-step, traditional debugging falls short. We'll learn to instrument agents with tracing and logging so failures become diagnosable rather than mysterious."
+    },
+    {
+      "type": "content",
+      "title": "Why Agents Need Observability",
+      "bullets": [
+        "Agents are non-deterministic, multi-step pipelines",
+        "Logic lives in prompts, model outputs, and tool responses",
+        "No simple stack trace to read",
+        "Goal: answer 'what did the agent do, and why?'"
+      ],
+      "narration": "Unlike a deterministic web service, an agent can fan one request into dozens of LLM and tool calls. The reasoning lives in text — prompts and completions — not in code you can step through. Observability gives you the recorded evidence to reconstruct exactly what the agent did and why it chose each action."
+    },
+    {
+      "type": "content",
+      "title": "The Three Pillars, Agent-Style",
+      "bullets": [
+        "Traces: end-to-end record of one request as spans",
+        "Logs: structured events — prompt sent, tool called, error",
+        "Metrics: latency, token cost, tool error rate, loop frequency",
+        "Correlate with trace_id, session_id, user_id"
+      ],
+      "narration": "We adapt the classic three pillars. Traces capture an entire request as a tree of spans. Logs are structured events at each step. Metrics aggregate behavior across many runs so you can alert on cost spikes or rising error rates. Correlation IDs let you stitch multi-turn conversations together."
+    },
+    {
+      "type": "content",
+      "title": "Anatomy of an Agent Trace",
+      "bullets": [
+        "A trace is a tree of spans",
+        "Span = name, timing, status, attributes",
+        "Nest llm_call and tool_call spans under agent_run",
+        "Capture inputs, outputs, tokens, cost, status"
+      ],
+      "code": "Trace: user_request\n├─ agent_run\n│  ├─ llm_call (planning)\n│  ├─ tool_call search_db\n│  └─ llm_call (reasoning)",
+      "narration": "Model your trace as a tree. The root is the user request, with an agent_run span, and nested under it every LLM call and tool call. Each span records timing, status, and rich attributes. The most valuable attributes are the raw prompt and completion at each step — that's what you'll read when debugging reasoning."
+    },
+    {
+      "type": "content",
+      "title": "Instrumenting Tool Calls",
+      "bullets": [
+        "Use OpenTelemetry / LangSmith / Langfuse / Phoenix",
+        "Prefer auto-instrumentation, add custom spans",
+        "Record args, results, exceptions, and status",
+        "Truncate large payloads; mind PII"
+      ],
+      "code": "with tracer.start_as_current_span(f\"tool.{name}\") as span:\n    span.set_attribute(\"tool.args\", json.dumps(args))\n    try:\n        return TOOLS[name](**args)\n    except Exception as e:\n        span.record_exception(e); raise",
+      "narration": "Use a real tracing library rather than print statements. Frameworks often auto-instrument, but you'll wrap your own tool calls to capture arguments, results, and exceptions. Set the span status to error on failure, truncate huge payloads, and be careful about logging sensitive data — hash or sample where needed."
+    },
+    {
+      "type": "content",
+      "title": "Common Failure Modes",
+      "bullets": [
+        "Infinite loop: same tool called repeatedly",
+        "Malformed tool call: JSON parse errors, retries",
+        "Hallucinated arguments: tool runs with fake values",
+        "Reasoning drift: answer ignores tool output",
+        "Silent tool failure: error treated as success"
+      ],
+      "narration": "Learn to recognize these patterns in traces. A loop shows the same tool and args repeating as step count climbs. Malformed calls show parse errors. Hallucinated arguments succeed but with wrong values. Reasoning drift means the final answer contradicts the tool results. And silent failures happen when a tool returns an error string the agent treats as valid data."
+    },
+    {
+      "type": "content",
+      "title": "A Debugging Workflow",
+      "bullets": [
+        "Reproduce: find the failing trace_id, replay inputs",
+        "Localize: walk spans to first anomaly",
+        "Inspect: read exact prompt and completion",
+        "Classify the failure mode",
+        "Fix, then add a regression eval"
+      ],
+      "narration": "Follow a systematic process. Start from the failing trace ID and reproduce it. Walk the span tree to find the first span where behavior diverged from expectation. Read the exact prompt and completion there. Classify the failure, apply a targeted fix, and crucially, add an evaluation case so the bug can't silently return."
+    },
+    {
+      "type": "content",
+      "title": "Guardrails to Prevent Recurrence",
+      "bullets": [
+        "Max-step and max-token budgets stop runaway loops",
+        "Loop detection: hash recent (tool, args) tuples",
+        "Schema validation on tool args (Pydantic/JSON Schema)",
+        "Validate tool results and check status",
+        "Cost and latency alerts on metrics"
+      ],
+      "narration": "Finally, turn each fix into a guardrail. Budget the number of steps and tokens to kill runaway loops. Detect loops by hashing recent tool calls. Validate arguments against a schema before execution, and check tool results for errors. Wire cost and latency alerts to your metrics backend. Observability is an ongoing feedback loop driving continual improvement."
+    }
+  ]
+}

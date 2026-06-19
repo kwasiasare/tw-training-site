@@ -1,0 +1,182 @@
+{
+  "slug": "age-m1-l03-defining-and-wiring-tools-with-function-calling",
+  "title": "Defining and Wiring Tools with Function Calling",
+  "month": 1,
+  "monthTitle": "LLM Foundations and Tool-Using Agents",
+  "lesson": 3,
+  "video": "age-m1-l03-defining-and-wiring-tools-with-function-calling.mp4",
+  "summary": "Learn how to define tool schemas and wire external functions to an LLM using function calling, so the model can autonomously decide when and how to invoke tools like search, calculators, and API calls.",
+  "objectives": [
+    "Explain how LLM function calling works and the request/response loop between model and tools",
+    "Write valid JSON Schema definitions for tools, including parameters, types, and required fields",
+    "Implement and register Python functions for search, calculation, and API calls",
+    "Build the agent loop that parses tool calls, executes functions, and returns results to the model",
+    "Apply best practices for tool descriptions, validation, and error handling in production"
+  ],
+  "quiz": [
+    {
+      "q": "In function calling, who actually executes the tool's code?",
+      "options": [
+        "The LLM runs the code internally",
+        "Your application code executes it",
+        "The API provider's servers run it automatically",
+        "No code is executed; it's simulated"
+      ],
+      "answer": 1,
+      "why": "The model only proposes a structured tool call as JSON. Your application is responsible for executing the function, which keeps you in control for safety."
+    },
+    {
+      "q": "Which field in a tool schema most influences whether the model selects the correct tool?",
+      "options": [
+        "name",
+        "description",
+        "required",
+        "type"
+      ],
+      "answer": 1,
+      "why": "The description tells the model when and why to use the tool, so a clear, specific description is the biggest driver of correct tool selection."
+    },
+    {
+      "q": "What format do function-call arguments arrive in from the model?",
+      "options": [
+        "A Python dictionary",
+        "A JSON-encoded string that must be parsed",
+        "An XML document",
+        "A list of positional values"
+      ],
+      "answer": 1,
+      "why": "Arguments come as a JSON string (e.g. in call.function.arguments), so you must json.loads them into a dict before calling the function."
+    },
+    {
+      "q": "Why should you set a maximum iteration count on the agent loop?",
+      "options": [
+        "To reduce token cost only",
+        "To prevent infinite or runaway tool-calling loops",
+        "Because the API requires it",
+        "To improve description quality"
+      ],
+      "answer": 1,
+      "why": "Without a cap, a model could keep requesting tools indefinitely; a max iteration count is a safety guard against runaway loops."
+    },
+    {
+      "q": "When a tool fails, what is the recommended way to handle it so the agent can recover?",
+      "answer": "Return a clear error message as the tool result string so the model can read it and retry or adjust, instead of crashing the program.",
+      "why": "Returning a descriptive error as the tool result lets the model reason about the failure and choose an alternative path."
+    },
+    {
+      "q": "What two messages must be appended to the conversation for each tool call before re-invoking the model?",
+      "answer": "The assistant's tool-call message and a matching tool-role message containing the result with the same tool_call_id.",
+      "why": "Both are required to maintain valid conversation structure; omitting the assistant message is a common bug."
+    }
+  ],
+  "resources": [
+    {
+      "label": "OpenAI Function Calling Guide",
+      "url": "https://platform.openai.com/docs/guides/function-calling"
+    },
+    {
+      "label": "JSON Schema Official Documentation",
+      "url": "https://json-schema.org/learn/getting-started-step-by-step"
+    },
+    {
+      "label": "Anthropic Tool Use Documentation",
+      "url": "https://docs.anthropic.com/en/docs/build-with-claude/tool-use"
+    },
+    {
+      "label": "LangChain Tools Concepts",
+      "url": "https://python.langchain.com/docs/concepts/tools/"
+    }
+  ],
+  "body_markdown": "## Why Function Calling Matters\n\nLarge language models are excellent at reasoning over text but cannot natively fetch live data, do reliable arithmetic, or take real actions. **Function calling** (also called tool calling) bridges that gap: you describe a set of functions to the model, and the model can choose to emit a structured request to invoke one of them. Your code executes the function and feeds the result back, letting the model continue its reasoning with fresh, grounded information.\n\nCrucially, the model never runs your code. It only *proposes* a call as structured JSON. Your application is always in control of execution, which is the foundation of safe, production-ready agents.\n\n## The Function Calling Loop\n\n1. **Define tools** as schemas (name, description, parameters).\n2. **Send** the user message plus the tool definitions to the model.\n3. The model responds either with a normal text answer **or** with one or more `tool_calls` containing a function name and JSON arguments.\n4. **Execute** the requested function(s) in your code.\n5. **Append** the tool result to the conversation and call the model again.\n6. The model uses the result to produce a final answer (or request another tool).\n\nThis loop may run several times for multi-step tasks.\n\n## Anatomy of a Tool Schema\n\nA tool is described with JSON Schema. Key fields:\n\n- `name`: a short, unique, snake_case identifier.\n- `description`: tells the model *when* and *why* to use the tool. This is the single most important field for good tool selection.\n- `parameters`: a JSON Schema object with `properties`, `type`, and `required`.\n\n```json\n{\n  \"type\": \"function\",\n  \"function\": {\n    \"name\": \"get_weather\",\n    \"description\": \"Get the current weather for a city. Use when the user asks about temperature or conditions.\",\n    \"parameters\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"city\": {\"type\": \"string\", \"description\": \"City name, e.g. 'Paris'\"},\n        \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}\n      },\n      \"required\": [\"city\"]\n    }\n  }\n}\n```\n\n## Wiring Functions in Python\n\nKeep a registry mapping tool names to the actual Python callables.\n\n```python\nimport json\n\ndef calculator(expression: str) -> str:\n    # Use a safe evaluator in production!\n    return str(eval(expression, {\"__builtins__\": {}}, {}))\n\ndef web_search(query: str) -> str:\n    # Call your real search API here\n    return f\"Top results for {query}...\"\n\nTOOLS = {\"calculator\": calculator, \"web_search\": web_search}\n```\n\n## The Agent Loop in Code\n\n```python\nfrom openai import OpenAI\nclient = OpenAI()\n\nmessages = [{\"role\": \"user\", \"content\": \"What is 1234 * 5678?\"}]\n\nwhile True:\n    resp = client.chat.completions.create(\n        model=\"gpt-4o\",\n        messages=messages,\n        tools=tool_schemas,\n    )\n    msg = resp.choices[0].message\n    messages.append(msg)\n\n    if not msg.tool_calls:\n        print(msg.content)  # final answer\n        break\n\n    for call in msg.tool_calls:\n        fn = TOOLS[call.function.name]\n        args = json.loads(call.function.arguments)\n        result = fn(**args)\n        messages.append({\n            \"role\": \"tool\",\n            \"tool_call_id\": call.id,\n            \"content\": str(result),\n        })\n```\n\nNote that you must append both the assistant's tool-call message **and** a matching `tool` message (with the same `tool_call_id`) for each call before re-invoking the model.\n\n## Best Practices\n\n- **Write descriptions for the model, not humans.** State exactly when to use the tool and what each parameter means.\n- **Validate arguments** before executing. The model can hallucinate or omit fields; never trust JSON blindly.\n- **Handle errors gracefully.** Return a clear error string as the tool result so the model can recover or retry rather than crashing.\n- **Keep tools small and focused.** One job per tool yields better selection accuracy.\n- **Limit the number of tools** per request (typically under ~20) to avoid confusing the model.\n- **Never eval untrusted input** — sandbox calculators and code tools.\n- **Set a max iteration count** on the loop to prevent infinite tool-calling loops.\n\n## Common Pitfalls\n\n- Forgetting to append the assistant message before the tool result, breaking the conversation structure.\n- Vague descriptions causing the model to pick the wrong tool or none at all.\n- Not parsing `arguments` (they arrive as a JSON *string*, not a dict).\n- Returning non-string tool results — always serialize.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Defining and Wiring Tools with Function Calling",
+      "sub": "Letting LLMs invoke external functions autonomously",
+      "narration": "Welcome. In this lesson we'll learn how to give an LLM real-world capabilities through function calling. By the end, you'll know how to define tool schemas, wire up Python functions, and build the loop that lets a model decide when to call search, a calculator, or any API on its own."
+    },
+    {
+      "type": "content",
+      "title": "Why Function Calling?",
+      "bullets": [
+        "LLMs can reason but can't fetch live data or act reliably",
+        "Tools add capabilities: search, math, database, APIs",
+        "The model proposes calls — your code always executes them",
+        "Foundation of safe, controllable agents"
+      ],
+      "narration": "On their own, language models can't look up today's news, do precise arithmetic, or take actions in other systems. Function calling solves this by letting you describe tools the model can request. The key safety property is that the model never runs code itself — it only proposes a structured call, and your application decides whether and how to execute it. That control is what makes agents production-ready."
+    },
+    {
+      "type": "content",
+      "title": "The Function Calling Loop",
+      "bullets": [
+        "1. Define tools as schemas",
+        "2. Send user message + tools to model",
+        "3. Model replies with text OR tool_calls",
+        "4. Execute the function in your code",
+        "5. Append result and call model again",
+        "6. Repeat until final answer"
+      ],
+      "narration": "Here's the core loop. You send the user's message along with your tool definitions. The model responds either with a normal answer or with one or more tool calls, each containing a function name and JSON arguments. You execute those functions, append the results back into the conversation, and call the model again. It uses the fresh data to continue, possibly calling more tools, until it produces a final answer."
+    },
+    {
+      "type": "content",
+      "title": "Anatomy of a Tool Schema",
+      "bullets": [
+        "name: short, unique, snake_case",
+        "description: when and why to use it — most important field",
+        "parameters: JSON Schema with properties, types, required",
+        "Use enum to constrain choices"
+      ],
+      "code": "{\n  \"name\": \"get_weather\",\n  \"description\": \"Get current weather for a city.\",\n  \"parameters\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"city\": {\"type\": \"string\"}\n    },\n    \"required\": [\"city\"]\n  }\n}",
+      "narration": "A tool is described with JSON Schema. The name is a unique identifier. The description is the most important field — it tells the model exactly when and why to use the tool, so write it carefully. The parameters object defines each argument with its type and which ones are required. Use enums to restrict values to valid options, which dramatically reduces invalid calls."
+    },
+    {
+      "type": "content",
+      "title": "Wiring Functions in Python",
+      "bullets": [
+        "Map tool names to real callables in a registry",
+        "Each function takes the schema's parameters",
+        "Return serializable results (strings)",
+        "Sandbox anything that evaluates input"
+      ],
+      "code": "def calculator(expression: str) -> str:\n    return str(eval(expression, {\"__builtins__\": {}}, {}))\n\nTOOLS = {\"calculator\": calculator,\n         \"web_search\": web_search}",
+      "narration": "On the execution side, keep a registry dictionary that maps each tool name to the actual Python function. When the model requests a tool, you look it up here and call it with the provided arguments. Make sure your functions return serializable results, typically strings. And be careful with anything that evaluates input — never use a raw eval on untrusted text in production; sandbox it properly."
+    },
+    {
+      "type": "content",
+      "title": "The Agent Loop in Code",
+      "bullets": [
+        "Call the model with messages + tool schemas",
+        "If no tool_calls, print and break",
+        "Otherwise parse JSON arguments and execute",
+        "Append a tool message with matching tool_call_id"
+      ],
+      "code": "for call in msg.tool_calls:\n    fn = TOOLS[call.function.name]\n    args = json.loads(call.function.arguments)\n    result = fn(**args)\n    messages.append({\n      \"role\": \"tool\",\n      \"tool_call_id\": call.id,\n      \"content\": str(result)})",
+      "narration": "Here's the loop in code. After calling the model, check if it returned tool calls. If not, you have your final answer. If it did, loop over each call, look up the function, parse the arguments — remember they arrive as a JSON string so you must json.loads them — and execute. Then append a tool-role message containing the result and the matching tool_call_id. You must also append the assistant's original tool-call message first, or the conversation structure breaks."
+    },
+    {
+      "type": "content",
+      "title": "Best Practices",
+      "bullets": [
+        "Write descriptions for the model, not humans",
+        "Validate arguments before executing",
+        "Return clear error strings so the model can recover",
+        "Keep tools small, focused, and few (<~20)",
+        "Cap loop iterations to avoid runaway calls"
+      ],
+      "narration": "A few practices separate hobby projects from production agents. Write descriptions that tell the model precisely when to act. Always validate arguments since models can hallucinate or omit fields. When something fails, return a descriptive error string rather than crashing — this lets the model retry or adjust. Keep each tool focused on one job, limit how many you expose, and set a maximum iteration count to prevent infinite loops."
+    },
+    {
+      "type": "content",
+      "title": "Common Pitfalls",
+      "bullets": [
+        "Forgetting to append the assistant tool-call message",
+        "Vague descriptions → wrong tool or none chosen",
+        "Treating arguments as a dict instead of a JSON string",
+        "Returning non-serialized results"
+      ],
+      "narration": "Finally, watch for these common mistakes. Forgetting to append the assistant's tool-call message before the tool result is the number one bug. Vague descriptions lead to poor tool selection. Remember arguments arrive as a JSON string and must be parsed. And always serialize your return values. Avoid these and your function-calling agents will be robust and reliable."
+    }
+  ]
+}

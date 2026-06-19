@@ -75,6 +75,14 @@ export const COURSES: Course[] = [
     sample: 'ht4-l05-building-an-ai-triage-agent',
     accent: '#db2777',
   },
+  {
+    slug: 'agentic-ai-engineer',
+    title: 'Agentic AI Engineer: Building Production-Ready LLM Agents',
+    tagline: 'Python developers and ML practitioners who want to transition into building, orchestrating, and deploying autonomous LLM-powered agents in production.',
+    blurb: 'A hands-on, project-based course that takes you from Python-driven LLM API calls to deploying sophisticated multi-agent systems with planning, memory, RAG, and orchestration using LangGraph. You\'ll build a portfolio of working agents culminating in a deployed capstone application.',
+    sample: 'age-m1-l01-calling-llm-apis-in-python-completions-chat-and-',
+    accent: '#7c3aed',
+  },
 ];
 
 export function getCourse(slug: string): Course | undefined {

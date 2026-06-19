@@ -1,0 +1,192 @@
+{
+  "slug": "age-m4-l04-capstone-design-build-and-deploy-a-production-mu",
+  "title": "Capstone: Design, Build, and Deploy a Production Multi-Agent Application",
+  "month": 4,
+  "monthTitle": "Evaluation, Deployment, and Capstone",
+  "lesson": 4,
+  "video": "age-m4-l04-capstone-design-build-and-deploy-a-production-mu.mp4",
+  "summary": "In this capstone you bring together everything from the course to design, build, and deploy a production-grade multi-agent application. You will scope a real problem, architect an orchestration layer over specialized agents, wire in RAG and memory, add an evaluation harness with guardrails and observability, and ship a live HTTP endpoint plus a thin UI for your portfolio.",
+  "objectives": [
+    "Scope a realistic multi-agent use case and translate it into an architecture with clear agent roles, tools, and orchestration patterns.",
+    "Implement a coordinated system combining an orchestrator, RAG retrieval, and short- plus long-term memory.",
+    "Build an automated evaluation harness with offline test sets, online tracing, and guardrails before deployment.",
+    "Deploy a containerized, authenticated, observable endpoint with cost and latency controls.",
+    "Document and demo the system as a portfolio-ready artifact with reproducible setup and metrics."
+  ],
+  "quiz": [
+    {
+      "q": "Which orchestration pattern is the safest default for a capstone because it's predictable and debuggable?",
+      "options": [
+        "Peer-to-peer network hand-off",
+        "Supervisor / orchestrator-worker",
+        "Fully autonomous swarm",
+        "Single monolithic prompt"
+      ],
+      "answer": 1,
+      "why": "The supervisor/orchestrator-worker pattern delegates subtasks to specialists with clear control flow, making it predictable and easy to debug—ideal for a capstone."
+    },
+    {
+      "q": "Why should RAG answers always include source citations in this project?",
+      "options": [
+        "To increase token usage",
+        "To make answers longer",
+        "To enable faithfulness evaluation",
+        "To bypass authentication"
+      ],
+      "answer": 2,
+      "why": "Citations let you measure whether the answer is grounded in retrieved sources (faithfulness), a key evaluation metric."
+    },
+    {
+      "q": "What is the primary purpose of a CI regression gate on the eval set?",
+      "options": [
+        "To speed up inference",
+        "To block deployments when quality scores drop below thresholds",
+        "To reduce embedding dimensions",
+        "To rotate API keys"
+      ],
+      "answer": 1,
+      "why": "The regression gate runs the offline eval set in CI and prevents shipping changes that degrade quality below your defined thresholds."
+    },
+    {
+      "q": "Which control most directly prevents runaway cost from an agent stuck in a loop?",
+      "options": [
+        "Larger context window",
+        "Max-step and token/timeout budgets",
+        "More vector DB shards",
+        "A bigger model"
+      ],
+      "answer": 1,
+      "why": "Hard limits on steps, tokens, and timeouts stop loops before they consume excessive budget."
+    },
+    {
+      "q": "Name one thing your portfolio README should include to make the project reproducible.",
+      "answer": "A one-command setup/run instruction (and the live URL, architecture, and eval results)",
+      "why": "Reproducibility—like a single command to run locally and one to deploy—lets others verify your system works, which is essential for a portfolio piece."
+    },
+    {
+      "q": "In two or three words, what distinguishes short-term from long-term memory in this system?",
+      "answer": "Session scratchpad vs persisted facts",
+      "why": "Short-term memory is the in-session conversation/scratchpad; long-term memory is a persisted store of user facts and prior results, often summarized to stay bounded."
+    }
+  ],
+  "resources": [
+    {
+      "label": "LangGraph: building multi-agent orchestration",
+      "url": "https://langchain-ai.github.io/langgraph/"
+    },
+    {
+      "label": "Langfuse: open-source LLM observability and evaluation",
+      "url": "https://langfuse.com/docs"
+    },
+    {
+      "label": "FastAPI deployment guide",
+      "url": "https://fastapi.tiangolo.com/deployment/"
+    },
+    {
+      "label": "OpenAI guide on evaluating and productionizing agents",
+      "url": "https://platform.openai.com/docs/guides/evals"
+    }
+  ],
+  "body_markdown": "## Capstone Overview\n\nThis is the integrative project for the course. You will ship an **end-to-end agentic system** that a hiring manager can run, inspect, and trust. The deliverable is not a notebook demo—it is a deployed, evaluated, observable service.\n\nMinimum viable scope:\n- A clearly defined task that genuinely benefits from **multiple cooperating agents** (e.g., a research assistant that plans, retrieves, drafts, and critiques).\n- An **orchestration layer** that routes work between agents and tools.\n- **RAG** over a real document corpus.\n- **Memory** (session-scoped + persistent).\n- An **evaluation harness** with pass/fail gates.\n- A **deployed endpoint** plus minimal UI or API docs.\n\n## Step 1 — Scope and Architecture\n\nStart from the user outcome, not the framework. Write a one-paragraph problem statement and 3-5 concrete user stories. Then decide the orchestration pattern:\n\n- **Supervisor / orchestrator-worker**: a planner agent delegates subtasks to specialists. Best default for capstones—predictable and debuggable.\n- **Sequential pipeline**: fixed stages (retrieve → draft → critique → finalize). Simple and cheap.\n- **Network / hand-off**: agents pass control peer-to-peer. Powerful but harder to evaluate.\n\nDefine each agent's **role, allowed tools, and stop conditions**. Keep the number of agents small (2-4). More agents = more failure surface.\n\n## Step 2 — RAG and Memory\n\n**RAG**: chunk your corpus (start ~500-1000 tokens with overlap), embed, store in a vector DB, and retrieve top-k with a reranking or metadata filter. Always cite sources in the answer so you can evaluate faithfulness.\n\n**Memory**:\n- *Short-term*: the conversation/scratchpad within a session.\n- *Long-term*: a persisted store (vector or key-value) for user facts and prior results. Write a summarization step so memory does not grow unbounded.\n\n## Step 3 — Evaluation Harness\n\nDo not ship on vibes. Build evaluation **before** deployment.\n\n- **Offline eval set**: 20-50 curated inputs with expected behaviors. Score with deterministic checks plus an LLM-as-judge rubric (helpfulness, faithfulness, format).\n- **Component metrics**: retrieval recall@k, tool-call success rate, hallucination rate, task completion.\n- **Online tracing**: log every step (prompts, tool calls, tokens, latency, cost) with a tool like LangSmith/Langfuse/OpenTelemetry.\n- **Regression gate**: a CI step that runs the eval set and blocks deploy if scores drop below threshold.\n\n## Step 4 — Guardrails and Reliability\n\n- Input/output validation (schemas, content filters, PII handling).\n- **Loop and budget limits**: max steps, max tokens, timeouts to prevent runaway cost.\n- Retries with backoff and graceful fallbacks (e.g., return best partial answer).\n- Idempotency and structured tool outputs.\n\n## Step 5 — Deployment\n\n- Wrap the app in a web framework (FastAPI) exposing a `/chat` or `/run` endpoint.\n- **Containerize** with Docker; pin dependencies.\n- Add **auth** (API key/JWT) and rate limiting.\n- Deploy to a managed host (Render, Fly.io, Cloud Run, etc.). Inject secrets via environment, never commit keys.\n- Add a healthcheck and basic dashboards (latency p95, cost/request, error rate).\n\n## Step 6 — Portfolio Packaging\n\n- README: problem, architecture diagram, setup, eval results, live URL.\n- A short Loom/GIF demo.\n- Reproducible: one command to run locally, one to deploy.\n- Note known limitations and next steps—shows engineering maturity.\n\n## Common Pitfalls\n\n- Over-engineering with too many agents.\n- No evaluation, so you can't prove it works.\n- Unbounded loops draining budget.\n- Leaking secrets or skipping auth on a public endpoint.\n- RAG with no citations, making faithfulness unmeasurable.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Capstone: Build & Deploy a Production Multi-Agent App",
+      "sub": "Evaluation, Deployment, and Capstone",
+      "narration": "Welcome to the capstone. This is where everything you've learned comes together. By the end you'll have shipped a real, deployed, evaluated multi-agent system that you can put in your portfolio and demo to employers. The bar here is production: not a notebook, but a live service that's observable and trustworthy."
+    },
+    {
+      "type": "content",
+      "title": "What You'll Ship",
+      "bullets": [
+        "A multi-agent app solving one real task",
+        "Orchestration + RAG + memory",
+        "An evaluation harness with pass/fail gates",
+        "A deployed, authenticated endpoint",
+        "Portfolio-ready docs and demo"
+      ],
+      "narration": "Your deliverable has five pillars. A multi-agent application that solves one genuine problem. An orchestration layer over RAG and memory. An automated evaluation harness that gates quality. A deployed endpoint that's authenticated and observable. And finally clean documentation with a demo so others can run and judge your work."
+    },
+    {
+      "type": "content",
+      "title": "Step 1: Scope & Architecture",
+      "bullets": [
+        "Write the problem statement and user stories first",
+        "Pick an orchestration pattern (supervisor is a safe default)",
+        "Define each agent's role, tools, and stop conditions",
+        "Keep it to 2-4 agents"
+      ],
+      "narration": "Start from the user outcome, not the framework. Write a one-paragraph problem statement and a few user stories. Then choose an orchestration pattern. The supervisor or orchestrator-worker pattern is the safest default because it's predictable and debuggable. Define every agent's role, its allowed tools, and when it should stop. Resist the urge to add agents—two to four is plenty, and each extra agent multiplies your failure surface."
+    },
+    {
+      "type": "content",
+      "title": "Step 2: RAG & Memory",
+      "bullets": [
+        "Chunk, embed, store, retrieve top-k with reranking",
+        "Always cite sources for faithfulness checks",
+        "Short-term: session scratchpad",
+        "Long-term: persisted facts + summarization"
+      ],
+      "code": "docs = chunk(corpus, size=800, overlap=100)\nindex = vectorstore.from_texts(docs, embeddings)\nhits = index.search(query, k=5, filter=meta)",
+      "narration": "For retrieval, chunk your corpus into roughly 500 to 1000 token pieces with overlap, embed them, and retrieve the top-k with reranking or metadata filters. Critically, always cite the sources you used so you can later measure faithfulness. For memory, separate short-term, which is the in-session scratchpad, from long-term, which persists user facts and prior results. Add a summarization step so long-term memory doesn't grow without bound."
+    },
+    {
+      "type": "content",
+      "title": "Step 3: Evaluation Harness",
+      "bullets": [
+        "Offline eval set: 20-50 curated cases",
+        "Deterministic checks + LLM-as-judge rubric",
+        "Metrics: recall@k, tool success, hallucination rate",
+        "CI regression gate blocks bad deploys"
+      ],
+      "code": "def gate(results):\n    assert results.faithfulness > 0.85\n    assert results.task_completion > 0.8",
+      "narration": "Don't ship on vibes. Build evaluation before deployment. Curate twenty to fifty inputs with expected behaviors, and score them with deterministic checks plus an LLM-as-judge rubric covering helpfulness, faithfulness, and format. Track component metrics like retrieval recall at k, tool-call success rate, and hallucination rate. Then wire a regression gate into CI that runs the eval set and blocks the deploy if scores fall below your thresholds."
+    },
+    {
+      "type": "content",
+      "title": "Step 4: Guardrails & Reliability",
+      "bullets": [
+        "Validate inputs and outputs with schemas",
+        "Cap max steps, tokens, and timeouts",
+        "Retries with backoff and graceful fallbacks",
+        "Handle PII and content filtering"
+      ],
+      "narration": "Production means defending against the messy real world. Validate inputs and outputs with schemas. Set hard limits on max steps, tokens, and timeouts to stop runaway loops that drain your budget. Add retries with backoff and graceful fallbacks so a single failure returns a best partial answer instead of crashing. And handle PII and content filtering, especially on a public endpoint."
+    },
+    {
+      "type": "content",
+      "title": "Step 5: Deploy",
+      "bullets": [
+        "Expose /run via FastAPI",
+        "Containerize with Docker, pin deps",
+        "Add API-key auth + rate limiting",
+        "Inject secrets via env, add healthcheck",
+        "Monitor p95 latency, cost/request, errors"
+      ],
+      "code": "docker build -t agent-app .\n# deploy: Render / Fly.io / Cloud Run\n# secrets via env, never commit keys",
+      "narration": "Now ship it. Wrap your app in FastAPI with a run or chat endpoint, containerize with Docker, and pin your dependencies for reproducibility. Add authentication and rate limiting—never expose an unauthenticated LLM endpoint. Inject API keys through environment variables, never in the repo. Deploy to a managed host like Render, Fly, or Cloud Run, add a healthcheck, and set up dashboards for p95 latency, cost per request, and error rate."
+    },
+    {
+      "type": "content",
+      "title": "Step 6: Package for Your Portfolio",
+      "bullets": [
+        "README: problem, architecture, setup, metrics, live URL",
+        "Short demo GIF or Loom",
+        "One command to run, one to deploy",
+        "List limitations and next steps"
+      ],
+      "narration": "Finally, package it so it shines in your portfolio. Your README should cover the problem, an architecture diagram, setup steps, evaluation results, and the live URL. Record a short demo. Make it reproducible with one command to run locally and one to deploy. And honestly list known limitations and next steps—that signals engineering maturity far more than pretending it's perfect."
+    },
+    {
+      "type": "content",
+      "title": "Avoid These Pitfalls",
+      "bullets": [
+        "Too many agents = fragile system",
+        "No eval = can't prove it works",
+        "Unbounded loops = surprise costs",
+        "Public endpoint with no auth or secrets leak"
+      ],
+      "narration": "Let's close on the traps that sink capstones. Too many agents make the system fragile and unmeasurable. Skipping evaluation means you can't prove anything works. Unbounded loops produce shocking bills. And a public endpoint with no auth, or committed secrets, is both a security and a credibility failure. Keep it small, measured, bounded, and secure, and you'll have a project worth showing."
+    }
+  ]
+}
