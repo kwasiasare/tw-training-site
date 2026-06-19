@@ -1,0 +1,183 @@
+{
+  "slug": "mlo-m4-l03-implementing-alerting-and-automated-retraining-t",
+  "title": "Implementing Alerting and Automated Retraining Triggers",
+  "month": 4,
+  "monthTitle": "Cloud Deployment, Monitoring & Capstone",
+  "lesson": 3,
+  "video": "mlo-m4-l03-implementing-alerting-and-automated-retraining-t.mp4",
+  "summary": "Learn to design and implement alerting systems and automated retraining triggers that detect model degradation and orchestrate retraining and redeployment in production.",
+  "objectives": [
+    "Identify the key signals (data drift, prediction drift, performance decay, operational metrics) that should trigger alerts.",
+    "Configure metric collection and alerting thresholds using monitoring tools like Prometheus and Alertmanager.",
+    "Design retraining trigger policies based on scheduled, threshold, and event-based criteria.",
+    "Build an automated retraining-and-redeployment pipeline wired to monitoring signals.",
+    "Apply safe deployment practices (validation gates, canary, rollback) to automated retraining.",
+    "Avoid common pitfalls such as alert fatigue, retraining loops, and feedback contamination."
+  ],
+  "quiz": [
+    {
+      "q": "Why is model degradation often harder to detect than a typical software bug?",
+      "options": [
+        "Models always throw exceptions when they fail",
+        "Models keep returning confident predictions even when accuracy collapses",
+        "Model errors are logged automatically by all frameworks",
+        "Degradation only happens during deployment, not runtime"
+      ],
+      "answer": 1,
+      "why": "A degrading model produces no errors — it continues returning plausible, confident outputs while real-world accuracy drops, making the failure silent."
+    },
+    {
+      "q": "When ground-truth labels are delayed, which signal is most useful as an early proxy for performance degradation?",
+      "options": [
+        "CPU utilization",
+        "Data and prediction drift metrics",
+        "Disk I/O",
+        "Number of API requests"
+      ],
+      "answer": 1,
+      "why": "Performance metrics need labels. Until labels arrive, drift in inputs and predictions provides an early, label-free proxy signal of potential degradation."
+    },
+    {
+      "q": "What is the primary purpose of a validation gate in an automated retraining pipeline?",
+      "options": [
+        "To speed up training",
+        "To ensure the newly trained model beats the current one and passes checks before deployment",
+        "To reduce Prometheus scrape frequency",
+        "To delete old model versions"
+      ],
+      "answer": 1,
+      "why": "The validation gate prevents promoting a worse model. The new model must outperform the incumbent on a trusted holdout and pass sanity/fairness checks before redeployment."
+    },
+    {
+      "q": "Which combination of trigger strategies generally gives the most robust retraining policy?",
+      "options": [
+        "Scheduled only",
+        "Threshold only",
+        "A hybrid of scheduled, threshold, and event-based with guardrails",
+        "Manual triggers only"
+      ],
+      "answer": 2,
+      "why": "A hybrid approach gives a predictable baseline cadence plus responsiveness to urgent degradation and events, while guardrails like cooldowns prevent runaway retraining."
+    },
+    {
+      "q": "Name one guardrail that prevents an automated system from retraining and redeploying too frequently or in harmful loops.",
+      "answer": "Cooldown periods (and/or a maximum number of retrains per day, or a validation gate against a trusted holdout)",
+      "why": "Guardrails such as cooldown windows, max-retrains-per-day limits, and validation gates stop runaway retraining loops and excessive cost."
+    },
+    {
+      "q": "In a Prometheus alert rule, what does the 'for: 15m' clause accomplish?",
+      "answer": "It requires the alert condition to remain true for 15 minutes before firing, reducing noise from transient spikes",
+      "why": "The 'for' duration ensures the condition persists before an alert fires, filtering out brief, transient breaches and reducing alert fatigue."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Prometheus Alerting Rules & Alertmanager Documentation",
+      "url": "https://prometheus.io/docs/alerting/latest/overview/"
+    },
+    {
+      "label": "Evidently AI — Open-source ML Monitoring and Drift Detection",
+      "url": "https://docs.evidentlyai.com/"
+    },
+    {
+      "label": "Google Cloud — MLOps: Continuous delivery and automation pipelines in ML",
+      "url": "https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning"
+    },
+    {
+      "label": "MLflow Model Registry Documentation",
+      "url": "https://mlflow.org/docs/latest/model-registry.html"
+    }
+  ],
+  "body_markdown": "## Why Alerting and Automated Retraining Matter\n\nModels degrade silently in production. Unlike software bugs that throw errors, a model can keep returning confident predictions while its accuracy quietly collapses because the world changed. **Alerting** tells humans (and systems) when something is wrong; **automated retraining triggers** close the loop so the model can be refreshed without waiting for a manual ticket.\n\nThe goal is a feedback loop: *monitor → detect → alert → trigger retrain → validate → redeploy → monitor*.\n\n## What to Monitor\n\nThere are four broad categories of signals:\n\n1. **Operational / service metrics** — latency, throughput, error rate, CPU/memory. These are classic infra metrics and the fastest to detect.\n2. **Data quality & data drift** — schema violations, null spikes, range violations, and distribution shift in input features (e.g., PSI, KL divergence, Kolmogorov–Smirnov test).\n3. **Prediction drift** — change in the distribution of model outputs (e.g., a fraud model suddenly flagging 40% of traffic vs. a historical 2%).\n4. **Model performance** — accuracy, AUC, RMSE, etc. This requires **ground-truth labels**, which often arrive with delay. When labels are delayed, drift metrics act as **proxy signals**.\n\n## Setting Thresholds\n\nThresholds can be:\n\n- **Static**: e.g., alert if accuracy < 0.85 or PSI > 0.2.\n- **Relative**: e.g., accuracy dropped more than 5% from the training baseline.\n- **Statistical**: e.g., value outside 3 standard deviations of a rolling window, or a significance test p-value below 0.05.\n\nUse a **rolling window** and require the condition to persist (e.g., 3 consecutive evaluation periods) to reduce noise. Pair each alert with a **severity** (warning vs. critical) and a clear **owner**.\n\n## Alerting Architecture\n\nA common open-source stack:\n\n- **Prometheus** scrapes metrics exposed by your model service (`/metrics`).\n- **Alertmanager** evaluates alert rules and routes notifications to Slack, PagerDuty, email, or a webhook.\n- **Grafana** dashboards visualize trends.\n- A drift job (e.g., Evidently, custom batch job) computes drift metrics and pushes them to Prometheus via a Pushgateway or writes to a metrics store.\n\nExample Prometheus alert rule:\n\n```yaml\ngroups:\n  - name: model_health\n    rules:\n      - alert: ModelAccuracyDrop\n        expr: model_rolling_accuracy < 0.85\n        for: 15m\n        labels:\n          severity: critical\n        annotations:\n          summary: \"Model accuracy below threshold\"\n          description: \"Rolling accuracy {{ $value }} < 0.85 for 15m\"\n      - alert: FeatureDriftHigh\n        expr: feature_psi > 0.2\n        for: 30m\n        labels:\n          severity: warning\n```\n\n## Designing Retraining Triggers\n\nThree trigger types, often combined:\n\n- **Scheduled (time-based)**: retrain nightly/weekly regardless. Simple, predictable, but wasteful or too slow.\n- **Threshold/performance-based**: retrain when drift or accuracy crosses a limit. Efficient but depends on reliable signals.\n- **Event-based**: retrain when new labeled data volume crosses a size, or an upstream schema change is detected.\n\nA robust policy uses a hybrid: a baseline schedule **plus** threshold triggers for urgent degradation, with **guardrails** (cooldown periods, max retrains per day) to prevent runaway loops.\n\n## Wiring the Automated Pipeline\n\nThe alert should not directly push to production. Instead it kicks off a pipeline:\n\n1. **Trigger**: Alertmanager webhook → CI/CD or orchestrator (Airflow, Kubeflow, GitHub Actions, SageMaker Pipelines).\n2. **Retrain**: pull fresh data, retrain, log to a model registry (MLflow) with metrics.\n3. **Validation gate**: the new model must beat the current one on a holdout set AND pass fairness/sanity checks. If it fails, stop and alert a human.\n4. **Deploy safely**: canary or shadow deployment, then promote. Keep the previous version for **rollback**.\n5. **Record**: log the trigger reason, data snapshot, and model version for auditability.\n\n```python\n# Pseudocode for an Alertmanager webhook handler\n@app.post('/retrain-hook')\ndef handle_alert(payload):\n    if in_cooldown() or retrains_today() >= MAX_RETRAINS:\n        return skip('guardrail')\n    run = trigger_pipeline(reason=payload['alertname'])\n    return {'pipeline_run': run.id}\n```\n\n## Guardrails and Pitfalls\n\n- **Alert fatigue**: too many low-value alerts get ignored. Tune thresholds, use `for:` durations, and group alerts.\n- **Retraining loops**: a bad data window can trigger retrains that degrade further. Always gate on validation against a trusted holdout.\n- **Feedback contamination**: if model decisions affect future labels (e.g., you only see outcomes for approved loans), correct for selection bias.\n- **Cost**: gate expensive retrains behind cooldowns and minimum-new-data thresholds.\n- **Reproducibility**: snapshot data and pin code/config versions for every triggered run.\n\n## Putting It Together\n\nStart simple: expose metrics, add a couple of high-signal alerts, and trigger a manual-approval pipeline. Then graduate to fully automated retraining with validation gates and canary rollout once you trust the signals.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Implementing Alerting and Automated Retraining Triggers",
+      "sub": "MLOps Engineering — Cloud Deployment, Monitoring & Capstone",
+      "narration": "Welcome. In this lesson we close the production feedback loop. We'll learn how to detect when a deployed model is degrading, raise meaningful alerts, and automatically trigger safe retraining and redeployment. By the end you'll be able to design a monitoring-to-retraining pipeline that keeps models healthy without manual babysitting."
+    },
+    {
+      "type": "content",
+      "title": "The Production Feedback Loop",
+      "bullets": [
+        "Models degrade silently — no errors, just wrong answers",
+        "Loop: monitor → detect → alert → retrain → validate → redeploy",
+        "Alerts inform humans; triggers close the loop automatically",
+        "Goal: catch degradation before it hurts the business"
+      ],
+      "narration": "Unlike a crashing service, a degrading model keeps returning confident predictions while the world shifts underneath it. The core idea is a closed feedback loop: we monitor signals, detect problems, alert the right people, trigger retraining, validate the new model, and redeploy. Alerting handles the human side; automated triggers let the system heal itself. Our aim is to catch decay before it becomes a costly business problem."
+    },
+    {
+      "type": "content",
+      "title": "What to Monitor",
+      "bullets": [
+        "Operational metrics: latency, error rate, throughput",
+        "Data drift: distribution shift in inputs (PSI, KS test)",
+        "Prediction drift: shift in model output distribution",
+        "Model performance: accuracy, AUC, RMSE — needs labels",
+        "Labels are often delayed; drift acts as a proxy signal"
+      ],
+      "narration": "There are four categories of signals. Operational metrics like latency and error rate are fastest to detect. Data drift measures whether incoming features have shifted distribution, using statistics like population stability index or the Kolmogorov-Smirnov test. Prediction drift watches the output distribution. And model performance — accuracy, AUC, RMSE — is the gold standard but needs ground-truth labels, which often arrive late. When labels lag, drift metrics serve as early proxy signals."
+    },
+    {
+      "type": "content",
+      "title": "Setting Sensible Thresholds",
+      "bullets": [
+        "Static: accuracy < 0.85 or PSI > 0.2",
+        "Relative: dropped >5% from training baseline",
+        "Statistical: outside 3σ rolling window, or p < 0.05",
+        "Use 'for' durations and rolling windows to cut noise",
+        "Attach severity and an owner to every alert"
+      ],
+      "narration": "Thresholds come in three flavors. Static limits are simple absolute cutoffs. Relative thresholds compare against a baseline, which adapts to your model. Statistical thresholds use rolling windows and significance tests. To avoid flapping, require conditions to persist over a window before firing. And critically, every alert needs a severity level and a clear owner so people know whether and how to act."
+    },
+    {
+      "type": "content",
+      "title": "Alerting Architecture",
+      "bullets": [
+        "Prometheus scrapes /metrics from the model service",
+        "Alertmanager evaluates rules, routes to Slack/PagerDuty",
+        "Grafana for dashboards and trend visualization",
+        "Drift job (e.g. Evidently) pushes metrics via Pushgateway"
+      ],
+      "code": "- alert: ModelAccuracyDrop\n  expr: model_rolling_accuracy < 0.85\n  for: 15m\n  labels:\n    severity: critical",
+      "narration": "A common open-source stack: Prometheus scrapes metrics your service exposes on a slash-metrics endpoint. Alertmanager evaluates alert rules and routes notifications to Slack, PagerDuty, or a webhook. Grafana visualizes trends. A separate drift job — Evidently or a custom batch process — computes drift and pushes those numbers into Prometheus. The example rule fires a critical alert when rolling accuracy stays below 0.85 for fifteen minutes."
+    },
+    {
+      "type": "content",
+      "title": "Retraining Trigger Types",
+      "bullets": [
+        "Scheduled: retrain nightly/weekly — simple but blunt",
+        "Threshold-based: retrain when drift/accuracy crosses limit",
+        "Event-based: enough new labels, or schema change detected",
+        "Hybrid is best: schedule + thresholds + guardrails"
+      ],
+      "narration": "There are three trigger strategies. Scheduled retraining runs on a fixed cadence — predictable but either wasteful or too slow. Threshold-based triggers fire on degradation, which is efficient but depends on trustworthy signals. Event-based triggers respond to things like accumulating enough new labeled data or detecting an upstream schema change. In practice you combine them: a baseline schedule plus threshold triggers for urgent cases, all wrapped in guardrails."
+    },
+    {
+      "type": "content",
+      "title": "Wiring the Automated Pipeline",
+      "bullets": [
+        "Alert webhook → orchestrator (Airflow, Kubeflow, GH Actions)",
+        "Retrain, log to registry (MLflow) with metrics",
+        "Validation gate: must beat current model + pass checks",
+        "Deploy via canary/shadow; keep old version for rollback",
+        "Log trigger reason, data snapshot, model version"
+      ],
+      "code": "@app.post('/retrain-hook')\ndef handle_alert(payload):\n    if in_cooldown() or retrains_today() >= MAX:\n        return skip('guardrail')\n    return trigger_pipeline(reason=payload['alertname'])",
+      "narration": "An alert should never push straight to production. Instead it kicks off a pipeline. The Alertmanager webhook hits an orchestrator like Airflow or GitHub Actions. That retrains the model and logs it to a registry such as MLflow. Then a validation gate checks the new model beats the current one on a trusted holdout and passes sanity and fairness checks. Only then do we deploy — via canary or shadow — keeping the old version ready for rollback. Every run records its trigger reason, data snapshot, and version for auditability."
+    },
+    {
+      "type": "content",
+      "title": "Guardrails and Common Pitfalls",
+      "bullets": [
+        "Alert fatigue: tune thresholds, group, use 'for' durations",
+        "Retraining loops: always gate on a trusted holdout",
+        "Feedback contamination: correct for selection bias",
+        "Cost control: cooldowns + minimum new-data thresholds",
+        "Reproducibility: snapshot data, pin code/config"
+      ],
+      "narration": "Finally, the guardrails. Too many noisy alerts cause fatigue and get ignored — tune and group them. A bad data window can spawn retraining loops that make things worse, so always validate against a trusted holdout before promoting. Watch for feedback contamination, where the model's own decisions bias future labels. Control cost with cooldowns and minimum new-data thresholds. And ensure every triggered run is reproducible by snapshotting data and pinning versions. Start simple with manual approval, then automate as you build trust in the signals."
+    }
+  ]
+}

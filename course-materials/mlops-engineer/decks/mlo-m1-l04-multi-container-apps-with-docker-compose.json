@@ -1,0 +1,194 @@
+{
+  "slug": "mlo-m1-l04-multi-container-apps-with-docker-compose",
+  "title": "Multi-Container Apps with Docker Compose",
+  "month": 1,
+  "monthTitle": "Containerization & Foundations for ML Workloads",
+  "lesson": 4,
+  "video": "mlo-m1-l04-multi-container-apps-with-docker-compose.mp4",
+  "summary": "Learn to use Docker Compose to define and run a multi-container ML application locally, orchestrating your model API alongside a database, cache, and supporting services with a single declarative file.",
+  "objectives": [
+    "Explain what Docker Compose is and when to use it over plain Docker commands",
+    "Write a docker-compose.yml file defining multiple services for an ML stack",
+    "Configure networking, volumes, environment variables, and dependencies between services",
+    "Use healthchecks and depends_on to control startup ordering for a model API and its database",
+    "Manage the Compose lifecycle with up, down, logs, and build commands",
+    "Apply best practices for local development and parity with production environments"
+  ],
+  "quiz": [
+    {
+      "q": "Inside a Compose network, how should the API service connect to a database service named 'db'?",
+      "options": [
+        "Using localhost:5432",
+        "Using the hostname 'db'",
+        "Using the container's IP address hardcoded",
+        "Using 0.0.0.0:5432"
+      ],
+      "answer": 1,
+      "why": "Compose registers each service under its service name as a DNS hostname, so the API reaches the database at host 'db'. localhost would refer to the API container itself."
+    },
+    {
+      "q": "What does 'depends_on' alone guarantee by default?",
+      "options": [
+        "The dependency is fully ready to accept connections",
+        "Only that the dependency container has started",
+        "That data volumes are mounted",
+        "That the dependency passes its healthcheck"
+      ],
+      "answer": 1,
+      "why": "By default depends_on only waits for the container to start, not for the service to be ready. You need a healthcheck with condition: service_healthy for true readiness."
+    },
+    {
+      "q": "Which mechanism persists database data across container removal?",
+      "options": [
+        "The container's writable layer",
+        "A named volume",
+        "An environment variable",
+        "The ports mapping"
+      ],
+      "answer": 1,
+      "why": "Named volumes (e.g., pgdata) persist data independently of the container lifecycle, unlike the ephemeral container filesystem."
+    },
+    {
+      "q": "Which command stops and removes containers, networks, AND named volumes?",
+      "options": [
+        "docker compose stop",
+        "docker compose down",
+        "docker compose down -v",
+        "docker compose rm"
+      ],
+      "answer": 2,
+      "why": "docker compose down removes containers and networks; adding -v also removes named volumes, deleting persisted data."
+    },
+    {
+      "q": "Why should you pin image versions like postgres:16 instead of postgres:latest?",
+      "answer": "To ensure reproducibility — :latest can change unexpectedly, breaking your environment, whereas a pinned version gives consistent, predictable builds across machines and over time.",
+      "why": "Reproducibility is a core MLOps concern; pinned versions prevent silent breakage when an image is updated upstream."
+    },
+    {
+      "q": "What is the purpose of a docker-compose.override.yml file?",
+      "answer": "It adds or overrides settings (like bind mounts, hot-reload commands, or debug ports) for local development without modifying the base compose file used for CI/staging, supporting environment parity.",
+      "why": "Override files let you keep a clean shared base config while customizing behavior per environment."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Docker Compose official documentation",
+      "url": "https://docs.docker.com/compose/"
+    },
+    {
+      "label": "Compose file specification reference",
+      "url": "https://docs.docker.com/reference/compose-file/"
+    },
+    {
+      "label": "Control startup and shutdown order in Compose",
+      "url": "https://docs.docker.com/compose/how-tos/startup-order/"
+    },
+    {
+      "label": "Manage data in Docker (volumes)",
+      "url": "https://docs.docker.com/storage/volumes/"
+    }
+  ],
+  "body_markdown": "## Why Docker Compose?\n\nWhen you deploy an ML model, the API rarely runs alone. It usually needs a database to store predictions or features, a cache like Redis for fast lookups, and maybe a message queue or a feature store. Running each container manually with long `docker run` commands is error-prone and hard to reproduce.\n\n**Docker Compose** lets you define an entire multi-container application in a single declarative YAML file (`docker-compose.yml`). One command — `docker compose up` — builds, networks, and starts everything together. This gives you reproducible local environments that closely mirror production.\n\n## Anatomy of a docker-compose.yml\n\nA Compose file describes **services** (containers), **networks**, and **volumes**.\n\n```yaml\nservices:\n  api:\n    build: ./api\n    ports:\n      - \"8000:8000\"\n    environment:\n      - DATABASE_URL=postgresql://ml:secret@db:5432/predictions\n    depends_on:\n      db:\n        condition: service_healthy\n  db:\n    image: postgres:16\n    environment:\n      - POSTGRES_USER=ml\n      - POSTGRES_PASSWORD=secret\n      - POSTGRES_DB=predictions\n    volumes:\n      - pgdata:/var/lib/postgresql/data\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U ml\"]\n      interval: 5s\n      retries: 5\nvolumes:\n  pgdata:\n```\n\nKey points:\n- `build:` builds from a Dockerfile; `image:` pulls a prebuilt image.\n- `ports:` maps host:container so you can reach the API at `localhost:8000`.\n- `environment:` injects config — never hardcode secrets in your image.\n\n## Service-to-Service Networking\n\nCompose automatically creates a default network and registers each service under its **service name** as a DNS hostname. Your API connects to the database using the host `db`, not `localhost`. This is one of the most common beginner mistakes — inside the network, `localhost` refers to the container itself, not a peer service.\n\n## Controlling Startup Order with Healthchecks\n\n`depends_on` controls *startup order*, but by default it only waits until the container starts — not until the service is *ready*. A Postgres container may be running but not yet accepting connections. Combine `depends_on` with `condition: service_healthy` and a `healthcheck` so your API only starts after the database can actually serve queries.\n\n## Persisting Data with Volumes\n\nContainers are ephemeral. If you store your database data inside the container filesystem, it disappears when the container is removed. **Named volumes** (like `pgdata`) persist data across restarts. **Bind mounts** map a host directory into the container — useful for live-reloading code or mounting model artifacts during development.\n\n## The Compose Lifecycle\n\n- `docker compose up -d` — build (if needed) and start all services in the background.\n- `docker compose logs -f api` — follow logs from one service.\n- `docker compose ps` — list running services.\n- `docker compose down` — stop and remove containers and networks (add `-v` to also remove volumes).\n- `docker compose build` — rebuild images after code changes.\n- `docker compose up --build` — rebuild and restart in one step.\n\n## Configuration & Environment Management\n\nUse a `.env` file for variables Compose interpolates into the YAML, and `env_file:` to inject runtime variables into a container. Keep secrets out of version control. For environment parity, use Compose **override files** (`docker-compose.override.yml` for local dev) so you can add bind mounts and debug ports locally without changing the base file used for CI or staging.\n\n## Best Practices for ML Workloads\n\n- Pin image versions (`postgres:16`, not `postgres:latest`) for reproducibility.\n- Keep heavy model artifacts in volumes or object storage, not baked into images when iterating.\n- Define resource awareness — Compose is for local/dev; production typically moves to Kubernetes.\n- Use healthchecks on the model API itself so dependent services know when it's ready.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Multi-Container Apps with Docker Compose",
+      "sub": "Orchestrating a model API, database, and supporting services locally",
+      "narration": "Welcome. In this lesson we'll learn how to use Docker Compose to run a complete machine learning application locally — not just your model API, but the database and supporting services it depends on, all defined in a single file and launched with one command."
+    },
+    {
+      "type": "content",
+      "title": "Why Compose? The Problem",
+      "bullets": [
+        "ML APIs rarely run alone — they need databases, caches, queues",
+        "Manual docker run commands are long, fragile, and unrepeatable",
+        "Hard to share a consistent environment across a team",
+        "Compose = one declarative file, one command to run everything"
+      ],
+      "narration": "A deployed model is rarely a single container. It usually needs a database to store predictions or features, maybe a Redis cache, and other supporting services. Running each one by hand with long docker run commands is error-prone and impossible to reproduce reliably across your team. Docker Compose solves this by letting you describe the whole application in one YAML file and start it with a single command."
+    },
+    {
+      "type": "content",
+      "title": "Anatomy of docker-compose.yml",
+      "bullets": [
+        "services: each container in your app",
+        "build: builds from a Dockerfile; image: pulls prebuilt",
+        "ports: maps host:container access",
+        "environment: inject config and connection strings"
+      ],
+      "code": "services:\n  api:\n    build: ./api\n    ports:\n      - \"8000:8000\"\n    environment:\n      - DATABASE_URL=postgresql://ml:secret@db:5432/predictions",
+      "narration": "The Compose file is organized around services — each one a container. You either build a service from a Dockerfile using the build key, or pull a prebuilt image. Ports map a host port to the container port so you can reach your API at localhost:8000. And the environment key injects configuration like database connection strings — keeping config out of your image."
+    },
+    {
+      "type": "content",
+      "title": "Service Networking",
+      "bullets": [
+        "Compose creates a shared network automatically",
+        "Each service is reachable by its service name as a DNS host",
+        "API connects to db using host 'db', not 'localhost'",
+        "Common mistake: localhost inside a container means itself"
+      ],
+      "code": "DATABASE_URL=postgresql://ml:secret@db:5432/predictions",
+      "narration": "Compose automatically creates a network and registers each service under its name as a DNS hostname. So your API connects to the database using the host name 'db', the name of the service. A very common beginner mistake is using localhost — but inside a container, localhost refers to that container itself, not to a peer service on the network."
+    },
+    {
+      "type": "content",
+      "title": "Startup Order & Healthchecks",
+      "bullets": [
+        "depends_on controls start order, not readiness",
+        "A running Postgres may not yet accept connections",
+        "Add a healthcheck plus condition: service_healthy",
+        "API then waits until the database is truly ready"
+      ],
+      "code": "depends_on:\n  db:\n    condition: service_healthy\nhealthcheck:\n  test: [\"CMD-SHELL\", \"pg_isready -U ml\"]\n  interval: 5s\n  retries: 5",
+      "narration": "depends_on controls the order services start, but by default it only waits for the container to start — not for the service to be ready to accept connections. A Postgres container can be up while still initializing. By adding a healthcheck and combining it with condition service_healthy, your API will only start once the database can actually serve queries, avoiding flaky connection errors at startup."
+    },
+    {
+      "type": "content",
+      "title": "Persisting Data with Volumes",
+      "bullets": [
+        "Containers are ephemeral — data vanishes on removal",
+        "Named volumes persist data across restarts",
+        "Bind mounts map host folders for live code or model artifacts",
+        "Pin database data to a named volume like pgdata"
+      ],
+      "code": "volumes:\n  pgdata:\n# in service:\n    volumes:\n      - pgdata:/var/lib/postgresql/data",
+      "narration": "Containers are ephemeral, so anything written inside them disappears when they're removed. Named volumes solve this by persisting data across restarts — perfect for your database. Bind mounts, which map a host directory into the container, are great in development for live-reloading code or mounting model artifacts without rebuilding the image."
+    },
+    {
+      "type": "content",
+      "title": "The Compose Lifecycle",
+      "bullets": [
+        "docker compose up -d — start everything in background",
+        "docker compose logs -f api — follow one service's logs",
+        "docker compose ps — see what's running",
+        "docker compose down -v — stop and remove, including volumes",
+        "docker compose up --build — rebuild after code changes"
+      ],
+      "narration": "These are the everyday commands. Up with dash d starts everything detached. Logs lets you follow a single service. ps shows running services. Down tears everything down — add dash v to also remove volumes. And up with build rebuilds your images after code changes. These few commands cover your entire local development loop."
+    },
+    {
+      "type": "content",
+      "title": "Config & Environment Parity",
+      "bullets": [
+        "Use a .env file for values Compose interpolates",
+        "env_file: injects runtime variables into a container",
+        "Keep secrets out of version control",
+        "Override files for local dev vs. CI/staging"
+      ],
+      "code": "# docker-compose.override.yml (local only)\nservices:\n  api:\n    volumes:\n      - ./api:/app\n    command: uvicorn main:app --reload",
+      "narration": "Manage configuration with a dot env file for values Compose interpolates, and env_file to inject runtime variables into containers — always keeping secrets out of version control. Use override files to add local-only behavior like bind mounts and hot reload, while keeping a clean base file that matches CI and staging for environment parity."
+    },
+    {
+      "type": "content",
+      "title": "Best Practices for ML Workloads",
+      "bullets": [
+        "Pin image versions for reproducibility — avoid :latest",
+        "Keep large model artifacts in volumes, not baked into images",
+        "Add healthchecks to the model API itself",
+        "Compose is for local/dev; production moves to Kubernetes"
+      ],
+      "narration": "To wrap up: pin your image versions for reproducibility, keep heavy model artifacts in volumes rather than baking them into images while iterating, and add healthchecks to your own model API so dependents know when it's ready. Remember Compose shines for local development and CI — for production scaling you'll typically graduate to Kubernetes, which is our next topic."
+    }
+  ]
+}

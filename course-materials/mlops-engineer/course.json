@@ -1,0 +1,33 @@
+{
+  "slug": "mlops-engineer",
+  "title": "MLOps Engineering: From Models to Production",
+  "description": "A hands-on, project-based course that takes you from containerizing ML workloads to building fully automated, monitored, and cloud-deployed machine learning pipelines. You'll master Docker, Kubernetes, CI/CD, MLflow, infrastructure as code, and production monitoring while building a portfolio of deployable systems.",
+  "audience": "Data scientists, software engineers, and DevOps practitioners who want to transition into an MLOps Engineer role and need practical skills in deploying, automating, and monitoring machine learning systems in production.",
+  "modules": 4,
+  "lessons": 16,
+  "layout": {
+    "decks": "decks",
+    "lessons": "lessons",
+    "videos": "videos",
+    "studyPacks": "study-packs"
+  },
+  "moduleTitles": {
+    "1": "Containerization & Foundations for ML Workloads",
+    "2": "Experiment Tracking, Pipelines & Model Deployment",
+    "3": "Orchestration, CI/CD & Infrastructure as Code",
+    "4": "Cloud Deployment, Monitoring & Capstone"
+  },
+  "generated": true,
+  "targetRole": "MLOps Engineer",
+  "targetSkills": [
+    "docker",
+    "kubernetes",
+    "ci-cd",
+    "model deployment",
+    "monitoring",
+    "mlflow",
+    "cloud",
+    "data pipelines",
+    "infrastructure as code"
+  ]
+}
