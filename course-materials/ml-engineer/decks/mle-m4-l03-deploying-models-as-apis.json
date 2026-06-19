@@ -1,0 +1,177 @@
+{
+  "slug": "mle-m4-l03-deploying-models-as-apis",
+  "title": "Deploying Models as APIs",
+  "month": 4,
+  "monthTitle": "Production ML: Pipelines, Evaluation, and Capstone",
+  "lesson": 3,
+  "video": "mle-m4-l03-deploying-models-as-apis.mp4",
+  "summary": "Learn how to take a trained machine learning model and serve it behind a production-ready REST API using FastAPI, then package it into a Docker container for reliable, portable deployment.",
+  "objectives": [
+    "Explain why models are served behind APIs and the trade-offs of online vs. batch inference",
+    "Load a serialized model and build prediction endpoints with FastAPI and Pydantic request validation",
+    "Add health checks, input/output schemas, and basic error handling to a serving API",
+    "Containerize the API with Docker, including dependency pinning and a clean entrypoint",
+    "Test the API locally and reason about scaling, latency, and monitoring concerns in production"
+  ],
+  "quiz": [
+    {
+      "q": "Why should a model be loaded once at application startup rather than inside the prediction endpoint?",
+      "options": [
+        "It reduces the Docker image size",
+        "It avoids paying the load cost on every request, improving latency",
+        "It is required by Pydantic validation",
+        "It prevents the model from being versioned"
+      ],
+      "answer": 1,
+      "why": "Loading the model per request adds significant latency and wastes resources. Loading once at startup means every request reuses the in-memory model."
+    },
+    {
+      "q": "What HTTP status code does FastAPI automatically return when an incoming request fails Pydantic validation?",
+      "options": [
+        "200",
+        "404",
+        "422",
+        "500"
+      ],
+      "answer": 2,
+      "why": "FastAPI uses 422 Unprocessable Entity for validation errors when the request body doesn't match the declared Pydantic schema."
+    },
+    {
+      "q": "In the Dockerfile, why is requirements.txt copied and installed before copying the rest of the application code?",
+      "options": [
+        "To hide the source code from the image",
+        "To leverage Docker layer caching so dependencies aren't reinstalled on every code change",
+        "Because pip cannot run after COPY .",
+        "To reduce the number of API workers"
+      ],
+      "answer": 1,
+      "why": "Copying and installing requirements first lets Docker cache that layer; when only app code changes, the expensive dependency install is skipped."
+    },
+    {
+      "q": "Which characteristic should a serving API have to scale horizontally behind a load balancer?",
+      "options": [
+        "It should store session state in memory",
+        "It should be stateless",
+        "It should load the model per request",
+        "It should disable health checks"
+      ],
+      "answer": 1,
+      "why": "Stateless services can be replicated freely since any instance can handle any request, enabling horizontal scaling."
+    },
+    {
+      "q": "What is the purpose of a /health endpoint in a deployed API?",
+      "answer": "It lets orchestrators or load balancers check that the service is alive and ready to receive traffic.",
+      "why": "Health checks allow infrastructure like Kubernetes or load balancers to detect unhealthy instances and route traffic only to healthy ones."
+    },
+    {
+      "q": "Name one production concern, other than health checks, that you should address when serving a model as an API.",
+      "answer": "Monitoring latency and prediction drift (also acceptable: concurrency/multiple workers, model versioning, passing secrets via environment variables).",
+      "why": "Production serving requires monitoring, scaling via workers, versioning, and secure secret handling beyond just basic functionality."
+    }
+  ],
+  "resources": [
+    {
+      "label": "FastAPI Official Documentation",
+      "url": "https://fastapi.tiangolo.com/"
+    },
+    {
+      "label": "Docker Get Started Guide",
+      "url": "https://docs.docker.com/get-started/"
+    },
+    {
+      "label": "Uvicorn Deployment Docs",
+      "url": "https://www.uvicorn.org/deployment/"
+    },
+    {
+      "label": "Pydantic Documentation",
+      "url": "https://docs.pydantic.dev/"
+    }
+  ],
+  "body_markdown": "## Why Serve Models as APIs?\n\nA trained model saved as a file (e.g., `model.pkl`) is useless to other systems until it is reachable. Wrapping it in a **REST API** lets web apps, mobile clients, and other services request predictions over HTTP without knowing anything about Python or your model internals.\n\n**Online (real-time) inference** answers one request at a time with low latency — ideal for fraud checks or recommendations. **Batch inference** scores large datasets on a schedule and is cheaper per prediction but not interactive. This lesson focuses on online serving.\n\n## Choosing FastAPI\n\nFastAPI is a modern Python web framework that is fast, async-capable, and gives you:\n\n- Automatic request validation via **Pydantic** models\n- Auto-generated interactive docs at `/docs` (Swagger UI)\n- Type hints that double as documentation and validation\n\n## Anatomy of a Serving API\n\nA minimal but solid serving service has:\n\n1. **Model loading at startup** — load once, reuse across requests (never reload per request).\n2. **A request schema** — validates incoming JSON so bad input fails fast with a clear 422 error.\n3. **A prediction endpoint** — transforms input, calls `model.predict`, returns JSON.\n4. **A health endpoint** — lets orchestrators (Kubernetes, load balancers) know the service is alive.\n\n```python\nfrom fastapi import FastAPI\nfrom pydantic import BaseModel\nimport joblib\n\napp = FastAPI(title=\"Iris Classifier\")\nmodel = joblib.load(\"model.pkl\")  # loaded once at import\n\nclass IrisRequest(BaseModel):\n    sepal_length: float\n    sepal_width: float\n    petal_length: float\n    petal_width: float\n\nclass IrisResponse(BaseModel):\n    prediction: int\n    label: str\n\n@app.get(\"/health\")\ndef health():\n    return {\"status\": \"ok\"}\n\n@app.post(\"/predict\", response_model=IrisResponse)\ndef predict(req: IrisRequest):\n    features = [[req.sepal_length, req.sepal_width,\n                 req.petal_length, req.petal_width]]\n    pred = int(model.predict(features)[0])\n    return IrisResponse(prediction=pred, label=str(pred))\n```\n\nRun it locally with:\n\n```bash\nuvicorn app:app --host 0.0.0.0 --port 8000\n```\n\nVisit `http://localhost:8000/docs` to try requests interactively.\n\n## Error Handling and Validation\n\nPydantic automatically rejects malformed payloads with HTTP 422. For domain errors (e.g., model failure), raise `HTTPException`:\n\n```python\nfrom fastapi import HTTPException\n\ntry:\n    pred = model.predict(features)\nexcept Exception:\n    raise HTTPException(status_code=500, detail=\"Inference failed\")\n```\n\nNever let raw stack traces leak to clients — return clean status codes and messages.\n\n## Containerizing with Docker\n\nContainers package your code, dependencies, and runtime into a single portable image so it runs identically on your laptop, CI, and the cloud.\n\nPin dependencies in `requirements.txt`:\n\n```\nfastapi==0.111.0\nuvicorn[standard]==0.30.0\nscikit-learn==1.5.0\njoblib==1.4.0\n```\n\nA clean `Dockerfile`:\n\n```dockerfile\nFROM python:3.11-slim\n\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\n\nCOPY . .\n\nEXPOSE 8000\nCMD [\"uvicorn\", \"app:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"]\n```\n\nBuild and run:\n\n```bash\ndocker build -t iris-api .\ndocker run -p 8000:8000 iris-api\n```\n\n**Tips:** use a `slim` base image to keep size down, copy `requirements.txt` first so dependency layers cache, and never bake secrets into the image — pass them as environment variables.\n\n## Production Concerns\n\n- **Concurrency:** run multiple workers (e.g., `uvicorn --workers 4` or Gunicorn) to handle parallel requests.\n- **Latency:** keep models warm, batch where possible, and avoid heavy per-request I/O.\n- **Monitoring:** log request counts, latency, and prediction distributions to detect drift.\n- **Versioning:** include a model version in responses so you can trace which model produced a prediction.\n- **Statelessness:** keep the API stateless so it scales horizontally behind a load balancer.\n",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Deploying Models as APIs",
+      "sub": "Serving ML with FastAPI and Docker",
+      "narration": "Welcome. In this lesson we take a trained model and make it usable by the rest of the world. We'll wrap it in a REST API using FastAPI and then containerize it with Docker so it deploys reliably anywhere."
+    },
+    {
+      "type": "content",
+      "title": "Why an API?",
+      "bullets": [
+        "A saved model file isn't usable by other systems on its own",
+        "REST APIs expose predictions over HTTP to any client",
+        "Online inference: low-latency, one request at a time",
+        "Batch inference: cheaper, scheduled, not interactive"
+      ],
+      "narration": "A model sitting in a pickle file can't help anyone until it's reachable. By exposing it as a REST API, any web app, mobile client, or service can request predictions over HTTP without knowing your internals. Online inference answers requests in real time with low latency, while batch inference scores large datasets on a schedule. Today we focus on online serving."
+    },
+    {
+      "type": "content",
+      "title": "Why FastAPI?",
+      "bullets": [
+        "Modern, fast, async-capable Python framework",
+        "Automatic request validation with Pydantic",
+        "Auto-generated interactive docs at /docs",
+        "Type hints become validation and documentation"
+      ],
+      "narration": "FastAPI is our framework of choice. It's fast and async-capable, validates incoming requests automatically through Pydantic models, and generates interactive Swagger documentation at the slash-docs route. Your Python type hints simultaneously serve as validation rules and as living documentation, which dramatically reduces boilerplate."
+    },
+    {
+      "type": "content",
+      "title": "Anatomy of a Serving API",
+      "bullets": [
+        "Load the model once at startup, not per request",
+        "Define a request schema for validation",
+        "Prediction endpoint transforms input and returns JSON",
+        "Health endpoint for orchestrators and load balancers"
+      ],
+      "narration": "A solid serving service has four parts. Load the model once when the app starts so you don't pay loading cost on every request. Define a request schema so bad input fails fast. Provide a prediction endpoint that shapes input, calls predict, and returns JSON. And add a health endpoint so orchestrators like Kubernetes know the service is alive."
+    },
+    {
+      "type": "content",
+      "title": "FastAPI Prediction Endpoint",
+      "code": "class IrisRequest(BaseModel):\n    sepal_length: float\n    sepal_width: float\n    petal_length: float\n    petal_width: float\n\n@app.post(\"/predict\")\ndef predict(req: IrisRequest):\n    features = [[req.sepal_length, req.sepal_width,\n                 req.petal_length, req.petal_width]]\n    return {\"prediction\": int(model.predict(features)[0])}",
+      "narration": "Here's the core. We declare a Pydantic request model with typed fields. FastAPI automatically parses and validates the incoming JSON against it. Inside the endpoint we assemble the feature vector, call model dot predict, and return a JSON result. Notice the model was loaded once at module level, so this endpoint just reuses it."
+    },
+    {
+      "type": "content",
+      "title": "Validation & Error Handling",
+      "bullets": [
+        "Pydantic rejects malformed input with HTTP 422 automatically",
+        "Raise HTTPException for domain or inference errors",
+        "Return clean status codes, never raw stack traces",
+        "Wrap model.predict in try/except for safety"
+      ],
+      "narration": "Robust APIs handle bad input gracefully. Pydantic rejects malformed payloads with a clear 422 error before your code even runs. For failures inside prediction, wrap the call in a try-except and raise an HTTPException with a sensible status code and message. Never leak stack traces to clients; they're a security risk and a poor experience."
+    },
+    {
+      "type": "content",
+      "title": "Containerizing with Docker",
+      "code": "FROM python:3.11-slim\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY . .\nEXPOSE 8000\nCMD [\"uvicorn\", \"app:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"]",
+      "narration": "Docker packages your code, dependencies, and runtime into one portable image that runs identically everywhere. Use a slim base image to stay small. Copy requirements first and install them before copying your code, so Docker caches the dependency layer and rebuilds are fast. Expose the port and set the uvicorn command as the entrypoint. Then build and run with docker build and docker run."
+    },
+    {
+      "type": "content",
+      "title": "Production Concerns",
+      "bullets": [
+        "Run multiple workers for concurrency",
+        "Keep the API stateless for horizontal scaling",
+        "Monitor latency, throughput, and prediction drift",
+        "Version your model and pass secrets via env vars"
+      ],
+      "narration": "In production, run multiple workers to handle parallel requests, and keep the service stateless so you can scale horizontally behind a load balancer. Monitor request latency, throughput, and the distribution of predictions to catch drift early. Include a model version in responses for traceability, and never bake secrets into your image; pass them as environment variables instead."
+    },
+    {
+      "type": "content",
+      "title": "Recap",
+      "bullets": [
+        "APIs make models usable by any client",
+        "FastAPI gives validation and auto docs for free",
+        "Docker makes deployment portable and reproducible",
+        "Plan for scaling, monitoring, and versioning"
+      ],
+      "narration": "To recap: APIs turn a static model file into a usable service. FastAPI handles validation and documentation with minimal code. Docker makes your deployment portable and reproducible across environments. And thinking ahead about concurrency, monitoring, and versioning is what separates a demo from a real production system. In the capstone you'll apply all of this to your own model."
+    }
+  ]
+}

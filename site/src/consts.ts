@@ -75,6 +75,14 @@ export const COURSES: Course[] = [
     sample: 'ht4-l05-building-an-ai-triage-agent',
     accent: '#db2777',
   },
+  {
+    slug: 'ml-engineer',
+    title: 'Machine Learning Engineer Bootcamp: From Fundamentals to Production',
+    tagline: 'Aspiring Machine Learning Engineers with basic programming exposure who want to bridge résumé gaps and become job-ready for ML engineering roles.',
+    blurb: 'A project-based course that builds the practical skills needed to land a Machine Learning Engineer role, covering Python, math foundations, ML algorithms, PyTorch, feature engineering, model training and evaluation, and production-ready data pipelines. Learners build a portfolio of hands-on projects culminating in an end-to-end ML system.',
+    sample: 'mle-m1-l01-python-for-ml-numpy-pandas-and-clean-code',
+    accent: '#7c3aed',
+  },
 ];
 
 export function getCourse(slug: string): Course | undefined {

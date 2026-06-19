@@ -1,0 +1,181 @@
+{
+  "slug": "mle-m3-l04-model-training-best-practices-and-experiment-tra",
+  "title": "Model Training Best Practices and Experiment Tracking",
+  "month": 3,
+  "monthTitle": "Deep Learning with PyTorch",
+  "lesson": 4,
+  "video": "mle-m3-l04-model-training-best-practices-and-experiment-tra.mp4",
+  "summary": "A practical guide to training robust PyTorch models efficiently using learning rate schedules, early stopping, regularization techniques, and systematic experiment tracking.",
+  "objectives": [
+    "Apply learning rate schedules (step, cosine, ReduceLROnPlateau, warmup) to improve convergence",
+    "Implement early stopping to prevent overfitting and save compute",
+    "Use regularization techniques including weight decay, dropout, and data augmentation",
+    "Set up experiment tracking with tools like Weights & Biases or TensorBoard",
+    "Organize training runs reproducibly with config management and seeding",
+    "Diagnose training problems by reading loss/metric curves"
+  ],
+  "quiz": [
+    {
+      "q": "Which scheduler adapts the learning rate based on a monitored metric rather than a fixed schedule?",
+      "options": [
+        "StepLR",
+        "CosineAnnealingLR",
+        "ReduceLROnPlateau",
+        "LinearLR"
+      ],
+      "answer": 2,
+      "why": "ReduceLROnPlateau lowers the LR only when a monitored metric (e.g., validation loss) stops improving, making it adaptive rather than schedule-based."
+    },
+    {
+      "q": "In an early stopping setup, which checkpoint should you ultimately use?",
+      "options": [
+        "The last epoch's weights",
+        "The best validation-metric weights saved during training",
+        "The first epoch's weights",
+        "A random epoch"
+      ],
+      "answer": 1,
+      "why": "Validation performance often peaks before the final epoch, so you save and use the best checkpoint, not the last."
+    },
+    {
+      "q": "Why is AdamW preferred over Adam when applying weight decay?",
+      "options": [
+        "It trains faster on GPUs",
+        "It decouples weight decay from the gradient update",
+        "It removes the need for a learning rate",
+        "It disables dropout automatically"
+      ],
+      "answer": 1,
+      "why": "AdamW decouples weight decay from the adaptive gradient update, applying true L2 regularization correctly, unlike standard Adam."
+    },
+    {
+      "q": "What is the main purpose of learning rate warmup?",
+      "options": [
+        "To overfit faster",
+        "To stabilize early training, especially for transformers and large batches",
+        "To replace data augmentation",
+        "To stop training early"
+      ],
+      "answer": 1,
+      "why": "Warmup starts with a small LR and ramps it up, preventing instability in the early, sensitive steps of training."
+    },
+    {
+      "q": "Name one thing you should seed to make a PyTorch training run reproducible.",
+      "answer": "torch.manual_seed (also numpy and random)",
+      "why": "Seeding torch, numpy, and Python's random module controls stochastic operations so runs can be reproduced."
+    },
+    {
+      "q": "What does torch.nn.utils.clip_grad_norm_ help prevent?",
+      "answer": "Exploding gradients",
+      "why": "Gradient clipping caps the gradient norm, preventing unstable, exploding gradient updates."
+    }
+  ],
+  "resources": [
+    {
+      "label": "PyTorch LR Scheduler Documentation",
+      "url": "https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate"
+    },
+    {
+      "label": "Weights & Biases PyTorch Integration Guide",
+      "url": "https://docs.wandb.ai/guides/integrations/pytorch"
+    },
+    {
+      "label": "PyTorch Reproducibility Notes",
+      "url": "https://pytorch.org/docs/stable/notes/randomness.html"
+    },
+    {
+      "label": "Decoupled Weight Decay Regularization (AdamW paper)",
+      "url": "https://arxiv.org/abs/1711.05101"
+    }
+  ],
+  "body_markdown": "## Why Training Best Practices Matter\n\nGetting a model to *learn* is easy; getting it to learn **robustly and efficiently** is the engineering challenge. This lesson covers the practical levers a Machine Learning Engineer pulls during training: schedules, stopping criteria, regularization, and the tracking discipline that makes results reproducible and comparable.\n\n## Learning Rate Schedules\n\nThe learning rate (LR) is the single most important hyperparameter. A fixed LR is rarely optimal: too high and training diverges, too low and it crawls. Schedules adjust LR over time.\n\n- **Step decay**: drop LR by a factor every N epochs (`StepLR`, `MultiStepLR`).\n- **Cosine annealing**: smoothly decay following a cosine curve (`CosineAnnealingLR`). Popular and strong default.\n- **ReduceLROnPlateau**: drop LR when a monitored metric stops improving — adaptive, no schedule guessing.\n- **Warmup**: start LR small and ramp up over the first few hundred steps to stabilize early training (essential for transformers and large batches).\n\n```python\nimport torch\noptimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)\nscheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs)\nfor epoch in range(num_epochs):\n    train_one_epoch(...)\n    scheduler.step()   # step per epoch for CosineAnnealingLR\n```\n\nFor `ReduceLROnPlateau` you call `scheduler.step(val_loss)` after validation. Always confirm whether a scheduler steps per-batch or per-epoch.\n\n## Early Stopping\n\nEarly stopping halts training when validation performance stops improving, preventing overfitting and saving compute. The pattern: track the best validation metric, count epochs without improvement (`patience`), and stop when patience is exceeded. Always save the **best** checkpoint, not just the last.\n\n```python\nbest_loss, patience, wait = float('inf'), 5, 0\nfor epoch in range(max_epochs):\n    val_loss = validate(...)\n    if val_loss < best_loss - 1e-4:\n        best_loss, wait = val_loss, 0\n        torch.save(model.state_dict(), 'best.pt')\n    else:\n        wait += 1\n        if wait >= patience:\n            print('Early stopping'); break\n```\n\n## Regularization\n\nRegularization fights overfitting by constraining model complexity:\n\n- **Weight decay (L2)**: penalizes large weights. Use `AdamW` so decay is decoupled from the gradient update.\n- **Dropout**: randomly zeroes activations during training. Remember `model.train()` vs `model.eval()` toggles it.\n- **Data augmentation**: expands effective dataset size (flips, crops, noise) — often the highest-impact regularizer.\n- **Batch/Layer normalization**: stabilizes and regularizes indirectly.\n- **Gradient clipping**: `torch.nn.utils.clip_grad_norm_` prevents exploding gradients.\n\n## Experiment Tracking\n\nWhen you run dozens of experiments, memory and spreadsheets fail. Use a tracking tool (Weights & Biases, MLflow, or TensorBoard) to log hyperparameters, metrics, and artifacts automatically.\n\n```python\nimport wandb\nwandb.init(project='img-classifier', config={'lr':1e-3,'bs':64})\nfor epoch in range(num_epochs):\n    train_loss = train_one_epoch(...)\n    val_loss = validate(...)\n    wandb.log({'train_loss':train_loss,'val_loss':val_loss,\n               'lr':optimizer.param_groups[0]['lr']})\n```\n\n**Reproducibility checklist**: seed everything (`torch.manual_seed`, `numpy`, `random`), log the exact config, pin dependency versions, and version your data. A run you can't reproduce is a run you can't trust.\n\n## Putting It Together\n\nA solid training loop combines all four: an AdamW optimizer with weight decay, a cosine or plateau scheduler, early stopping on validation loss, augmentation in the data pipeline, and every metric streamed to your tracker. This is the baseline professional MLEs ship.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Model Training Best Practices & Experiment Tracking",
+      "sub": "Deep Learning with PyTorch",
+      "narration": "Welcome. In this lesson we move beyond making a model merely train, to training it robustly and efficiently. We'll cover learning rate schedules, early stopping, regularization, and experiment tracking — the everyday tools of a professional machine learning engineer."
+    },
+    {
+      "type": "content",
+      "title": "Why These Practices Matter",
+      "bullets": [
+        "Getting a model to learn is easy; learning robustly is the real job",
+        "Wasted compute and overfitting cost time and money",
+        "Reproducibility makes results trustworthy",
+        "These levers turn prototypes into production models"
+      ],
+      "narration": "Anyone can call loss-dot-backward and watch a number go down. The engineering challenge is efficiency, robustness, and reproducibility. The techniques in this lesson directly reduce wasted compute, prevent overfitting, and ensure that when you report a result, you and your team can reproduce it."
+    },
+    {
+      "type": "content",
+      "title": "Learning Rate Schedules",
+      "bullets": [
+        "Step / MultiStep: drop LR every N epochs",
+        "CosineAnnealing: smooth decay, strong default",
+        "ReduceLROnPlateau: adaptive, monitors a metric",
+        "Warmup: ramp up early to stabilize training"
+      ],
+      "code": "scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(\n    optimizer, T_max=num_epochs)\n# after each epoch:\nscheduler.step()",
+      "narration": "The learning rate is your most important hyperparameter. A fixed value is rarely optimal. Step decay drops it at fixed milestones. Cosine annealing decays smoothly and is a great default. ReduceLROnPlateau adapts based on a metric so you don't have to guess the schedule. Warmup ramps the rate up gradually at the start, which is essential for transformers and large batches. Always check whether your scheduler steps per batch or per epoch."
+    },
+    {
+      "type": "content",
+      "title": "Early Stopping",
+      "bullets": [
+        "Stop when validation metric stops improving",
+        "Use a patience counter for noise tolerance",
+        "Always save the BEST checkpoint, not the last",
+        "Saves compute and prevents overfitting"
+      ],
+      "code": "if val_loss < best_loss - 1e-4:\n    best_loss, wait = val_loss, 0\n    torch.save(model.state_dict(),'best.pt')\nelse:\n    wait += 1\n    if wait >= patience: break",
+      "narration": "Early stopping watches validation performance and halts when it plateaus. We use a patience counter so a single noisy epoch doesn't stop us prematurely. The critical detail: save the best checkpoint as you go, because the final epoch is often not the best one. This both prevents overfitting and saves you from burning compute on epochs that no longer help."
+    },
+    {
+      "type": "content",
+      "title": "Regularization Toolkit",
+      "bullets": [
+        "Weight decay via AdamW (decoupled L2)",
+        "Dropout — remember model.train() vs eval()",
+        "Data augmentation: often the biggest win",
+        "Gradient clipping prevents exploding gradients"
+      ],
+      "code": "optimizer = torch.optim.AdamW(\n    model.parameters(), lr=1e-3, weight_decay=1e-2)\ntorch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)",
+      "narration": "Regularization constrains complexity to fight overfitting. Use AdamW so weight decay is properly decoupled from the gradient update. Dropout zeroes activations during training only — so toggling train and eval mode matters. Data augmentation expands your effective dataset and is often the highest-impact technique. And gradient clipping keeps unstable gradients in check."
+    },
+    {
+      "type": "content",
+      "title": "Experiment Tracking",
+      "bullets": [
+        "Log hyperparameters, metrics, and artifacts",
+        "Tools: Weights & Biases, MLflow, TensorBoard",
+        "Compare runs visually instead of in spreadsheets",
+        "Log the learning rate each step to debug schedules"
+      ],
+      "code": "import wandb\nwandb.init(project='clf', config={'lr':1e-3})\nwandb.log({'val_loss':val_loss,\n           'lr':optimizer.param_groups[0]['lr']})",
+      "narration": "Once you run dozens of experiments, memory and spreadsheets break down. A tracking tool automatically logs your config, metrics, and model artifacts, letting you compare runs visually. A pro tip: always log the current learning rate so you can verify your schedule is actually doing what you expect."
+    },
+    {
+      "type": "content",
+      "title": "Reproducibility Checklist",
+      "bullets": [
+        "Seed torch, numpy, and random",
+        "Log the exact config for every run",
+        "Pin dependency versions",
+        "Version your data and your code"
+      ],
+      "narration": "A result you can't reproduce is a result you can't trust. Seed all random sources, log the exact configuration, pin your library versions, and version both your data and code. This discipline is what separates a hobby project from production machine learning."
+    },
+    {
+      "type": "content",
+      "title": "Putting It All Together",
+      "bullets": [
+        "AdamW + weight decay",
+        "Cosine or plateau LR schedule",
+        "Early stopping on validation loss",
+        "Augmentation + tracker streaming every metric"
+      ],
+      "narration": "A solid professional training loop combines everything: an AdamW optimizer with weight decay, a cosine or plateau scheduler, early stopping on validation loss, data augmentation in the pipeline, and every metric streamed to your experiment tracker. Build this once as a template and reuse it across projects."
+    }
+  ]
+}
