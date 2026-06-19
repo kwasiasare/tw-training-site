@@ -75,12 +75,15 @@ async function analyzeResume({ pdfBase64, questionnaire, catalogText }) {
     'and the recommendedSkills they would need to learn to get there.',
   ].join('\n');
 
+  // Runs inside a SWA managed Function, so it must be FAST: low effort + no
+  // extended thinking keeps the call ~10-20s (vs ~130s at default high effort,
+  // which starved the Functions host). Structured output already constrains the
+  // result, so deep thinking isn't needed for this analysis.
   const res = await getClient().messages.create({
     model: 'claude-opus-4-8',
-    max_tokens: 8000,
-    thinking: { type: 'adaptive' },
+    max_tokens: 4000,
     system: SYSTEM,
-    output_config: { format: { type: 'json_schema', schema: ANALYSIS_SCHEMA } },
+    output_config: { format: { type: 'json_schema', schema: ANALYSIS_SCHEMA }, effort: 'low' },
     messages: [{
       role: 'user',
       content: [
