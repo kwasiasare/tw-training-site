@@ -15,11 +15,12 @@ function analysisFor(role, skills) {
   };
 }
 
-function advisorHandler({ container, advisor, resumes } = {}) {
+function advisorHandler({ container, advisor, resumes, notify } = {}) {
   return loadHandler('custom-advisor', 'custom-advisor', {
     cosmosContainer: container || makeContainer(),
     advisor: advisor || (async () => analysisFor('AI Application Developer', ['python', 'rag', 'llm apps'])),
     resumes,
+    notify,
   });
 }
 
@@ -112,6 +113,44 @@ test('custom-advisor: GET returns the saved analysis + generation status', async
   assert.equal(res.status, 200);
   assert.equal(res.jsonBody.advisor.outcome.type, 'generating');
   assert.equal(res.jsonBody.generation.status, 'queued');
+});
+
+test('custom-advisor: POST notifies the admin on a course request (generating path)', async () => {
+  const notified = [];
+  const res = await advisorHandler({
+    advisor: async () => analysisFor('Quantum Hardware Technician', ['cryogenics', 'qubits']),
+    notify: async (payload) => { notified.push(payload); return { sent: true }; },
+  })(makeRequest(body()), makeContext());
+  assert.equal(res.jsonBody.outcome.type, 'generating');
+  assert.equal(notified.length, 1, 'admin notified once');
+  assert.equal(notified[0].targetRole, 'Quantum Hardware Technician');
+  assert.equal(notified[0].userEmail, 'alice@example.com');
+});
+
+test('custom-advisor: a matched request does NOT notify', async () => {
+  const notified = [];
+  await advisorHandler({
+    advisor: async () => analysisFor('AI Application Developer', ['python', 'rag', 'llm apps']),
+    notify: async (p) => { notified.push(p); },
+  })(makeRequest(body()), makeContext());
+  assert.equal(notified.length, 0);
+});
+
+test('custom-advisor: GET auto-delivers a now-published course (enroll + matched + clears request)', async () => {
+  const container = makeContainer({ seed: [
+    { id: 'user-123:advisor', userId: 'user-123', type: 'advisor', outcome: { type: 'generating' },
+      analysis: { recommendedRole: 'AI Application Developer', recommendedSkills: ['python', 'rag', 'llm apps'] } },
+    { id: 'gen:user-123', userId: 'user-123', type: 'generationRequest', status: 'queued' },
+  ] });
+  const handler = loadHandler('custom-advisor', 'custom-advisor', { cosmosContainer: container });
+  const res = await handler(makeRequest({ method: 'GET', user: authUser() }), makeContext());
+  assert.equal(res.status, 200);
+  assert.equal(res.jsonBody.advisor.outcome.type, 'matched');
+  assert.equal(res.jsonBody.advisor.outcome.courseSlug, 'dami-ai-career');
+  assert.equal(res.jsonBody.advisor.outcome.delivered, 'generated');
+  assert.equal(res.jsonBody.generation, null, 'request cleared');
+  assert.ok(container._calls.upserts.some((d) => d.id === 'user-123:enroll:dami-ai-career'), 'enrolled');
+  assert.ok(container._calls.deletes.includes('gen:user-123'), 'request deleted');
 });
 
 test('custom-advisor: GET returns nulls when the user has no plan yet', async () => {

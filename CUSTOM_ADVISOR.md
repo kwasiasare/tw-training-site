@@ -18,6 +18,18 @@ generate-course Action (manual dispatch)  →  author (Claude) → decks→md �
    →  merge = publish + reusable
 ```
 
+## Delivery & notification
+
+- **Admin notification:** when a user requests a custom course (no-match → generation queued),
+  `notify.js` emails the admin (`NOTIFY_EMAIL`, default kasare@spreadcomgh.com) so they can dispatch
+  the generator. Best-effort (never blocks the request). Configure **one** channel in app settings:
+  `RESEND_API_KEY` (+ `NOTIFY_FROM`) for Resend, or `NOTIFY_WEBHOOK_URL` for a webhook (e.g. a Power
+  Automate / Logic App flow that sends the mail). If neither is set it logs and no-ops.
+- **Auto-delivery:** once the generated course is published, the user's next `/account` visit
+  (`GET /api/custom-advisor`) re-matches their stored profile against the now-larger library — when a
+  match is found it **auto-enrols** them, flips the status to **matched / "Ready"**, and clears the
+  pending request. No manual enrollment needed.
+
 ## Components
 
 | Piece | Where |

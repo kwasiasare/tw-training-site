@@ -50,6 +50,34 @@ app.http('custom-advisor', {
         let generation = null;
         try { advisor = (await container.item(`${user.userId}:advisor`, user.userId).read()).resource; } catch { advisor = null; }
         try { generation = (await container.item(`gen:${user.userId}`, user.userId).read()).resource; } catch { generation = null; }
+
+        // Auto-delivery: if the user is awaiting a generated course and one now in
+        // the library matches their stored profile (i.e. their requested course was
+        // generated + published), enrol them and flip the status to "matched".
+        if (generation && generation.status !== 'ready' && advisor && advisor.analysis) {
+          const { allCourses } = require('../shared/catalog');
+          const { match } = require('../shared/matcher');
+          const m = match(
+            { role: advisor.analysis.recommendedRole, skills: advisor.analysis.recommendedSkills },
+            allCourses(),
+          );
+          if (m) {
+            const now = new Date().toISOString();
+            await container.items.upsert({
+              id: `${user.userId}:enroll:${m.courseSlug}`,
+              userId: user.userId,
+              type: 'enrollment',
+              course: m.courseSlug,
+              source: 'custom-advisor',
+              enrolledAt: now,
+            });
+            advisor.outcome = { type: 'matched', courseSlug: m.courseSlug, score: m.score, delivered: 'generated' };
+            await container.items.upsert(advisor);
+            try { await container.item(`gen:${user.userId}`, user.userId).delete(); } catch { /* already gone */ }
+            generation = null;
+          }
+        }
+
         return { status: 200, headers: { 'cache-control': 'private, no-store' }, jsonBody: { advisor, generation } };
       } catch (err) {
         context.error('custom-advisor GET error', err);
@@ -126,6 +154,17 @@ app.http('custom-advisor', {
           targetSkills: analysis.recommendedSkills,
           requestedAt: now,
         });
+        // Notify the admin so they can dispatch the generator (best-effort).
+        try {
+          const { notifyCourseRequest } = require('../shared/notify');
+          await notifyCourseRequest({
+            userEmail: user.userDetails,
+            targetRole: analysis.recommendedRole,
+            targetSkills: analysis.recommendedSkills,
+          });
+        } catch (e) {
+          context.error('course-request notify failed', e);
+        }
       }
 
       await container.items.upsert({
