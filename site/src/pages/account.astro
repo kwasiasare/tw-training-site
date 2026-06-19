@@ -166,8 +166,24 @@ const courseMeta = COURSES.map((c) => ({ slug: c.slug, title: c.title }));
             } else {
               html += '<p><a href="/custom">Build my custom training</a></p>';
             }
+            html += '<p style="margin-top:10px"><button class="btn secondary" id="ct-forget" type="button">Forget my résumé &amp; training data</button> <span id="ct-msg" class="theme" role="status" aria-live="polite"></span></p>';
             html += '</div>';
             slot.innerHTML = html;
+
+            var forget = document.getElementById('ct-forget');
+            if (forget) forget.addEventListener('click', function () {
+              if (!window.confirm('Delete your uploaded résumé and custom training data? This cannot be undone.')) return;
+              forget.disabled = true;
+              var msg = document.getElementById('ct-msg');
+              msg.textContent = 'Deleting…';
+              fetch('/api/custom-advisor', { method: 'DELETE', headers: { accept: 'application/json' } })
+                .then(function (r) { return r.ok; })
+                .then(function (ok) {
+                  if (ok) { slot.innerHTML = '<p class="theme">Your custom training data has been deleted.</p>'; }
+                  else { forget.disabled = false; msg.textContent = 'Could not delete — please try again.'; }
+                })
+                .catch(function () { forget.disabled = false; msg.textContent = 'Could not delete — please try again.'; });
+            });
           })
           .catch(function () {});
       })();

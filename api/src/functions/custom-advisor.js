@@ -10,13 +10,36 @@ const { app } = require('@azure/functions');
 const MAX_RESUME_BYTES = 5 * 1024 * 1024; // 5 MB
 
 app.http('custom-advisor', {
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'DELETE'],
   authLevel: 'anonymous', // SWA enforces auth at the route level
   route: 'custom-advisor',
   handler: async (request, context) => {
     const { getUser } = require('../shared/principal');
     const user = getUser(request);
     if (!user) return { status: 401, jsonBody: { error: 'not_authenticated' } };
+
+    // DELETE — right to be forgotten: remove the user's résumé + advisor data.
+    if (request.method === 'DELETE') {
+      try {
+        const { getContainer } = require('../shared/cosmos');
+        const container = getContainer();
+        let advisor = null;
+        try { advisor = (await container.item(`${user.userId}:advisor`, user.userId).read()).resource; } catch { advisor = null; }
+        if (advisor && advisor.resumeRef && advisor.resumeRef.key) {
+          try {
+            const { deleteResume } = require('../shared/resumes');
+            await deleteResume(advisor.resumeRef.key);
+          } catch (e) { context.error('résumé object delete failed', e); }
+        }
+        for (const id of [`${user.userId}:advisor`, `gen:${user.userId}`]) {
+          try { await container.item(id, user.userId).delete(); } catch { /* not present */ }
+        }
+        return { status: 200, jsonBody: { ok: true } };
+      } catch (err) {
+        context.error('custom-advisor DELETE error', err);
+        return { status: 500, jsonBody: { error: 'server_error' } };
+      }
+    }
 
     // GET — the user's saved analysis + any pending generation request (for /account).
     if (request.method === 'GET') {

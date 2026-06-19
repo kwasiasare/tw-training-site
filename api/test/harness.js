@@ -124,7 +124,7 @@ function adminUser(overrides = {}) {
 // returns all upserted docs (optionally filtered by a provided predicate).
 function makeContainer({ seed = [], queryResult } = {}) {
   const store = new Map(seed.map((d) => [d.id, d]));
-  const calls = { upserts: [], queries: [] };
+  const calls = { upserts: [], queries: [], deletes: [] };
   return {
     _store: store,
     _calls: calls,
@@ -153,6 +153,16 @@ function makeContainer({ seed = [], queryResult } = {}) {
           throw err;
         }
         return { resource: store.get(id) };
+      },
+      delete: async () => {
+        if (!store.has(id)) {
+          const err = new Error('NotFound');
+          err.code = 404;
+          throw err;
+        }
+        store.delete(id);
+        calls.deletes.push(id);
+        return {};
       },
     }),
   };
