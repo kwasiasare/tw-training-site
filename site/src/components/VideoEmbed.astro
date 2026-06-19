@@ -1,24 +1,61 @@
 ---
 import { videoUrl } from '../consts';
 interface Props {
-  src?: string; // filename (served from CDN base) or full URL
+  src?: string; // video filename (e.g. "m1-l01-....mp4")
   title?: string;
+  lesson?: string; // lesson slug; defaults to src without the .mp4 extension
 }
-const { src, title } = Astro.props;
-const url = videoUrl(src);
+const { src, title, lesson } = Astro.props;
+const hasVideo = !!src;
+const lessonId = lesson || (src ? src.replace(/\.mp4$/i, '') : '');
+// Local dev plays straight from /videos (no API/auth). In a production build the
+// player fetches a short-lived signed URL from /api/video at runtime, so no
+// public or guessable video URL is ever emitted into the HTML.
+const devUrl = import.meta.env.DEV ? videoUrl(src) : undefined;
 ---
 
-{url ? (
+{hasVideo ? (
   <div class="video-wrap">
-    <video controls preload="metadata" playsinline>
-      <source src={url} type="video/mp4" />
+    <video controls preload="none" playsinline data-video data-lesson={lessonId} src={devUrl}>
       Your browser does not support the video tag.
-      <a href={url}>Download the video</a>.
     </video>
+    <p class="video-status theme" data-video-status aria-live="polite" hidden={!!devUrl}>{devUrl ? '' : 'Loading video…'}</p>
   </div>
 ) : (
   <div class="video-missing">
     <strong>Instructor video coming soon.</strong>
     <div>{title ? `"${title}"` : 'This lesson'} will have a narrated video here.</div>
   </div>
+)}
+
+{hasVideo && !devUrl && (
+  <script is:inline define:vars={{ lessonId }}>
+    (function () {
+      var v = document.querySelector('video[data-video][data-lesson="' + lessonId + '"]');
+      if (!v) return;
+      var status = document.querySelector('[data-video-status]');
+      function show(html) { if (status) { status.innerHTML = html; status.hidden = false; } }
+      function clear() { if (status) { status.textContent = ''; status.hidden = true; } }
+
+      fetch('/api/video?lesson=' + encodeURIComponent(lessonId), { headers: { accept: 'application/json' } })
+        .then(function (r) {
+          if (r.status === 401 || r.status === 403) {
+            var back = encodeURIComponent(location.pathname);
+            show('Sign in to watch this lesson. <a href="/.auth/login/entraExternalId?post_login_redirect_uri=' + back + '">Sign in</a>');
+            return null;
+          }
+          return r.ok ? r.json() : null;
+        })
+        .then(function (d) {
+          if (d && d.url) {
+            v.preload = 'metadata';
+            v.src = d.url;
+            clear();
+          } else if (status && !status.hidden && status.textContent === 'Loading video…') {
+            show('Video is temporarily unavailable. Please refresh the page.');
+          }
+        })
+        .catch(function () { show('Video is temporarily unavailable. Please refresh the page.'); });
+    })();
+  </script>
 )}

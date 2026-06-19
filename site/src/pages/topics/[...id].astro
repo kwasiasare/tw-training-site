@@ -33,7 +33,7 @@ const next = idx >= 0 && idx < ordered.length - 1 ? ordered[idx + 1] : undefined
       <h1>{d.title}</h1>
       <p class="summary">{d.summary}</p>
 
-      <VideoEmbed src={d.video} title={d.title} />
+      <VideoEmbed src={d.video} title={d.title} lesson={topic.id} />
 
       <div id="lesson-progress" class="lesson-progress" data-course={d.course} data-lesson={topic.id} hidden></div>
 
