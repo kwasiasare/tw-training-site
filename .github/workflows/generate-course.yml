@@ -1,0 +1,122 @@
+name: Generate course
+
+# Manually-triggered offline course generation (TW-65). Authors a bespoke course
+# with Claude, renders narrated videos, uploads them to R2, registers the course in
+# the catalog, and opens a DRAFT PR for admin review (TW-66) — it is never merged
+# automatically.
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#   ANTHROPIC_API_KEY                          (authoring)
+#   AZURE_SPEECH_KEY, AZURE_SPEECH_REGION      (video narration; only if render=true)
+#   R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET, R2_PUBLIC_BASE
+#                                              (video upload; only if render=true)
+
+on:
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: 'Course slug (kebab-case, globally unique)'
+        required: true
+      role:
+        description: 'Target role to train toward'
+        required: true
+      skills:
+        description: 'Comma-separated skills/gaps to cover'
+        required: false
+        default: ''
+      prefix:
+        description: 'Lesson-slug prefix (keeps lesson ids globally unique)'
+        required: false
+        default: 'cx'
+      modules:
+        description: 'Number of modules'
+        required: false
+        default: '4'
+      lessons_per_module:
+        description: 'Lessons per module'
+        required: false
+        default: '4'
+      render_videos:
+        description: 'Render + upload narrated videos (slow/costly)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python deps
+        run: pip install --quiet anthropic boto3 pyyaml python-docx pillow imageio-ffmpeg
+
+      - name: Write .env from secrets (pipeline scripts read it)
+        run: |
+          cat > .env <<EOF
+          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+          AZURE_SPEECH_KEY=${{ secrets.AZURE_SPEECH_KEY }}
+          AZURE_SPEECH_REGION=${{ secrets.AZURE_SPEECH_REGION }}
+          R2_ACCOUNT_ID=${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID=${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY=${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET=${{ secrets.R2_BUCKET }}
+          R2_PUBLIC_BASE=${{ secrets.R2_PUBLIC_BASE }}
+          EOF
+
+      - name: Author course (Claude)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          python generate_course.py \
+            --slug "${{ inputs.slug }}" \
+            --prefix "${{ inputs.prefix }}" \
+            --role "${{ inputs.role }}" \
+            --skills "${{ inputs.skills }}" \
+            --modules "${{ inputs.modules }}" \
+            --lessons-per-module "${{ inputs.lessons_per_module }}"
+
+      - name: Decks → lesson markdown
+        run: python convert_decks_to_md.py "${{ inputs.slug }}"
+
+      - name: Render narrated videos
+        if: ${{ inputs.render_videos }}
+        env:
+          COURSE_SLUG: ${{ inputs.slug }}
+        run: COURSE_SLUG="${{ inputs.slug }}" python batch_render.py
+
+      - name: Upload videos to R2
+        if: ${{ inputs.render_videos }}
+        env:
+          COURSE_SLUG: ${{ inputs.slug }}
+        run: COURSE_SLUG="${{ inputs.slug }}" python upload_videos_r2.py
+
+      - name: Register course in the catalog
+        run: python add_course_to_consts.py "${{ inputs.slug }}"
+
+      - name: Open a draft PR for review
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          rm -f .env
+          BRANCH="generate/${{ inputs.slug }}"
+          git config user.name "course-generator[bot]"
+          git config user.email "noreply@github.com"
+          git checkout -b "$BRANCH"
+          git add "course-materials/${{ inputs.slug }}" site/src/consts.ts
+          git commit -m "Generated course: ${{ inputs.slug }} (${{ inputs.role }})"
+          git push origin "$BRANCH"
+          gh pr create --draft --base master --head "$BRANCH" \
+            --title "Generated course: ${{ inputs.slug }} — review before publish" \
+            --body "AI-generated course for **${{ inputs.role }}** (TW-65). Videos uploaded to R2; lessons + decks + catalog entry in this PR. **Review the lessons, then mark ready & merge to publish (TW-66).**"
