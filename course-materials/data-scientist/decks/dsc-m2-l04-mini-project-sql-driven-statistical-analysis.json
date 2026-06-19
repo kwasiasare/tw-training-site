@@ -1,0 +1,180 @@
+{
+  "slug": "dsc-m2-l04-mini-project-sql-driven-statistical-analysis",
+  "title": "Mini-Project: SQL-Driven Statistical Analysis",
+  "month": 2,
+  "monthTitle": "Statistics and SQL for Analysis",
+  "lesson": 4,
+  "video": "dsc-m2-l04-mini-project-sql-driven-statistical-analysis.mp4",
+  "summary": "In this hands-on mini-project you combine SQL data extraction with statistical hypothesis testing to investigate a real business question end-to-end. You'll frame a hypothesis, write SQL to pull a clean analysis-ready dataset, validate assumptions, run an appropriate statistical test in Python, and document your findings in a reproducible report.",
+  "objectives": [
+    "Translate a business question into a testable statistical hypothesis with clear null and alternative statements",
+    "Write SQL queries that extract, aggregate, and clean an analysis-ready dataset",
+    "Select and run an appropriate statistical test (t-test, chi-square, or proportion test) based on data type and assumptions",
+    "Interpret p-values, effect sizes, and confidence intervals in plain business language",
+    "Document the full workflow in a reproducible, peer-readable analysis report"
+  ],
+  "quiz": [
+    {
+      "q": "What should you decide before extracting or looking at any data?",
+      "options": [
+        "The exact p-value you want",
+        "The significance level (alpha) and hypotheses",
+        "The color scheme of your charts",
+        "Which database engine to use"
+      ],
+      "answer": 1,
+      "why": "Fixing alpha and stating H0/H1 before analysis prevents p-hacking and keeps the test valid."
+    },
+    {
+      "q": "Order value is strongly right-skewed with a few extreme outliers. Which is the most appropriate response?",
+      "options": [
+        "Ignore it; the t-test always works",
+        "Consider a log transform or a non-parametric test like Mann-Whitney U",
+        "Delete all orders above the mean",
+        "Switch to a chi-square test"
+      ],
+      "answer": 1,
+      "why": "Skewed continuous data can violate t-test assumptions; a transform or non-parametric test is more robust, while chi-square is for categorical data."
+    },
+    {
+      "q": "Why must you report an effect size in addition to the p-value?",
+      "options": [
+        "P-values are always wrong",
+        "Effect size measures practical importance, which significance alone does not",
+        "It is required by SQL",
+        "Effect size replaces the hypothesis"
+      ],
+      "answer": 1,
+      "why": "A result can be statistically significant yet practically trivial, especially with large samples; effect size quantifies the magnitude."
+    },
+    {
+      "q": "Which test fits comparing the conversion RATE (a proportion) between two variants?",
+      "options": [
+        "Welch's t-test",
+        "Two-proportion z-test or chi-square test",
+        "Pearson correlation",
+        "Linear regression of order_id"
+      ],
+      "answer": 1,
+      "why": "Conversion rate is a categorical/proportion outcome, so a two-proportion z-test or chi-square test is appropriate."
+    },
+    {
+      "q": "In one sentence, why should you verify your SQL joins before running statistics?",
+      "answer": "Because a join that fans out rows duplicates observations, inflating sample size and biasing means and test results.",
+      "why": "Duplicated rows break the assumption of one independent observation per unit and distort every downstream statistic."
+    },
+    {
+      "q": "Name one piece of information, besides the p-value, that a complete analysis report should include.",
+      "answer": "Effect size, confidence interval, the SQL used, assumption checks, or stated limitations (any one).",
+      "why": "A defensible report documents the full workflow and the magnitude/uncertainty of the result, not just whether p < alpha."
+    }
+  ],
+  "resources": [
+    {
+      "label": "SciPy stats: statistical tests reference",
+      "url": "https://docs.scipy.org/doc/scipy/reference/stats.html"
+    },
+    {
+      "label": "pandas read_sql documentation",
+      "url": "https://pandas.pydata.org/docs/reference/api/pandas.read_sql.html"
+    },
+    {
+      "label": "Mode SQL Tutorial (intermediate to advanced)",
+      "url": "https://mode.com/sql-tutorial/"
+    },
+    {
+      "label": "StatQuest: Hypothesis Testing and p-values (video series)",
+      "url": "https://www.youtube.com/c/joshstarmer"
+    }
+  ],
+  "body_markdown": "## Overview\n\nThis mini-project ties together the two pillars of analytical work: **getting the right data** (SQL) and **drawing defensible conclusions from it** (statistics). Real data science rarely starts with a tidy CSV. You query a database, shape the data, then test a hypothesis and communicate the result.\n\nWe'll use a running example: *Does a new checkout flow (variant B) increase the average order value compared to the old flow (variant A)?*\n\n## Step 1 — Frame the Hypothesis\n\nBefore touching data, write down:\n\n- **Null hypothesis (H0):** There is no difference in mean order value between variants A and B.\n- **Alternative (H1):** Variant B has a different (or higher) mean order value than A.\n- **Significance level (alpha):** Typically 0.05.\n- **Metric and unit of analysis:** Order value per completed order.\n\nA clear hypothesis prevents \"p-hacking\" — fishing through data until something looks significant.\n\n## Step 2 — Extract Data with SQL\n\nPull only what you need, at the correct grain. Filter out test accounts, refunds, and incomplete orders.\n\n```sql\nSELECT\n    o.order_id,\n    e.variant,\n    o.order_value\nFROM orders o\nJOIN experiment_assignment e\n    ON o.user_id = e.user_id\nWHERE o.status = 'completed'\n  AND o.created_at >= '2024-01-01'\n  AND e.experiment = 'checkout_v2'\n  AND o.is_test = FALSE;\n```\n\nGood extraction habits:\n\n- **Filter at the source** — smaller, cleaner data downstream.\n- **Keep the grain explicit** — one row per order here.\n- **Avoid silent duplication** — verify joins don't fan out rows.\n\nYou can also compute group summaries directly in SQL as a sanity check:\n\n```sql\nSELECT\n    variant,\n    COUNT(*)        AS n_orders,\n    AVG(order_value) AS mean_value,\n    STDDEV(order_value) AS sd_value\nFROM ... -- same query as above wrapped\nGROUP BY variant;\n```\n\n## Step 3 — Validate Assumptions\n\nBefore running a test, check that its assumptions hold:\n\n- **Sample size** — enough observations per group (rule of thumb >30 for CLT to help).\n- **Distribution** — order value is often right-skewed; consider a log transform or a non-parametric test (Mann-Whitney U).\n- **Independence** — one observation per user, or account for repeat customers.\n- **Outliers** — a single huge order can dominate a mean; inspect with a boxplot.\n\n## Step 4 — Run the Statistical Test\n\nFor comparing two group means, use an independent two-sample t-test (Welch's version does not assume equal variances).\n\n```python\nimport pandas as pd\nfrom scipy import stats\n\ndf = pd.read_sql(query, conn)\na = df.loc[df.variant == 'A', 'order_value']\nb = df.loc[df.variant == 'B', 'order_value']\n\nt_stat, p_value = stats.ttest_ind(a, b, equal_var=False)\nprint(f't = {t_stat:.3f}, p = {p_value:.4f}')\n```\n\nReport an **effect size** too — statistical significance is not practical significance:\n\n```python\nimport numpy as np\n\npooled_sd = np.sqrt((a.var() + b.var()) / 2)\ncohens_d = (b.mean() - a.mean()) / pooled_sd\nprint(f\"Cohen's d = {cohens_d:.3f}\")\n```\n\nFor categorical outcomes (e.g., conversion rate), use a **chi-square test** or a **two-proportion z-test** instead.\n\n## Step 5 — Interpret and Document\n\nTranslate numbers into a decision:\n\n- If `p < alpha`, reject H0: the difference is unlikely due to chance.\n- Always pair the p-value with the **effect size** and a **confidence interval** for the difference in means.\n- State limitations: time window, confounders, novelty effects.\n\nA good report contains: the question, the hypothesis, the SQL used, assumption checks, the test and result, the effect size, and a one-line recommendation.\n\n## Common Pitfalls\n\n- Reading significance as importance — a tiny, useless lift can be \"significant\" with huge samples.\n- Ignoring multiple comparisons — testing many metrics inflates false positives.\n- Forgetting to deduplicate users before treating orders as independent.\n- Letting outliers or skew silently break the t-test's assumptions.\n\n## Deliverable\n\nProduce a short notebook or markdown report investigating one hypothesis on a dataset of your choice, including the SQL, the test, the effect size, and a plain-language conclusion.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Mini-Project: SQL-Driven Statistical Analysis",
+      "sub": "From a database question to a defensible conclusion",
+      "narration": "Welcome to the capstone mini-project of this module. Here we'll bring together everything you've learned about SQL and statistics by investigating a real hypothesis from start to finish — extracting data, testing it, and documenting what we find."
+    },
+    {
+      "type": "content",
+      "title": "The Workflow",
+      "bullets": [
+        "Frame a testable hypothesis",
+        "Extract clean data with SQL",
+        "Validate statistical assumptions",
+        "Run the appropriate test",
+        "Interpret and document findings"
+      ],
+      "narration": "The project follows five steps. We start by framing a precise hypothesis, then pull the right data with SQL, check that our assumptions hold, run a statistical test, and finally interpret and write up the result. Each step feeds the next, and skipping any of them weakens your conclusion."
+    },
+    {
+      "type": "content",
+      "title": "Step 1: Frame the Hypothesis",
+      "bullets": [
+        "H0: no difference between groups",
+        "H1: a difference exists",
+        "Set alpha (usually 0.05) upfront",
+        "Define metric and unit of analysis"
+      ],
+      "narration": "Our example question: does a new checkout flow raise average order value? We write the null hypothesis of no difference, the alternative that a difference exists, and we fix our significance level before looking at the data. Deciding alpha upfront keeps us honest and prevents p-hacking."
+    },
+    {
+      "type": "content",
+      "title": "Step 2: Extract with SQL",
+      "bullets": [
+        "Pull only what you need, at the right grain",
+        "Filter test accounts, refunds, incomplete orders",
+        "Verify joins don't duplicate rows",
+        "Sanity-check group summaries in SQL"
+      ],
+      "code": "SELECT o.order_id, e.variant, o.order_value\nFROM orders o\nJOIN experiment_assignment e ON o.user_id = e.user_id\nWHERE o.status = 'completed' AND o.is_test = FALSE;",
+      "narration": "Next we extract the data. We pull one row per completed order with its variant and value, filtering out test accounts and refunds at the source. Always confirm your joins don't fan out rows, and run a quick GROUP BY to eyeball counts and means per group before going further."
+    },
+    {
+      "type": "content",
+      "title": "Step 3: Validate Assumptions",
+      "bullets": [
+        "Adequate sample size per group",
+        "Check distribution — skew, outliers",
+        "Ensure independence of observations",
+        "Consider transforms or non-parametric tests"
+      ],
+      "narration": "Before testing, validate assumptions. Order values are often right-skewed and a single huge order can distort the mean. Check sample sizes, inspect distributions and outliers, and make sure observations are independent — deduplicate repeat users if needed. If assumptions fail, consider a log transform or a non-parametric Mann-Whitney test."
+    },
+    {
+      "type": "content",
+      "title": "Step 4: Run the Test",
+      "bullets": [
+        "Two means: Welch's t-test",
+        "Proportions: chi-square or z-test",
+        "Report effect size, not just p-value",
+        "Add a confidence interval",
+        "code below uses scipy"
+      ],
+      "code": "from scipy import stats\nt, p = stats.ttest_ind(a, b, equal_var=False)\nprint(t, p)",
+      "narration": "Now we run the test. For comparing two group means we use Welch's t-test, which doesn't assume equal variances. For categorical outcomes like conversion we'd use a chi-square or two-proportion test instead. Critically, always report an effect size such as Cohen's d alongside the p-value, plus a confidence interval for the difference."
+    },
+    {
+      "type": "content",
+      "title": "Step 5: Interpret & Document",
+      "bullets": [
+        "p < alpha: reject H0",
+        "Pair significance with effect size",
+        "State limitations and confounders",
+        "One-line, decision-ready recommendation"
+      ],
+      "narration": "Finally, interpret. If the p-value is below alpha we reject the null, but we never stop there — we combine it with the effect size and confidence interval to judge practical importance. We document the SQL, the assumption checks, the result, and any limitations, ending with a clear recommendation a stakeholder can act on."
+    },
+    {
+      "type": "content",
+      "title": "Pitfalls & Your Deliverable",
+      "bullets": [
+        "Significance is not importance",
+        "Watch multiple comparisons",
+        "Deduplicate users before assuming independence",
+        "Deliverable: a reproducible report on one hypothesis"
+      ],
+      "narration": "Watch out for common traps: with huge samples a trivial lift can look significant, testing many metrics inflates false positives, and treating non-independent orders as independent breaks your test. Your deliverable is a short reproducible report investigating one hypothesis, including the SQL, the test, the effect size, and a plain-language conclusion."
+    }
+  ]
+}

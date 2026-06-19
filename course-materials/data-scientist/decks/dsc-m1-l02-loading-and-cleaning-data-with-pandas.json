@@ -1,0 +1,187 @@
+{
+  "slug": "dsc-m1-l02-loading-and-cleaning-data-with-pandas",
+  "title": "Loading and Cleaning Data with Pandas",
+  "month": 1,
+  "monthTitle": "Python and Data Wrangling Foundations",
+  "lesson": 2,
+  "video": "dsc-m1-l02-loading-and-cleaning-data-with-pandas.mp4",
+  "summary": "Learn to import data from common file formats, inspect its structure and quality, and systematically clean messy real-world datasets using pandas—handling missing values, fixing inconsistent formats, and preparing data for analysis.",
+  "objectives": [
+    "Load data from CSV, Excel, and other formats into pandas DataFrames with appropriate parameters",
+    "Inspect a dataset's structure, types, and quality using core pandas methods",
+    "Detect and handle missing values using strategies like dropping and imputation",
+    "Standardize inconsistent text, dates, and numeric formats",
+    "Remove duplicates and apply type conversions to produce analysis-ready data"
+  ],
+  "quiz": [
+    {
+      "q": "Which parameter in read_csv lets you treat strings like '-' and 'n/a' as missing values during loading?",
+      "options": [
+        "parse_dates",
+        "na_values",
+        "usecols",
+        "dtype"
+      ],
+      "answer": 1,
+      "why": "na_values accepts a list of additional strings that pandas should interpret as NaN when reading the file."
+    },
+    {
+      "q": "What does errors='coerce' do in pd.to_numeric or pd.to_datetime?",
+      "options": [
+        "Raises an error and stops execution on bad values",
+        "Drops rows with bad values",
+        "Converts unparseable values to NaN/NaT",
+        "Ignores the conversion entirely"
+      ],
+      "answer": 2,
+      "why": "With errors='coerce', values that cannot be parsed become NaN (or NaT for dates), letting you handle them deliberately afterward."
+    },
+    {
+      "q": "Which method gives you the count of missing values in each column?",
+      "options": [
+        "df.info()",
+        "df.describe()",
+        "df.isna().sum()",
+        "df.value_counts()"
+      ],
+      "answer": 2,
+      "why": "df.isna() returns a boolean DataFrame of missing values, and .sum() totals them per column."
+    },
+    {
+      "q": "For a numeric column with a skewed distribution, which is generally the best imputation value?",
+      "options": [
+        "The mean",
+        "The median",
+        "Zero",
+        "The maximum"
+      ],
+      "answer": 1,
+      "why": "The median is robust to skew and outliers, making it a safer central value for skewed numeric data than the mean."
+    },
+    {
+      "q": "Write the pandas method call (with no arguments) that removes exact duplicate rows from a DataFrame named df.",
+      "answer": "df.drop_duplicates()",
+      "why": "drop_duplicates() with no arguments removes rows that are exact duplicates across all columns, keeping the first occurrence by default."
+    },
+    {
+      "q": "Which method would you use first to see column data types and non-null counts in one summary?",
+      "options": [
+        "df.head()",
+        "df.info()",
+        "df.shape",
+        "df.describe()"
+      ],
+      "answer": 1,
+      "why": "df.info() displays each column's data type along with its non-null count, quickly revealing type and missingness issues."
+    }
+  ],
+  "resources": [
+    {
+      "label": "pandas IO tools (reading and writing data) documentation",
+      "url": "https://pandas.pydata.org/docs/user_guide/io.html"
+    },
+    {
+      "label": "pandas Working with missing data guide",
+      "url": "https://pandas.pydata.org/docs/user_guide/missing_data.html"
+    },
+    {
+      "label": "pandas Cookbook (practical recipes)",
+      "url": "https://pandas.pydata.org/docs/user_guide/cookbook.html"
+    },
+    {
+      "label": "Real Python: Cleaning Data With pandas",
+      "url": "https://realpython.com/python-data-cleaning-numpy-pandas/"
+    }
+  ],
+  "body_markdown": "## Why Data Cleaning Matters\n\nReal-world data is messy: missing values, inconsistent capitalization, mixed date formats, stray whitespace, and duplicate rows are the norm, not the exception. Data scientists routinely spend the majority of a project on loading and cleaning data before any modeling begins. Pandas is the workhorse library for this work in Python.\n\n## Loading Data\n\nPandas can read many formats. The most common is CSV:\n\n```python\nimport pandas as pd\n\ndf = pd.read_csv('sales.csv')\n```\n\nUseful parameters:\n\n- `sep` — delimiter (e.g. `';'` or `'\\t'`)\n- `na_values` — extra strings to treat as missing (e.g. `['NA', '-', 'unknown']`)\n- `parse_dates` — columns to parse as datetimes\n- `dtype` — force column types\n- `usecols` — load only needed columns\n\n```python\ndf = pd.read_csv('sales.csv', na_values=['-', 'n/a'], parse_dates=['order_date'])\n```\n\nOther readers: `pd.read_excel()`, `pd.read_json()`, `pd.read_parquet()`, `pd.read_sql()`.\n\n## Inspecting the Data\n\nAlways look before you clean:\n\n```python\ndf.head()        # first rows\ndf.shape         # (rows, columns)\ndf.info()        # dtypes and non-null counts\ndf.describe()    # summary stats for numeric columns\ndf.isna().sum()  # missing values per column\ndf['city'].value_counts()  # category frequencies\n```\n\n`info()` and `isna().sum()` are your fastest signals of data-quality problems.\n\n## Handling Missing Values\n\nFirst understand *why* values are missing, then choose a strategy:\n\n- **Drop**: `df.dropna()` removes rows; `df.dropna(axis=1)` removes columns. Use `subset=` and `thresh=` for control.\n- **Impute**: fill with a sensible value.\n\n```python\ndf['age'] = df['age'].fillna(df['age'].median())\ndf['category'] = df['category'].fillna('unknown')\n```\n\nUse the median for skewed numerics, the mean for symmetric data, and the mode or a placeholder for categories. Avoid dropping data carelessly—you may lose valuable signal.\n\n## Fixing Inconsistent Formats\n\nText is a common offender:\n\n```python\ndf['city'] = df['city'].str.strip().str.lower()\ndf['city'] = df['city'].replace({'ny': 'new york', 'nyc': 'new york'})\n```\n\nConvert types explicitly:\n\n```python\ndf['price'] = pd.to_numeric(df['price'], errors='coerce')\ndf['order_date'] = pd.to_datetime(df['order_date'], errors='coerce')\n```\n\nUsing `errors='coerce'` turns unparseable values into `NaN`/`NaT` so you can handle them deliberately.\n\n## Removing Duplicates\n\n```python\ndf.duplicated().sum()      # how many duplicate rows\ndf = df.drop_duplicates()  # remove exact duplicates\ndf = df.drop_duplicates(subset=['customer_id'], keep='last')\n```\n\n## A Practical Cleaning Workflow\n\n1. Load with the right parameters.\n2. Inspect shape, types, and missingness.\n3. Standardize column names: `df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_')`.\n4. Fix data types.\n5. Handle missing values.\n6. Standardize text/categories.\n7. Remove duplicates.\n8. Validate the result with another `info()`/`describe()`.\n\nKeep cleaning steps in a reproducible script or notebook so the same raw data always produces the same clean output.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Loading and Cleaning Data with Pandas",
+      "sub": "Python and Data Wrangling Foundations",
+      "narration": "Welcome. In this lesson we'll learn how to load messy real-world data into pandas and clean it so it's ready for analysis. This is one of the most important and time-consuming skills for any data scientist."
+    },
+    {
+      "type": "content",
+      "title": "Why Cleaning Matters",
+      "bullets": [
+        "Real data has missing values, typos, and bad formats",
+        "Data scientists spend most project time on cleaning",
+        "Garbage in, garbage out—models depend on clean data",
+        "Pandas is the standard Python tool for this work"
+      ],
+      "narration": "Before any modeling happens, data needs to be cleaned. Real datasets are full of missing values, inconsistent capitalization, mixed formats, and duplicates. Studies and experience show data scientists spend most of their time here. The principle is simple: garbage in, garbage out. Pandas is the workhorse library we'll use throughout."
+    },
+    {
+      "type": "content",
+      "title": "Loading Data",
+      "bullets": [
+        "read_csv is the most common entry point",
+        "Key params: sep, na_values, parse_dates, dtype, usecols",
+        "Other readers: read_excel, read_json, read_parquet, read_sql"
+      ],
+      "code": "df = pd.read_csv('sales.csv',\n    na_values=['-', 'n/a'],\n    parse_dates=['order_date'])",
+      "narration": "Loading starts with read_csv for comma-separated files. Important parameters let you specify the delimiter, declare extra strings that should count as missing with na_values, parse date columns automatically, force data types, and load only the columns you need. Pandas also has readers for Excel, JSON, Parquet, and SQL databases."
+    },
+    {
+      "type": "content",
+      "title": "Inspect Before You Clean",
+      "bullets": [
+        "head() and shape for a quick look",
+        "info() shows dtypes and non-null counts",
+        "describe() summarizes numeric columns",
+        "isna().sum() counts missing values per column"
+      ],
+      "code": "df.info()\ndf.isna().sum()\ndf['city'].value_counts()",
+      "narration": "Never start cleaning blind. Use head and shape to see the data and its size. info gives you data types and non-null counts in one view. describe summarizes numeric columns. isna dot sum tells you exactly how many values are missing per column, and value_counts reveals inconsistent categories. These few methods surface most quality problems fast."
+    },
+    {
+      "type": "content",
+      "title": "Handling Missing Values",
+      "bullets": [
+        "First ask why values are missing",
+        "Drop rows or columns with dropna(subset, thresh)",
+        "Impute with median, mean, mode, or placeholder",
+        "Don't drop data carelessly—you may lose signal"
+      ],
+      "code": "df['age'] = df['age'].fillna(df['age'].median())\ndf['category'] = df['category'].fillna('unknown')",
+      "narration": "With missing data, first try to understand why it's missing. Then choose a strategy: dropna removes rows or columns, with subset and thresh for fine control. Or impute—fill the gaps. Use the median for skewed numbers, the mean for symmetric data, and the mode or a placeholder like 'unknown' for categories. Avoid dropping rows carelessly, since you can lose valuable information."
+    },
+    {
+      "type": "content",
+      "title": "Fixing Inconsistent Formats",
+      "bullets": [
+        "Clean text with .str.strip() and .str.lower()",
+        "Map variants with replace()",
+        "Convert types with to_numeric and to_datetime",
+        "Use errors='coerce' to turn bad values into NaN"
+      ],
+      "code": "df['city'] = df['city'].str.strip().str.lower()\ndf['price'] = pd.to_numeric(df['price'], errors='coerce')\ndf['order_date'] = pd.to_datetime(df['order_date'], errors='coerce')",
+      "narration": "Inconsistent formats are everywhere. Strip whitespace and lowercase text to merge variants, and use replace to map things like 'ny' and 'nyc' to 'new york'. Convert columns to proper types with to_numeric and to_datetime. The errors='coerce' option is key: it turns unparseable values into NaN or NaT so you can handle them deliberately rather than crashing."
+    },
+    {
+      "type": "content",
+      "title": "Removing Duplicates",
+      "bullets": [
+        "Check with df.duplicated().sum()",
+        "drop_duplicates() removes exact repeats",
+        "Use subset= to dedupe on key columns",
+        "keep='first' or 'last' controls which row stays"
+      ],
+      "code": "df = df.drop_duplicates(subset=['customer_id'],\n                        keep='last')",
+      "narration": "Duplicate rows can distort counts and averages. Use duplicated dot sum to see how many you have, then drop_duplicates to remove them. The subset parameter lets you dedupe based on key columns like a customer ID, and the keep parameter decides whether to retain the first or last occurrence."
+    },
+    {
+      "type": "content",
+      "title": "A Reproducible Workflow",
+      "bullets": [
+        "Load → inspect → standardize names → fix types",
+        "Handle missing values, then standardize text",
+        "Remove duplicates, then validate again",
+        "Keep all steps in a script or notebook"
+      ],
+      "code": "df.columns = (df.columns.str.strip()\n              .str.lower().str.replace(' ', '_'))",
+      "narration": "Pull it together into a repeatable workflow: load with the right parameters, inspect, standardize column names, fix data types, handle missing values, clean text and categories, remove duplicates, and validate the result. Keep every step in a script or notebook so the same raw input always produces the same clean output. Reproducibility is what separates professional work from one-off hacks."
+    }
+  ]
+}

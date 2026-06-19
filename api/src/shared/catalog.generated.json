@@ -1,1 +1,21 @@
-[]
+[
+  {
+    "slug": "data-scientist",
+    "title": "Data Scientist Career Accelerator: From Python to Production Insights",
+    "summary": "A project-based course that takes you from programming and statistics fundamentals to building, evaluating, and communicating machine learning models. You'll work with real datasets to build a portfolio of analyses, dashboards, and end-to-end ML projects that prove you're ready for a data scientist ",
+    "targetProfile": {
+      "role": "Data Scientist",
+      "level": "mid",
+      "skills": [
+        "python",
+        "statistics",
+        "sql",
+        "pandas",
+        "machine learning",
+        "data visualization",
+        "experiment design",
+        "storytelling"
+      ]
+    }
+  }
+]

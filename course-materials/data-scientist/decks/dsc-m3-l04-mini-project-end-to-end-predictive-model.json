@@ -1,0 +1,193 @@
+{
+  "slug": "dsc-m3-l04-mini-project-end-to-end-predictive-model",
+  "title": "Mini-Project: End-to-End Predictive Model",
+  "month": 3,
+  "monthTitle": "Machine Learning in Practice",
+  "lesson": 4,
+  "video": "dsc-m3-l04-mini-project-end-to-end-predictive-model.mp4",
+  "summary": "In this hands-on mini-project, you build a complete machine learning pipeline from raw data to a tuned, evaluated, and documented model. You'll practice the full workflow data scientists use in production: framing the problem, cleaning and splitting data, engineering features, training baselines, tuning hyperparameters with cross-validation, evaluating against business-relevant metrics, and documenting your results for stakeholders.",
+  "objectives": [
+    "Frame a predictive problem and select an evaluation metric aligned with the business goal",
+    "Construct a leak-free preprocessing and modeling pipeline using scikit-learn",
+    "Establish a baseline model and iteratively improve it with feature engineering and hyperparameter tuning",
+    "Evaluate models with cross-validation and an untouched test set using appropriate metrics",
+    "Document model performance, assumptions, and limitations in a reproducible report"
+  ],
+  "quiz": [
+    {
+      "q": "Why should you split your data into train and test sets before doing exploratory data analysis?",
+      "options": [
+        "To make the code run faster",
+        "To prevent information from the test set leaking into modeling decisions",
+        "Because scikit-learn requires it",
+        "To reduce the dataset size"
+      ],
+      "answer": 1,
+      "why": "Exploring or fitting on the full dataset lets test-set information influence your choices, leaking information and inflating performance estimates. Splitting first keeps the test set an honest final check."
+    },
+    {
+      "q": "On an imbalanced churn dataset where you act on the top-ranked customers, which metric is most appropriate?",
+      "options": [
+        "Accuracy",
+        "R-squared",
+        "ROC-AUC / precision@k",
+        "Mean squared error"
+      ],
+      "answer": 2,
+      "why": "With class imbalance and a ranking-based action, accuracy is misleading. ROC-AUC and precision@k reflect how well the model ranks and identifies the at-risk customers you actually target."
+    },
+    {
+      "q": "What is the main benefit of wrapping preprocessing inside a scikit-learn Pipeline before cross-validation?",
+      "options": [
+        "It automatically tunes hyperparameters",
+        "It guarantees a higher accuracy",
+        "Transformers are fit only on each training fold, preventing leakage",
+        "It removes the need for a test set"
+      ],
+      "answer": 2,
+      "why": "A Pipeline ensures imputers, scalers, and encoders are fit within each CV training fold, so statistics from validation folds never leak into training, giving unbiased estimates."
+    },
+    {
+      "q": "Why establish a simple baseline model before building complex ones?",
+      "options": [
+        "Baselines always outperform complex models",
+        "It provides a reference point to judge whether added complexity improves results",
+        "It is required for cross-validation",
+        "Baselines do not need hyperparameter tuning"
+      ],
+      "answer": 1,
+      "why": "A baseline gives context. If a complex model can't beat a dummy or logistic regression, the added complexity isn't justified."
+    },
+    {
+      "q": "Name one essential item you should include in a model card to make results reproducible.",
+      "answer": "Pinned dependencies / random seeds / saved pipeline (any of: data source, metrics, limitations, seeds)",
+      "why": "Reproducibility requires documenting things like the data source, the metric, pinned dependency versions, fixed random seeds, and the saved fitted pipeline so others can recreate your results."
+    },
+    {
+      "q": "What mistake does tuning hyperparameters using the test set cause?",
+      "answer": "It causes data leakage and an overly optimistic, unreliable performance estimate",
+      "why": "Using the test set during tuning means it no longer provides an unbiased estimate; the reported performance will be inflated and won't reflect real-world results."
+    }
+  ],
+  "resources": [
+    {
+      "label": "scikit-learn: Pipelines and composite estimators",
+      "url": "https://scikit-learn.org/stable/modules/compose.html"
+    },
+    {
+      "label": "scikit-learn: Cross-validation and hyperparameter tuning",
+      "url": "https://scikit-learn.org/stable/modules/grid_search.html"
+    },
+    {
+      "label": "Google: Model Cards for responsible reporting",
+      "url": "https://modelcards.withgoogle.com/about"
+    },
+    {
+      "label": "scikit-learn: Common pitfalls and data leakage",
+      "url": "https://scikit-learn.org/stable/common_pitfalls.html"
+    }
+  ],
+  "body_markdown": "## Project Overview\n\nThis mini-project takes you through a complete supervised learning workflow. The goal is not just a high score but a **reproducible, leak-free, well-documented pipeline** you could hand to a colleague or deploy.\n\nWe'll use a tabular classification example (predicting customer churn), but the workflow applies equally to regression.\n\n## Step 1 — Frame the Problem\n\nBefore writing code, answer:\n\n- **What are we predicting?** Binary churn (yes/no) in the next 30 days.\n- **Why does it matter?** Retention team wants a ranked list of at-risk customers to target.\n- **What metric matters?** Because we rank customers and act on the top ones, **ROC-AUC** and **precision@k** matter more than raw accuracy (the classes are imbalanced).\n\n> A clear problem statement determines your metric, your train/test strategy, and what \"good enough\" means.\n\n## Step 2 — Split First, Then Explore\n\nSplit the data **before** any analysis to avoid leakage. Use a stratified split to preserve class balance.\n\n```python\nfrom sklearn.model_selection import train_test_split\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.2, stratify=y, random_state=42)\n```\n\nDo all EDA on the training set only. The test set is a one-time final check.\n\n## Step 3 — Build a Leak-Free Pipeline\n\nWrap preprocessing and the model in a single `Pipeline`. Fit transformers (imputers, scalers, encoders) **inside** cross-validation folds so test-fold statistics never leak into training.\n\n```python\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.ensemble import RandomForestClassifier\n\nnum = ['tenure', 'monthly_charges']\ncat = ['contract', 'payment_method']\n\npre = ColumnTransformer([\n    ('num', Pipeline([('imp', SimpleImputer(strategy='median')),\n                      ('sc', StandardScaler())]), num),\n    ('cat', Pipeline([('imp', SimpleImputer(strategy='most_frequent')),\n                      ('oh', OneHotEncoder(handle_unknown='ignore'))]), cat),\n])\n\nclf = Pipeline([('pre', pre),\n                ('model', RandomForestClassifier(random_state=42))])\n```\n\n## Step 4 — Baseline First\n\nAlways establish a simple baseline (e.g., `DummyClassifier`, logistic regression) before complex models. It tells you whether sophistication is buying you anything.\n\n```python\nfrom sklearn.model_selection import cross_val_score\nimport numpy as np\nscores = cross_val_score(clf, X_train, y_train, cv=5, scoring='roc_auc')\nprint(f'CV AUC: {scores.mean():.3f} +/- {scores.std():.3f}')\n```\n\n## Step 5 — Tune Hyperparameters\n\nUse cross-validation inside the search. `RandomizedSearchCV` is usually more efficient than exhaustive grid search.\n\n```python\nfrom sklearn.model_selection import RandomizedSearchCV\nparam_dist = {\n    'model__n_estimators': [200, 400, 600],\n    'model__max_depth': [None, 8, 16, 24],\n    'model__min_samples_leaf': [1, 2, 4],\n}\nsearch = RandomizedSearchCV(clf, param_dist, n_iter=20, cv=5,\n                            scoring='roc_auc', random_state=42, n_jobs=-1)\nsearch.fit(X_train, y_train)\nprint(search.best_params_, search.best_score_)\n```\n\n## Step 6 — Final Evaluation\n\nEvaluate the **best** model once on the held-out test set. Report multiple metrics and a confusion matrix.\n\n```python\nfrom sklearn.metrics import roc_auc_score, classification_report\nbest = search.best_estimator_\nproba = best.predict_proba(X_test)[:, 1]\nprint('Test AUC:', roc_auc_score(y_test, proba))\nprint(classification_report(y_test, best.predict(X_test)))\n```\n\nInspect feature importances or SHAP values to explain drivers of churn.\n\n## Step 7 — Document & Reproduce\n\nWrite a short model card:\n\n- **Problem & metric**\n- **Data**: source, date, size, known biases\n- **Approach**: pipeline steps, model, tuning\n- **Results**: CV vs test metrics, confusion matrix\n- **Limitations**: assumptions, where it may fail, monitoring plan\n\nPin dependencies (`requirements.txt`), set random seeds, and save the fitted pipeline with `joblib.dump` so results are reproducible.\n\n## Common Pitfalls\n\n- Fitting scalers/encoders on the full dataset (data leakage)\n- Tuning on the test set\n- Reporting accuracy on imbalanced data\n- Forgetting to set `random_state`\n- No baseline to compare against",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Mini-Project: End-to-End Predictive Model",
+      "sub": "From raw data to a tuned, documented model",
+      "narration": "Welcome to the capstone mini-project for Machine Learning in Practice. In this lesson we'll build a complete predictive model from raw data all the way to a tuned, evaluated, and documented result. The emphasis is on the professional workflow data scientists use in production, not just chasing the highest score."
+    },
+    {
+      "type": "content",
+      "title": "Frame the Problem First",
+      "bullets": [
+        "Define what you predict and why it matters",
+        "Choose a metric tied to the business goal",
+        "Churn example: rank at-risk customers",
+        "Imbalanced data favors AUC and precision@k over accuracy"
+      ],
+      "narration": "Every project starts before the code. Decide what you're predicting and why. In our churn example, the retention team wants a ranked list of at-risk customers. Because we act on the top of that ranking and the classes are imbalanced, ROC-AUC and precision at k are far more meaningful than raw accuracy. A clear problem statement drives every later decision."
+    },
+    {
+      "type": "content",
+      "title": "Split Before You Explore",
+      "bullets": [
+        "Hold out a test set before any analysis",
+        "Use stratified splitting for imbalanced classes",
+        "Do EDA on training data only",
+        "Test set is a one-time final check"
+      ],
+      "code": "X_tr, X_te, y_tr, y_te = train_test_split(\n  X, y, test_size=0.2,\n  stratify=y, random_state=42)",
+      "narration": "The most important habit for avoiding leakage is to split your data first. Use a stratified split so the class balance is preserved in both sets. Then do all your exploratory analysis on the training set only. The test set stays untouched until the very end, acting as an honest estimate of real-world performance."
+    },
+    {
+      "type": "content",
+      "title": "Build a Leak-Free Pipeline",
+      "bullets": [
+        "Wrap preprocessing and model in one Pipeline",
+        "Use ColumnTransformer for numeric and categorical columns",
+        "Fit transformers inside CV folds",
+        "Prevents test statistics leaking into training"
+      ],
+      "code": "clf = Pipeline([('pre', pre),\n  ('model', RandomForestClassifier(random_state=42))])",
+      "narration": "Next we package everything into a single scikit-learn Pipeline. A ColumnTransformer handles numeric columns with imputation and scaling, and categorical columns with imputation and one-hot encoding. By keeping these steps inside the pipeline, every cross-validation fold fits its transformers only on training data, which prevents subtle leakage that would inflate your scores."
+    },
+    {
+      "type": "content",
+      "title": "Establish a Baseline",
+      "bullets": [
+        "Start simple: DummyClassifier or logistic regression",
+        "Measure with cross-validation",
+        "Baseline tells you if complexity pays off",
+        "Report mean and standard deviation"
+      ],
+      "code": "scores = cross_val_score(clf, X_tr, y_tr,\n  cv=5, scoring='roc_auc')",
+      "narration": "Before reaching for complex models, build a baseline. A dummy classifier or simple logistic regression gives you a reference point. If your fancy model can't beat the baseline, the complexity isn't earning its keep. Always report both the mean and the spread of your cross-validation scores so you understand the model's stability."
+    },
+    {
+      "type": "content",
+      "title": "Tune with Cross-Validation",
+      "bullets": [
+        "RandomizedSearchCV is efficient for large spaces",
+        "Tune inside CV, never on the test set",
+        "Search key hyperparameters per model",
+        "Keep random_state for reproducibility"
+      ],
+      "code": "search = RandomizedSearchCV(clf, param_dist,\n  n_iter=20, cv=5, scoring='roc_auc',\n  random_state=42, n_jobs=-1)",
+      "narration": "Now we tune hyperparameters. Randomized search samples combinations efficiently and usually finds strong settings faster than exhaustive grids. Crucially, the search runs cross-validation internally on the training data only. The test set is never involved in tuning, which keeps your final evaluation honest."
+    },
+    {
+      "type": "content",
+      "title": "Final Evaluation",
+      "bullets": [
+        "Evaluate the best model once on the test set",
+        "Report multiple metrics plus confusion matrix",
+        "Inspect feature importances or SHAP",
+        "Check performance across segments"
+      ],
+      "code": "proba = best.predict_proba(X_te)[:, 1]\nroc_auc_score(y_te, proba)",
+      "narration": "With the best model selected, we evaluate it exactly once on the held-out test set. Report several metrics, including a confusion matrix, so stakeholders understand the trade-offs. Examine feature importances or SHAP values to explain what's driving predictions, and check whether performance holds across important customer segments."
+    },
+    {
+      "type": "content",
+      "title": "Document & Reproduce",
+      "bullets": [
+        "Write a model card: problem, data, approach, results, limits",
+        "Pin dependencies and set seeds",
+        "Save the fitted pipeline with joblib",
+        "State monitoring and known failure modes"
+      ],
+      "narration": "Finally, document everything in a concise model card covering the problem, the data and its biases, your approach, results, and limitations. Pin your dependencies, set random seeds, and save the fitted pipeline so anyone can reproduce your work. This documentation is what separates a notebook experiment from a production-ready deliverable."
+    },
+    {
+      "type": "content",
+      "title": "Avoid Common Pitfalls",
+      "bullets": [
+        "Fitting scalers on full data = leakage",
+        "Tuning on the test set inflates scores",
+        "Accuracy misleads on imbalanced data",
+        "No baseline means no context",
+        "Forgetting random_state breaks reproducibility"
+      ],
+      "narration": "To close, keep these pitfalls in mind. Fitting preprocessing on the full dataset leaks information. Tuning on the test set gives you a falsely optimistic number. Accuracy is misleading when classes are imbalanced. Without a baseline you can't tell if your model is good. And forgetting to set random seeds makes your results impossible to reproduce. Master these and your end-to-end projects will hold up in production."
+    }
+  ]
+}

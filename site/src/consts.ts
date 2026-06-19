@@ -75,6 +75,14 @@ export const COURSES: Course[] = [
     sample: 'ht4-l05-building-an-ai-triage-agent',
     accent: '#db2777',
   },
+  {
+    slug: 'data-scientist',
+    title: 'Data Scientist Career Accelerator: From Python to Production Insights',
+    tagline: 'Aspiring data scientists, analysts, or developers with basic computer literacy who want to transition into a data science role through hands-on, portfolio-building work.',
+    blurb: 'A project-based course that takes you from programming and statistics fundamentals to building, evaluating, and communicating machine learning models. You\'ll work with real datasets to build a portfolio of analyses, dashboards, and end-to-end ML projects that prove you\'re ready for a data scientist role.',
+    sample: 'dsc-m1-l01-python-essentials-for-data-work',
+    accent: '#7c3aed',
+  },
 ];
 
 export function getCourse(slug: string): Course | undefined {

@@ -1,0 +1,192 @@
+{
+  "slug": "dsc-m2-l01-descriptive-statistics-and-distributions",
+  "title": "Descriptive Statistics and Distributions",
+  "month": 2,
+  "monthTitle": "Statistics and SQL for Analysis",
+  "lesson": 1,
+  "video": "dsc-m2-l01-descriptive-statistics-and-distributions.mp4",
+  "summary": "A practical introduction to descriptive statistics and probability distributions for data scientists. You'll learn to compute and interpret measures of central tendency and spread, recognize common distributions, and use these tools to quantitatively characterize real datasets in Python.",
+  "objectives": [
+    "Compute and interpret measures of central tendency: mean, median, and mode",
+    "Quantify spread using variance, standard deviation, range, IQR, and percentiles",
+    "Identify and describe skewness and the effect of outliers on summary statistics",
+    "Recognize common distributions (normal, uniform, binomial, Poisson, log-normal) and their use cases",
+    "Apply pandas and NumPy to generate descriptive summaries of real datasets",
+    "Interpret the empirical rule and use distribution shape to guide analysis decisions"
+  ],
+  "quiz": [
+    {
+      "q": "Which measure of central tendency is most robust to outliers?",
+      "options": [
+        "Mean",
+        "Median",
+        "Range",
+        "Variance"
+      ],
+      "answer": 1,
+      "why": "The median is the middle value and is unaffected by extreme values, unlike the mean which gets pulled toward outliers."
+    },
+    {
+      "q": "For an approximately normal distribution, roughly what percentage of data falls within two standard deviations of the mean?",
+      "options": [
+        "50%",
+        "68%",
+        "95%",
+        "99.7%"
+      ],
+      "answer": 2,
+      "why": "The empirical rule states about 95% of data lies within two standard deviations of the mean."
+    },
+    {
+      "q": "If a dataset's mean is much larger than its median, the distribution is most likely:",
+      "options": [
+        "Left-skewed",
+        "Symmetric",
+        "Right-skewed",
+        "Uniform"
+      ],
+      "answer": 2,
+      "why": "When the mean exceeds the median, a long right tail pulls the mean upward, indicating right (positive) skew."
+    },
+    {
+      "q": "Which distribution best models the number of customer arrivals at a store per hour?",
+      "options": [
+        "Normal",
+        "Poisson",
+        "Uniform",
+        "Log-normal"
+      ],
+      "answer": 1,
+      "why": "The Poisson distribution models counts of events occurring in a fixed interval of time or space."
+    },
+    {
+      "q": "Why does sample variance divide by n−1 instead of n?",
+      "answer": "Dividing by n−1 (Bessel's correction) corrects for bias, giving an unbiased estimate of the population variance since the sample mean is used in the calculation.",
+      "why": "Using the sample mean underestimates spread, so dividing by n−1 instead of n compensates and yields an unbiased estimator."
+    },
+    {
+      "q": "Using the 1.5×IQR rule, write the upper threshold above which a value is flagged as an outlier (in terms of Q1, Q3, and IQR).",
+      "answer": "Q3 + 1.5 * IQR",
+      "why": "Values above Q3 plus 1.5 times the interquartile range are considered potential outliers."
+    }
+  ],
+  "resources": [
+    {
+      "label": "pandas DataFrame.describe() documentation",
+      "url": "https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.describe.html"
+    },
+    {
+      "label": "SciPy stats module (distributions and descriptive stats)",
+      "url": "https://docs.scipy.org/doc/scipy/reference/stats.html"
+    },
+    {
+      "label": "Khan Academy: Summarizing quantitative data",
+      "url": "https://www.khanacademy.org/math/statistics-probability/summarizing-quantitative-data"
+    },
+    {
+      "label": "Seaborn distribution plots tutorial",
+      "url": "https://seaborn.pydata.org/tutorial/distributions.html"
+    }
+  ],
+  "body_markdown": "## Why Descriptive Statistics Matter\n\nBefore building models, a data scientist must understand the data. Descriptive statistics summarize a dataset's key features with a few numbers, letting you spot errors, outliers, and patterns quickly. They answer: *Where is the center? How spread out is it? What shape does it take?*\n\n## Central Tendency\n\nThree common measures of the 'center' of data:\n\n- **Mean** — the arithmetic average. Sensitive to outliers. `sum(x) / n`.\n- **Median** — the middle value when sorted. Robust to outliers; better for skewed data like income.\n- **Mode** — the most frequent value. Useful for categorical data.\n\nWhen mean ≈ median, the distribution is roughly symmetric. When mean > median, it's right-skewed (long right tail); when mean < median, it's left-skewed.\n\n## Measures of Spread\n\nCentral tendency alone is misleading — two datasets can share a mean but differ wildly in variability.\n\n- **Range** = max − min. Simple but very sensitive to extremes.\n- **Variance** = average squared deviation from the mean. Note: sample variance divides by `n-1` (Bessel's correction) for an unbiased estimate.\n- **Standard deviation** = square root of variance; in the same units as the data.\n- **IQR (Interquartile Range)** = Q3 − Q1, the middle 50% of data. Robust to outliers and used for box plots.\n- **Percentiles/Quantiles** describe relative position (e.g., the 90th percentile).\n\nA common outlier rule: values below `Q1 - 1.5*IQR` or above `Q3 + 1.5*IQR` are flagged.\n\n## Shape: Skewness and Kurtosis\n\n- **Skewness** measures asymmetry. Positive = right tail longer; negative = left tail longer.\n- **Kurtosis** measures tail heaviness. High kurtosis means more extreme outliers than a normal distribution.\n\n## Common Distributions\n\n| Distribution | Type | Typical use |\n|---|---|---|\n| **Normal (Gaussian)** | Continuous | Heights, measurement errors; foundation for many tests |\n| **Uniform** | Continuous/Discrete | Equal probability outcomes; random sampling |\n| **Binomial** | Discrete | Count of successes in n trials (conversions, clicks) |\n| **Poisson** | Discrete | Counts of events in a fixed interval (arrivals per hour) |\n| **Log-normal** | Continuous | Right-skewed positive data (income, prices) |\n\n### The Empirical Rule (Normal Distribution)\n\nFor an approximately normal distribution:\n- ~68% of data lies within 1 standard deviation of the mean\n- ~95% within 2 standard deviations\n- ~99.7% within 3 standard deviations\n\nThis rule helps you sanity-check spread and identify how unusual a value is (via z-scores: `z = (x - mean) / std`).\n\n## Doing It in Python\n\n```python\nimport pandas as pd\nimport numpy as np\n\ndf = pd.read_csv('data.csv')\n\n# Quick summary of all numeric columns\nprint(df.describe())\n\n# Individual statistics\ncol = df['salary']\nprint('mean:', col.mean())\nprint('median:', col.median())\nprint('std:', col.std())        # sample std (ddof=1 by default in pandas)\nprint('IQR:', col.quantile(0.75) - col.quantile(0.25))\nprint('skew:', col.skew())\n```\n\nNote: pandas `.std()` uses `ddof=1` (sample) by default, while NumPy `np.std()` uses `ddof=0` (population) — be explicit to avoid subtle bugs.\n\n## Practical Workflow\n\n1. Run `df.describe()` and `df.info()` first.\n2. Plot histograms and box plots to see shape and outliers.\n3. Choose mean vs. median based on skew.\n4. Use IQR or z-scores to flag outliers before modeling.\n5. Match the data's shape to a candidate distribution to inform downstream methods.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Descriptive Statistics and Distributions",
+      "sub": "Characterizing datasets quantitatively",
+      "narration": "Welcome. In this lesson we'll cover descriptive statistics and common probability distributions — the essential first step in understanding any dataset. By the end you'll be able to summarize data's center, spread, and shape, and recognize the distributions that show up most often in data science work."
+    },
+    {
+      "type": "content",
+      "title": "Why Describe Data First?",
+      "bullets": [
+        "Summarize thousands of rows in a few numbers",
+        "Spot errors, outliers, and data-entry problems",
+        "Decide how to clean and model the data",
+        "Center, spread, and shape are the three questions"
+      ],
+      "narration": "Before modeling, always describe your data. Summary statistics compress huge datasets into a handful of meaningful numbers, helping you catch errors and outliers early. We frame this around three questions: where is the center, how spread out is the data, and what shape does it take."
+    },
+    {
+      "type": "content",
+      "title": "Central Tendency",
+      "bullets": [
+        "Mean: average, sensitive to outliers",
+        "Median: middle value, robust to skew",
+        "Mode: most frequent, good for categories",
+        "Mean vs median reveals skew direction"
+      ],
+      "code": "col.mean(); col.median(); col.mode()",
+      "narration": "Central tendency captures the typical value. The mean is the average but gets dragged by outliers. The median, the middle value, resists outliers and is your friend for skewed data like income. The mode is the most common value, especially useful for categories. Comparing mean and median quickly tells you about skew."
+    },
+    {
+      "type": "content",
+      "title": "Measures of Spread",
+      "bullets": [
+        "Range = max − min (sensitive to extremes)",
+        "Variance & standard deviation around the mean",
+        "IQR = Q3 − Q1, robust middle 50%",
+        "Sample std uses n−1 (Bessel's correction)"
+      ],
+      "code": "col.std()  # ddof=1\ncol.quantile(0.75) - col.quantile(0.25)",
+      "narration": "The center isn't enough — two datasets with the same mean can vary completely. Range is simple but fragile. Variance and standard deviation measure typical distance from the mean, with std in the original units. The IQR, the middle fifty percent, is robust to outliers. Remember sample variance divides by n minus one for an unbiased estimate."
+    },
+    {
+      "type": "content",
+      "title": "Shape: Skew and Outliers",
+      "bullets": [
+        "Right-skew: mean > median, long right tail",
+        "Left-skew: mean < median",
+        "Kurtosis: heaviness of the tails",
+        "Outlier rule: beyond Q1−1.5·IQR or Q3+1.5·IQR"
+      ],
+      "narration": "Shape tells you about asymmetry and tails. Right-skewed data, common in incomes and prices, has a long right tail and a mean larger than the median. Kurtosis describes how heavy the tails are — high kurtosis means more extreme values. A standard rule flags points beyond one-point-five times the IQR from the quartiles as outliers."
+    },
+    {
+      "type": "content",
+      "title": "Common Distributions",
+      "bullets": [
+        "Normal: heights, errors, basis of many tests",
+        "Uniform: equal-probability outcomes",
+        "Binomial: successes in n trials (conversions)",
+        "Poisson: event counts per interval",
+        "Log-normal: right-skewed positive data"
+      ],
+      "narration": "Certain distributions appear again and again. The normal distribution underlies many statistical methods. Uniform gives equal probability across a range. Binomial counts successes across fixed trials, like conversions. Poisson models counts of events in an interval, like arrivals per hour. And log-normal fits right-skewed positive quantities such as income or prices."
+    },
+    {
+      "type": "content",
+      "title": "The Empirical Rule",
+      "bullets": [
+        "~68% within 1 standard deviation",
+        "~95% within 2 standard deviations",
+        "~99.7% within 3 standard deviations",
+        "z-score = (x − mean) / std measures unusualness"
+      ],
+      "narration": "For roughly normal data, the empirical rule says about 68 percent of values fall within one standard deviation of the mean, 95 percent within two, and 99.7 percent within three. The z-score converts any value into how many standard deviations it sits from the mean — a quick way to judge how unusual a data point is."
+    },
+    {
+      "type": "content",
+      "title": "Doing It in Python",
+      "bullets": [
+        "df.describe() for an instant summary",
+        "df.info() to check types and missing values",
+        "Plot histograms and box plots for shape",
+        "Watch ddof: pandas std=n−1, NumPy=n"
+      ],
+      "code": "import pandas as pd\ndf = pd.read_csv('data.csv')\nprint(df.describe())\nprint(df['salary'].skew())",
+      "narration": "In practice, start with df.describe and df.info to get summaries and check data types. Then plot histograms and box plots to see shape and outliers visually. A key gotcha: pandas std uses sample correction by default while NumPy uses the population formula, so be explicit about ddof to avoid subtle inconsistencies."
+    },
+    {
+      "type": "content",
+      "title": "Practical Workflow & Recap",
+      "bullets": [
+        "Summarize, then visualize",
+        "Pick mean or median based on skew",
+        "Flag outliers with IQR or z-scores",
+        "Match shape to a candidate distribution"
+      ],
+      "narration": "To recap: always summarize and visualize before modeling. Choose mean or median based on skew, flag outliers using the IQR rule or z-scores, and match your data's shape to a candidate distribution to guide later analysis. These habits make you faster and more reliable as a data scientist."
+    }
+  ]
+}

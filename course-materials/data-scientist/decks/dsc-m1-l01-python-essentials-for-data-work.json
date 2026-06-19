@@ -1,0 +1,183 @@
+{
+  "slug": "dsc-m1-l01-python-essentials-for-data-work",
+  "title": "Python Essentials for Data Work",
+  "month": 1,
+  "monthTitle": "Python and Data Wrangling Foundations",
+  "lesson": 1,
+  "video": "dsc-m1-l01-python-essentials-for-data-work.mp4",
+  "summary": "A hands-on introduction to the Python skills data scientists use daily: setting up a reliable environment, mastering core syntax and data structures, and writing reusable functions through small, data-focused exercises.",
+  "objectives": [
+    "Set up a reproducible Python environment using virtual environments and a notebook or IDE",
+    "Use Python's core data types and structures (lists, tuples, dicts, sets) to represent tabular and record data",
+    "Apply control flow and comprehensions to filter, transform, and aggregate small datasets",
+    "Write clean, reusable functions with parameters, return values, and docstrings",
+    "Handle common edge cases and errors gracefully when wrangling messy data"
+  ],
+  "quiz": [
+    {
+      "q": "Which data structure best represents a single row of named fields?",
+      "options": [
+        "list",
+        "tuple",
+        "dict",
+        "set"
+      ],
+      "answer": 2,
+      "why": "A dictionary maps field names (keys) to values, which is exactly how a row with named columns is represented."
+    },
+    {
+      "q": "What does dict.get(\"key\", 0) return if the key is missing?",
+      "options": [
+        "It raises a KeyError",
+        "It returns None",
+        "It returns 0",
+        "It returns an empty string"
+      ],
+      "answer": 2,
+      "why": "The second argument to .get() is the default returned when the key is absent, so it returns 0 instead of raising an error."
+    },
+    {
+      "q": "Which comprehension correctly filters rows where revenue exceeds 1000?",
+      "options": [
+        "[r for r in table if r[\"revenue\"] > 1000]",
+        "[r > 1000 for r in table]",
+        "{r: 1000 for r in table}",
+        "[r for r in table > 1000]"
+      ],
+      "answer": 0,
+      "why": "The condition belongs in an if clause after the loop expression, keeping only rows whose revenue exceeds 1000."
+    },
+    {
+      "q": "Why should you use a virtual environment for a data project?",
+      "options": [
+        "It makes Python run faster",
+        "It isolates project dependencies for reproducibility",
+        "It is required to import pandas",
+        "It automatically writes your code"
+      ],
+      "answer": 1,
+      "why": "Virtual environments isolate package versions per project so the environment can be reproduced reliably by others."
+    },
+    {
+      "q": "In one short phrase, what is the purpose of wrapping a float() conversion in a try/except block?",
+      "answer": "To handle invalid or missing values gracefully instead of crashing",
+      "why": "float() raises ValueError or TypeError on bad input; try/except lets you return a safe default and keep the program running."
+    },
+    {
+      "q": "What command writes your installed packages and versions to a file for sharing?",
+      "answer": "pip freeze > requirements.txt",
+      "why": "pip freeze lists installed packages with pinned versions, and redirecting it to requirements.txt records them for reproducible setups."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Python Official Tutorial — Data Structures",
+      "url": "https://docs.python.org/3/tutorial/datastructures.html"
+    },
+    {
+      "label": "Real Python: Python Virtual Environments Primer",
+      "url": "https://realpython.com/python-virtual-environments-a-primer/"
+    },
+    {
+      "label": "Python Docs — Errors and Exceptions",
+      "url": "https://docs.python.org/3/tutorial/errors.html"
+    },
+    {
+      "label": "JupyterLab Documentation",
+      "url": "https://jupyterlab.readthedocs.io/"
+    }
+  ],
+  "body_markdown": "## Why Python for Data Work\n\nPython is the lingua franca of data science because it is readable, has a massive ecosystem (pandas, NumPy, scikit-learn), and scales from quick exploration to production pipelines. Before reaching for libraries, you need fluency in the language itself: the data structures and functions you'll use thousands of times.\n\n## Setting Up Your Environment\n\nReproducibility starts with isolation. Never install packages globally for project work.\n\n```bash\n# Create and activate a virtual environment\npython -m venv .venv\nsource .venv/bin/activate   # Windows: .venv\\Scripts\\activate\n\n# Install core tools and pin them\npip install jupyterlab pandas numpy\npip freeze > requirements.txt\n```\n\nUse JupyterLab or VS Code for interactive exploration. Commit your `requirements.txt` so teammates can rebuild the exact environment.\n\n## Core Data Types\n\n- **int / float** — numeric values for measurements and counts\n- **str** — text, labels, categorical values\n- **bool** — `True`/`False`, often the result of comparisons\n- **None** — the absence of a value (think missing data)\n\n```python\nrevenue = 1999.50      # float\ncustomers = 42         # int\nregion = \"EMEA\"        # str\nis_active = True        # bool\nchurn_date = None       # missing value\n```\n\n## Data Structures You'll Use Constantly\n\n| Structure | Syntax | Use case |\n|-----------|--------|----------|\n| list | `[1, 2, 3]` | ordered, mutable sequence (a column) |\n| tuple | `(lat, lon)` | fixed, immutable record |\n| dict | `{\"id\": 1}` | key-value records (a row) |\n| set | `{\"a\", \"b\"}` | unique values, fast membership |\n\n```python\n# A row as a dict\nrow = {\"id\": 7, \"region\": \"EMEA\", \"revenue\": 1999.5}\n\n# A table as a list of dicts\ntable = [\n    {\"id\": 7, \"region\": \"EMEA\", \"revenue\": 1999.5},\n    {\"id\": 8, \"region\": \"APAC\", \"revenue\": 850.0},\n]\n\nregions = {r[\"region\"] for r in table}  # set -> {'EMEA', 'APAC'}\n```\n\n## Control Flow and Comprehensions\n\nComprehensions are the Pythonic way to filter and transform data in one readable line.\n\n```python\n# Filter rows with revenue over 1000\nhigh_value = [r for r in table if r[\"revenue\"] > 1000]\n\n# Transform into a list of just regions\nregion_list = [r[\"region\"] for r in table]\n\n# Build a lookup dict {id: revenue}\nlookup = {r[\"id\"]: r[\"revenue\"] for r in table}\n```\n\nUse a regular loop when logic is complex or has side effects; use a comprehension when you're building a new collection.\n\n## Writing Functions\n\nFunctions make code reusable and testable. Always add a docstring and handle the empty case.\n\n```python\ndef average_revenue(rows):\n    \"\"\"Return the mean revenue across rows, or 0.0 if empty.\"\"\"\n    if not rows:\n        return 0.0\n    total = sum(r[\"revenue\"] for r in rows)\n    return total / len(rows)\n\naverage_revenue(table)  # -> 1424.75\n```\n\n## Handling Messy Data\n\nReal data has gaps. Use `.get()` for safe dictionary access and `try/except` for risky conversions.\n\n```python\ndef to_float(value, default=0.0):\n    \"\"\"Convert value to float, returning default on failure.\"\"\"\n    try:\n        return float(value)\n    except (TypeError, ValueError):\n        return default\n\nrevenue = row.get(\"revenue\", 0.0)   # no KeyError if missing\nclean = to_float(\"1,200\".replace(\",\", \"\"))\n```\n\n## Practice Exercise\n\nGiven a list of order dicts, write a function that returns total revenue per region as a dict. This combines iteration, dictionary updates, and `.get()` — the foundation of group-by logic you'll later do with pandas.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Python Essentials for Data Work",
+      "sub": "Module: Python and Data Wrangling Foundations",
+      "narration": "Welcome to Python Essentials for Data Work. In this lesson we'll build the language fluency every data scientist relies on daily: setting up a clean environment, mastering core data structures, and writing reusable functions through small, data-focused exercises."
+    },
+    {
+      "type": "content",
+      "title": "Set Up a Reproducible Environment",
+      "bullets": [
+        "Isolate projects with virtual environments",
+        "Pin dependencies in requirements.txt",
+        "Use JupyterLab or VS Code for exploration",
+        "Commit your environment files to version control"
+      ],
+      "code": "python -m venv .venv\nsource .venv/bin/activate\npip install jupyterlab pandas numpy\npip freeze > requirements.txt",
+      "narration": "Reproducibility starts before you write any code. Create a virtual environment to isolate your project's packages, install your core tools, and freeze them into a requirements file. This means anyone, including future you, can rebuild the exact environment. Never install packages globally for project work."
+    },
+    {
+      "type": "content",
+      "title": "Core Data Types",
+      "bullets": [
+        "int and float for numbers",
+        "str for text and labels",
+        "bool for True/False conditions",
+        "None represents missing values"
+      ],
+      "code": "revenue = 1999.50   # float\nregion = \"EMEA\"     # str\nis_active = True     # bool\nchurn_date = None    # missing",
+      "narration": "Python's basic types map directly to data concepts. Integers and floats hold counts and measurements, strings hold labels and categories, booleans come from comparisons, and None signals an absent value, which you'll treat as missing data. Knowing these types prevents subtle bugs when wrangling."
+    },
+    {
+      "type": "content",
+      "title": "Data Structures for Tabular Data",
+      "bullets": [
+        "list: ordered, mutable — like a column",
+        "tuple: fixed record, immutable",
+        "dict: key-value pairs — like a row",
+        "set: unique values, fast membership"
+      ],
+      "code": "row = {\"id\": 7, \"region\": \"EMEA\", \"revenue\": 1999.5}\ntable = [row, {\"id\": 8, \"region\": \"APAC\", \"revenue\": 850.0}]",
+      "narration": "These four structures cover most data work. A dictionary naturally represents a row with named fields, and a list of dictionaries represents a whole table. Tuples hold fixed records like coordinates, and sets give you unique values with fast membership checks. This list-of-dicts pattern is the foundation pandas builds on."
+    },
+    {
+      "type": "content",
+      "title": "Control Flow and Comprehensions",
+      "bullets": [
+        "Comprehensions filter and transform in one line",
+        "Build new lists, dicts, or sets concisely",
+        "Use loops for complex or side-effect logic",
+        "Readability beats cleverness"
+      ],
+      "code": "high_value = [r for r in table if r[\"revenue\"] > 1000]\nlookup = {r[\"id\"]: r[\"revenue\"] for r in table}",
+      "narration": "Comprehensions are the Pythonic way to reshape data. The first example filters rows above a threshold; the second builds a lookup dictionary keyed by id. They're concise and fast. When logic gets complicated or you need side effects, reach for a normal loop instead — clarity always wins."
+    },
+    {
+      "type": "content",
+      "title": "Writing Reusable Functions",
+      "bullets": [
+        "Encapsulate logic for reuse and testing",
+        "Always write a docstring",
+        "Handle the empty or edge case first",
+        "Return values rather than printing"
+      ],
+      "code": "def average_revenue(rows):\n    \"\"\"Mean revenue, or 0.0 if empty.\"\"\"\n    if not rows:\n        return 0.0\n    return sum(r[\"revenue\"] for r in rows) / len(rows)",
+      "narration": "Functions turn one-off code into reusable, testable building blocks. Notice we guard the empty case first to avoid dividing by zero, add a docstring describing behaviour, and return a value instead of printing. These habits make your code dependable in pipelines."
+    },
+    {
+      "type": "content",
+      "title": "Handling Messy Data",
+      "bullets": [
+        "Use dict.get() to avoid KeyErrors",
+        "Wrap risky conversions in try/except",
+        "Provide sensible defaults",
+        "Clean before you compute"
+      ],
+      "code": "def to_float(value, default=0.0):\n    try:\n        return float(value)\n    except (TypeError, ValueError):\n        return default",
+      "narration": "Real data is messy. Use the get method for safe dictionary access so a missing key returns a default instead of crashing. Wrap conversions that might fail in try-except blocks with a sensible fallback. Defensive functions like to_float keep your wrangling robust against surprises."
+    },
+    {
+      "type": "content",
+      "title": "Practice and Next Steps",
+      "bullets": [
+        "Write a group-by: total revenue per region",
+        "Combine loops, dict updates, and .get()",
+        "Test your function on empty and messy inputs",
+        "This logic previews pandas groupby"
+      ],
+      "code": "def revenue_by_region(rows):\n    totals = {}\n    for r in rows:\n        region = r.get(\"region\", \"unknown\")\n        totals[region] = totals.get(region, 0.0) + to_float(r.get(\"revenue\"))\n    return totals",
+      "narration": "Put it all together with a group-by exercise: total revenue per region. It combines iteration, safe dictionary access, and incremental updates. Test it on empty lists and rows with missing fields. Master this manual group-by now and pandas' groupby will feel intuitive later."
+    }
+  ]
+}

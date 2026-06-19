@@ -1,0 +1,188 @@
+{
+  "slug": "dsc-m4-l03-data-storytelling-and-stakeholder-communication",
+  "title": "Data Storytelling and Stakeholder Communication",
+  "month": 4,
+  "monthTitle": "Experimentation, Visualization, and Capstone",
+  "lesson": 3,
+  "video": "dsc-m4-l03-data-storytelling-and-stakeholder-communication.mp4",
+  "summary": "Learn to transform technical analysis into a compelling, structured narrative that resonates with non-technical stakeholders. This lesson covers audience analysis, narrative structure, visualization best practices, and delivery techniques that drive decisions and action.",
+  "objectives": [
+    "Identify your audience's priorities, knowledge level, and decision needs before building any presentation",
+    "Structure analytical findings into a clear narrative using frameworks like situation-complication-resolution",
+    "Design visualizations that communicate a single key message without clutter or distortion",
+    "Translate statistical results into business language and actionable recommendations",
+    "Deliver and defend findings confidently, anticipating stakeholder questions and objections"
+  ],
+  "quiz": [
+    {
+      "q": "According to the Pyramid Principle, how should you structure a presentation for busy executives?",
+      "options": [
+        "Walk through every analytical step chronologically before revealing the conclusion",
+        "Lead with the answer/recommendation, then support it with evidence",
+        "Present only the raw data and let stakeholders draw conclusions",
+        "Save the recommendation for a follow-up meeting"
+      ],
+      "answer": 1,
+      "why": "The Pyramid Principle (Minto) recommends leading with the answer first, then supporting it with grouped arguments — busy executives want the conclusion up front, not a detective story."
+    },
+    {
+      "q": "Which chart title best follows the data storytelling principle of titling with the insight?",
+      "options": [
+        "Monthly Churn Rate by Cohort",
+        "Figure 3: Churn Data",
+        "Churn doubled after the pricing change",
+        "Churn (%)"
+      ],
+      "answer": 2,
+      "why": "Titling with the insight tells the reader what to conclude. 'Churn doubled after the pricing change' communicates the point, while the others merely describe variables."
+    },
+    {
+      "q": "What is the best way to communicate 'statistically significant at p < 0.05' to a non-technical executive?",
+      "options": [
+        "Show the full p-value calculation",
+        "Say 'we're confident this effect is real, not just random noise'",
+        "Avoid mentioning the result at all",
+        "Display the confidence interval formula"
+      ],
+      "answer": 1,
+      "why": "Stakeholders act on plain meaning and business impact, not statistical notation. Translating significance into 'real, not random noise' preserves accuracy while being understandable."
+    },
+    {
+      "q": "A colleague ends every analysis presentation with a summary of findings but no recommendation. What key step are they missing?",
+      "options": [
+        "Adding more charts",
+        "Providing a clear, specific recommendation with quantified expected impact",
+        "Including the methodology in the main deck",
+        "Increasing the data-ink ratio"
+      ],
+      "answer": 1,
+      "why": "Findings alone leave the decision-maker to interpret. A strong presentation ends with a specific recommendation and quantified business impact plus a clear next step."
+    },
+    {
+      "q": "In one short phrase, name the framework that establishes status quo, introduces a problem, then presents the recommendation.",
+      "answer": "Situation-Complication-Resolution",
+      "why": "SCR (Situation → Complication → Resolution) is a narrative arc that builds context, introduces tension, and resolves with your recommendation."
+    },
+    {
+      "q": "What should you do when asked a question you genuinely cannot answer during a presentation?",
+      "answer": "Admit you don't know and commit to following up",
+      "why": "Bluffing destroys trust. Honestly saying you don't know and promising a follow-up preserves credibility and stakeholder confidence."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Storytelling with Data — Cole Nussbaumer Knaflic",
+      "url": "https://www.storytellingwithdata.com/"
+    },
+    {
+      "label": "The Minto Pyramid Principle (overview)",
+      "url": "https://en.wikipedia.org/wiki/The_Minto_Pyramid_Principle"
+    },
+    {
+      "label": "The Visual Display of Quantitative Information — Edward Tufte",
+      "url": "https://www.edwardtufte.com/tufte/books_vdqi"
+    },
+    {
+      "label": "Google Data Analytics: Share Data Through the Art of Visualization",
+      "url": "https://www.coursera.org/learn/visualize-data"
+    }
+  ],
+  "body_markdown": "## Why Storytelling Matters for Data Scientists\n\nA technically perfect analysis that nobody understands or acts on has zero business value. Your job does not end when the model converges or the p-value crosses a threshold; it ends when a stakeholder makes a better decision because of your work. Data storytelling is the discipline of packaging insight so that the right people understand it, trust it, and act on it.\n\nMany analysts assume the data 'speaks for itself.' It does not. Numbers acquire meaning only through context, comparison, and narrative. Your role is to supply that meaning.\n\n## Step 1: Know Your Audience\n\nBefore opening a notebook to build slides, answer three questions:\n\n- **Who** is in the room? Executives care about outcomes and risk; product managers care about trade-offs; engineers care about implementation. Tailor depth accordingly.\n- **What decision** are they trying to make? Every presentation should serve a decision. If there is no decision, ask why you are presenting.\n- **What do they already know?** Avoid re-explaining context they own; avoid assuming jargon they don't.\n\nA useful exercise: write the one sentence you want a stakeholder to repeat to their boss after your talk. That sentence is your thesis.\n\n## Step 2: Structure the Narrative\n\nUse a proven narrative arc rather than dumping analysis chronologically. Two reliable frameworks:\n\n- **Situation → Complication → Resolution (SCR)**: Establish the status quo, introduce the problem or surprising finding, then present your recommendation.\n- **Pyramid Principle (Minto)**: Lead with the answer/recommendation first, then support it with grouped arguments and evidence. Busy executives want the conclusion up front.\n\nAvoid the 'detective story' anti-pattern where you walk through every analytical step before revealing the answer. Save methodology for the appendix or for when asked.\n\n## Step 3: Visualize for a Single Message\n\nEach chart should make exactly one point. Apply these principles:\n\n- **Choose the right chart**: bar charts for comparison, lines for trends over time, scatter for relationships. Avoid pie charts with many slices and dual-axis charts that mislead.\n- **Reduce clutter**: remove gridlines, redundant legends, and chartjunk (Tufte's data-ink ratio).\n- **Direct attention**: use color and annotation to highlight the one number or trend that matters; gray out the rest.\n- **Label directly** instead of forcing readers to map a legend.\n- **Title with the insight**, not the variables. Use 'Churn doubled after the pricing change' instead of 'Churn by month.'\n\n## Step 4: Translate Stats into Business Language\n\nStakeholders do not act on confidence intervals; they act on dollars, time, and risk.\n\n- Replace 'statistically significant at p < 0.05' with 'we are confident this effect is real, not random noise.'\n- Convert effect sizes into business units: 'a 3% lift translates to roughly $1.2M annual revenue.'\n- Always communicate uncertainty honestly but plainly: ranges and scenarios, not just point estimates.\n- State assumptions and limitations briefly so trust is preserved.\n\n## Step 5: Recommend and Quantify\n\nEnd with a clear, specific recommendation and the expected impact. 'Roll out variant B to all users; expected +3% conversion, ~$1.2M/year, low implementation risk.' Give the decision-maker a clear next step.\n\n## Step 6: Deliver and Defend\n\n- Open with your headline, not your agenda.\n- Anticipate the top three questions and prepare backup slides.\n- When you don't know, say so and commit to follow up rather than guessing.\n- Watch for the audience drifting; pause and re-anchor on the decision.\n\n## Common Pitfalls\n\n- Overloading slides with every metric you computed.\n- Leading with methodology instead of the answer.\n- Using technical jargon (AUC, heteroskedasticity) without translation.\n- Presenting findings with no recommendation.\n- Hiding uncertainty to appear more confident.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Data Storytelling and Stakeholder Communication",
+      "sub": "Turning analysis into decisions",
+      "narration": "Welcome. In this lesson we tackle one of the most underrated skills for data scientists: communication. You can build the most accurate model in the world, but if stakeholders don't understand it or act on it, it creates no value. Today we'll learn how to turn technical analysis into a story that drives decisions."
+    },
+    {
+      "type": "content",
+      "title": "Why Storytelling Matters",
+      "bullets": [
+        "A perfect analysis nobody acts on has zero value",
+        "Numbers don't 'speak for themselves' — context creates meaning",
+        "Your job ends when a better decision is made",
+        "Storytelling = understand, trust, act"
+      ],
+      "narration": "Let's start with the why. Many analysts believe the data speaks for itself. It doesn't. Numbers only acquire meaning through context, comparison, and narrative. Your work delivers value only when a stakeholder makes a better decision because of it. Data storytelling is the discipline of packaging insight so the right people understand it, trust it, and act on it."
+    },
+    {
+      "type": "content",
+      "title": "Step 1: Know Your Audience",
+      "bullets": [
+        "Who is in the room? Tailor depth to executives vs. engineers",
+        "What decision are they making? No decision, no presentation",
+        "What do they already know? Skip owned context, avoid jargon",
+        "Write the one sentence you want them to repeat"
+      ],
+      "narration": "Before you build a single slide, answer three questions. Who is in the room — executives care about outcomes and risk, engineers care about implementation. What decision are they trying to make — every presentation should serve a decision. And what do they already know, so you neither bore them nor lose them. A great exercise: write the single sentence you want a stakeholder to repeat to their boss. That's your thesis."
+    },
+    {
+      "type": "content",
+      "title": "Step 2: Structure the Narrative",
+      "bullets": [
+        "Situation → Complication → Resolution",
+        "Pyramid Principle: lead with the answer first",
+        "Avoid the 'detective story' — don't save the reveal",
+        "Methodology belongs in the appendix"
+      ],
+      "narration": "Don't present chronologically. Use a narrative arc. Situation-Complication-Resolution sets the status quo, introduces a surprising problem, then offers your recommendation. The Pyramid Principle, from Barbara Minto, says lead with the answer and then support it. Avoid the detective-story anti-pattern where you walk through every step before the reveal. Busy executives want the conclusion up front; save the methodology for the appendix or for when asked."
+    },
+    {
+      "type": "content",
+      "title": "Step 3: Visualize for One Message",
+      "bullets": [
+        "Each chart makes exactly one point",
+        "Right chart: bars for comparison, lines for trends",
+        "Reduce clutter — maximize data-ink ratio",
+        "Title with the insight, not the variables"
+      ],
+      "code": "# Title with insight, highlight what matters\nax.set_title('Churn doubled after the pricing change')\nax.bar(months, churn, color=['gray']*5 + ['crimson'])",
+      "narration": "Every chart should make exactly one point. Pick the right type — bars compare, lines show trends, scatter shows relationships. Strip out clutter: gridlines, redundant legends, chartjunk. Use color and annotation to highlight the one number that matters and gray out the rest. And critically, title your chart with the insight — 'Churn doubled after the pricing change' — not just 'Churn by month.' The title does the interpreting for the reader."
+    },
+    {
+      "type": "content",
+      "title": "Step 4: Translate Stats into Business Language",
+      "bullets": [
+        "'p < 0.05' → 'we're confident this is real, not noise'",
+        "Convert effect sizes into dollars, time, risk",
+        "Communicate uncertainty with ranges and scenarios",
+        "State assumptions briefly to preserve trust"
+      ],
+      "narration": "Stakeholders don't act on confidence intervals — they act on dollars, time, and risk. Replace statistical jargon with plain language: instead of 'significant at p less than 0.05,' say 'we're confident this effect is real, not random noise.' Convert effect sizes into business units — a three percent lift becomes roughly 1.2 million dollars a year. Be honest about uncertainty using ranges and scenarios, and state your key assumptions briefly so people trust you."
+    },
+    {
+      "type": "content",
+      "title": "Step 5: Recommend and Quantify",
+      "bullets": [
+        "End with a clear, specific recommendation",
+        "Attach expected impact in business units",
+        "Name the risk level and next step",
+        "Example: 'Roll out B: +3%, ~$1.2M/yr, low risk'"
+      ],
+      "narration": "Never end with just findings — end with a recommendation. Be specific and quantify the impact. For example: 'Roll out variant B to all users; expected three percent conversion lift, about 1.2 million dollars per year, with low implementation risk.' This gives the decision-maker a concrete next step rather than leaving them to interpret your charts."
+    },
+    {
+      "type": "content",
+      "title": "Step 6: Deliver and Defend",
+      "bullets": [
+        "Open with your headline, not your agenda",
+        "Prepare for the top three questions with backup slides",
+        "Say 'I don't know, I'll follow up' rather than guess",
+        "Re-anchor on the decision if attention drifts"
+      ],
+      "narration": "Delivery matters. Open with your headline, not a long agenda. Anticipate the top three questions and prepare backup slides for them. When you genuinely don't know an answer, say so and commit to following up — never bluff, because it destroys trust. And if you sense the room drifting, pause and re-anchor everyone on the decision at hand."
+    },
+    {
+      "type": "content",
+      "title": "Common Pitfalls & Recap",
+      "bullets": [
+        "Overloaded slides; leading with methodology",
+        "Untranslated jargon; no recommendation",
+        "Hiding uncertainty to seem confident",
+        "Remember: audience, structure, visuals, translation, recommendation"
+      ],
+      "narration": "To wrap up, avoid these common pitfalls: overloading slides with every metric, leading with methodology, using untranslated jargon, presenting with no recommendation, and hiding uncertainty. Remember the flow: know your audience, structure the narrative, visualize one message per chart, translate stats into business language, and always end with a quantified recommendation. Master this and your analyses will finally drive the decisions they deserve."
+    }
+  ]
+}
