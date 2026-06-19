@@ -2,6 +2,9 @@
 .env
 *.env
 !.env.example
+# Azure Functions local settings hold real connection strings/keys — never commit.
+local.settings.json
+api/local.settings.json
 
 # ─── Python ────────────────────────────────────────────────
 __pycache__/

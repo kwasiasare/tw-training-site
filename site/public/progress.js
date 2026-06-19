@@ -6,6 +6,15 @@
 (function () {
   function key(course, lesson) { return course + '::' + lesson; }
 
+  // Escape values from the API before they go into innerHTML. The /api/progress
+  // course/lesson fields are free-text the user can set (via POST), so they must
+  // be treated as untrusted — same discipline as account.astro / admin/index.astro.
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
   fetch('/.auth/me', { headers: { accept: 'application/json' } })
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (me) {
@@ -92,7 +101,7 @@
       html += '<p class="theme">No lessons completed yet — open a course and mark a lesson complete.</p>';
     } else {
       html += '<ul class="topic-list">' + courses.map(function (c) {
-        return '<li>' + c + ' — <strong>' + byCourse[c].length + '</strong> lesson' + (byCourse[c].length === 1 ? '' : 's') + ' complete</li>';
+        return '<li>' + esc(c) + ' — <strong>' + byCourse[c].length + '</strong> lesson' + (byCourse[c].length === 1 ? '' : 's') + ' complete</li>';
       }).join('') + '</ul>';
     }
     box.innerHTML = html;

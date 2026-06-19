@@ -37,6 +37,17 @@ test('progress: POST without course/lesson returns 400', async () => {
   assert.equal(res.jsonBody.error, 'course_and_lesson_required');
 });
 
+test('progress: POST rejects a non-slug lesson (injection guard) with 400', async () => {
+  const container = makeContainer();
+  const res = await progressHandler(container)(
+    makeRequest({ method: 'POST', user: authUser(), body: { course: 'c1', lesson: '<script>alert(1)</script>' } }),
+    makeContext(),
+  );
+  assert.equal(res.status, 400);
+  assert.equal(res.jsonBody.error, 'invalid_course_or_lesson');
+  assert.equal(container._calls.upserts.length, 0, 'must not store an invalid lesson');
+});
+
 test('progress: POST upserts a progress record with a deterministic id', async () => {
   const container = makeContainer();
   const res = await progressHandler(container)(

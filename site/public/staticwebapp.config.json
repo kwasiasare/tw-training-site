@@ -25,6 +25,12 @@
     ".mp4": "video/mp4",
     ".webm": "video/webm"
   },
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains"
+  },
   "routes": [
     { "route": "/api/GetRoles", "allowedRoles": ["anonymous", "authenticated"] },
     { "route": "/api/video", "allowedRoles": ["anonymous", "authenticated"] },

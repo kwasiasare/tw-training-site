@@ -2,6 +2,12 @@ const { app } = require('@azure/functions');
 const { getUser } = require('../shared/principal');
 const { getContainer } = require('../shared/cosmos');
 
+// Course/lesson are slugs (e.g. "kwasi-GenAI", "m1-l01-how-python-runs"). Validate
+// to that shape so untrusted free-text can't be stored (data pollution + injection
+// when rendered downstream, e.g. the admin dashboard).
+const SLUG_RE = /^[a-z0-9-]+$/i;
+const isSlug = (s) => typeof s === 'string' && s.length > 0 && s.length <= 80 && SLUG_RE.test(s);
+
 // GET  /api/progress           -> all progress records for the signed-in user
 // POST /api/progress {course,lesson,status,quizScore} -> upsert one record
 app.http('progress', {
@@ -29,6 +35,9 @@ app.http('progress', {
       const { course, lesson, status, quizScore } = body;
       if (!course || !lesson) {
         return { status: 400, jsonBody: { error: 'course_and_lesson_required' } };
+      }
+      if (!isSlug(course) || !isSlug(lesson)) {
+        return { status: 400, jsonBody: { error: 'invalid_course_or_lesson' } };
       }
       const id = `${user.userId}:${course}:${lesson}`;
       // Merge into any existing record so marking complete and saving a quiz
