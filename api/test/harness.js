@@ -34,12 +34,13 @@ function setCache(absId, exports) {
 // Load a function module in isolation. Returns { handlers, exports } where
 // `handlers` maps each registered name to its options object (incl. handler),
 // and `exports` is the module's own exports (used by the sync test).
-function loadFunction(name, { cosmosContainer, r2, advisor, resumes } = {}) {
+function loadFunction(name, { cosmosContainer, r2, advisor, resumes, notify } = {}) {
   const azFuncId = require.resolve('@azure/functions', { paths: [FUNCTIONS_DIR] });
   const cosmosId = path.join(SHARED_DIR, 'cosmos.js');
   const r2Id = path.join(SHARED_DIR, 'r2.js');
   const advisorId = path.join(SHARED_DIR, 'advisor.js');
   const resumesId = path.join(SHARED_DIR, 'resumes.js');
+  const notifyId = path.join(SHARED_DIR, 'notify.js');
   const principalId = path.join(SHARED_DIR, 'principal.js');
   const fnId = path.join(FUNCTIONS_DIR, name + '.js');
 
@@ -64,6 +65,9 @@ function loadFunction(name, { cosmosContainer, r2, advisor, resumes } = {}) {
   setCache(resumesId, {
     putResume: (resumes && resumes.putResume) || (async (userId) => ({ bucket: 'tw-resumes', key: `${userId}/x.pdf` })),
     deleteResume: (resumes && resumes.deleteResume) || (async () => {}),
+  });
+  setCache(notifyId, {
+    notifyCourseRequest: notify || (async () => ({ sent: false, reason: 'stubbed' })),
   });
 
   // Real principal + fresh function module each load.
