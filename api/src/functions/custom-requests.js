@@ -20,11 +20,19 @@ app.http('custom-requests', {
     try {
       const { getContainer } = require('../shared/cosmos');
       const { resources } = await getContainer().items
-        .query({ query: "SELECT * FROM c WHERE c.type = 'advisor' OR c.type = 'generationRequest'" })
+        .query({ query: "SELECT * FROM c WHERE c.type IN ('advisor', 'generationRequest', 'profile', 'progress')" })
         .fetchAll();
 
       const gens = {};
       resources.filter((r) => r.type === 'generationRequest').forEach((g) => { gens[g.userId] = g; });
+
+      // Email fallback for legacy advisor docs that didn't store userDetails:
+      // pull it from any doc for that user (profile.email / progress.userDetails).
+      const emailByUser = {};
+      resources.forEach((r) => {
+        const email = r.userDetails || r.email;
+        if (email && r.userId && !emailByUser[r.userId]) emailByUser[r.userId] = email;
+      });
 
       const requests = resources
         .filter((r) => r.type === 'advisor')
@@ -35,7 +43,7 @@ app.http('custom-requests', {
             ? 'matched'
             : gen ? (gen.status || 'generating') : (o.type || 'unknown');
           return {
-            user: a.userDetails || a.userId,
+            user: a.userDetails || emailByUser[a.userId] || a.userId,
             createdAt: a.createdAt,
             targetOutcome: (a.questionnaire || {}).targetOutcome || '',
             recommendedRole: (a.analysis || {}).recommendedRole || '',

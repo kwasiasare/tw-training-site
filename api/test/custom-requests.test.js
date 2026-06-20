@@ -50,3 +50,14 @@ test('custom-requests: admin gets the request list (newest first, status mapped)
   assert.equal(reqs[1].status, 'queued');
   assert.equal(reqs[1].recommendedRole, 'Digital Marketer');
 });
+
+test('custom-requests: falls back to the email from another doc when the advisor doc lacks it', async () => {
+  const rows = [
+    { type: 'advisor', userId: 'u9', createdAt: '2026-06-19T10:00:00Z', analysis: {}, outcome: { type: 'generating' } },
+    { type: 'profile', userId: 'u9', email: 'legacy@example.com' },
+  ];
+  const container = makeContainer({ queryResult: rows });
+  const res = await handler(container)(makeRequest({ method: 'GET', user: adminUser() }), makeContext());
+  assert.equal(res.status, 200);
+  assert.equal(res.jsonBody.requests[0].user, 'legacy@example.com', 'email pulled from the profile doc');
+});

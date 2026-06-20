@@ -51,6 +51,12 @@ app.http('custom-advisor', {
         try { advisor = (await container.item(`${user.userId}:advisor`, user.userId).read()).resource; } catch { advisor = null; }
         try { generation = (await container.item(`gen:${user.userId}`, user.userId).read()).resource; } catch { generation = null; }
 
+        // Backfill the email on legacy advisor docs that predate storing userDetails.
+        if (advisor && !advisor.userDetails && user.userDetails) {
+          advisor.userDetails = user.userDetails;
+          try { await container.items.upsert(advisor); } catch { /* best-effort */ }
+        }
+
         // Auto-delivery: if the user is awaiting a generated course and one now in
         // the library matches their stored profile (i.e. their requested course was
         // generated + published), enrol them and flip the status to "matched".
@@ -154,6 +160,7 @@ app.http('custom-advisor', {
         await container.items.upsert({
           id: `gen:${user.userId}`,
           userId: user.userId,
+          userDetails: user.userDetails,
           type: 'generationRequest',
           status: 'queued',
           targetRole: analysis.recommendedRole,
@@ -176,6 +183,7 @@ app.http('custom-advisor', {
       await container.items.upsert({
         id: `${user.userId}:advisor`,
         userId: user.userId,
+        userDetails: user.userDetails,
         type: 'advisor',
         createdAt: now,
         consent: true,
