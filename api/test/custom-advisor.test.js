@@ -88,6 +88,23 @@ test('custom-advisor: matched path enrolls and persists the advisor doc', async 
   assert.equal(advisorDoc.resumeRef.bucket, 'tw-resumes');
 });
 
+test('custom-advisor: matches via a secondary target role when the top role is off-catalog', async () => {
+  const container = makeContainer();
+  const analysis = {
+    summary: 's', currentSkills: ['x'], gaps: ['y'],
+    targetRoles: [
+      { role: 'Underwater Basket Weaver', timeToHire: 'x', why: 'w', leverage: 'l' },
+      { role: 'IT Support Technician', timeToHire: 'x', why: 'w', leverage: 'l' },
+    ],
+    recommendedRole: 'Underwater Basket Weaver',
+    recommendedSkills: ['windows', 'networking', 'ticketing'],
+  };
+  const res = await advisorHandler({ container, advisor: async () => analysis })(makeRequest(body()), makeContext());
+  assert.equal(res.status, 200);
+  assert.equal(res.jsonBody.outcome.type, 'matched', 'matched via the 2nd-choice catalog role');
+  assert.equal(res.jsonBody.outcome.courseSlug, 'helpdesk-tier1-2');
+});
+
 test('custom-advisor: no match enqueues a generation request', async () => {
   const container = makeContainer();
   const res = await advisorHandler({

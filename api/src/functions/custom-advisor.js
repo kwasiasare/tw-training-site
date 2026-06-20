@@ -121,12 +121,18 @@ app.http('custom-advisor', {
         throw err;
       }
 
-      // Match against the whole reusable library, else enqueue a generation request.
+      // Match against the whole reusable library. Consider EVERY role the analysis
+      // surfaced (the recommended one + the alternatives), and prefer an existing
+      // course over queuing a new-course generation — e.g. a user whose top goal is
+      // off-catalog but whose 2nd-choice role we already train for gets matched.
       const { match } = require('../shared/matcher');
-      const m = match(
-        { role: analysis.recommendedRole, skills: analysis.recommendedSkills },
-        courses,
-      );
+      const roleCandidates = [analysis.recommendedRole, ...(analysis.targetRoles || []).map((t) => t.role)]
+        .filter(Boolean);
+      let m = null;
+      for (const role of roleCandidates) {
+        const r = match({ role, skills: analysis.recommendedSkills }, courses);
+        if (r && (!m || r.score > m.score)) m = r;
+      }
 
       const { getContainer } = require('../shared/cosmos');
       const container = getContainer();
