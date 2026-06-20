@@ -17,7 +17,9 @@ app.http('tutor', {
   handler: async (request, context) => {
     const { getUser } = require('../shared/principal');
     const user = getUser(request);
-    if (!user) return { status: 401, jsonBody: { error: 'not_authenticated' } };
+    // 403 (not 401) so SWA's global 401 -> /signin redirect doesn't turn the
+    // client's fetch into the sign-in HTML page (same reason as video.js).
+    if (!user) return { status: 403, jsonBody: { error: 'login_required' } };
 
     try {
       const body = await request.json().catch(() => ({}));
