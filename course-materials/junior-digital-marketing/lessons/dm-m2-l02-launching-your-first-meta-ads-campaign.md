@@ -71,7 +71,7 @@ resources:
 - label: Meta Blueprint free courses
   url: https://www.facebook.com/business/learn
 - label: Meta Advertising Policies
-  url: https://transparency.fb.com/policies/ad-standards/
+  url: https://transparency.meta.com/policies/ad-standards/
 - label: Meta Business Help Center
   url: https://www.facebook.com/business/help
 ---

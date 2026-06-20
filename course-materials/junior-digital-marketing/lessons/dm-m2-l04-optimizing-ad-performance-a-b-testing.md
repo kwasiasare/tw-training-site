@@ -62,7 +62,7 @@ quiz:
     one at a time.
 resources:
 - label: 'Meta Blueprint: A/B Testing courses'
-  url: https://www.facebookblueprint.com/
+  url: https://www.facebook.com/business/learn
 - label: Meta Ads Manager — About A/B testing
   url: https://www.facebook.com/business/help/1738164643098669
 - label: Google Ads Help — Experiments

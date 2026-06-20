@@ -70,8 +70,8 @@ resources:
   url: https://mailchimp.com/resources/
 - label: 'HubSpot: The Beginner''s Guide to Email Marketing'
   url: https://blog.hubspot.com/marketing/email-marketing-guide
-- label: GDPR for Email Marketing (official EU overview)
-  url: https://gdpr.eu/email-encryption/
+- label: GDPR — compliance overview (consent & data rules for email)
+  url: https://gdpr.eu/compliance/
 - label: MailerLite Academy — Free Email Marketing Courses
   url: https://www.mailerlite.com/academy
 ---
