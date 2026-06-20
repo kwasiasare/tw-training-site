@@ -1,0 +1,160 @@
+---
+// In-lesson AI tutor (TW-67). A collapsible chat panel that asks /api/tutor a
+// question grounded in THIS lesson. Auth-gated server-side; signed-out users get a
+// sign-in prompt. Model replies are rendered as plain text (never innerHTML) so a
+// reply can't inject markup.
+interface Props {
+  course?: string;
+  lesson?: string; // lesson id (topic.id)
+}
+const { course, lesson } = Astro.props;
+---
+
+{lesson && (
+  <section class="tutor" data-tutor data-course={course} data-lesson={lesson}>
+    <details>
+      <summary>
+        <span class="tutor-title">Ask the AI tutor about this lesson</span>
+        <span class="tutor-hint theme">Stuck or curious? Ask a question and get a grounded answer.</span>
+      </summary>
+
+      <div class="tutor-body">
+        <div class="tutor-log" data-tutor-log aria-live="polite"></div>
+        <form class="tutor-form" data-tutor-form>
+          <textarea
+            data-tutor-input
+            rows="2"
+            maxlength="2000"
+            placeholder="e.g. Can you explain the owned / earned / paid framework with an example?"
+            aria-label="Ask the AI tutor a question about this lesson"
+          ></textarea>
+          <button class="btn" type="submit" data-tutor-send>Ask</button>
+        </form>
+        <p class="tutor-foot theme">The tutor answers from this lesson's material and can make mistakes — verify anything important.</p>
+      </div>
+    </details>
+  </section>
+)}
+
+<style>
+  .tutor { margin: 2rem 0; }
+  .tutor details {
+    border: 1px solid var(--border, #2a2a35);
+    border-radius: 12px;
+    background: var(--card, #16161d);
+    padding: 0;
+    overflow: hidden;
+  }
+  .tutor summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .tutor summary::-webkit-details-marker { display: none; }
+  .tutor-title { font-weight: 600; }
+  .tutor-hint { font-size: 0.85rem; }
+  .tutor-body { padding: 0 1.25rem 1.25rem; }
+  .tutor-log { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 0.75rem; }
+  .tutor-msg { padding: 0.6rem 0.85rem; border-radius: 10px; white-space: pre-wrap; line-height: 1.5; }
+  .tutor-msg.user { background: var(--accent-soft, #2a2440); align-self: flex-end; max-width: 85%; }
+  .tutor-msg.bot { background: var(--surface, #1e1e27); align-self: flex-start; max-width: 95%; }
+  .tutor-msg.err { background: #3a1e1e; color: #ffb4b4; align-self: stretch; }
+  .tutor-form { display: flex; gap: 0.5rem; align-items: flex-end; }
+  .tutor-form textarea {
+    flex: 1;
+    resize: vertical;
+    border-radius: 10px;
+    border: 1px solid var(--border, #2a2a35);
+    background: var(--surface, #1e1e27);
+    color: inherit;
+    padding: 0.6rem 0.75rem;
+    font: inherit;
+  }
+  .tutor-foot { font-size: 0.78rem; margin: 0.6rem 0 0; }
+</style>
+
+<script>
+  document.querySelectorAll('[data-tutor]').forEach((root) => {
+    const lesson = root.getAttribute('data-lesson');
+    const log = root.querySelector('[data-tutor-log]');
+    const form = root.querySelector('[data-tutor-form]');
+    const input = root.querySelector('[data-tutor-input]');
+    const send = root.querySelector('[data-tutor-send]');
+    if (!lesson || !log || !form || !input || !send) return;
+
+    const history = []; // {role:'user'|'assistant', content}
+
+    function addMsg(cls, text) {
+      const el = document.createElement('div');
+      el.className = 'tutor-msg ' + cls;
+      el.textContent = text; // plain text only — never innerHTML
+      log.appendChild(el);
+      log.scrollTop = log.scrollHeight;
+      return el;
+    }
+
+    async function ask(question) {
+      addMsg('user', question);
+      history.push({ role: 'user', content: question });
+      const pending = addMsg('bot', 'Thinking…');
+      send.setAttribute('disabled', 'true');
+      input.setAttribute('disabled', 'true');
+
+      try {
+        const r = await fetch('/api/tutor', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ lesson, messages: history.slice(-8) }),
+        });
+        if (r.status === 401 || r.status === 403) {
+          const back = encodeURIComponent(location.pathname);
+          pending.className = 'tutor-msg err';
+          pending.textContent = 'Please sign in to use the tutor.';
+          const a = document.createElement('a');
+          a.href = '/.auth/login/entraExternalId?post_login_redirect_uri=' + back;
+          a.textContent = ' Sign in';
+          pending.appendChild(a);
+          history.pop();
+          return;
+        }
+        const d = r.ok ? await r.json().catch(() => null) : null;
+        if (d && d.reply) {
+          pending.textContent = d.reply;
+          history.push({ role: 'assistant', content: d.reply });
+        } else {
+          pending.className = 'tutor-msg err';
+          pending.textContent = r.status === 422
+            ? "I couldn't answer that one — try rephrasing or asking something about this lesson."
+            : 'Something went wrong. Please try again in a moment.';
+          history.pop();
+        }
+      } catch (e) {
+        pending.className = 'tutor-msg err';
+        pending.textContent = 'Network error. Please try again.';
+        history.pop();
+      } finally {
+        send.removeAttribute('disabled');
+        input.removeAttribute('disabled');
+        input.focus();
+      }
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const q = (input.value || '').trim();
+      if (!q) return;
+      input.value = '';
+      ask(q);
+    });
+    // Enter to send, Shift+Enter for newline.
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        form.requestSubmit();
+      }
+    });
+  });
+</script>
