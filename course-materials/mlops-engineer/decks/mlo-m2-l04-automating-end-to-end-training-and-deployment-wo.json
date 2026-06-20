@@ -1,0 +1,178 @@
+{
+  "slug": "mlo-m2-l04-automating-end-to-end-training-and-deployment-wo",
+  "title": "Automating End-to-End Training and Deployment Workflows",
+  "month": 2,
+  "monthTitle": "Experiment Tracking, Pipelines & Model Deployment",
+  "lesson": 4,
+  "video": "mlo-m2-l04-automating-end-to-end-training-and-deployment-wo.mp4",
+  "summary": "This lesson shows how to connect data preparation, model training, evaluation, and MLflow registration into a single automated, reproducible workflow that produces a deployable model artifact. You'll learn the building blocks of an end-to-end pipeline, how to orchestrate them, gate promotion on quality, and trigger deployment.",
+  "objectives": [
+    "Describe the stages of an end-to-end training-to-deployment pipeline and how they connect",
+    "Build a modular pipeline that runs data prep, training, evaluation, and MLflow registration as one workflow",
+    "Use MLflow tracking and the Model Registry to version, stage, and promote models",
+    "Implement quality gates that conditionally register and promote models based on evaluation metrics",
+    "Trigger deployment automatically from a registered model using CI/CD or orchestration tools"
+  ],
+  "quiz": [
+    {
+      "q": "What is the primary reason to register a model in the MLflow Model Registry only after a quality gate passes?",
+      "options": [
+        "To save storage space on the tracking server",
+        "To prevent underperforming models from being promoted and deployed",
+        "Because registration is required before training",
+        "To reduce the number of experiment runs"
+      ],
+      "answer": 1,
+      "why": "The quality gate ensures only models meeting metric and quality criteria are registered and eligible for promotion, preventing bad models from reaching production."
+    },
+    {
+      "q": "Why should pipeline stages pass artifacts through a shared store or run IDs rather than in-memory objects?",
+      "options": [
+        "It makes the code shorter",
+        "It keeps stages decoupled, restartable, and orchestrator-friendly",
+        "In-memory objects are always faster",
+        "MLflow forbids in-memory data"
+      ],
+      "answer": 1,
+      "why": "Using a shared store/run IDs decouples stages so each can run independently, be retried, and be scheduled by an orchestrator across separate processes or machines."
+    },
+    {
+      "q": "Which MLflow Registry behavior preserves a rollback path when promoting a new Production model?",
+      "options": [
+        "Deleting all older versions",
+        "Archiving existing versions instead of deleting them",
+        "Disabling the tracking server",
+        "Re-running training from scratch"
+      ],
+      "answer": 1,
+      "why": "Using archive_existing_versions=True moves the old Production model to Archived rather than deleting it, so you can roll back if the new version misbehaves."
+    },
+    {
+      "q": "Which tools are commonly used to orchestrate a scheduled end-to-end retraining DAG?",
+      "options": [
+        "Airflow, Prefect, or Dagster",
+        "Only Jupyter notebooks",
+        "A spreadsheet",
+        "Manual SSH scripts"
+      ],
+      "answer": 0,
+      "why": "Airflow, Prefect, and Dagster are workflow orchestrators designed to define and schedule DAGs of dependent tasks, ideal for retraining pipelines."
+    },
+    {
+      "q": "In one sentence, name two checks (beyond accuracy) a quality gate might enforce before promoting a model.",
+      "answer": "Examples: fairness/bias checks, inference latency, model size, or comparison against the current production model's metrics.",
+      "why": "Gates should consider operational and ethical criteria—like fairness, latency, and size—not just predictive accuracy, to ensure the model is truly production-ready."
+    },
+    {
+      "q": "What does referencing a model by the URI 'models:/churn-model/Production' allow a deployment job to do?",
+      "answer": "It lets the deployment always fetch the current Production-stage version of the model without hard-coding a specific version number.",
+      "why": "Stage-based URIs decouple deployment from specific version numbers, so promotions automatically point serving to the right model and enable clean rollbacks."
+    }
+  ],
+  "resources": [
+    {
+      "label": "MLflow Model Registry Documentation",
+      "url": "https://mlflow.org/docs/latest/model-registry.html"
+    },
+    {
+      "label": "MLflow Tracking Documentation",
+      "url": "https://mlflow.org/docs/latest/tracking.html"
+    },
+    {
+      "label": "Apache Airflow Concepts (DAGs & Tasks)",
+      "url": "https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/index.html"
+    },
+    {
+      "label": "KServe Model Serving Documentation",
+      "url": "https://kserve.github.io/website/"
+    }
+  ],
+  "body_markdown": "## Why Automate End-to-End Workflows\n\nManual hand-offs between data scientists and engineers cause drift, broken reproducibility, and slow releases. An automated workflow links every stage—data ingestion, feature processing, training, evaluation, registration, and deployment—so a single trigger produces a versioned, deployable model with full lineage.\n\nGoals of automation:\n\n- **Reproducibility**: same code + same data + same params = same model.\n- **Traceability**: every model maps to a run, dataset version, and metrics.\n- **Speed & safety**: quality gates prevent bad models from reaching production.\n\n## Anatomy of the Pipeline\n\nA typical end-to-end workflow has these stages:\n\n1. **Data prep** — pull raw data, validate schema, build features, output a versioned dataset.\n2. **Train** — fit the model, log params/metrics/artifacts to MLflow.\n3. **Evaluate** — compute metrics on a held-out set; compare against a baseline or current production model.\n4. **Register** — if the model passes the gate, register it in the MLflow Model Registry.\n5. **Promote & deploy** — transition the model to Staging/Production and trigger a deployment.\n\nKeep each stage **modular** (a function or script with clear inputs/outputs) so it can be tested, reused, and orchestrated independently.\n\n## Wiring It Together with MLflow\n\nMLflow tracking captures runs; the Model Registry manages versions and stages.\n\n```python\nimport mlflow\nimport mlflow.sklearn\nfrom sklearn.ensemble import RandomForestClassifier\nfrom sklearn.metrics import f1_score\n\nmlflow.set_tracking_uri(\"http://mlflow-server:5000\")\nmlflow.set_experiment(\"churn-prediction\")\n\ndef train_and_register(X_train, y_train, X_val, y_val, params, threshold=0.80):\n    with mlflow.start_run() as run:\n        mlflow.log_params(params)\n        model = RandomForestClassifier(**params).fit(X_train, y_train)\n        f1 = f1_score(y_val, model.predict(X_val))\n        mlflow.log_metric(\"val_f1\", f1)\n        mlflow.sklearn.log_model(model, artifact_path=\"model\")\n\n        # Quality gate\n        if f1 >= threshold:\n            uri = f\"runs:/{run.info.run_id}/model\"\n            mlflow.register_model(uri, \"churn-model\")\n        return f1\n```\n\n## Quality Gates and Promotion\n\nNever auto-deploy unconditionally. Use a gate that compares the candidate to the current Production model:\n\n```python\nfrom mlflow.tracking import MlflowClient\nclient = MlflowClient()\n\ndef promote_if_better(name, candidate_version, metric, prod_metric):\n    if metric > prod_metric:\n        client.transition_model_version_stage(\n            name=name, version=candidate_version,\n            stage=\"Production\", archive_existing_versions=True)\n```\n\nGate criteria can include accuracy/F1 thresholds, fairness checks, latency, and model size. Failing the gate should stop the pipeline and alert the team.\n\n## Orchestration\n\nChain stages with an orchestrator so they run on a schedule or trigger:\n\n- **Airflow / Prefect / Dagster** — define a DAG of tasks; good for scheduled retraining.\n- **GitHub Actions / GitLab CI** — trigger on code push or via webhook when a model is registered.\n- **MLflow Recipes / Kubeflow Pipelines** — ML-native pipeline definitions.\n\nPass artifacts between stages via a shared store (object storage, dataset version IDs, or MLflow run IDs) rather than in-memory objects.\n\n## Triggering Deployment\n\nOnce a model reaches `Production`, trigger deployment by:\n\n1. **Registry webhook / event** → CI job builds a serving container referencing the model URI `models:/churn-model/Production`.\n2. **Deploy** to a serving target (KServe, SageMaker, a FastAPI container) using a rolling or canary strategy.\n3. **Smoke test** the live endpoint, then route traffic.\n\n## Best Practices\n\n- Parameterize everything (config files, not hard-coded values).\n- Make stages **idempotent** and restartable.\n- Log data and code versions alongside the model for full lineage.\n- Keep a rollback path: previous Production version stays archived, not deleted.\n- Monitor post-deploy and feed signals back to trigger retraining.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Automating End-to-End Training and Deployment Workflows",
+      "sub": "From data pipeline to a deployable, registered model",
+      "narration": "Welcome. In this lesson we'll connect every stage of the machine learning lifecycle—data preparation, training, evaluation, and MLflow registration—into a single automated workflow that outputs a deployable model. The goal is reproducible, traceable, and safe model releases."
+    },
+    {
+      "type": "content",
+      "title": "Why Automate?",
+      "bullets": [
+        "Eliminate manual hand-offs and drift",
+        "Reproducibility: same inputs produce same model",
+        "Traceability from model back to data and code",
+        "Speed plus safety via quality gates"
+      ],
+      "narration": "Manual processes between data scientists and engineers cause reproducibility problems and slow releases. Automation gives us three big wins: reproducibility, where the same code and data always yield the same model; traceability, where every model maps back to a run, dataset, and metrics; and speed combined with safety, because automated quality gates stop bad models before they ship."
+    },
+    {
+      "type": "content",
+      "title": "Anatomy of the Pipeline",
+      "bullets": [
+        "Data prep: validate, build features, version dataset",
+        "Train: fit model, log to MLflow",
+        "Evaluate: metrics vs. baseline or production",
+        "Register: passing models go to the Model Registry",
+        "Promote & deploy: transition stage and ship"
+      ],
+      "narration": "A typical end-to-end pipeline has five stages. Data prep pulls and validates data and produces a versioned dataset. Training fits the model and logs everything to MLflow. Evaluation computes held-out metrics and compares against a baseline. Registration adds passing models to the registry. Finally, promotion transitions the model to Production and triggers deployment. Keep each stage modular so it can be tested and reused."
+    },
+    {
+      "type": "content",
+      "title": "Tracking and Registration with MLflow",
+      "bullets": [
+        "Log params, metrics, and the model artifact per run",
+        "Register model only when it passes a threshold",
+        "Reference models by URI for downstream stages"
+      ],
+      "code": "with mlflow.start_run() as run:\n    mlflow.log_params(params)\n    model = RandomForestClassifier(**params).fit(X, y)\n    f1 = f1_score(y_val, model.predict(X_val))\n    mlflow.log_metric(\"val_f1\", f1)\n    mlflow.sklearn.log_model(model, \"model\")\n    if f1 >= 0.80:\n        mlflow.register_model(f\"runs:/{run.info.run_id}/model\", \"churn-model\")",
+      "narration": "MLflow tracking captures each run's parameters, metrics, and artifacts, while the Model Registry manages versions and stages. In this snippet we start a run, log parameters, train, evaluate, log the model, and only register it if the F1 score clears our threshold. The registered model gets a version number we can reference later by URI."
+    },
+    {
+      "type": "content",
+      "title": "Quality Gates & Promotion",
+      "bullets": [
+        "Compare candidate against current Production model",
+        "Gate on accuracy, fairness, latency, model size",
+        "Promote only if genuinely better",
+        "Failing gate stops the pipeline and alerts"
+      ],
+      "code": "if metric > prod_metric:\n    client.transition_model_version_stage(\n        name=name, version=candidate_version,\n        stage=\"Production\",\n        archive_existing_versions=True)",
+      "narration": "Never deploy unconditionally. A quality gate compares the candidate model to the current Production model and only promotes if it's actually better. Gates can also check fairness, latency, and model size. If a model fails the gate, the pipeline stops and the team gets alerted. Note that archiving existing versions keeps a rollback path."
+    },
+    {
+      "type": "content",
+      "title": "Orchestration",
+      "bullets": [
+        "Airflow / Prefect / Dagster for scheduled DAGs",
+        "CI/CD (GitHub Actions) for push or webhook triggers",
+        "Kubeflow / MLflow Recipes for ML-native pipelines",
+        "Pass artifacts via shared store, not memory"
+      ],
+      "narration": "To chain these stages, use an orchestrator. Airflow, Prefect, or Dagster define a DAG of tasks, ideal for scheduled retraining. CI/CD tools like GitHub Actions trigger on code pushes or registry webhooks. Kubeflow Pipelines and MLflow Recipes offer ML-native definitions. Crucially, pass data between stages through a shared store or run IDs—not in-memory objects—so stages stay decoupled and restartable."
+    },
+    {
+      "type": "content",
+      "title": "Triggering Deployment",
+      "bullets": [
+        "Registry event triggers a CI deployment job",
+        "Reference model by models:/name/Production",
+        "Deploy to KServe, SageMaker, or FastAPI",
+        "Smoke test, then canary or rolling rollout"
+      ],
+      "narration": "Once a model reaches the Production stage, a registry webhook or event triggers a CI job that builds a serving container referencing the model URI. Deploy to a target like KServe, SageMaker, or a FastAPI service using a rolling or canary strategy. Always smoke-test the live endpoint before routing real traffic to it."
+    },
+    {
+      "type": "content",
+      "title": "Best Practices & Recap",
+      "bullets": [
+        "Parameterize with config, not hard-coded values",
+        "Make stages idempotent and restartable",
+        "Log data + code versions for full lineage",
+        "Keep rollback path; monitor and feed back retraining"
+      ],
+      "narration": "To wrap up: parameterize everything through config files, make stages idempotent so they can restart safely, and log data and code versions for complete lineage. Always keep a rollback path by archiving rather than deleting old versions, and monitor production to feed signals back into retraining. That closes the loop on a robust, automated end-to-end workflow."
+    }
+  ]
+}

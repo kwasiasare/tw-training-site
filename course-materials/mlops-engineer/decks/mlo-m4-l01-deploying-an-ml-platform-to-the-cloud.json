@@ -1,0 +1,193 @@
+{
+  "slug": "mlo-m4-l01-deploying-an-ml-platform-to-the-cloud",
+  "title": "Deploying an ML Platform to the Cloud",
+  "month": 4,
+  "monthTitle": "Cloud Deployment, Monitoring & Capstone",
+  "lesson": 1,
+  "video": "mlo-m4-l01-deploying-an-ml-platform-to-the-cloud.mp4",
+  "summary": "Provision a managed Kubernetes cluster and supporting cloud services to host a production model serving stack, covering infrastructure-as-code, networking, autoscaling, and secure deployment.",
+  "objectives": [
+    "Choose an appropriate managed Kubernetes service and supporting cloud resources for ML serving",
+    "Provision a cluster and its dependencies reproducibly using infrastructure-as-code",
+    "Deploy a containerized model serving stack with proper resource requests, autoscaling, and ingress",
+    "Configure secure access, secrets management, and IAM for cloud-hosted workloads",
+    "Validate the deployment and prepare it for monitoring and the capstone project"
+  ],
+  "quiz": [
+    {
+      "q": "Why use infrastructure as code instead of the cloud console for production clusters?",
+      "options": [
+        "It is faster to type",
+        "It makes infrastructure reproducible, version-controlled, and reviewable",
+        "It removes the need for IAM",
+        "It eliminates all cloud costs"
+      ],
+      "answer": 1,
+      "why": "IaC tools like Terraform give you reproducible, version-controlled, peer-reviewable infrastructure, which manual console clicking cannot."
+    },
+    {
+      "q": "What is the primary purpose of a HorizontalPodAutoscaler?",
+      "options": [
+        "To add more nodes to the cluster",
+        "To scale the number of pod replicas based on metrics",
+        "To manage secrets",
+        "To build container images"
+      ],
+      "answer": 1,
+      "why": "The HPA scales the number of pod replicas up or down based on CPU, memory, or custom metrics; node scaling is handled by the Cluster Autoscaler."
+    },
+    {
+      "q": "Which approach is best for giving pods cloud permissions?",
+      "options": [
+        "Bake access keys into the container image",
+        "Use workload identity (IRSA or Workload Identity) with scoped IAM roles",
+        "Share one root key across all pods",
+        "Disable IAM entirely"
+      ],
+      "answer": 1,
+      "why": "Workload identity lets pods assume scoped, short-lived IAM roles, avoiding long-lived static credentials embedded in images."
+    },
+    {
+      "q": "Why separate GPU workloads into their own node pool with taints?",
+      "options": [
+        "GPUs cannot run Kubernetes",
+        "To prevent non-GPU pods from consuming costly GPU nodes and allow scaling to zero",
+        "Taints make pods faster",
+        "It is required for TLS"
+      ],
+      "answer": 1,
+      "why": "A dedicated, tainted GPU pool ensures only GPU workloads land there and can scale to zero when idle, controlling cost."
+    },
+    {
+      "q": "Name the Kubernetes resource that exposes external HTTPS traffic and routes it to a Service.",
+      "answer": "Ingress",
+      "why": "An Ingress (with an ingress controller) handles external routing and TLS termination, forwarding traffic to internal Services."
+    },
+    {
+      "q": "What should you set on containers so the scheduler can pack pods and the autoscaler can react correctly?",
+      "answer": "Resource requests and limits",
+      "why": "CPU and memory requests and limits let the scheduler place pods efficiently and let the Cluster Autoscaler decide when to add nodes."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Terraform AWS EKS Module",
+      "url": "https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/latest"
+    },
+    {
+      "label": "Kubernetes Horizontal Pod Autoscaler Docs",
+      "url": "https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/"
+    },
+    {
+      "label": "GKE Workload Identity Guide",
+      "url": "https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity"
+    },
+    {
+      "label": "Helm Documentation",
+      "url": "https://helm.sh/docs/"
+    }
+  ],
+  "body_markdown": "## Why Cloud Deployment for ML Platforms\n\nLocal or single-VM serving works for prototypes, but production model serving needs elastic compute, high availability, rolling updates, and integration with storage, logging, and identity systems. Managed Kubernetes (EKS, GKE, AKS) gives you a control plane that the cloud provider maintains, while you focus on workloads.\n\nA typical ML platform on the cloud includes:\n\n- **Compute**: a managed Kubernetes cluster with CPU and (optionally) GPU node pools.\n- **Storage**: object storage (S3/GCS/Blob) for model artifacts and a managed database for metadata.\n- **Networking**: a load balancer / ingress controller, DNS, and TLS.\n- **Identity & secrets**: IAM roles for workloads and a secrets manager.\n- **Registry**: a container registry for your serving images.\n\n## Infrastructure as Code (IaC)\n\nNever click your production infra into existence. Use **Terraform** (or Pulumi/CloudFormation) so the cluster is reproducible, version-controlled, and reviewable.\n\n```hcl\nmodule \"eks\" {\n  source          = \"terraform-aws-modules/eks/aws\"\n  cluster_name    = \"ml-platform\"\n  cluster_version = \"1.29\"\n  subnet_ids      = module.vpc.private_subnets\n  vpc_id          = module.vpc.vpc_id\n\n  eks_managed_node_groups = {\n    cpu = {\n      instance_types = [\"m6i.large\"]\n      min_size       = 2\n      max_size       = 6\n      desired_size   = 2\n    }\n  }\n}\n```\n\nKeep state in a remote backend (e.g. an S3 bucket with locking) so a team can collaborate safely.\n\n## Node Pools and Resource Planning\n\nSeparate node pools by workload type:\n\n- A **CPU pool** for lightweight inference and platform services.\n- A **GPU pool** (taints + tolerations) for heavy models, scaled to zero when idle to save cost.\n\nAlways set CPU/memory **requests and limits** so the scheduler can pack pods and the **Cluster Autoscaler** (or Karpenter) can add nodes when needed.\n\n## Deploying the Serving Stack\n\nPackage deployment with Helm or Kustomize. A Deployment runs replicas of your model server, a Service exposes it internally, and an Ingress routes external traffic with TLS.\n\n```yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: model-server\nspec:\n  replicas: 2\n  selector:\n    matchLabels: { app: model-server }\n  template:\n    metadata:\n      labels: { app: model-server }\n    spec:\n      containers:\n        - name: server\n          image: <registry>/model-server:1.2.0\n          ports: [{ containerPort: 8080 }]\n          resources:\n            requests: { cpu: \"500m\", memory: \"1Gi\" }\n            limits:   { cpu: \"1\",    memory: \"2Gi\" }\n          readinessProbe:\n            httpGet: { path: /health, port: 8080 }\n```\n\nAdd a **HorizontalPodAutoscaler** to scale replicas on CPU or custom latency metrics:\n\n```yaml\napiVersion: autoscaling/v2\nkind: HorizontalPodAutoscaler\nmetadata: { name: model-server }\nspec:\n  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: model-server }\n  minReplicas: 2\n  maxReplicas: 10\n  metrics:\n    - type: Resource\n      resource: { name: cpu, target: { type: Utilization, averageUtilization: 70 } }\n```\n\n## Security and Access\n\n- Use **workload identity** (IRSA on AWS, Workload Identity on GKE) so pods assume scoped IAM roles instead of long-lived keys.\n- Store credentials in a **secrets manager** and mount them, never bake them into images.\n- Lock down the cluster API endpoint, use private subnets for nodes, and apply **network policies**.\n- Pull images from a private registry and scan them for vulnerabilities.\n\n## Validation Checklist\n\nBefore declaring success: confirm `kubectl get pods` shows Ready, hit the ingress endpoint over HTTPS, send a real inference request, trigger load to verify the HPA scales, and check that artifacts load from object storage. This deployment becomes the foundation for the monitoring and observability work in the next lessons and your capstone.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Deploying an ML Platform to the Cloud",
+      "sub": "Cloud Deployment, Monitoring & Capstone",
+      "narration": "Welcome. In this lesson we move from local experiments to a real cloud-hosted model serving platform. We'll provision a managed Kubernetes cluster and the supporting cloud services your production stack needs, all in a reproducible, secure way."
+    },
+    {
+      "type": "content",
+      "title": "Anatomy of a Cloud ML Platform",
+      "bullets": [
+        "Managed Kubernetes for the compute layer",
+        "Object storage for model artifacts",
+        "Load balancer, DNS and TLS for traffic",
+        "IAM and a secrets manager for security",
+        "Container registry for serving images"
+      ],
+      "narration": "A production ML platform is more than a single server. You need a managed Kubernetes cluster for compute, object storage like S3 or GCS for model artifacts, networking with a load balancer and TLS, identity and secrets management, and a registry for your container images. Each piece integrates with the others to give you elasticity and high availability."
+    },
+    {
+      "type": "content",
+      "title": "Why Managed Kubernetes",
+      "bullets": [
+        "EKS, GKE, or AKS run the control plane for you",
+        "Built-in high availability and rolling updates",
+        "Elastic scaling via autoscalers",
+        "Integrates with cloud IAM, storage, logging"
+      ],
+      "narration": "Managed Kubernetes services such as EKS, GKE, and AKS handle the control plane for you, so you focus on workloads. You get high availability, rolling updates, and elastic scaling out of the box, plus tight integration with the cloud provider's identity, storage, and logging services."
+    },
+    {
+      "type": "content",
+      "title": "Infrastructure as Code",
+      "bullets": [
+        "Provision with Terraform, Pulumi, or CloudFormation",
+        "Version-controlled, reviewable, reproducible",
+        "Use a remote state backend with locking",
+        "Avoid manual console clicking in production"
+      ],
+      "code": "module \"eks\" {\n  source       = \"terraform-aws-modules/eks/aws\"\n  cluster_name = \"ml-platform\"\n  cluster_version = \"1.29\"\n}",
+      "narration": "Never build production infrastructure by clicking in the console. Use infrastructure as code with Terraform or similar so your cluster is reproducible, version controlled, and peer reviewed. Store the state in a remote backend with locking so your whole team can collaborate without stepping on each other."
+    },
+    {
+      "type": "content",
+      "title": "Node Pools & Resource Planning",
+      "bullets": [
+        "Separate CPU and GPU node pools",
+        "Use taints and tolerations for GPU workloads",
+        "Scale GPU pools to zero when idle",
+        "Set requests and limits; enable Cluster Autoscaler"
+      ],
+      "narration": "Organize compute into node pools by workload type. A CPU pool handles lightweight inference and platform services, while a GPU pool, gated with taints and tolerations, handles heavy models and scales to zero when idle to save money. Always set resource requests and limits so the scheduler and autoscaler can do their jobs."
+    },
+    {
+      "type": "content",
+      "title": "Deploying the Serving Stack",
+      "bullets": [
+        "Deployment runs replicas of the model server",
+        "Service exposes it internally",
+        "Ingress adds external routing and TLS",
+        "Package with Helm or Kustomize",
+        "Add readiness probes for safe rollouts"
+      ],
+      "code": "resources:\n  requests: { cpu: \"500m\", memory: \"1Gi\" }\n  limits:   { cpu: \"1\", memory: \"2Gi\" }\nreadinessProbe:\n  httpGet: { path: /health, port: 8080 }",
+      "narration": "Your serving stack is a Deployment running multiple replicas, a Service exposing them internally, and an Ingress for external HTTPS traffic. Package these with Helm or Kustomize for repeatability. Readiness probes ensure traffic only flows to healthy pods during rollouts."
+    },
+    {
+      "type": "content",
+      "title": "Autoscaling",
+      "bullets": [
+        "HorizontalPodAutoscaler scales replicas",
+        "Trigger on CPU or custom latency metrics",
+        "Cluster Autoscaler / Karpenter adds nodes",
+        "Set sensible min and max replicas"
+      ],
+      "code": "minReplicas: 2\nmaxReplicas: 10\nmetrics:\n  - type: Resource\n    resource: { name: cpu, target: { averageUtilization: 70 } }",
+      "narration": "Scaling happens at two levels. The HorizontalPodAutoscaler adds or removes pod replicas based on CPU or custom latency metrics, while the Cluster Autoscaler or Karpenter adds nodes when pods can't be scheduled. Set sensible minimum and maximum bounds to balance responsiveness and cost."
+    },
+    {
+      "type": "content",
+      "title": "Security & Access",
+      "bullets": [
+        "Workload identity (IRSA / Workload Identity) over static keys",
+        "Secrets in a manager, never in images",
+        "Private node subnets and network policies",
+        "Scan and pull images from a private registry"
+      ],
+      "narration": "Security is foundational. Use workload identity so pods assume scoped IAM roles instead of long-lived keys. Keep secrets in a manager and mount them at runtime. Place nodes in private subnets, apply network policies, and pull only scanned images from your private registry."
+    },
+    {
+      "type": "content",
+      "title": "Validate & Hand Off",
+      "bullets": [
+        "Confirm pods are Ready via kubectl",
+        "Send a real inference request over HTTPS",
+        "Generate load to verify HPA scaling",
+        "Check artifacts load from object storage",
+        "Foundation for monitoring and capstone"
+      ],
+      "narration": "Finish by validating: pods Ready, ingress reachable over HTTPS, a real inference request succeeds, the HPA scales under load, and artifacts load from object storage. This working deployment is the foundation for the monitoring lessons and your capstone project."
+    }
+  ]
+}

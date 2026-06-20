@@ -1,0 +1,181 @@
+{
+  "slug": "mlo-m3-l02-scaling-and-managing-model-services-on-kubernete",
+  "title": "Scaling and Managing Model Services on Kubernetes",
+  "month": 3,
+  "monthTitle": "Orchestration, CI/CD & Infrastructure as Code",
+  "lesson": 2,
+  "video": "mlo-m3-l02-scaling-and-managing-model-services-on-kubernete.mp4",
+  "summary": "Learn how to run model serving workloads reliably on Kubernetes by configuring resource requests/limits, autoscaling with HPA, and safe rolling updates with health probes.",
+  "objectives": [
+    "Set appropriate CPU/memory requests and limits for model serving pods",
+    "Configure Horizontal Pod Autoscaler (HPA) to scale model services under load",
+    "Perform safe rolling updates and rollbacks with zero downtime",
+    "Use liveness, readiness, and startup probes to keep traffic flowing to healthy pods",
+    "Apply PodDisruptionBudgets and node strategies to maintain availability"
+  ],
+  "quiz": [
+    {
+      "q": "What happens when a container exceeds its memory limit?",
+      "options": [
+        "It is CPU throttled",
+        "It is OOMKilled",
+        "It is removed from Service endpoints",
+        "Nothing, limits are advisory"
+      ],
+      "answer": 1,
+      "why": "Exceeding a memory limit triggers an OOMKill, unlike CPU which is throttled. This is why memory request should be close to the limit for model servers."
+    },
+    {
+      "q": "Which probe is most important for a model with a slow weight-loading startup?",
+      "options": [
+        "livenessProbe",
+        "readinessProbe",
+        "startupProbe",
+        "none"
+      ],
+      "answer": 2,
+      "why": "The startupProbe gives slow-starting containers time to initialize before liveness and readiness probes begin, preventing premature restarts."
+    },
+    {
+      "q": "Why is CPU utilization often a poor scaling metric for inference services?",
+      "options": [
+        "CPU is never used by models",
+        "HPA cannot read CPU",
+        "Request rate or queue depth better reflects real inference load",
+        "CPU metrics are not available in Kubernetes"
+      ],
+      "answer": 2,
+      "why": "Inference load correlates better with requests-per-second or queue depth than raw CPU, so custom metrics via Prometheus Adapter or KEDA scale more accurately."
+    },
+    {
+      "q": "What does setting maxUnavailable: 0 in a rolling update achieve?",
+      "options": [
+        "Faster rollout by killing all pods at once",
+        "Full serving capacity is maintained throughout the rollout",
+        "Disables rollbacks",
+        "Prevents new pods from starting"
+      ],
+      "answer": 1,
+      "why": "maxUnavailable: 0 ensures no existing pods are removed until replacements are Ready, keeping full capacity during the update (requires surge room)."
+    },
+    {
+      "q": "What is the role of a PodDisruptionBudget?",
+      "answer": "It guarantees a minimum number of healthy pods remain available during voluntary disruptions such as node drains or cluster upgrades.",
+      "why": "PDBs protect availability against voluntary disruptions, ensuring operations like node maintenance don't take down too many model serving pods at once."
+    },
+    {
+      "q": "Which two Kubernetes components must work together so HPA scale-ups can actually run?",
+      "answer": "The Horizontal Pod Autoscaler (which adds pods) and the Cluster Autoscaler (which adds nodes for those pods to land on).",
+      "why": "HPA only creates pods; if no node has capacity they stay Pending, so the Cluster Autoscaler must add nodes to realize the scale-up."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Kubernetes HorizontalPodAutoscaler docs",
+      "url": "https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/"
+    },
+    {
+      "label": "Configure Liveness, Readiness and Startup Probes",
+      "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/"
+    },
+    {
+      "label": "PodDisruptionBudget / Disruptions",
+      "url": "https://kubernetes.io/docs/concepts/workloads/pods/disruptions/"
+    },
+    {
+      "label": "KEDA: Kubernetes Event-driven Autoscaling",
+      "url": "https://keda.sh/docs/"
+    }
+  ],
+  "body_markdown": "## Why Kubernetes for Model Serving\n\nModel services have unique traffic patterns: bursty inference loads, slow cold starts (loading large weights), and strict latency SLOs. Kubernetes gives us declarative scaling, self-healing, and rolling updates—but only if we configure resources, autoscaling, and health checks correctly.\n\n## Resource Requests and Limits\n\nEvery container should declare `requests` (what the scheduler reserves) and `limits` (the hard ceiling).\n\n- **requests** drive scheduling and HPA utilization math.\n- **limits** prevent a noisy pod from starving neighbors. CPU over-limit is throttled; memory over-limit triggers an OOMKill.\n- For model servers, profile real inference memory (weights + batch activations) and set memory request ≈ limit to avoid OOM surprises. Avoid setting a CPU limit far below request, or you'll throttle latency.\n\n```yaml\nresources:\n  requests:\n    cpu: \"1\"\n    memory: \"4Gi\"\n  limits:\n    cpu: \"2\"\n    memory: \"4Gi\"\n```\n\nFor GPU models, request `nvidia.com/gpu: 1`; GPUs are not oversubscribed, so request == limit always.\n\n## Health Probes\n\nThree probe types keep traffic on healthy pods:\n\n- **startupProbe**: gives slow-loading models time to load weights before other probes start. Critical for large models.\n- **readinessProbe**: pod only receives traffic when ready; failing it removes the pod from the Service endpoints without killing it.\n- **livenessProbe**: restarts a hung pod.\n\n```yaml\nstartupProbe:\n  httpGet: { path: /healthz, port: 8080 }\n  failureThreshold: 30\n  periodSeconds: 10\nreadinessProbe:\n  httpGet: { path: /ready, port: 8080 }\n  periodSeconds: 5\nlivenessProbe:\n  httpGet: { path: /healthz, port: 8080 }\n  periodSeconds: 10\n```\n\n## Horizontal Pod Autoscaler (HPA)\n\nHPA adds/removes replicas based on metrics. CPU is the default, but for inference, custom metrics like requests-per-second or queue depth (via Prometheus Adapter / KEDA) are far better proxies for load.\n\n```yaml\napiVersion: autoscaling/v2\nkind: HorizontalPodAutoscaler\nmetadata: { name: model-hpa }\nspec:\n  scaleTargetRef:\n    apiVersion: apps/v1\n    kind: Deployment\n    name: model-server\n  minReplicas: 2\n  maxReplicas: 20\n  metrics:\n    - type: Resource\n      resource:\n        name: cpu\n        target: { type: Utilization, averageUtilization: 60 }\n```\n\nTune `behavior` to avoid flapping: scale up fast, scale down slowly with stabilization windows. HPA needs metrics-server installed and accurate `requests` to compute utilization.\n\n## Rolling Updates and Rollbacks\n\nDeployments default to `RollingUpdate`. Control disruption with `maxUnavailable` and `maxSurge`.\n\n```yaml\nstrategy:\n  type: RollingUpdate\n  rollingUpdate:\n    maxUnavailable: 0\n    maxSurge: 1\n```\n\n- `maxUnavailable: 0` ensures full capacity during rollout (needs spare node room).\n- Readiness probes gate the rollout—new pods must be Ready before old ones terminate.\n- Roll back with `kubectl rollout undo deployment/model-server`.\n- Use `minReadySeconds` to bake new pods before considering them stable.\n\n## Availability: PDBs and Disruptions\n\nA **PodDisruptionBudget** protects against voluntary disruptions (node drains, upgrades) by guaranteeing a minimum of healthy pods.\n\n```yaml\napiVersion: policy/v1\nkind: PodDisruptionBudget\nspec:\n  minAvailable: 2\n  selector:\n    matchLabels: { app: model-server }\n```\n\nCombine with `terminationGracePeriodSeconds` and a `preStop` hook so in-flight requests drain before shutdown.\n\n## Putting It Together\n\nA production-ready model service: 2+ minReplicas, profiled requests/limits, startup+readiness+liveness probes, HPA on a meaningful metric, zero-downtime rolling strategy, and a PDB. Add a Cluster Autoscaler so HPA scale-ups can actually land on new nodes.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Scaling and Managing Model Services on Kubernetes",
+      "narration": "Welcome. In this lesson we'll make a model serving workload reliable under real production load on Kubernetes. We'll cover resource limits, health probes, autoscaling, rolling updates, and disruption budgets — the practical knobs an MLOps engineer turns every day."
+    },
+    {
+      "type": "content",
+      "title": "Why Model Serving Is Different",
+      "bullets": [
+        "Bursty, unpredictable inference traffic",
+        "Slow cold starts loading large model weights",
+        "Strict latency SLOs",
+        "Often memory- or GPU-bound, not just CPU"
+      ],
+      "narration": "Model services aren't typical web apps. Traffic is bursty, weights take time to load so cold starts are slow, and you usually have tight latency targets. They're frequently memory or GPU bound. Kubernetes can handle this well, but only if we configure scheduling, scaling, and health checks deliberately."
+    },
+    {
+      "type": "content",
+      "title": "Resource Requests and Limits",
+      "bullets": [
+        "requests = reserved for scheduling and HPA math",
+        "limits = hard ceiling; CPU throttles, memory OOMKills",
+        "Set memory request ≈ limit to avoid OOM surprises",
+        "GPUs: request == limit, never oversubscribed"
+      ],
+      "code": "resources:\n  requests: { cpu: \"1\", memory: \"4Gi\" }\n  limits:   { cpu: \"2\", memory: \"4Gi\" }",
+      "narration": "Requests are what the scheduler reserves and what HPA uses to compute utilization. Limits are hard ceilings: exceed CPU and you get throttled, exceed memory and the pod is OOM killed. For model servers, profile real memory usage and keep the memory request close to the limit. GPUs are never oversubscribed, so request always equals limit."
+    },
+    {
+      "type": "content",
+      "title": "Health Probes",
+      "bullets": [
+        "startupProbe: protects slow-loading models",
+        "readinessProbe: gates traffic without killing the pod",
+        "livenessProbe: restarts hung pods",
+        "Wrong probes cause flapping or dropped requests"
+      ],
+      "code": "startupProbe:\n  httpGet: { path: /healthz, port: 8080 }\n  failureThreshold: 30\n  periodSeconds: 10",
+      "narration": "Three probes work together. The startup probe gives a large model time to load before other probes run. The readiness probe controls whether a pod receives traffic — failing it removes the pod from the Service without killing it. The liveness probe restarts a truly hung container. Misconfigured probes are a top cause of dropped requests, so tune the timings to your load time."
+    },
+    {
+      "type": "content",
+      "title": "Horizontal Pod Autoscaler",
+      "bullets": [
+        "Scales replicas on CPU or custom metrics",
+        "RPS or queue depth beats CPU for inference",
+        "Needs metrics-server and accurate requests",
+        "Tune behavior to prevent flapping"
+      ],
+      "code": "minReplicas: 2\nmaxReplicas: 20\nmetrics:\n- type: Resource\n  resource: { name: cpu, target: { type: Utilization, averageUtilization: 60 } }",
+      "narration": "The Horizontal Pod Autoscaler adds and removes replicas based on metrics. CPU utilization is the default, but for inference, custom metrics like requests-per-second or queue depth — exposed through Prometheus Adapter or KEDA — track real load much better. HPA needs metrics-server and accurate resource requests to do its math. Use the behavior block to scale up quickly but scale down slowly so you don't flap."
+    },
+    {
+      "type": "content",
+      "title": "Rolling Updates and Rollbacks",
+      "bullets": [
+        "maxUnavailable / maxSurge control rollout disruption",
+        "Readiness probes gate the rollout",
+        "maxUnavailable: 0 keeps full capacity",
+        "kubectl rollout undo for instant rollback"
+      ],
+      "code": "strategy:\n  type: RollingUpdate\n  rollingUpdate: { maxUnavailable: 0, maxSurge: 1 }",
+      "narration": "Deployments roll out new versions gradually. maxSurge and maxUnavailable control how aggressive that is. Setting maxUnavailable to zero keeps full capacity during the rollout, assuming you have node room for the surge. Readiness probes gate each step — new pods must be Ready before old ones go. If something breaks, kubectl rollout undo gets you back to the previous version fast."
+    },
+    {
+      "type": "content",
+      "title": "Availability During Disruptions",
+      "bullets": [
+        "PodDisruptionBudget guards voluntary disruptions",
+        "minAvailable keeps pods up during node drains",
+        "preStop hook + grace period drains in-flight requests",
+        "Cluster Autoscaler adds nodes for HPA scale-ups"
+      ],
+      "code": "apiVersion: policy/v1\nkind: PodDisruptionBudget\nspec:\n  minAvailable: 2\n  selector: { matchLabels: { app: model-server } }",
+      "narration": "Node upgrades and drains are voluntary disruptions. A PodDisruptionBudget guarantees a minimum number of healthy pods stay up through them. Pair it with a preStop hook and a sensible termination grace period so in-flight inference requests drain cleanly. And remember: HPA can only scale up if nodes exist, so run the Cluster Autoscaler to add capacity on demand."
+    },
+    {
+      "type": "content",
+      "title": "Production Checklist",
+      "bullets": [
+        "minReplicas ≥ 2 and profiled requests/limits",
+        "Startup + readiness + liveness probes",
+        "HPA on a meaningful metric with anti-flap behavior",
+        "Zero-downtime rolling strategy + PDB",
+        "Cluster Autoscaler for node-level scaling"
+      ],
+      "narration": "Putting it together, a production-ready model service runs at least two replicas with profiled resources, has all three probe types configured, autoscales on a metric that reflects real load, rolls out without downtime, and is protected by a disruption budget. Add the Cluster Autoscaler underneath and your serving layer can survive both traffic spikes and cluster maintenance."
+    }
+  ]
+}

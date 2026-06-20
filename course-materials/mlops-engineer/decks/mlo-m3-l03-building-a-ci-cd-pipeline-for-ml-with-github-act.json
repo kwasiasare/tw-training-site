@@ -1,0 +1,191 @@
+{
+  "slug": "mlo-m3-l03-building-a-ci-cd-pipeline-for-ml-with-github-act",
+  "title": "Building a CI/CD Pipeline for ML with GitHub Actions",
+  "month": 3,
+  "monthTitle": "Orchestration, CI/CD & Infrastructure as Code",
+  "lesson": 3,
+  "video": "mlo-m3-l03-building-a-ci-cd-pipeline-for-ml-with-github-act.mp4",
+  "summary": "Learn how to design and implement a CI/CD pipeline for machine learning using GitHub Actions. You'll automate testing, container image building, and model deployment so every code change is validated and shipped reliably.",
+  "objectives": [
+    "Explain how CI/CD principles apply to ML systems and how they differ from traditional software CI/CD",
+    "Author GitHub Actions workflows using triggers, jobs, steps, and the runner environment",
+    "Automate ML-specific testing including unit tests, data validation, and model performance checks",
+    "Build and push container images to a registry as part of the pipeline",
+    "Deploy models automatically to a target environment using secrets and environment gates",
+    "Apply best practices for caching, matrix builds, and secure credential management"
+  ],
+  "quiz": [
+    {
+      "q": "What is the primary purpose of the 'needs' keyword in a GitHub Actions workflow?",
+      "options": [
+        "To install dependencies before a job",
+        "To enforce execution order and dependencies between jobs",
+        "To store secrets securely",
+        "To trigger the workflow on a schedule"
+      ],
+      "answer": 1,
+      "why": "'needs' makes one job wait for another to complete successfully, enforcing order like test → build → deploy."
+    },
+    {
+      "q": "Which addition makes an ML CI/CD pipeline different from a traditional software pipeline?",
+      "options": [
+        "Running unit tests",
+        "A model evaluation/metrics gate before deployment",
+        "Using a Docker image",
+        "Logging into a registry"
+      ],
+      "answer": 1,
+      "why": "ML pipelines add data validation and a model metrics gate so accuracy regressions block deployment, beyond ordinary unit tests."
+    },
+    {
+      "q": "Why is it recommended to tag container images with the commit SHA?",
+      "options": [
+        "It makes images smaller",
+        "It provides traceability linking each deployment to an exact commit",
+        "It speeds up the build",
+        "It encrypts the image"
+      ],
+      "answer": 1,
+      "why": "Tagging with the SHA ties every deployed image to the precise code that produced it, enabling traceability and rollback."
+    },
+    {
+      "q": "How should sensitive registry or cloud credentials be provided to a workflow?",
+      "options": [
+        "Hardcoded in the YAML file",
+        "In a public README",
+        "Via encrypted GitHub Secrets using ${{ secrets.NAME }}",
+        "Printed to the build logs"
+      ],
+      "answer": 2,
+      "why": "Secrets are stored encrypted and referenced with the secrets expression; GitHub masks them in logs. Hardcoding is insecure."
+    },
+    {
+      "q": "In one sentence, why should large model weight files generally not be committed directly to Git in an ML CI/CD setup?",
+      "answer": "Git is not designed for large binary files; bloated history slows clones and CI, so weights belong in artifact storage, DVC, or a model registry.",
+      "why": "Git history grows permanently with large binaries, hurting performance; dedicated artifact/model storage is the right tool."
+    },
+    {
+      "q": "What does the workflow condition `if: github.ref == 'refs/heads/main'` accomplish on a build job?",
+      "answer": "It restricts the job to run only when the workflow runs on the main branch, preventing builds/deploys from feature branches.",
+      "why": "The ref check ensures the build-and-push step executes only for the main branch, avoiding accidental deployments from other branches."
+    }
+  ],
+  "resources": [
+    {
+      "label": "GitHub Actions documentation",
+      "url": "https://docs.github.com/en/actions"
+    },
+    {
+      "label": "docker/build-push-action",
+      "url": "https://github.com/docker/build-push-action"
+    },
+    {
+      "label": "Using environments for deployment",
+      "url": "https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment"
+    },
+    {
+      "label": "CML: Continuous Machine Learning",
+      "url": "https://cml.dev/"
+    }
+  ],
+  "body_markdown": "## Why CI/CD for ML?\n\nContinuous Integration (CI) and Continuous Delivery/Deployment (CD) automate the path from a code change to a running service. For ML, this matters even more because your system has three moving parts: **code, data, and model artifacts**. A bug can hide in any of them.\n\nA well-built ML CI/CD pipeline gives you:\n\n- **Fast feedback** — tests run automatically on every push or pull request.\n- **Reproducibility** — the same steps run the same way every time, not on someone's laptop.\n- **Safety** — image building and deployment only happen after checks pass.\n- **Traceability** — every deployed model maps back to a commit.\n\n## How ML CI/CD differs from traditional CI/CD\n\n| Concern | Traditional software | ML systems |\n|---|---|---|\n| What changes | Code | Code + data + model weights |\n| Tests | Unit/integration | Plus data validation & model metrics |\n| Build artifact | Binary/image | Image + model artifact |\n| Failure modes | Logic bugs | Data drift, accuracy regression |\n\nML pipelines often add a **model evaluation gate**: even if the code passes, deployment is blocked if accuracy drops below a threshold.\n\n## GitHub Actions core concepts\n\n- **Workflow**: a YAML file in `.github/workflows/` that defines automation.\n- **Event/trigger**: what starts the workflow (`push`, `pull_request`, `schedule`, `workflow_dispatch`).\n- **Job**: a group of steps that run on the same runner; jobs run in parallel by default unless you add `needs`.\n- **Step**: a single command (`run`) or reusable action (`uses`).\n- **Runner**: the VM (e.g., `ubuntu-latest`) that executes the job.\n- **Secrets**: encrypted values (registry passwords, cloud keys) accessed via `${{ secrets.NAME }}`.\n\n## A typical ML pipeline structure\n\n1. **Test job** — install deps, run linting, unit tests, data validation, and a lightweight model check.\n2. **Build job** (`needs: test`) — build a Docker image containing the serving code and model, then push to a container registry.\n3. **Deploy job** (`needs: build`) — pull the image and roll it out to a target environment, often gated by a protected GitHub Environment.\n\n## Example workflow\n\n```yaml\nname: ml-cicd\non:\n  push:\n    branches: [main]\n  pull_request:\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-python@v5\n        with:\n          python-version: '3.11'\n          cache: 'pip'\n      - run: pip install -r requirements.txt\n      - run: pytest tests/ --maxfail=1\n      - run: python scripts/validate_data.py\n      - run: python scripts/check_model_metrics.py --min-accuracy 0.85\n\n  build-and-push:\n    needs: test\n    if: github.ref == 'refs/heads/main'\n    runs-on: ubuntu-latest\n    permissions:\n      packages: write\n    steps:\n      - uses: actions/checkout@v4\n      - uses: docker/login-action@v3\n        with:\n          registry: ghcr.io\n          username: ${{ github.actor }}\n          password: ${{ secrets.GITHUB_TOKEN }}\n      - uses: docker/build-push-action@v6\n        with:\n          push: true\n          tags: ghcr.io/${{ github.repository }}:${{ github.sha }}\n\n  deploy:\n    needs: build-and-push\n    runs-on: ubuntu-latest\n    environment: production\n    steps:\n      - run: ./deploy.sh ghcr.io/${{ github.repository }}:${{ github.sha }}\n        env:\n          CLOUD_TOKEN: ${{ secrets.CLOUD_TOKEN }}\n```\n\n## Key practices\n\n- **Pin actions** to a major version (`@v4`) and pin base images for reproducibility.\n- **Cache dependencies** (`cache: 'pip'`) to speed up runs.\n- **Tag images with the commit SHA** so every deployment is traceable.\n- **Use `needs`** to enforce order: don't build a broken model, don't deploy an unbuilt image.\n- **Gate deployment** with GitHub Environments that require approvals or branch restrictions.\n- **Never hardcode secrets** — always use `${{ secrets.* }}`; GitHub masks them in logs.\n- **Add a model metrics gate** so accuracy regressions fail the build like any other test.\n\n## Common pitfalls\n\n- Storing large model files directly in Git — use artifact storage, DVC, or a model registry instead.\n- Running expensive training in CI on every commit — separate training pipelines from serving CI/CD.\n- Forgetting `if:` conditions, causing deploys from feature branches.\n- Letting tests pass while metrics silently degrade — always include an evaluation check.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Building a CI/CD Pipeline for ML with GitHub Actions",
+      "sub": "Orchestration, CI/CD & Infrastructure as Code",
+      "narration": "Welcome. In this lesson we'll build a continuous integration and delivery pipeline for a machine learning model using GitHub Actions. By the end you'll know how to automatically test, build, and deploy your model every time code changes."
+    },
+    {
+      "type": "content",
+      "title": "Why CI/CD matters for ML",
+      "bullets": [
+        "Code, data, and model artifacts all change",
+        "Fast automated feedback on every push",
+        "Reproducible steps, not laptop-only magic",
+        "Every deployed model traces back to a commit"
+      ],
+      "narration": "Machine learning systems have three moving parts: code, data, and model artifacts. Any of them can introduce a bug. A CI/CD pipeline gives you fast feedback on every change, reproducible execution that doesn't depend on someone's machine, and full traceability from a running service back to the exact commit that produced it."
+    },
+    {
+      "type": "content",
+      "title": "ML CI/CD vs traditional CI/CD",
+      "bullets": [
+        "Traditional: code changes, logic bugs",
+        "ML: code + data + weights, plus drift & regressions",
+        "Artifacts include model files, not just binaries",
+        "Add a model evaluation gate before deploy"
+      ],
+      "narration": "Traditional software CI/CD mostly worries about code and logic bugs. ML adds data and model weights, which means new failure modes like data drift and accuracy regression. So beyond unit tests, we add a model evaluation gate: even if code passes, deployment is blocked if model metrics fall below a threshold."
+    },
+    {
+      "type": "content",
+      "title": "GitHub Actions core concepts",
+      "bullets": [
+        "Workflow: YAML in .github/workflows/",
+        "Trigger: push, pull_request, schedule, dispatch",
+        "Job runs on a runner; steps run commands or actions",
+        "Secrets accessed via ${{ secrets.NAME }}"
+      ],
+      "narration": "GitHub Actions is configured with YAML files in the dot-github-slash-workflows folder. A workflow responds to triggers like push or pull request. It contains jobs that run on runners — virtual machines like ubuntu-latest. Each job has steps that either run shell commands or reuse published actions. Sensitive values are stored as encrypted secrets and referenced with the secrets expression."
+    },
+    {
+      "type": "content",
+      "title": "Pipeline structure: test → build → deploy",
+      "bullets": [
+        "Test: lint, unit tests, data validation, metric check",
+        "Build: docker build and push to registry",
+        "Deploy: roll out image to target environment",
+        "Use 'needs' to enforce correct order"
+      ],
+      "narration": "A typical ML pipeline has three stages. First, a test job runs linting, unit tests, data validation, and a model metrics check. Second, a build job creates a Docker image and pushes it to a registry. Third, a deploy job rolls that image out. We chain them with the needs keyword so we never build a broken model or deploy an image that wasn't built."
+    },
+    {
+      "type": "content",
+      "title": "The test job",
+      "bullets": [
+        "Checkout code and set up Python with caching",
+        "Install dependencies from requirements.txt",
+        "Run pytest plus data validation scripts",
+        "Fail build if accuracy below threshold"
+      ],
+      "code": "- uses: actions/setup-python@v5\n  with:\n    python-version: '3.11'\n    cache: 'pip'\n- run: pip install -r requirements.txt\n- run: pytest tests/\n- run: python scripts/check_model_metrics.py --min-accuracy 0.85",
+      "narration": "The test job checks out the code, sets up Python with pip caching for speed, and installs dependencies. It runs pytest for unit tests, validates the data, and crucially runs a model metrics check that fails the build if accuracy drops below a minimum threshold. This evaluation gate is what makes the pipeline ML-aware."
+    },
+    {
+      "type": "content",
+      "title": "Build and push the image",
+      "bullets": [
+        "needs: test ensures tests passed first",
+        "Log in to registry with a secret token",
+        "Tag image with the commit SHA",
+        "Push only on main branch with an if condition"
+      ],
+      "code": "build-and-push:\n  needs: test\n  if: github.ref == 'refs/heads/main'\n  steps:\n    - uses: docker/build-push-action@v6\n      with:\n        push: true\n        tags: ghcr.io/${{ github.repository }}:${{ github.sha }}",
+      "narration": "The build job depends on the test job, so it only runs when tests pass. We log into the container registry using a secret, then build and push the image. Notice we tag the image with the commit SHA — this gives every deployment perfect traceability. The if condition ensures we only build and push from the main branch, not from every feature branch."
+    },
+    {
+      "type": "content",
+      "title": "Deploy with environment gates",
+      "bullets": [
+        "needs: build-and-push enforces order",
+        "Use GitHub Environments for approvals",
+        "Deploy the SHA-tagged image",
+        "Inject cloud credentials via secrets"
+      ],
+      "code": "deploy:\n  needs: build-and-push\n  environment: production\n  steps:\n    - run: ./deploy.sh ghcr.io/${{ github.repository }}:${{ github.sha }}\n      env:\n        CLOUD_TOKEN: ${{ secrets.CLOUD_TOKEN }}",
+      "narration": "Finally the deploy job rolls out the SHA-tagged image. We attach it to a GitHub Environment called production, which can require manual approval or restrict which branches deploy. Cloud credentials are injected as secrets and masked in logs. Because we deploy the exact image we built and tested, what runs in production is exactly what passed the pipeline."
+    },
+    {
+      "type": "content",
+      "title": "Best practices & pitfalls",
+      "bullets": [
+        "Pin actions and base images for reproducibility",
+        "Cache deps; tag images with SHA",
+        "Don't store large model files in Git — use a registry",
+        "Separate heavy training from serving CI/CD"
+      ],
+      "narration": "To wrap up: pin your actions and base images, cache dependencies, and tag images with the commit SHA. Avoid common pitfalls — don't store large model weights in Git; use artifact storage, DVC, or a model registry. Don't run expensive training on every commit; keep training pipelines separate from serving CI/CD. And always include the metrics gate so accuracy regressions fail loudly like any other test."
+    }
+  ]
+}

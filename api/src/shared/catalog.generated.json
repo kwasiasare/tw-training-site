@@ -97,5 +97,25 @@
         "data pipelines"
       ]
     }
+  },
+  {
+    "slug": "mlops-engineer",
+    "title": "MLOps Engineering: From Models to Production",
+    "summary": "A hands-on, project-based course that takes you from containerizing ML workloads to building fully automated, monitored, and cloud-deployed machine learning pipelines. You'll master Docker, Kubernetes, CI/CD, MLflow, infrastructure as code, and production monitoring while building a portfolio of dep",
+    "targetProfile": {
+      "role": "MLOps Engineer",
+      "level": "mid",
+      "skills": [
+        "docker",
+        "kubernetes",
+        "ci-cd",
+        "model deployment",
+        "monitoring",
+        "mlflow",
+        "cloud",
+        "data pipelines",
+        "infrastructure as code"
+      ]
+    }
   }
 ]

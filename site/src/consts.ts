@@ -115,6 +115,14 @@ export const COURSES: Course[] = [
     sample: 'age-m1-l01-calling-llm-apis-in-python-completions-chat-and-',
     accent: '#7c3aed',
   },
+  {
+    slug: 'mlops-engineer',
+    title: 'MLOps Engineering: From Models to Production',
+    tagline: 'Data scientists, software engineers, and DevOps practitioners who want to transition into an MLOps Engineer role and need practical skills in deploying, automating, and monitoring machine learning systems in production.',
+    blurb: 'A hands-on, project-based course that takes you from containerizing ML workloads to building fully automated, monitored, and cloud-deployed machine learning pipelines. You\'ll master Docker, Kubernetes, CI/CD, MLflow, infrastructure as code, and production monitoring while building a portfolio of deployable systems.',
+    sample: 'mlo-m1-l01-setting-up-your-mlops-toolchain-and-workflow',
+    accent: '#7c3aed',
+  },
 ];
 
 export function getCourse(slug: string): Course | undefined {

@@ -1,0 +1,179 @@
+{
+  "slug": "mlo-m2-l01-tracking-experiments-and-models-with-mlflow",
+  "title": "Tracking Experiments and Models with MLflow",
+  "month": 2,
+  "monthTitle": "Experiment Tracking, Pipelines & Model Deployment",
+  "lesson": 1,
+  "video": "mlo-m2-l01-tracking-experiments-and-models-with-mlflow.mp4",
+  "summary": "Learn how to use MLflow Tracking to log parameters, metrics, and artifacts so your machine learning experiments become reproducible, comparable, and ready for production handoff. This lesson covers MLflow's core concepts, the tracking API, the Model Registry, and practical patterns for organizing runs and experiments.",
+  "objectives": [
+    "Explain MLflow's core components (Tracking, Models, Registry) and the relationship between experiments and runs",
+    "Instrument training code to log parameters, metrics, artifacts, and models using the MLflow Python API",
+    "Use autologging to capture framework-specific details with minimal code",
+    "Compare and reproduce experiments via the MLflow UI and stored run metadata",
+    "Register, version, and stage models using the MLflow Model Registry"
+  ],
+  "quiz": [
+    {
+      "q": "What is the difference between an MLflow experiment and a run?",
+      "options": [
+        "They are synonyms with no difference",
+        "An experiment is a single training execution; a run groups many experiments",
+        "An experiment is a named grouping of runs; a run is one execution of training code",
+        "A run stores parameters while an experiment stores metrics"
+      ],
+      "answer": 2,
+      "why": "An experiment is a named container (e.g., per project) that groups multiple runs, and each run is a single execution of your training code with its own params, metrics, and artifacts."
+    },
+    {
+      "q": "Which MLflow call lets you record a numeric result that changes over training epochs as a time series?",
+      "options": [
+        "mlflow.log_param with step",
+        "mlflow.log_metric with a step argument",
+        "mlflow.log_artifact",
+        "mlflow.set_tag"
+      ],
+      "answer": 1,
+      "why": "log_metric accepts a step argument, allowing the same metric to be logged repeatedly to form a time series; parameters are logged only once."
+    },
+    {
+      "q": "What does mlflow.autolog() primarily provide?",
+      "options": [
+        "Automatic deployment to production",
+        "Automatic capture of params, metrics, and the model for supported frameworks",
+        "Automatic dataset versioning and hashing",
+        "Automatic git commit logging"
+      ],
+      "answer": 1,
+      "why": "Autolog automatically captures parameters, metrics, and the model for supported libraries like scikit-learn and PyTorch with minimal code."
+    },
+    {
+      "q": "Why is logging the model with a framework flavor (e.g., mlflow.sklearn.log_model) important?",
+      "options": [
+        "It compresses the model to save space",
+        "It enables the model to be reloaded and served later",
+        "It prevents the model from being overwritten",
+        "It encrypts the model artifact"
+      ],
+      "answer": 1,
+      "why": "Logging via a flavor stores the model in a standardized, framework-aware format so MLflow can reload and serve it, including capturing its environment dependencies."
+    },
+    {
+      "q": "Name two things (besides parameters and metrics) you should log to make a run fully reproducible.",
+      "answer": "The git commit SHA and the dataset version or hash (also environment/requirements).",
+      "why": "Reproducibility requires knowing the exact code (git SHA), the exact data (dataset version/hash), and the environment, in addition to params and metrics."
+    },
+    {
+      "q": "In the Model Registry, what is the purpose of stages or aliases like 'Production' or '@champion'?",
+      "answer": "They mark which model version is active for a given environment/use so serving systems can load it by stage/alias instead of a specific run ID.",
+      "why": "Stages and aliases decouple deployment from specific runs, letting serving layers reference models:/name/Production and promote versions without code changes."
+    }
+  ],
+  "resources": [
+    {
+      "label": "MLflow Tracking Documentation",
+      "url": "https://mlflow.org/docs/latest/tracking.html"
+    },
+    {
+      "label": "MLflow Model Registry Guide",
+      "url": "https://mlflow.org/docs/latest/model-registry.html"
+    },
+    {
+      "label": "MLflow Python API Reference",
+      "url": "https://mlflow.org/docs/latest/python_api/mlflow.html"
+    },
+    {
+      "label": "MLflow Autologging Documentation",
+      "url": "https://mlflow.org/docs/latest/tracking/autolog.html"
+    }
+  ],
+  "body_markdown": "## Why Experiment Tracking Matters\n\nMachine learning is inherently experimental. You try different hyperparameters, features, and architectures, and each change produces a result. Without a system to record what you did and what happened, you lose the ability to answer basic questions: *Which run produced the best model? What learning rate did I use? Can I reproduce that result next week?*\n\n**MLflow Tracking** solves this by recording the inputs (parameters), outputs (metrics), and outputs/files (artifacts) of each model run in a structured, queryable store.\n\n## Core Concepts\n\n- **Experiment**: A named grouping of runs, usually corresponding to one project or task (e.g., `churn-prediction`).\n- **Run**: A single execution of your training code. Each run has a unique ID and stores params, metrics, tags, and artifacts.\n- **Parameters**: Inputs/config you set, like `learning_rate` or `n_estimators`. Logged once per run.\n- **Metrics**: Numeric results you measure, like `accuracy` or `loss`. Can be logged repeatedly (e.g., per epoch) to form a time series.\n- **Artifacts**: Output files — models, plots, data samples, confusion matrices.\n- **Tracking Server / Backend Store**: Where data is stored. Locally it defaults to a `mlruns/` directory; in production you point to a tracking server backed by a database and artifact store (e.g., S3).\n\n## The Tracking API\n\nThe typical pattern uses a context manager so the run closes cleanly:\n\n```python\nimport mlflow\nfrom sklearn.ensemble import RandomForestClassifier\nfrom sklearn.metrics import accuracy_score\n\nmlflow.set_tracking_uri(\"http://localhost:5000\")  # or local path\nmlflow.set_experiment(\"churn-prediction\")\n\nwith mlflow.start_run(run_name=\"rf-baseline\"):\n    params = {\"n_estimators\": 200, \"max_depth\": 8}\n    mlflow.log_params(params)\n\n    model = RandomForestClassifier(**params).fit(X_train, y_train)\n    preds = model.predict(X_test)\n    acc = accuracy_score(y_test, preds)\n\n    mlflow.log_metric(\"accuracy\", acc)\n    mlflow.log_artifact(\"confusion_matrix.png\")\n    mlflow.sklearn.log_model(model, artifact_path=\"model\")\n```\n\nKey calls:\n- `mlflow.log_param` / `log_params` — record configuration.\n- `mlflow.log_metric` / `log_metrics` — record results; pass `step=` for time series.\n- `mlflow.log_artifact` / `log_artifacts` — store files or directories.\n- `mlflow.<flavor>.log_model` — store the model in a framework-specific *flavor* so it can be reloaded and served.\n\n## Autologging\n\nFor supported libraries (scikit-learn, PyTorch, TensorFlow, XGBoost, LightGBM), a single call captures params, metrics, and the model automatically:\n\n```python\nmlflow.autolog()  # or mlflow.sklearn.autolog()\n```\n\nAutolog is great for getting started fast, but combine it with explicit `log_*` calls for custom metrics or business-specific artifacts.\n\n## Comparing and Reproducing Runs\n\nLaunch the UI with `mlflow ui` (default port 5000). You can:\n- Sort and filter runs by metric.\n- Select multiple runs to compare params/metrics side by side.\n- Inspect logged artifacts and download models.\n\nFor reproducibility, also log the **git commit**, **dataset version/hash**, and **environment** (MLflow captures a `conda.yaml`/`requirements.txt` with logged models). Use tags like `mlflow.set_tag(\"git_sha\", sha)` to make runs traceable.\n\n## The Model Registry\n\nThe Model Registry is a centralized store for managing the lifecycle of models:\n\n```python\nmlflow.register_model(\n    model_uri=\"runs:/<run_id>/model\",\n    name=\"churn-classifier\"\n)\n```\n\nIt provides:\n- **Versioning** — each registration increments a version number.\n- **Stages/aliases** — mark versions as `Staging`, `Production`, or use aliases like `@champion`.\n- **Lineage** — links a registered version back to the run that produced it.\n\nThis bridges experimentation and deployment: your serving layer can load `models:/churn-classifier/Production` without knowing which exact run it came from.\n\n## Practical Tips\n\n- Use a remote tracking server in teams so everyone logs to the same place.\n- Name runs and use consistent experiment names.\n- Log enough to reproduce, but avoid logging huge raw datasets as artifacts — log a hash or pointer instead.\n- Set `MLFLOW_TRACKING_URI` as an environment variable in CI/CD pipelines.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Tracking Experiments and Models with MLflow",
+      "narration": "Welcome. In this lesson we'll learn how to make machine learning experiments reproducible and comparable using MLflow Tracking. By the end, you'll be able to log parameters, metrics, and artifacts, compare runs, and register models for deployment."
+    },
+    {
+      "type": "content",
+      "title": "Why Track Experiments?",
+      "bullets": [
+        "ML is iterative: many params, features, and architectures",
+        "Without tracking you can't answer 'which run was best?'",
+        "Reproducibility: recreate a result next week or next quarter",
+        "Comparability: rank runs objectively by metrics"
+      ],
+      "narration": "Machine learning is fundamentally experimental. You try dozens of configurations, and each produces a result. Without a tracking system, you lose the ability to answer basic questions like which run produced the best model, what hyperparameters you used, or whether you can reproduce a result later. Experiment tracking gives you reproducibility and the ability to compare runs objectively."
+    },
+    {
+      "type": "content",
+      "title": "MLflow Core Concepts",
+      "bullets": [
+        "Experiment: named grouping of runs",
+        "Run: one execution of training code, unique ID",
+        "Parameters: config inputs (learning_rate, n_estimators)",
+        "Metrics: numeric results (accuracy, loss), can be time series",
+        "Artifacts: files like models, plots, data samples"
+      ],
+      "narration": "MLflow organizes work into experiments and runs. An experiment is a named grouping, usually one per project. A run is a single execution of your training code with a unique ID. Within a run you log parameters, which are your configuration inputs; metrics, which are numeric results that can be logged repeatedly to form a time series; and artifacts, which are output files like the model itself, plots, or confusion matrices."
+    },
+    {
+      "type": "content",
+      "title": "The Tracking API",
+      "bullets": [
+        "Use start_run as a context manager",
+        "log_params, log_metric, log_artifact",
+        "log_model stores a reloadable, servable flavor",
+        "set_tracking_uri points to local path or server"
+      ],
+      "code": "with mlflow.start_run(run_name=\"rf-baseline\"):\n    mlflow.log_params(params)\n    model = RandomForestClassifier(**params).fit(X_train, y_train)\n    mlflow.log_metric(\"accuracy\", acc)\n    mlflow.sklearn.log_model(model, \"model\")",
+      "narration": "The typical pattern uses start_run as a context manager so the run closes cleanly even if errors occur. Inside, you log your parameters, train your model, log resulting metrics, and finally log the model itself using a framework-specific flavor like mlflow.sklearn. The flavor matters because it lets MLflow reload and serve the model later. The tracking URI controls where everything is stored."
+    },
+    {
+      "type": "content",
+      "title": "Autologging",
+      "bullets": [
+        "mlflow.autolog() captures params, metrics, model automatically",
+        "Supports sklearn, PyTorch, TensorFlow, XGBoost, LightGBM",
+        "Great for getting started fast",
+        "Combine with explicit log_* for custom metrics"
+      ],
+      "code": "mlflow.autolog()\n# or framework-specific\nmlflow.sklearn.autolog()",
+      "narration": "For supported libraries, a single autolog call captures parameters, metrics, and the model automatically with no extra code. It's the fastest way to get started. However, autolog won't know about your custom business metrics or special artifacts, so combine it with explicit log calls when you need to capture something specific."
+    },
+    {
+      "type": "content",
+      "title": "Comparing and Reproducing Runs",
+      "bullets": [
+        "Launch UI with 'mlflow ui' on port 5000",
+        "Sort, filter, and compare runs side by side",
+        "Log git_sha, dataset hash, and environment",
+        "MLflow auto-captures requirements with logged models"
+      ],
+      "narration": "Launch the MLflow UI to sort and filter runs by metric and compare multiple runs side by side. For true reproducibility, go beyond params and metrics: log your git commit SHA, your dataset version or hash, and your environment. MLflow already captures a requirements file alongside logged models, and tags help you trace runs back to source code."
+    },
+    {
+      "type": "content",
+      "title": "The Model Registry",
+      "bullets": [
+        "Centralized store for model lifecycle",
+        "Versioning: each registration increments version",
+        "Stages/aliases: Staging, Production, @champion",
+        "Lineage links a version back to its run"
+      ],
+      "code": "mlflow.register_model(\n    \"runs:/<run_id>/model\",\n    name=\"churn-classifier\")",
+      "narration": "The Model Registry bridges experimentation and deployment. When you register a model it gets a version number, and you can assign stages like Staging or Production, or use aliases like champion. Each registered version links back to the run that produced it for full lineage. Your serving layer can then load models by name and stage without caring which exact run created them."
+    },
+    {
+      "type": "content",
+      "title": "Practical Tips",
+      "bullets": [
+        "Use a shared remote tracking server in teams",
+        "Name runs and experiments consistently",
+        "Log hashes/pointers, not huge raw datasets",
+        "Set MLFLOW_TRACKING_URI in CI/CD pipelines"
+      ],
+      "narration": "A few practical tips: in teams, use a shared remote tracking server so everyone logs to the same place. Name your runs and experiments consistently. Avoid logging massive raw datasets as artifacts — log a hash or pointer instead. And in your CI/CD pipelines, set the tracking URI as an environment variable so automated runs land in the right store. These habits keep your tracking clean and useful."
+    }
+  ]
+}

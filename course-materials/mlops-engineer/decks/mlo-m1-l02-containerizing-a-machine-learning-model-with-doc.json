@@ -1,0 +1,168 @@
+{
+  "slug": "mlo-m1-l02-containerizing-a-machine-learning-model-with-doc",
+  "title": "Containerizing a Machine Learning Model with Docker",
+  "month": 1,
+  "monthTitle": "Containerization & Foundations for ML Workloads",
+  "lesson": 2,
+  "video": "mlo-m1-l02-containerizing-a-machine-learning-model-with-doc.mp4",
+  "summary": "Learn to package a trained ML model and its dependencies into a reproducible, portable Docker image. This lesson walks through writing a production-ready Dockerfile, building and tagging images, optimizing with layer caching and multi-stage builds, and running an inference service inside a container.",
+  "objectives": [
+    "Explain why containerization solves reproducibility and portability problems for ML workloads",
+    "Write a Dockerfile that packages a trained model, code, and pinned dependencies",
+    "Build, tag, and run a container image that serves model predictions",
+    "Apply layer-caching and multi-stage build techniques to shrink image size and speed up builds",
+    "Follow security and reproducibility best practices (pinned versions, slim base images, non-root user)"
+  ],
+  "quiz": [
+    {
+      "q": "Why should you copy requirements.txt and run pip install before copying your application code in a Dockerfile?",
+      "options": [
+        "It reduces the final image size automatically",
+        "It lets Docker cache the dependency layer so code changes don't trigger reinstalls",
+        "It is required syntax for all Dockerfiles",
+        "It encrypts the dependencies"
+      ],
+      "answer": 1,
+      "why": "Dependencies change less often than code. Installing them in an earlier layer means the cached pip install is reused when only application code changes, speeding up rebuilds."
+    },
+    {
+      "q": "What is the main purpose of a multi-stage Docker build for ML images?",
+      "options": [
+        "To run multiple models at once",
+        "To build wheels/artifacts in one stage and ship only the runtime in a smaller final image",
+        "To allow editing the model after build",
+        "To skip pinning dependency versions"
+      ],
+      "answer": 1,
+      "why": "Multi-stage builds let you use heavy build tools (compilers, wheel builders) in an intermediate stage and copy only the needed artifacts into a clean, slim final image."
+    },
+    {
+      "q": "Which practice improves container security?",
+      "options": [
+        "Running the process as root",
+        "Baking secrets directly into the image",
+        "Running as a non-root user and injecting secrets at runtime",
+        "Using the largest possible base image"
+      ],
+      "answer": 2,
+      "why": "Running as a non-root user limits the blast radius of a compromise, and injecting secrets at runtime keeps them out of the immutable image layers."
+    },
+    {
+      "q": "What does a .dockerignore file do?",
+      "options": [
+        "Lists which Python packages to install",
+        "Excludes files (like .git, data, venv) from the build context",
+        "Defines the container's start command",
+        "Sets environment variables at runtime"
+      ],
+      "answer": 1,
+      "why": "A .dockerignore excludes unnecessary or sensitive files from the build context, keeping builds fast and preventing accidental leaks."
+    },
+    {
+      "q": "Name one reason it can be better to pull a large model from object storage at container startup rather than baking it into the image. (short answer)",
+      "answer": "Baking a large model bloats the image, slows pulls/deploys, and forces a rebuild for every model update; pulling at runtime keeps images small and lets you swap model versions without rebuilding.",
+      "why": "Large artifacts inside images increase size and rebuild frequency; externalizing them decouples model versioning from image builds and keeps images lean."
+    },
+    {
+      "q": "What is the benefit of tagging an image with both a semantic version and the git SHA?",
+      "answer": "It provides human-readable versioning plus exact traceability back to the source commit that produced the image, aiding reproducibility and debugging.",
+      "why": "Semantic versions communicate intent while the git SHA pins the exact code state, giving full auditability of what is running in production."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Docker official Dockerfile best practices",
+      "url": "https://docs.docker.com/develop/develop-images/dockerfile_best-practices/"
+    },
+    {
+      "label": "Docker multi-stage builds guide",
+      "url": "https://docs.docker.com/build/building/multi-stage/"
+    },
+    {
+      "label": "FastAPI in containers documentation",
+      "url": "https://fastapi.tiangolo.com/deployment/docker/"
+    },
+    {
+      "label": "Google distroless base images",
+      "url": "https://github.com/GoogleContainerTools/distroless"
+    }
+  ],
+  "body_markdown": "## Why Containerize an ML Model?\n\nA trained model is useless in production if it only runs on the data scientist's laptop. Containerization bundles your model artifact, inference code, system libraries, and pinned Python dependencies into a single immutable **image** that runs identically on any machine with a container runtime.\n\nKey benefits for MLOps:\n\n- **Reproducibility** \thuh — the exact same environment everywhere, eliminating \"works on my machine\".\n- **Portability** — the same image runs on a laptop, CI runner, or Kubernetes cluster.\n- **Isolation** — dependencies don't conflict with the host or other services.\n- **Scalability** — images are the unit of deployment for orchestrators like Kubernetes.\n\n## Anatomy of an ML Container\n\nA typical inference container includes:\n\n1. A **base image** (e.g. `python:3.11-slim`).\n2. **System dependencies** (e.g. `libgomp1` for some ML libs).\n3. **Python dependencies** from a pinned `requirements.txt`.\n4. The **model artifact** (e.g. `model.pkl`, `model.joblib`, or an ONNX file).\n5. **Inference code** — usually an API server such as FastAPI or Flask.\n\n## Writing the Dockerfile\n\n```dockerfile\n# 1. Pin the base image for reproducibility\nFROM python:3.11-slim\n\n# 2. Set a working directory\nWORKDIR /app\n\n# 3. Install Python deps first to leverage layer caching\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\n\n# 4. Copy code and the trained model artifact\nCOPY app/ ./app/\nCOPY model.joblib .\n\n# 5. Run as a non-root user for security\nRUN useradd --create-home appuser\nUSER appuser\n\n# 6. Document the port and define the start command\nEXPOSE 8000\nCMD [\"uvicorn\", \"app.main:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"]\n```\n\n### Why this order matters\nDocker builds images in **layers** and caches each one. Because dependencies change far less often than your code, copying and installing `requirements.txt` *before* copying source code means a code change only rebuilds the cheap final layers — not the expensive `pip install`.\n\n## A Minimal Inference App\n\n```python\n# app/main.py\nimport joblib\nfrom fastapi import FastAPI\nfrom pydantic import BaseModel\n\nmodel = joblib.load(\"model.joblib\")\napp = FastAPI()\n\nclass Features(BaseModel):\n    values: list[float]\n\n@app.get(\"/health\")\ndef health():\n    return {\"status\": \"ok\"}\n\n@app.post(\"/predict\")\ndef predict(f: Features):\n    pred = model.predict([f.values])\n    return {\"prediction\": pred.tolist()}\n```\n\n## Building and Running\n\n```bash\n# Build and tag the image (semantic + git-sha tags are good practice)\ndocker build -t my-model:1.0.0 .\n\n# Run it, mapping container port 8000 to host 8000\ndocker run -p 8000:8000 my-model:1.0.0\n\n# Test the endpoint\ncurl -X POST http://localhost:8000/predict \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"values\": [5.1, 3.5, 1.4, 0.2]}'\n```\n\n## Optimizing the Image\n\n### Use a `.dockerignore`\nExclude virtual envs, data, notebooks, and `.git` to keep the build context small and avoid leaking secrets.\n\n```\n.git\n__pycache__/\n*.ipynb\ndata/\nvenv/\n```\n\n### Multi-stage builds\nWhen you need build tools (compilers, wheels) but don't want them in the final image, use a builder stage and copy only the artifacts forward.\n\n```dockerfile\nFROM python:3.11-slim AS builder\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt\n\nFROM python:3.11-slim\nWORKDIR /app\nCOPY --from=builder /wheels /wheels\nRUN pip install --no-cache-dir /wheels/*\nCOPY app/ ./app/\nCOPY model.joblib .\nEXPOSE 8000\nCMD [\"uvicorn\", \"app.main:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"]\n```\n\n## Best Practices Checklist\n\n- **Pin everything**: base image tag and every dependency version.\n- **Use slim or distroless** base images to reduce attack surface and size.\n- **Run as non-root**.\n- **Add a HEALTHCHECK** or expose a `/health` endpoint for orchestrators.\n- **Tag with both a semantic version and the git SHA** for traceability.\n- **Don't bake secrets** into the image; inject them at runtime via env vars or secret managers.\n- **Decide on model storage**: small models can be baked in; large models are often pulled from object storage / a registry at startup.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Containerizing a Machine Learning Model with Docker",
+      "sub": "MLOps Engineering — Containerization & Foundations",
+      "narration": "Welcome. In this lesson we'll take a trained machine learning model and package it into a Docker container — a reproducible, portable image that runs the same way everywhere. This is a foundational MLOps skill that sits between model training and deployment to production."
+    },
+    {
+      "type": "content",
+      "title": "Why Containerize?",
+      "bullets": [
+        "Reproducibility: same environment everywhere",
+        "Portability: laptop, CI, Kubernetes — identical image",
+        "Isolation: no dependency conflicts with the host",
+        "Scalability: images are the deploy unit for orchestrators"
+      ],
+      "narration": "A trained model is only valuable if it runs reliably outside the notebook. Containers bundle the model, code, system libraries, and pinned dependencies into one immutable image. This solves the classic 'works on my machine' problem, gives us portability across environments, isolates dependencies, and provides the standard unit that orchestrators like Kubernetes deploy and scale."
+    },
+    {
+      "type": "content",
+      "title": "Anatomy of an ML Container",
+      "bullets": [
+        "Base image, e.g. python:3.11-slim",
+        "System dependencies (e.g. libgomp1)",
+        "Pinned Python deps from requirements.txt",
+        "Model artifact (model.joblib / .pkl / ONNX)",
+        "Inference code — a FastAPI or Flask server"
+      ],
+      "narration": "Let's look at what goes inside. We start with a base image such as python:3.11-slim. On top we layer any system libraries our ML packages need, then pinned Python dependencies, then the trained model artifact itself, and finally the inference code — typically a small API server like FastAPI that exposes a predict endpoint."
+    },
+    {
+      "type": "content",
+      "title": "Writing the Dockerfile",
+      "code": "FROM python:3.11-slim\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY app/ ./app/\nCOPY model.joblib .\nRUN useradd --create-home appuser\nUSER appuser\nEXPOSE 8000\nCMD [\"uvicorn\",\"app.main:app\",\"--host\",\"0.0.0.0\",\"--port\",\"8000\"]",
+      "narration": "Here's a production-ready Dockerfile. We pin the base image, set a working directory, install dependencies, then copy code and the model. We create a non-root user for security, document the port with EXPOSE, and define the start command that launches the inference server. Notice the order — we'll explain why it matters next."
+    },
+    {
+      "type": "content",
+      "title": "Layer Caching: Order Matters",
+      "bullets": [
+        "Docker caches each instruction as a layer",
+        "Copy requirements.txt and install BEFORE copying code",
+        "Code changes then skip the expensive pip install",
+        "Result: faster rebuilds in development and CI"
+      ],
+      "narration": "Docker builds images in layers and caches each one. Dependencies change rarely, but code changes constantly. By copying and installing requirements before copying your source code, a code edit only invalidates the cheap final layers — the slow pip install stays cached. This single ordering trick can cut build times from minutes to seconds."
+    },
+    {
+      "type": "content",
+      "title": "Build, Run, and Test",
+      "code": "docker build -t my-model:1.0.0 .\ndocker run -p 8000:8000 my-model:1.0.0\ncurl -X POST http://localhost:8000/predict \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"values\":[5.1,3.5,1.4,0.2]}'",
+      "narration": "Building is straightforward: docker build with a tag. Good practice is to tag with a semantic version and ideally the git SHA for traceability. We run the container, mapping host port 8000 to the container's port. Then we hit the predict endpoint with curl to confirm the model serves predictions correctly."
+    },
+    {
+      "type": "content",
+      "title": "Shrinking the Image",
+      "bullets": [
+        "Add a .dockerignore (exclude .git, data, venv, notebooks)",
+        "Use slim or distroless base images",
+        "Multi-stage builds: build wheels, ship only runtime",
+        "Smaller images = faster pulls, less attack surface"
+      ],
+      "narration": "Smaller images deploy faster and are more secure. Use a dockerignore to keep the build context lean and avoid leaking secrets. Choose slim or distroless base images. For packages that need compilers, use multi-stage builds: compile wheels in a builder stage, then copy only the finished artifacts into a clean final image, leaving the build tools behind."
+    },
+    {
+      "type": "content",
+      "title": "Best Practices Checklist",
+      "bullets": [
+        "Pin base image and all dependency versions",
+        "Run as non-root; never bake in secrets",
+        "Expose a /health endpoint for orchestrators",
+        "Tag with semantic version + git SHA",
+        "Bake in small models; pull large models at runtime"
+      ],
+      "narration": "To wrap up, here's your checklist. Pin everything for reproducibility. Run as a non-root user and inject secrets at runtime rather than baking them in. Expose a health endpoint so orchestrators can monitor liveness. Tag images for traceability. And make a deliberate decision about model storage — small models can live inside the image, while large ones are usually pulled from object storage at startup."
+    }
+  ]
+}
