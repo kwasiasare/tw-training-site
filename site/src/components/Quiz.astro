@@ -22,7 +22,7 @@ const { questions, title = 'Check your understanding', course, lesson } = Astro.
     <p class="quiz-sub">{questions.length} questions — answer to see instant feedback.</p>
 
     {questions.map((item, i) => (
-      <div class={`q ${item.options ? 'mcq' : 'short-answer'}`} data-answer={String(item.answer)}>
+      <div class={`q ${item.options ? 'mcq' : 'short-answer'}`} data-answer={String(item.answer)} data-qindex={i}>
         <div class="qtext">Q{i + 1}. {item.q}</div>
 
         {item.options ? (
@@ -32,7 +32,21 @@ const { questions, title = 'Check your understanding', course, lesson } = Astro.
             ))}
           </div>
         ) : (
-          <button class="btn secondary reveal-btn" type="button" data-reveal>Reveal answer</button>
+          <div class="grade-box">
+            <textarea
+              class="grade-input"
+              data-grade-input
+              rows="2"
+              maxlength="2000"
+              placeholder="Type your answer to get instant AI feedback…"
+              aria-label={`Your answer to question ${i + 1}`}
+            ></textarea>
+            <div class="grade-actions">
+              <button class="btn" type="button" data-grade>Check my answer</button>
+              <button class="btn secondary reveal-btn" type="button" data-reveal>Reveal answer</button>
+            </div>
+            <div class="grade-result" data-grade-result aria-live="polite" hidden></div>
+          </div>
         )}
 
         {(item.why || !item.options) && (
@@ -45,6 +59,34 @@ const { questions, title = 'Check your understanding', course, lesson } = Astro.
     ))}
   </section>
 )}
+
+<style>
+  .grade-box { margin-top: 0.5rem; }
+  .grade-input {
+    width: 100%;
+    resize: vertical;
+    border-radius: 10px;
+    border: 1px solid var(--border, #2a2a35);
+    background: var(--surface, #1e1e27);
+    color: inherit;
+    padding: 0.55rem 0.7rem;
+    font: inherit;
+  }
+  .grade-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap; }
+  .grade-result {
+    margin-top: 0.6rem;
+    padding: 0.55rem 0.8rem;
+    border-radius: 10px;
+    line-height: 1.5;
+    border-left: 3px solid var(--border, #2a2a35);
+    background: var(--surface, #1e1e27);
+  }
+  .grade-result.correct { border-left-color: #34d399; }
+  .grade-result.partial { border-left-color: #fbbf24; }
+  .grade-result.incorrect { border-left-color: #f87171; }
+  .grade-result.err { border-left-color: #f87171; color: #ffb4b4; }
+  .grade-result.pending { opacity: 0.8; }
+</style>
 
 <script>
   document.querySelectorAll('[data-quiz]').forEach((quiz) => {
@@ -88,9 +130,60 @@ const { questions, title = 'Check your understanding', course, lesson } = Astro.
     });
     quiz.querySelectorAll('[data-reveal]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const explain = btn.parentElement?.querySelector('.explain');
+        const q = btn.closest('.q');
+        const explain = q?.querySelector('.explain');
         if (explain) explain.classList.add('show');
         btn.setAttribute('disabled', 'true');
+      });
+    });
+
+    // AI grading for short-answer questions (TW-68).
+    quiz.querySelectorAll('.q.short-answer').forEach((q) => {
+      const gradeBtn = q.querySelector('[data-grade]');
+      const input = q.querySelector('[data-grade-input]');
+      const result = q.querySelector('[data-grade-result]');
+      const qIndex = Number(q.getAttribute('data-qindex'));
+      if (!gradeBtn || !input || !result || !lesson) return;
+
+      function show(cls, text, signInBack) {
+        result.className = 'grade-result show ' + cls;
+        result.textContent = text;
+        result.hidden = false;
+        if (signInBack) {
+          const a = document.createElement('a');
+          a.href = '/.auth/login/entraExternalId?post_login_redirect_uri=' + signInBack;
+          a.textContent = ' Sign in';
+          result.appendChild(a);
+        }
+      }
+
+      gradeBtn.addEventListener('click', async () => {
+        const answer = (input.value || '').trim();
+        if (!answer) { show('partial', 'Type an answer first, then check it.'); return; }
+        gradeBtn.setAttribute('disabled', 'true');
+        show('pending', 'Grading…');
+        try {
+          const r = await fetch('/api/grade', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ lesson, qIndex, answer }),
+          });
+          if (r.status === 401 || r.status === 403) {
+            show('err', 'Please sign in to get feedback.', encodeURIComponent(location.pathname));
+            return;
+          }
+          const d = r.ok ? await r.json().catch(() => null) : null;
+          if (d && d.verdict) {
+            const label = d.verdict === 'correct' ? '✓ Correct' : d.verdict === 'partial' ? '◐ Partly right' : '✗ Not quite';
+            show(d.verdict, label + ' (' + d.score + '/100) — ' + d.feedback);
+          } else {
+            show('err', "Couldn't grade that just now. Please try again.");
+          }
+        } catch (e) {
+          show('err', 'Network error. Please try again.');
+        } finally {
+          gradeBtn.removeAttribute('disabled');
+        }
       });
     });
   });
