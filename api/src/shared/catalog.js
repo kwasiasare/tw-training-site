@@ -10,17 +10,6 @@
 
 const BUILTIN_COURSES = [
   {
-    slug: 'dami-ai-career',
-    title: 'Beginner → AI Application Developer',
-    summary:
-      'Project-based path from little/no coding to a first AI Application Developer role: Python, data & SQL, LLM apps and RAG, agents, deployment, portfolio + interview prep.',
-    targetProfile: {
-      role: 'AI Application Developer',
-      level: 'entry',
-      skills: ['python', 'sql', 'data', 'llm apps', 'rag', 'agents', 'apis', 'deployment', 'portfolio'],
-    },
-  },
-  {
     slug: 'kwasi-GenAI',
     title: 'Cloud Engineer → Applied GenAI Engineer',
     summary:

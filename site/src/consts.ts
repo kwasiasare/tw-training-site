@@ -40,15 +40,6 @@ export type Course = {
 
 export const COURSES: Course[] = [
   {
-    slug: 'dami-ai-career',
-    title: 'Beginner → AI Application Developer',
-    tagline: 'From beginner to your first AI Application Developer role in six months.',
-    blurb:
-      'A project-based, self-study path for a beginner with little coding: Python, data & SQL, LLM apps and RAG, portfolio projects, deployment, and interview prep.',
-    sample: 'm1-l06-functions',
-    accent: '#4f46e5',
-  },
-  {
     slug: 'kwasi-GenAI',
     title: 'Cloud Engineer → Applied GenAI Engineer',
     tagline: 'Turn cloud, DevOps & security skills into an applied GenAI role.',
