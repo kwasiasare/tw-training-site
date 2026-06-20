@@ -25,6 +25,27 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         if (!arr || !arr.length) return '<p class="theme">None yet.</p>';
         return '<ul class="topic-list">' + arr.map(fn).join('') + '</ul>';
       }
+      function loadRequests() {
+        var slot = document.getElementById('cr-section');
+        if (!slot) return;
+        fetch('/api/custom-requests', { headers: { accept: 'application/json' } })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (d) {
+            if (!d) { slot.innerHTML = '<p class="theme">Could not load requests.</p>'; return; }
+            var reqs = d.requests || [];
+            if (!reqs.length) { slot.innerHTML = '<p class="theme">No custom training requests yet.</p>'; return; }
+            slot.innerHTML = '<table class="topic-list" style="width:100%;border-collapse:collapse">' +
+              '<thead><tr><th align="left">User</th><th align="left">Goal</th><th align="left">Recommended role</th>' +
+              '<th align="left">Status</th><th align="left">When</th></tr></thead><tbody>' +
+              reqs.map(function (q) {
+                return '<tr><td>' + esc(q.user) + '</td><td>' + esc(q.targetOutcome) + '</td><td>' +
+                  esc(q.recommendedRole) + '</td><td>' + esc(q.status) +
+                  (q.course ? ' (' + esc(q.course) + ')' : '') + '</td><td>' +
+                  esc((q.createdAt || '').slice(0, 10)) + '</td></tr>';
+              }).join('') + '</tbody></table>';
+          })
+          .catch(function () { slot.innerHTML = '<p class="theme">Could not load requests.</p>'; });
+      }
       fetch('/api/stats', { headers: { accept: 'application/json' } })
         .then(function (r) {
           if (r.status === 401 || r.status === 403) {
@@ -58,7 +79,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           html += '<h2>Recent activity</h2>' + list(d.recent, function (r) {
             return '<li>' + esc(r.user) + ' · ' + esc(r.course) + ' / ' + esc(r.lesson) + ' · ' + esc(r.status) + '</li>';
           });
+          html += '<h2>Custom training requests</h2><div id="cr-section"><p class="theme">Loading…</p></div>';
           body.innerHTML = html;
+          loadRequests();
         })
         .catch(function () { body.innerHTML = '<p class="summary">Could not load analytics.</p>'; });
     })();
