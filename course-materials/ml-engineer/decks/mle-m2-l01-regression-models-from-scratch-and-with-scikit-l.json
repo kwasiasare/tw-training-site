@@ -1,0 +1,191 @@
+{
+  "slug": "mle-m2-l01-regression-models-from-scratch-and-with-scikit-l",
+  "title": "Regression Models from Scratch and with Scikit-Learn",
+  "month": 2,
+  "monthTitle": "Core Machine Learning Algorithms",
+  "lesson": 1,
+  "video": "mle-m2-l01-regression-models-from-scratch-and-with-scikit-l.mp4",
+  "summary": "Learn how linear regression works under the hood by implementing it from scratch with gradient descent and the normal equation, then build and compare linear, Ridge, and Lasso models with Scikit-Learn on a housing dataset. You will evaluate models with proper metrics, understand the bias-variance tradeoff, and use regularization to control overfitting.",
+  "objectives": [
+    "Derive and implement linear regression from scratch using the normal equation and gradient descent",
+    "Explain the mean squared error cost function and how gradient descent minimizes it",
+    "Train linear, Ridge, and Lasso regression models with Scikit-Learn on a housing dataset",
+    "Evaluate regression performance using MAE, RMSE, and R-squared with proper train/test splits",
+    "Apply feature scaling and regularization to reduce overfitting and improve generalization",
+    "Interpret model coefficients and select an appropriate regression model for a given problem"
+  ],
+  "quiz": [
+    {
+      "q": "Why is mean squared error a convenient cost function for linear regression?",
+      "options": [
+        "It is non-differentiable, forcing discrete solutions",
+        "It is convex, so gradient descent finds a single global minimum",
+        "It ignores large errors entirely",
+        "It only works with categorical targets"
+      ],
+      "answer": 1,
+      "why": "MSE is convex for linear models, meaning there is one global minimum, so optimization reliably converges to the best weights."
+    },
+    {
+      "q": "What is the main drawback of the normal equation compared to gradient descent?",
+      "options": [
+        "It cannot find the optimal weights",
+        "It requires a learning rate",
+        "Inverting XᵀX becomes computationally expensive with many features",
+        "It only works on scaled data"
+      ],
+      "answer": 2,
+      "why": "The normal equation requires inverting XᵀX, which scales roughly as O(n³) in the number of features, making it slow for high-dimensional data."
+    },
+    {
+      "q": "Which regularization technique can drive some coefficients to exactly zero, performing feature selection?",
+      "options": [
+        "Ridge (L2)",
+        "Lasso (L1)",
+        "Standard linear regression",
+        "Normal equation"
+      ],
+      "answer": 1,
+      "why": "Lasso uses an L1 penalty whose geometry pushes some coefficients to exactly zero, effectively selecting a subset of features."
+    },
+    {
+      "q": "Why should feature scaling and the model be wrapped in a Scikit-Learn Pipeline?",
+      "options": [
+        "To make training slower but more accurate",
+        "To prevent data leakage by fitting the scaler only on training data",
+        "Because models cannot accept raw NumPy arrays",
+        "To avoid needing a test set"
+      ],
+      "answer": 1,
+      "why": "A Pipeline ensures the scaler is fit only on training folds and reapplied to validation/test data, preventing information from leaking and giving honest evaluation."
+    },
+    {
+      "q": "In one sentence, what does the R-squared metric tell you about a regression model?",
+      "answer": "It tells you the fraction of the variance in the target that the model explains, where 1.0 is perfect and 0 means no better than predicting the mean.",
+      "why": "R² measures explained variance, providing a scale-free sense of fit quality relative to a baseline that always predicts the mean."
+    },
+    {
+      "q": "What effect does increasing the regularization strength α have on the bias-variance tradeoff?",
+      "answer": "Increasing α shrinks coefficients more, raising bias but lowering variance, which can reduce overfitting up to a point.",
+      "why": "Stronger regularization constrains the model, increasing bias and decreasing variance—the core mechanism for controlling overfitting."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Scikit-Learn Linear Models User Guide",
+      "url": "https://scikit-learn.org/stable/modules/linear_model.html"
+    },
+    {
+      "label": "Hands-On Machine Learning (Géron) Ch. 4: Training Models",
+      "url": "https://github.com/ageron/handson-ml3"
+    },
+    {
+      "label": "Scikit-Learn Regression Metrics Reference",
+      "url": "https://scikit-learn.org/stable/modules/model_evaluation.html#regression-metrics"
+    },
+    {
+      "label": "California Housing Dataset Documentation",
+      "url": "https://scikit-learn.org/stable/datasets/real_world.html#california-housing-dataset"
+    }
+  ],
+  "body_markdown": "## Overview\n\nRegression predicts a **continuous** target (e.g., house price) from input features. In this lesson we build linear regression twice: once by hand to understand the math, and once with Scikit-Learn to see production-ready tooling. We then add regularization (Ridge and Lasso) to combat overfitting.\n\n## The Linear Regression Model\n\nWe assume the target is a weighted sum of features plus a bias:\n\n```\nŷ = w0 + w1*x1 + w2*x2 + ... + wn*xn = Xw\n```\n\nwhere `X` includes a column of 1s for the bias term `w0`. The goal is to find weights `w` that minimize prediction error.\n\n## The Cost Function: Mean Squared Error\n\nWe measure error with **MSE**:\n\n```\nMSE(w) = (1/m) * Σ (ŷ_i - y_i)^2\n```\n\nMSE is convex for linear models, so there is a single global minimum. We can reach it two ways.\n\n### 1. The Normal Equation (closed form)\n\n```\nw = (XᵀX)⁻¹ Xᵀ y\n```\n\nThis gives the exact optimal weights in one step. It is great for small/medium feature sets but costs roughly O(n³) to invert `XᵀX`, so it becomes slow when there are many features.\n\n### 2. Gradient Descent (iterative)\n\nUpdate weights in the direction that reduces cost:\n\n```\ngradient = (2/m) * Xᵀ (Xw - y)\nw := w - learning_rate * gradient\n```\n\nGradient descent scales to large datasets and many features but requires choosing a learning rate and **feature scaling** (so all features contribute on a comparable scale).\n\n## From-Scratch Implementation\n\n```python\nimport numpy as np\n\nclass LinearRegressionGD:\n    def __init__(self, lr=0.01, n_iters=1000):\n        self.lr, self.n_iters = lr, n_iters\n    def fit(self, X, y):\n        m, n = X.shape\n        Xb = np.c_[np.ones(m), X]      # add bias column\n        self.w = np.zeros(n + 1)\n        for _ in range(self.n_iters):\n            grad = (2/m) * Xb.T @ (Xb @ self.w - y)\n            self.w -= self.lr * grad\n        return self\n    def predict(self, X):\n        return np.c_[np.ones(X.shape[0]), X] @ self.w\n```\n\nAlways scale features before gradient descent: `X = (X - X.mean()) / X.std()`.\n\n## Regularization\n\nWith many or correlated features the model can **overfit**: it memorizes training noise and generalizes poorly. Regularization penalizes large weights.\n\n- **Ridge (L2):** adds `α * Σ wj²`. Shrinks coefficients smoothly, keeps all features. Good default.\n- **Lasso (L1):** adds `α * Σ |wj|`. Drives some coefficients to exactly zero, performing feature selection.\n- **ElasticNet:** a mix of L1 and L2.\n\nThe hyperparameter `α` controls strength: larger `α` = more shrinkage = more bias, less variance.\n\n## With Scikit-Learn\n\n```python\nfrom sklearn.datasets import fetch_california_housing\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.linear_model import LinearRegression, Ridge, Lasso\nfrom sklearn.pipeline import make_pipeline\nfrom sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score\nimport numpy as np\n\nX, y = fetch_california_housing(return_X_y=True)\nX_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, random_state=42)\n\nfor name, model in [('Linear', LinearRegression()),\n                    ('Ridge', Ridge(alpha=1.0)),\n                    ('Lasso', Lasso(alpha=0.1))]:\n    pipe = make_pipeline(StandardScaler(), model)\n    pipe.fit(X_tr, y_tr)\n    pred = pipe.predict(X_te)\n    rmse = np.sqrt(mean_squared_error(y_te, pred))\n    print(name, 'RMSE', round(rmse,3), 'R2', round(r2_score(y_te, pred),3))\n```\n\nUse a `Pipeline` so scaling is fit only on training data and reapplied consistently—this prevents data leakage.\n\n## Evaluation Metrics\n\n- **MAE** — average absolute error, same units as target, robust to outliers.\n- **RMSE** — square root of MSE, penalizes large errors more, same units as target.\n- **R²** — fraction of variance explained (1.0 is perfect, 0 means no better than predicting the mean).\n\nAlways evaluate on a held-out **test set** and use cross-validation to tune `α`.\n\n## Key Takeaways\n\nLinear regression is the foundation of ML regression. The normal equation gives exact solutions for small problems; gradient descent scales. Regularization (Ridge/Lasso) is essential for generalization, and proper scaling plus pipelines keep your evaluation honest.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Regression Models from Scratch and with Scikit-Learn",
+      "sub": "Core Machine Learning Algorithms",
+      "narration": "Welcome. In this lesson we'll build regression models two ways: first from scratch in NumPy to understand the math, then with Scikit-Learn for production use. We'll predict continuous outcomes on a housing dataset and learn how regularization helps models generalize."
+    },
+    {
+      "type": "content",
+      "title": "What Is Regression?",
+      "bullets": [
+        "Predicts a continuous target, not a category",
+        "Example: house price from size, location, age",
+        "Linear model: ŷ = w0 + w1x1 + ... + wnxn",
+        "Goal: find weights that minimize prediction error"
+      ],
+      "narration": "Regression predicts continuous values such as a house price. The linear model expresses the prediction as a weighted sum of the input features plus a bias term. Our entire job is to find the set of weights that makes predictions as close as possible to the true values."
+    },
+    {
+      "type": "content",
+      "title": "The Cost Function: MSE",
+      "bullets": [
+        "MSE = average of squared errors",
+        "Convex, so it has one global minimum",
+        "Squaring punishes large errors heavily",
+        "Lower MSE = better fit to data"
+      ],
+      "code": "MSE(w) = (1/m) * Σ (ŷ_i - y_i)^2",
+      "narration": "To measure how wrong we are, we use mean squared error. We square each error so positive and negative errors don't cancel, and large mistakes are penalized more. Because MSE is convex for linear models, there's a single global minimum we can reliably find."
+    },
+    {
+      "type": "content",
+      "title": "Two Ways to Minimize MSE",
+      "bullets": [
+        "Normal equation: w = (XᵀX)⁻¹Xᵀy, exact in one step",
+        "Costly for many features (matrix inversion ~O(n³))",
+        "Gradient descent: iterate w := w - lr * gradient",
+        "Scales to big data, needs scaling and a learning rate"
+      ],
+      "narration": "There are two ways to find the optimal weights. The normal equation gives an exact closed-form solution in one step, ideal for small problems but slow with many features due to matrix inversion. Gradient descent iteratively steps downhill and scales to large datasets, but you must scale features and pick a good learning rate."
+    },
+    {
+      "type": "content",
+      "title": "From-Scratch Gradient Descent",
+      "bullets": [
+        "Add a bias column of ones to X",
+        "Compute gradient = (2/m) Xᵀ(Xw - y)",
+        "Update weights each iteration",
+        "Always standardize features first"
+      ],
+      "code": "grad = (2/m) * Xb.T @ (Xb @ w - y)\nw -= lr * grad",
+      "narration": "Here's the core loop implemented from scratch. We add a column of ones for the bias, compute the gradient of the MSE, and nudge the weights in the opposite direction. Standardizing features beforehand keeps the gradients well-behaved so the algorithm converges smoothly."
+    },
+    {
+      "type": "content",
+      "title": "Regularization: Ridge and Lasso",
+      "bullets": [
+        "Fights overfitting by penalizing large weights",
+        "Ridge (L2): shrinks coefficients, keeps all features",
+        "Lasso (L1): drives some coefficients to zero",
+        "α controls strength: bigger α = more shrinkage"
+      ],
+      "narration": "When models overfit, regularization helps. Ridge adds an L2 penalty that smoothly shrinks all coefficients, while Lasso adds an L1 penalty that can zero out coefficients entirely, effectively selecting features. The alpha hyperparameter controls how strong the penalty is, trading variance for bias."
+    },
+    {
+      "type": "content",
+      "title": "Building Models with Scikit-Learn",
+      "bullets": [
+        "Use train_test_split for honest evaluation",
+        "Wrap scaling + model in a Pipeline to avoid leakage",
+        "Compare LinearRegression, Ridge, Lasso",
+        "Tune α with cross-validation"
+      ],
+      "code": "pipe = make_pipeline(StandardScaler(), Ridge(alpha=1.0))\npipe.fit(X_tr, y_tr)",
+      "narration": "In Scikit-Learn we split the data, then wrap the scaler and model in a Pipeline so scaling is learned only from training data—preventing leakage. We can swap in Linear, Ridge, or Lasso models and compare them, tuning the alpha hyperparameter with cross-validation."
+    },
+    {
+      "type": "content",
+      "title": "Evaluating Regression Models",
+      "bullets": [
+        "MAE: average absolute error, robust to outliers",
+        "RMSE: penalizes big errors, same units as target",
+        "R²: fraction of variance explained (1.0 ideal)",
+        "Always report metrics on a held-out test set"
+      ],
+      "narration": "To judge models we use MAE for an easily interpreted average error, RMSE when large errors matter more, and R-squared to see how much variance we explain. The golden rule: always compute these on a held-out test set, never on the data you trained on."
+    },
+    {
+      "type": "content",
+      "title": "Key Takeaways",
+      "bullets": [
+        "Linear regression is the foundation of ML regression",
+        "Normal equation for small, gradient descent for large",
+        "Regularization improves generalization",
+        "Scale features and use pipelines to stay honest"
+      ],
+      "narration": "To summarize: linear regression underpins much of machine learning. Choose the normal equation for small problems and gradient descent for large ones. Use Ridge or Lasso to generalize better, and always scale features inside a pipeline to keep your evaluation trustworthy. Next, you'll practice on the housing dataset yourself."
+    }
+  ]
+}

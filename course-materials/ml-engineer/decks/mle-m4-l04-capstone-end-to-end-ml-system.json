@@ -1,0 +1,179 @@
+{
+  "slug": "mle-m4-l04-capstone-end-to-end-ml-system",
+  "title": "Capstone: End-to-End ML System",
+  "month": 4,
+  "monthTitle": "Production ML: Pipelines, Evaluation, and Capstone",
+  "lesson": 4,
+  "video": "mle-m4-l04-capstone-end-to-end-ml-system.mp4",
+  "summary": "A capstone lesson guiding learners to design, build, and present a complete end-to-end ML system spanning data ingestion, pipeline, training, evaluation, deployment, and monitoring as a portfolio project.",
+  "objectives": [
+    "Scope a realistic ML problem and define success metrics tied to a business or user outcome",
+    "Build a reproducible pipeline from raw data through feature engineering, training, and evaluation",
+    "Deploy a trained model behind an inference API with versioning and basic monitoring",
+    "Evaluate the system rigorously, including offline metrics, error analysis, and slice-based fairness checks",
+    "Document and present the project clearly for a portfolio and technical interviews"
+  ],
+  "quiz": [
+    {
+      "q": "Why should you save the entire fitted pipeline (preprocessing + model) rather than just the model?",
+      "options": [
+        "It makes the file smaller",
+        "It ensures serving applies identical transformations as training, avoiding train/serve skew",
+        "It improves model accuracy automatically",
+        "It removes the need for input validation"
+      ],
+      "answer": 1,
+      "why": "Saving preprocessing and model together guarantees the exact same feature transformations run at inference time, preventing train/serve skew."
+    },
+    {
+      "q": "Which practice best prevents data leakage in a temporal prediction problem?",
+      "options": [
+        "Shuffling all rows before splitting",
+        "Splitting by time so training precedes the validation/test period",
+        "Using accuracy instead of F1",
+        "Scaling features after splitting"
+      ],
+      "answer": 1,
+      "why": "For time-dependent data, splitting chronologically prevents the model from seeing future information during training, which would leak into evaluation."
+    },
+    {
+      "q": "What is the purpose of slice-based evaluation?",
+      "options": [
+        "To reduce model training time",
+        "To detect underperformance on specific subgroups hidden by aggregate metrics",
+        "To replace the need for a test set",
+        "To increase the dataset size"
+      ],
+      "answer": 1,
+      "why": "Aggregate metrics can hide poor performance on subgroups; slice-based evaluation surfaces these hidden weaknesses."
+    },
+    {
+      "q": "Why establish a trivial baseline before modeling?",
+      "options": [
+        "To meet a deadline",
+        "To know the minimum performance any real model must beat",
+        "To avoid using cross-validation",
+        "Because it is the final deliverable"
+      ],
+      "answer": 1,
+      "why": "A baseline (e.g., majority class or mean predictor) defines the floor of acceptable performance and contextualizes your model's value."
+    },
+    {
+      "q": "Name one signal you would monitor in production to know when a deployed model may need retraining.",
+      "answer": "Data or prediction drift (also acceptable: rising error rate, stale input data, latency spikes)",
+      "why": "Drift in incoming data or output distributions indicates the model's assumptions may no longer hold, signaling a retrain."
+    },
+    {
+      "q": "In one phrase, what should a /predict API response include besides the prediction for traceability?",
+      "answer": "The model version",
+      "why": "Returning the model version lets you trace which model produced a given prediction, essential for debugging and audits."
+    }
+  ],
+  "resources": [
+    {
+      "label": "MLflow Documentation",
+      "url": "https://mlflow.org/docs/latest/index.html"
+    },
+    {
+      "label": "FastAPI Documentation",
+      "url": "https://fastapi.tiangolo.com/"
+    },
+    {
+      "label": "Google: Model Cards for Model Reporting",
+      "url": "https://modelcards.withgoogle.com/about"
+    },
+    {
+      "label": "scikit-learn Pipeline Guide",
+      "url": "https://scikit-learn.org/stable/modules/compose.html"
+    }
+  ],
+  "body_markdown": "## Capstone Overview\n\nThis capstone ties together everything from the bootcamp into one shippable project. The goal is not a Kaggle-style notebook, but a **system**: data flows in, a model is trained and evaluated, and predictions are served behind an API with monitoring. Treat it as the centerpiece of your portfolio.\n\n## 1. Scope and Problem Framing\n\nStart by choosing a problem you can defend.\n\n- **Define the task**: classification, regression, ranking, or forecasting.\n- **Pick the metric that matters**: don't default to accuracy. Use F1, AUC, RMSE, or a business KPI (e.g., cost of false positives).\n- **Set a baseline**: a trivial model (majority class, mean predictor, simple heuristic) you must beat.\n- **State constraints**: latency budget, data freshness, interpretability requirements.\n\nWrite a one-page project brief before writing code.\n\n## 2. Data Pipeline\n\nA pipeline must be **reproducible** and **idempotent**.\n\n- **Ingestion**: pull raw data from a source (CSV, API, database). Store an immutable raw copy.\n- **Validation**: schema checks, null rates, range checks. Fail loudly on bad data.\n- **Transformation**: feature engineering encapsulated in a `Pipeline`/`ColumnTransformer` so the same logic runs in training and serving.\n- **Splitting**: respect time order for temporal data; avoid leakage from target-derived features.\n\nVersion both data and code (e.g., DVC + Git) so any run is repeatable.\n\n## 3. Training and Experiment Tracking\n\n- Use an experiment tracker (MLflow, Weights & Biases) to log params, metrics, and artifacts.\n- Tune hyperparameters with cross-validation; never tune on the test set.\n- Save the **fitted pipeline** (preprocessing + model) as a single artifact so serving matches training exactly.\n\n## 4. Evaluation\n\nGo beyond a single number.\n\n- **Offline metrics** on a held-out test set vs. the baseline.\n- **Error analysis**: inspect the worst predictions; look for patterns.\n- **Slice-based evaluation**: report metrics per subgroup to catch hidden underperformance.\n- **Calibration** (for classifiers) and **confidence intervals** where feasible.\n\n## 5. Deployment\n\n- Wrap the saved pipeline in an inference service (FastAPI) with a `/predict` endpoint.\n- Validate inputs with a schema (Pydantic). Return predictions plus a model version.\n- Containerize with Docker for reproducible deploys.\n- Add **monitoring**: log inputs/outputs, track latency, and watch for data/prediction drift.\n\n## 6. Documentation and Presentation\n\n- A clear README: problem, data, approach, results, how to run.\n- A model card summarizing intended use, metrics, and limitations.\n- A short demo (video or live) and an architecture diagram.\n\nThe deliverable is a story: problem → data → model → results → deployment → what you'd do next.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Capstone: End-to-End ML System",
+      "sub": "From raw data to deployed, monitored inference",
+      "narration": "Welcome to the capstone. This is where everything you've learned comes together into one complete, shippable machine learning system. By the end, you'll have a portfolio project that takes raw data through a pipeline, trains and evaluates a model, and serves predictions behind a deployed API."
+    },
+    {
+      "type": "content",
+      "title": "Frame the Problem First",
+      "bullets": [
+        "Define the task and the metric that actually matters",
+        "Establish a trivial baseline you must beat",
+        "State constraints: latency, freshness, interpretability",
+        "Write a one-page brief before any code"
+      ],
+      "narration": "Before writing code, frame the problem. Pick a task you can defend and choose a metric tied to a real outcome, not just accuracy. Define a baseline like a majority-class or mean predictor so you know what good looks like. Note your constraints, and capture all of this in a short written brief."
+    },
+    {
+      "type": "content",
+      "title": "Build a Reproducible Pipeline",
+      "bullets": [
+        "Store an immutable raw data copy",
+        "Validate schema, nulls, and ranges; fail loudly",
+        "Encapsulate features in a ColumnTransformer",
+        "Avoid leakage; respect time order in splits"
+      ],
+      "code": "from sklearn.pipeline import Pipeline\nfrom sklearn.compose import ColumnTransformer\n\npre = ColumnTransformer([\n  ('num', StandardScaler(), num_cols),\n  ('cat', OneHotEncoder(handle_unknown='ignore'), cat_cols),\n])\npipe = Pipeline([('pre', pre), ('model', clf)])",
+      "narration": "Your pipeline must be reproducible and idempotent. Keep an immutable raw copy of the data, validate it aggressively, and encapsulate all feature engineering in a transformer so the exact same logic runs at training and serving time. Watch for leakage and respect time order when splitting temporal data."
+    },
+    {
+      "type": "content",
+      "title": "Train and Track Experiments",
+      "bullets": [
+        "Log params, metrics, and artifacts with MLflow or W&B",
+        "Tune with cross-validation, never on the test set",
+        "Save the full fitted pipeline as one artifact",
+        "Make every run repeatable with versioned data and code"
+      ],
+      "code": "import mlflow\nwith mlflow.start_run():\n    mlflow.log_params(params)\n    pipe.fit(X_train, y_train)\n    mlflow.log_metric('f1', score)\n    mlflow.sklearn.log_model(pipe, 'model')",
+      "narration": "Use an experiment tracker to log parameters, metrics, and artifacts so you can compare runs. Tune hyperparameters with cross-validation and keep the test set untouched until the end. Crucially, save the fitted pipeline, preprocessing plus model, as a single artifact so serving exactly matches training."
+    },
+    {
+      "type": "content",
+      "title": "Evaluate Beyond One Number",
+      "bullets": [
+        "Compare against the baseline on held-out data",
+        "Do error analysis on the worst predictions",
+        "Report metrics per slice to catch hidden weakness",
+        "Check calibration and confidence where possible"
+      ],
+      "narration": "Evaluation is more than a single score. Compare against your baseline, then dig into error analysis to understand where and why the model fails. Break metrics down by subgroup to catch hidden underperformance, and check calibration for classifiers. This depth is what separates an engineer from a notebook hobbyist."
+    },
+    {
+      "type": "content",
+      "title": "Deploy the Model",
+      "bullets": [
+        "Wrap the saved pipeline in a FastAPI /predict endpoint",
+        "Validate inputs with a Pydantic schema",
+        "Return predictions plus a model version",
+        "Containerize with Docker for reproducible deploys"
+      ],
+      "code": "@app.post('/predict')\ndef predict(item: Features):\n    X = to_frame(item)\n    pred = model.predict(X)[0]\n    return {'prediction': pred, 'model_version': VERSION}",
+      "narration": "Deployment turns your model into a service. Wrap the saved pipeline in a FastAPI endpoint, validate every incoming request with a schema, and return both the prediction and a model version for traceability. Containerize with Docker so the deployment is reproducible anywhere."
+    },
+    {
+      "type": "content",
+      "title": "Monitor in Production",
+      "bullets": [
+        "Log inputs, outputs, and latency",
+        "Watch for data and prediction drift",
+        "Set alerts on error rates and stale data",
+        "Plan a retraining trigger"
+      ],
+      "narration": "A deployed model isn't done. Log inputs, outputs, and latency, and monitor for drift in your incoming data and predictions. Set alerts so you know when something degrades, and decide in advance what conditions should trigger a retrain."
+    },
+    {
+      "type": "content",
+      "title": "Document and Present",
+      "bullets": [
+        "README: problem, data, results, how to run",
+        "Model card with intended use and limitations",
+        "Architecture diagram and short demo",
+        "Tell the story: problem to deployment to next steps"
+      ],
+      "narration": "Finally, package it for your portfolio. Write a clear README, a model card describing intended use and limitations, and include an architecture diagram and a short demo. Present it as a story: the problem, your data and modeling choices, your results, the deployment, and what you'd improve next."
+    }
+  ]
+}

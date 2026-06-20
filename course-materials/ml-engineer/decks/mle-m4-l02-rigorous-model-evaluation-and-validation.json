@@ -1,0 +1,184 @@
+{
+  "slug": "mle-m4-l02-rigorous-model-evaluation-and-validation",
+  "title": "Rigorous Model Evaluation and Validation",
+  "month": 4,
+  "monthTitle": "Production ML: Pipelines, Evaluation, and Capstone",
+  "lesson": 2,
+  "video": "mle-m4-l02-rigorous-model-evaluation-and-validation.mp4",
+  "summary": "Learn to evaluate ML models rigorously by detecting overfitting, preventing data leakage, choosing the right validation strategy, and measuring fairness across subgroups so your models perform reliably in production.",
+  "objectives": [
+    "Diagnose overfitting and underfitting using train/validation/test gaps and learning curves",
+    "Apply appropriate validation strategies (holdout, k-fold, stratified, time-series, grouped) to different data types",
+    "Identify and prevent common sources of data leakage in feature engineering and preprocessing",
+    "Select evaluation metrics aligned with business objectives beyond accuracy",
+    "Measure and interpret fairness metrics across protected subgroups",
+    "Build a leakage-safe evaluation pipeline that generalizes to unseen data"
+  ],
+  "quiz": [
+    {
+      "q": "You fit a StandardScaler on the entire dataset before splitting into train and test. What problem does this cause?",
+      "options": [
+        "Underfitting",
+        "Data leakage from test statistics",
+        "Class imbalance",
+        "Slower training only"
+      ],
+      "answer": 1,
+      "why": "Fitting the scaler on all data lets test-set statistics influence training, leaking information and inflating performance. Preprocessing must be fit inside the training folds via a pipeline."
+    },
+    {
+      "q": "Which validation strategy is most appropriate for forecasting future sales from historical time-stamped data?",
+      "options": [
+        "Random k-fold",
+        "Stratified k-fold",
+        "Time-series (forward-chaining) split",
+        "Leave-one-out"
+      ],
+      "answer": 2,
+      "why": "Time-series data requires that validation always follows training chronologically; random folds would train on the future and leak temporal information."
+    },
+    {
+      "q": "A model shows very low training error but high validation error. This indicates:",
+      "options": [
+        "Underfitting",
+        "Overfitting",
+        "Perfect generalization",
+        "Data leakage"
+      ],
+      "answer": 1,
+      "why": "A large gap with low training error and high validation error is the classic signature of overfitting — the model memorized training noise."
+    },
+    {
+      "q": "For a highly imbalanced classification problem with rare positives, which metric gives the most honest picture?",
+      "options": [
+        "Accuracy",
+        "PR-AUC",
+        "Training loss",
+        "Number of parameters"
+      ],
+      "answer": 1,
+      "why": "PR-AUC focuses on precision and recall for the positive class, making it more informative than accuracy or even ROC-AUC when positives are rare."
+    },
+    {
+      "q": "Define 'equal opportunity' as a fairness metric in one sentence.",
+      "answer": "Equal opportunity means the true positive rate is approximately equal across protected groups, so qualified individuals are correctly identified at the same rate regardless of group.",
+      "why": "Equal opportunity focuses specifically on equalizing the true positive rate (recall) across subgroups, ensuring those who should receive a positive outcome do so equally."
+    },
+    {
+      "q": "Why should the test set be used only once, at the very end?",
+      "answer": "Repeatedly evaluating on the test set leaks information into model and hyperparameter choices, causing the test score to overestimate true generalization performance.",
+      "why": "Using the test set for tuning turns it into a de facto validation set, so its estimate of generalization becomes optimistically biased."
+    }
+  ],
+  "resources": [
+    {
+      "label": "scikit-learn: Cross-validation and model evaluation guide",
+      "url": "https://scikit-learn.org/stable/modules/cross_validation.html"
+    },
+    {
+      "label": "Fairlearn documentation",
+      "url": "https://fairlearn.org/"
+    },
+    {
+      "label": "Google ML Crash Course: Classification metrics & fairness",
+      "url": "https://developers.google.com/machine-learning/crash-course"
+    },
+    {
+      "label": "Aequitas Bias and Fairness Audit Toolkit",
+      "url": "http://aequitas.dssg.io/"
+    }
+  ],
+  "body_markdown": "## Why Rigorous Evaluation Matters\n\nA model that scores 0.99 on your training data can fail completely in production. Rigorous evaluation is the discipline of producing **honest, generalizable estimates** of model performance before deployment. As an ML engineer, your job is not to maximize a number on a slide but to guarantee the model behaves reliably on data it has never seen.\n\nThree silent killers undermine evaluation: **overfitting**, **data leakage**, and **bias**. This lesson gives you a practical toolkit to detect and prevent each.\n\n## Overfitting vs. Underfitting\n\n- **Overfitting**: the model memorizes training noise. Symptom: low training error, high validation error (a large gap).\n- **Underfitting**: the model is too simple. Symptom: high error on both training and validation sets.\n\nUse **learning curves** (error vs. training set size) and the **train-validation gap** to diagnose. Remedies for overfitting include regularization, more data, simpler models, and early stopping. Remedies for underfitting include richer features and higher-capacity models.\n\n## Validation Strategies\n\nThe golden rule: **the test set is touched only once**, at the very end. Use a validation set (or cross-validation) for all tuning.\n\n- **Holdout split**: simple train/validation/test. Fast but high variance on small data.\n- **K-fold cross-validation**: rotate folds; average results for a robust estimate. Default for tabular data.\n- **Stratified k-fold**: preserves class proportions in each fold — essential for imbalanced classification.\n- **Time-series split**: never train on the future. Use expanding or rolling windows so validation always follows training chronologically.\n- **Grouped k-fold**: when rows share a group (e.g., multiple records per patient), keep groups entirely on one side to avoid leakage.\n\n## Data Leakage\n\nLeakage is when information unavailable at prediction time sneaks into training, producing overly optimistic scores that vanish in production.\n\nCommon sources:\n\n- **Preprocessing on full data**: fitting a scaler or imputer on the entire dataset before splitting leaks test statistics. Always fit preprocessing **inside** the training fold using a `Pipeline`.\n- **Target leakage**: a feature that is a proxy for, or derived after, the target (e.g., `is_refunded` when predicting `will_churn`).\n- **Temporal leakage**: using future information to predict the past.\n- **Duplicate or group leakage**: near-duplicate rows split across train and test.\n\n```python\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.model_selection import cross_val_score\n\npipe = Pipeline([\n    ('scaler', StandardScaler()),\n    ('clf', LogisticRegression())\n])\n# scaler is fit only on training folds -> no leakage\nscores = cross_val_score(pipe, X, y, cv=5, scoring='f1')\n```\n\n## Choosing the Right Metrics\n\nAccuracy is misleading on imbalanced data. Match the metric to the cost of errors:\n\n- **Precision / Recall / F1**: when false positives and false negatives have different costs.\n- **ROC-AUC**: ranking quality across thresholds; can be optimistic on heavy imbalance.\n- **PR-AUC**: better for rare positive classes.\n- **Calibration** (reliability curves, Brier score): when probabilities must be trustworthy.\n- **Regression**: RMSE penalizes large errors, MAE is robust, R² explains variance.\n\nAlways report a **confidence interval or fold variance**, not a single point estimate.\n\n## Fairness-Aware Evaluation\n\nA model can be accurate overall yet harmful to subgroups. Slice your metrics by **protected attributes** (gender, age, ethnicity, region).\n\nKey fairness metrics:\n\n- **Demographic parity**: positive prediction rate is similar across groups.\n- **Equal opportunity**: true positive rate is similar across groups.\n- **Equalized odds**: both TPR and FPR are similar across groups.\n\nThese definitions can conflict — you cannot usually satisfy all simultaneously, so choose based on context and stakeholder input. Tools like Fairlearn and Aequitas automate subgroup audits.\n\n## A Leakage-Safe Evaluation Checklist\n\n1. Split data **first**, before any preprocessing.\n2. Wrap all preprocessing in a pipeline fit inside cross-validation.\n3. Use the validation strategy that matches your data structure (time, groups, imbalance).\n4. Pick metrics aligned with business cost.\n5. Audit performance across subgroups.\n6. Touch the test set exactly once.\n7. Report variance and confidence, not just a point estimate.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Rigorous Model Evaluation and Validation",
+      "sub": "Detecting overfitting, leakage, and bias before production",
+      "narration": "Welcome. In this lesson we move from building models to trusting them. We'll learn how to evaluate models rigorously so that the performance you measure in development is the performance you actually get in production. We'll cover overfitting, validation strategies, data leakage, metrics, and fairness."
+    },
+    {
+      "type": "content",
+      "title": "Why Evaluation Matters",
+      "bullets": [
+        "A 0.99 training score can mean nothing in production",
+        "Goal: honest, generalizable performance estimates",
+        "Three silent killers: overfitting, leakage, bias",
+        "Your job is reliability, not a pretty number"
+      ],
+      "narration": "It's tempting to celebrate a high score, but a model that scores ninety-nine percent on training data can fail completely on new data. Rigorous evaluation is the discipline of producing honest, generalizable estimates. Three silent killers undermine this: overfitting, data leakage, and bias. As an engineer, your responsibility is reliable behavior on unseen data, not maximizing a slide metric."
+    },
+    {
+      "type": "content",
+      "title": "Overfitting vs. Underfitting",
+      "bullets": [
+        "Overfitting: low train error, high validation error",
+        "Underfitting: high error on both",
+        "Diagnose with learning curves and the train-val gap",
+        "Fix overfit: regularize, more data, simpler model, early stop",
+        "Fix underfit: richer features, more capacity"
+      ],
+      "narration": "Overfitting happens when the model memorizes noise: training error is low but validation error is high, leaving a big gap. Underfitting means the model is too simple, so error is high everywhere. Use learning curves and the train-validation gap to diagnose. To combat overfitting, add regularization, gather more data, simplify the model, or stop training early. For underfitting, add features or model capacity."
+    },
+    {
+      "type": "content",
+      "title": "Validation Strategies",
+      "bullets": [
+        "Golden rule: touch the test set only once",
+        "Holdout: fast but high variance",
+        "K-fold and stratified k-fold for tabular data",
+        "Time-series split: never train on the future",
+        "Grouped k-fold: keep groups on one side"
+      ],
+      "narration": "The golden rule is that the test set is touched exactly once, at the very end. For everything else use validation. A simple holdout split is fast but noisy on small data. K-fold cross-validation averages over rotating folds for stability, and stratified k-fold preserves class balance. For temporal data, use a time-series split so you never train on the future. When rows share a group, like multiple records per patient, use grouped k-fold to keep each group entirely on one side."
+    },
+    {
+      "type": "content",
+      "title": "Data Leakage",
+      "bullets": [
+        "Leakage = future or test info reaching training",
+        "Preprocess inside the pipeline, after splitting",
+        "Target leakage: features derived from the outcome",
+        "Temporal and duplicate/group leakage",
+        "Symptom: great offline scores, poor production"
+      ],
+      "code": "pipe = Pipeline([\n  ('scaler', StandardScaler()),\n  ('clf', LogisticRegression())\n])\nscores = cross_val_score(pipe, X, y, cv=5, scoring='f1')",
+      "narration": "Data leakage is when information unavailable at prediction time sneaks into training, giving falsely optimistic scores. The most common cause is fitting a scaler or imputer on the whole dataset before splitting. Always wrap preprocessing in a pipeline so it's fit only on training folds, as shown here. Watch for target leakage from features derived after the outcome, temporal leakage from future data, and duplicate rows split across train and test. The telltale symptom is great offline numbers that collapse in production."
+    },
+    {
+      "type": "content",
+      "title": "Choosing the Right Metrics",
+      "bullets": [
+        "Accuracy misleads on imbalanced data",
+        "Precision, recall, F1 reflect error costs",
+        "ROC-AUC vs PR-AUC for rare positives",
+        "Calibration matters when probabilities are used",
+        "Report variance, not a single point"
+      ],
+      "narration": "Accuracy is misleading when classes are imbalanced. Choose metrics that reflect the cost of errors: precision and recall and their F1 balance. ROC-AUC measures ranking quality, but on rare positives PR-AUC is more honest. If you use predicted probabilities for decisions, check calibration with reliability curves and the Brier score. For regression, RMSE punishes large errors while MAE is robust. Always report fold variance or a confidence interval, never just a single number."
+    },
+    {
+      "type": "content",
+      "title": "Fairness-Aware Evaluation",
+      "bullets": [
+        "Overall accuracy can hide subgroup harm",
+        "Slice metrics by protected attributes",
+        "Demographic parity, equal opportunity, equalized odds",
+        "Definitions can conflict — choose with context",
+        "Tools: Fairlearn, Aequitas"
+      ],
+      "narration": "A model can be accurate overall yet harmful to specific subgroups. Always slice your metrics by protected attributes like gender, age, or region. Key fairness notions include demographic parity, equal positive rates; equal opportunity, equal true positive rates; and equalized odds, equal true and false positive rates. These definitions often conflict, so you must choose based on context and stakeholders. Libraries like Fairlearn and Aequitas automate these subgroup audits."
+    },
+    {
+      "type": "content",
+      "title": "Leakage-Safe Evaluation Checklist",
+      "bullets": [
+        "Split first, before any preprocessing",
+        "Wrap preprocessing in a pipeline",
+        "Match validation to data structure",
+        "Pick cost-aligned metrics; audit subgroups",
+        "Touch the test set once; report variance"
+      ],
+      "narration": "Let's consolidate into a checklist. First, split the data before any preprocessing. Second, wrap all preprocessing inside a pipeline so it's fit only on training folds. Third, match your validation strategy to the data structure: time, groups, or class imbalance. Fourth, pick metrics aligned with business cost and audit them across subgroups. Finally, touch the test set exactly once and always report variance, not just a point estimate. Follow this and your offline scores will hold up in production."
+    }
+  ]
+}

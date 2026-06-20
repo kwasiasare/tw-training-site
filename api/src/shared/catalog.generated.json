@@ -1,1 +1,101 @@
-[]
+[
+  {
+    "slug": "agentic-ai-engineer",
+    "title": "Agentic AI Engineer: Building Production-Ready LLM Agents",
+    "summary": "A hands-on, project-based course that takes you from Python-driven LLM API calls to deploying sophisticated multi-agent systems with planning, memory, RAG, and orchestration using LangGraph. You'll build a portfolio of working agents culminating in a deployed capstone application.",
+    "targetProfile": {
+      "role": "Agentic AI Engineer",
+      "level": "mid",
+      "skills": [
+        "python",
+        "llm apis",
+        "multi-agent systems",
+        "agent orchestration",
+        "tool use",
+        "planning and reasoning",
+        "memory",
+        "rag",
+        "evaluation",
+        "langgraph",
+        "deployment"
+      ]
+    }
+  },
+  {
+    "slug": "ai-app-developer-2026",
+    "title": "AI Application Developer: Build and Ship LLM-Powered Apps",
+    "summary": "A hands-on, project-based course that takes you from Python foundations to deploying production-ready AI applications using LLMs, RAG pipelines, autonomous agents, and vector databases. You'll build a portfolio of real apps culminating in a deployed capstone project.",
+    "targetProfile": {
+      "role": "AI Application Developer",
+      "level": "mid",
+      "skills": [
+        "python",
+        "llm apps",
+        "rag",
+        "agents",
+        "apis",
+        "deployment",
+        "prompt engineering",
+        "vector databases"
+      ]
+    }
+  },
+  {
+    "slug": "ai-product-manager",
+    "title": "AI Product Management: From Fundamentals to Shipping AI Products",
+    "summary": "A hands-on, project-based course that prepares you to lead AI and LLM-powered products end to end. You'll build AI literacy, master LLM capabilities and limits, craft product strategy and roadmaps, design evaluation frameworks and prompts, manage cross-functional stakeholders, and define metrics tha",
+    "targetProfile": {
+      "role": "AI Product Manager",
+      "level": "mid",
+      "skills": [
+        "ai literacy",
+        "llm capabilities and limits",
+        "product strategy",
+        "roadmapping",
+        "evals",
+        "prompt design",
+        "stakeholder management",
+        "metrics"
+      ]
+    }
+  },
+  {
+    "slug": "data-scientist",
+    "title": "Data Scientist Career Accelerator: From Python to Production Insights",
+    "summary": "A project-based course that takes you from programming and statistics fundamentals to building, evaluating, and communicating machine learning models. You'll work with real datasets to build a portfolio of analyses, dashboards, and end-to-end ML projects that prove you're ready for a data scientist ",
+    "targetProfile": {
+      "role": "Data Scientist",
+      "level": "mid",
+      "skills": [
+        "python",
+        "statistics",
+        "sql",
+        "pandas",
+        "machine learning",
+        "data visualization",
+        "experiment design",
+        "storytelling"
+      ]
+    }
+  },
+  {
+    "slug": "ml-engineer",
+    "title": "Machine Learning Engineer Bootcamp: From Fundamentals to Production",
+    "summary": "A project-based course that builds the practical skills needed to land a Machine Learning Engineer role, covering Python, math foundations, ML algorithms, PyTorch, feature engineering, model training and evaluation, and production-ready data pipelines. Learners build a portfolio of hands-on projects",
+    "targetProfile": {
+      "role": "Machine Learning Engineer",
+      "level": "mid",
+      "skills": [
+        "python",
+        "linear algebra",
+        "statistics",
+        "ml algorithms",
+        "pytorch",
+        "feature engineering",
+        "model training",
+        "evaluation",
+        "data pipelines"
+      ]
+    }
+  }
+]

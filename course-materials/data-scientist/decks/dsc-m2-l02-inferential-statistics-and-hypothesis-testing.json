@@ -1,0 +1,191 @@
+{
+  "slug": "dsc-m2-l02-inferential-statistics-and-hypothesis-testing",
+  "title": "Inferential Statistics and Hypothesis Testing",
+  "month": 2,
+  "monthTitle": "Statistics and SQL for Analysis",
+  "lesson": 2,
+  "video": "dsc-m2-l02-inferential-statistics-and-hypothesis-testing.mp4",
+  "summary": "This lesson teaches the core tools of inferential statistics for data scientists: confidence intervals for estimating population parameters, t-tests for comparing means, and chi-square tests for categorical relationships. You will learn how to frame hypotheses, interpret p-values, choose the right test, and avoid common pitfalls when drawing conclusions from samples.",
+  "objectives": [
+    "Distinguish between descriptive and inferential statistics and explain the role of sampling.",
+    "Construct and interpret confidence intervals for means and proportions.",
+    "Formulate null and alternative hypotheses and interpret p-values and significance levels.",
+    "Select and apply the appropriate t-test (one-sample, two-sample, paired) for comparing means.",
+    "Apply chi-square tests of independence and goodness-of-fit to categorical data.",
+    "Recognize common errors such as p-hacking, Type I/II errors, and misinterpreting significance."
+  ],
+  "quiz": [
+    {
+      "q": "What does a 95% confidence interval actually mean?",
+      "options": [
+        "There is a 95% probability the true parameter is in this specific interval",
+        "If we repeated sampling many times, about 95% of such intervals would contain the true parameter",
+        "95% of the data falls within the interval",
+        "The sample mean is correct 95% of the time"
+      ],
+      "answer": 1,
+      "why": "A confidence level refers to the long-run procedure: 95% of intervals built this way capture the true parameter. It is not a probability statement about one fixed interval."
+    },
+    {
+      "q": "Which test is most appropriate for comparing the mean conversion time before and after a UI change measured on the same users?",
+      "options": [
+        "Two-sample independent t-test",
+        "Chi-square test of independence",
+        "Paired t-test",
+        "One-sample z-test"
+      ],
+      "answer": 2,
+      "why": "Measurements are taken on the same subjects before and after, so observations are paired, calling for a paired t-test."
+    },
+    {
+      "q": "A p-value of 0.03 with α = 0.05 means:",
+      "options": [
+        "There is a 3% chance the null hypothesis is true",
+        "We reject the null hypothesis",
+        "The effect is large and important",
+        "We accept the null hypothesis"
+      ],
+      "answer": 1,
+      "why": "Since p (0.03) ≤ α (0.05), we reject the null. The p-value is not the probability the null is true, and significance says nothing about effect magnitude."
+    },
+    {
+      "q": "You want to know if device type (mobile/desktop) is related to whether a user converts (yes/no). Which test fits?",
+      "options": [
+        "Paired t-test",
+        "Chi-square test of independence",
+        "One-sample t-test",
+        "Confidence interval for a mean"
+      ],
+      "answer": 1,
+      "why": "Both variables are categorical and we are testing for a relationship between them, which is exactly what a chi-square test of independence does."
+    },
+    {
+      "q": "In your own words, what is a Type I error?",
+      "answer": "Rejecting a null hypothesis that is actually true — a false positive, occurring with probability alpha.",
+      "why": "A Type I error is concluding there is an effect when none truly exists; its rate is set by the significance level α."
+    },
+    {
+      "q": "Why should you report effect sizes and confidence intervals in addition to p-values?",
+      "answer": "Because statistical significance does not imply practical importance; effect sizes and CIs convey the magnitude and precision of the effect, not just whether it is non-zero.",
+      "why": "A tiny, unimportant effect can be statistically significant with a large sample, so p-values alone can mislead about real-world relevance."
+    }
+  ],
+  "resources": [
+    {
+      "label": "SciPy Statistical Functions Documentation",
+      "url": "https://docs.scipy.org/doc/scipy/reference/stats.html"
+    },
+    {
+      "label": "StatQuest: Hypothesis Testing and P-values (YouTube)",
+      "url": "https://www.youtube.com/c/joshstarmer"
+    },
+    {
+      "label": "Seeing Theory: Visual Introduction to Probability and Statistics",
+      "url": "https://seeing-theory.brown.edu/"
+    },
+    {
+      "label": "Practical Statistics for Data Scientists (O'Reilly)",
+      "url": "https://www.oreilly.com/library/view/practical-statistics-for/9781492072935/"
+    }
+  ],
+  "body_markdown": "## From Sample to Population\n\nInferential statistics lets us draw conclusions about a **population** using a **sample**. Because we rarely measure everyone, we quantify uncertainty rather than claim exact truth. Two pillars support this: **estimation** (confidence intervals) and **hypothesis testing** (t-tests, chi-square, etc.).\n\nKey idea: sample statistics vary from sample to sample. The **sampling distribution** describes that variation, and its spread is the **standard error (SE)**.\n\n## Confidence Intervals\n\nA confidence interval (CI) gives a range of plausible values for a population parameter.\n\nFor a mean: `CI = x̄ ± t* × (s / √n)`\n\n- `x̄` = sample mean, `s` = sample standard deviation, `n` = sample size.\n- `t*` = critical value from the t-distribution for your confidence level and `df = n - 1`.\n\n**Interpretation:** A 95% CI means that if we repeated the sampling process many times, about 95% of the intervals would contain the true parameter. It does **not** mean there is a 95% probability the true value lies in this one interval.\n\nWider intervals = more uncertainty. CIs shrink with larger `n` and smaller variability.\n\n## Hypothesis Testing Framework\n\n1. **State hypotheses.** Null `H0` (no effect / no difference) vs. alternative `H1`.\n2. **Choose significance level `α`** (commonly 0.05) — your tolerance for a false positive.\n3. **Compute a test statistic** and its **p-value**.\n4. **Decide:** if `p ≤ α`, reject `H0`; otherwise fail to reject `H0`.\n\n**P-value:** the probability of observing data as extreme or more extreme than what we saw, *assuming H0 is true*. A small p-value means the data are surprising under H0.\n\n**Errors:**\n- **Type I (false positive):** rejecting a true H0. Probability = `α`.\n- **Type II (false negative):** failing to reject a false H0. Probability = `β`. Power = `1 - β`.\n\n## T-Tests: Comparing Means\n\nUse t-tests when comparing means and the population standard deviation is unknown.\n\n- **One-sample t-test:** is the sample mean different from a known value?\n- **Two-sample (independent) t-test:** do two groups have different means? (e.g., A/B test)\n- **Paired t-test:** compare two measurements on the same subjects (before/after).\n\nAssumptions: roughly normal data (or large n via CLT), independent observations, and reasonably comparable variances (use Welch's t-test if variances differ).\n\n```python\nfrom scipy import stats\n# Two-sample (Welch's) t-test\nt, p = stats.ttest_ind(group_a, group_b, equal_var=False)\nprint(f\"t={t:.3f}, p={p:.4f}\")\n```\n\n## Chi-Square Tests: Categorical Data\n\n- **Goodness-of-fit:** does one categorical variable match an expected distribution?\n- **Test of independence:** are two categorical variables related? (built on a contingency table)\n\nThe statistic compares observed vs. expected counts: `χ² = Σ (O - E)² / E`.\n\n```python\nimport pandas as pd\nfrom scipy.stats import chi2_contingency\ntable = pd.crosstab(df['device'], df['converted'])\nchi2, p, dof, expected = chi2_contingency(table)\nprint(f\"chi2={chi2:.3f}, p={p:.4f}\")\n```\n\nAssumption: expected counts should generally be ≥ 5 in each cell.\n\n## Practical Cautions\n\n- **Statistical significance ≠ practical significance.** Report effect sizes (e.g., Cohen's d) and CIs, not just p-values.\n- **Multiple comparisons** inflate false positives — correct with Bonferroni or FDR methods.\n- **Avoid p-hacking:** decide tests and sample size before peeking at data.\n- Always check assumptions and visualize your data first.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Inferential Statistics and Hypothesis Testing",
+      "sub": "Drawing reliable conclusions from samples",
+      "narration": "Welcome. In this lesson we'll move beyond describing data to making inferences about populations. We'll cover confidence intervals, t-tests, and chi-square tests — the everyday tools data scientists use to decide whether an observed effect is real or just noise."
+    },
+    {
+      "type": "content",
+      "title": "Sample to Population",
+      "bullets": [
+        "We study samples but want conclusions about populations",
+        "Sample statistics vary — captured by the sampling distribution",
+        "Standard error (SE) measures that variation",
+        "Inference = estimation + hypothesis testing"
+      ],
+      "narration": "We almost never measure an entire population, so we rely on samples. Because each sample is slightly different, our estimates carry uncertainty. The sampling distribution describes how a statistic like the mean would vary across many samples, and its spread is the standard error. Inferential statistics gives us two main approaches: estimating values with confidence intervals, and testing claims with hypothesis tests."
+    },
+    {
+      "type": "content",
+      "title": "Confidence Intervals",
+      "bullets": [
+        "Range of plausible values for a parameter",
+        "CI for mean: x̄ ± t* × (s / √n)",
+        "95% CI: 95% of such intervals capture the true value",
+        "Wider interval = more uncertainty; larger n shrinks it"
+      ],
+      "code": "import scipy.stats as st\nci = st.t.interval(0.95, len(x)-1, loc=x.mean(), scale=st.sem(x))",
+      "narration": "A confidence interval gives a range of plausible values for a population parameter rather than a single point estimate. For a mean, we take the sample mean plus or minus a t critical value times the standard error. The correct interpretation is about the procedure: if we repeated sampling many times, about 95 percent of the intervals would contain the true value. Larger samples and less variability produce tighter, more informative intervals."
+    },
+    {
+      "type": "content",
+      "title": "The Hypothesis Testing Recipe",
+      "bullets": [
+        "State H0 (no effect) and H1 (an effect)",
+        "Pick significance level α (often 0.05)",
+        "Compute test statistic and p-value",
+        "Reject H0 if p ≤ α, else fail to reject"
+      ],
+      "narration": "Hypothesis testing follows a consistent recipe. First, state a null hypothesis of no effect and an alternative that there is one. Choose a significance level alpha, your tolerance for a false alarm. Then compute a test statistic and its p-value. If the p-value is at or below alpha, you reject the null; otherwise you fail to reject it. Note we never 'prove' the null — we only fail to reject it."
+    },
+    {
+      "type": "content",
+      "title": "Understanding the P-value and Errors",
+      "bullets": [
+        "P-value: chance of data this extreme IF H0 is true",
+        "Small p = data surprising under H0",
+        "Type I error: false positive (prob = α)",
+        "Type II error: false negative (prob = β); Power = 1 − β"
+      ],
+      "narration": "The p-value is widely misunderstood. It is the probability of seeing data as extreme as ours, assuming the null hypothesis is true — not the probability the null is true. A small p-value means our observations would be surprising if there were no effect. Two errors threaten us: a Type I error is a false positive controlled by alpha, and a Type II error is a false negative. Statistical power, one minus beta, is our ability to detect a real effect."
+    },
+    {
+      "type": "content",
+      "title": "T-Tests: Comparing Means",
+      "bullets": [
+        "One-sample: mean vs. a known value",
+        "Two-sample: compare two groups (A/B tests)",
+        "Paired: before vs. after on same subjects",
+        "Use Welch's t-test when variances differ"
+      ],
+      "code": "from scipy import stats\nt, p = stats.ttest_ind(a, b, equal_var=False)",
+      "narration": "T-tests compare means when the population standard deviation is unknown. Use a one-sample test to compare against a benchmark, a two-sample test to compare two independent groups like in an A/B test, and a paired test for repeated measurements on the same subjects. Check assumptions: approximate normality, independence, and similar variances. When variances differ, Welch's t-test is the safer default."
+    },
+    {
+      "type": "content",
+      "title": "Chi-Square Tests: Categorical Data",
+      "bullets": [
+        "Goodness-of-fit: one variable vs. expected distribution",
+        "Independence: are two categorical variables related?",
+        "χ² = Σ (O − E)² / E",
+        "Expected counts should be ≥ 5 per cell"
+      ],
+      "code": "from scipy.stats import chi2_contingency\nchi2, p, dof, exp = chi2_contingency(table)",
+      "narration": "For categorical data we turn to chi-square tests. The goodness-of-fit test checks whether a single variable's distribution matches what we expect. The test of independence uses a contingency table to ask whether two categorical variables are related — for example, device type and conversion. The statistic sums the squared differences between observed and expected counts, scaled by the expected. Keep expected cell counts at five or more for the test to be valid."
+    },
+    {
+      "type": "content",
+      "title": "Cautions and Best Practices",
+      "bullets": [
+        "Significance ≠ practical importance — report effect sizes",
+        "Correct for multiple comparisons (Bonferroni, FDR)",
+        "Avoid p-hacking: pre-register tests and sample size",
+        "Always visualize and check assumptions first"
+      ],
+      "narration": "Finally, some hard-won cautions. A statistically significant result can be practically trivial, so always report effect sizes and confidence intervals alongside p-values. Running many tests inflates false positives — apply corrections like Bonferroni. Decide your analysis plan and sample size before peeking at data to avoid p-hacking. And always plot your data and verify assumptions before trusting any test result."
+    },
+    {
+      "type": "content",
+      "title": "Summary",
+      "bullets": [
+        "CIs estimate parameters with quantified uncertainty",
+        "Hypothesis tests assess if effects are real",
+        "t-tests for means, chi-square for categories",
+        "Interpret p-values carefully; mind effect size and errors"
+      ],
+      "narration": "To recap: confidence intervals estimate parameters while expressing uncertainty, and hypothesis tests help us judge whether observed effects are real. Reach for t-tests when comparing means and chi-square tests for relationships among categories. Above all, interpret p-values correctly, report effect sizes, and respect the assumptions behind each method. These tools are the backbone of trustworthy data-driven decisions."
+    }
+  ]
+}

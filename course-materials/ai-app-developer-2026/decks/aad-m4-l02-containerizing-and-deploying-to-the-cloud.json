@@ -1,0 +1,184 @@
+{
+  "slug": "aad-m4-l02-containerizing-and-deploying-to-the-cloud",
+  "title": "Containerizing and Deploying to the Cloud",
+  "month": 4,
+  "monthTitle": "Deployment and Capstone Project",
+  "lesson": 2,
+  "video": "aad-m4-l02-containerizing-and-deploying-to-the-cloud.mp4",
+  "summary": "Learn to package an LLM-powered application into a Docker container and deploy it to a cloud platform, handling environment configuration and secrets securely along the way.",
+  "objectives": [
+    "Write an efficient, production-ready Dockerfile for an LLM-powered app",
+    "Manage environment variables and secrets without baking them into images",
+    "Build, run, and test containers locally before deployment",
+    "Deploy a containerized app to a managed cloud platform",
+    "Apply security and cost best practices for production LLM apps"
+  ],
+  "quiz": [
+    {
+      "q": "Why should you copy requirements.txt and install dependencies before copying the rest of your source code in a Dockerfile?",
+      "options": [
+        "It makes the final image larger but more secure",
+        "It allows Docker to cache the dependency layer so code changes don't trigger reinstalls",
+        "It is required syntax for Python images",
+        "It encrypts the dependencies"
+      ],
+      "answer": 1,
+      "why": "Docker caches layers; installing dependencies before copying code means changing your source doesn't invalidate the (slow) dependency-install layer, speeding rebuilds."
+    },
+    {
+      "q": "Which is the WORST way to handle an API key in a container?",
+      "options": [
+        "Inject it via the cloud platform's secret manager at runtime",
+        "Pass it with docker run --env-file .env locally",
+        "Bake it into an image layer or pass it as a build ARG",
+        "Read it from os.environ at runtime"
+      ],
+      "answer": 2,
+      "why": "Secrets baked into image layers or passed as ARG persist in the image history and can be extracted, even if 'removed' later."
+    },
+    {
+      "q": "Why is running the container as a non-root user recommended?",
+      "options": [
+        "It makes the image build faster",
+        "It reduces the security blast radius if the app is compromised",
+        "It is required by all cloud platforms",
+        "It enables layer caching"
+      ],
+      "answer": 1,
+      "why": "Running as non-root limits what an attacker can do if they exploit the application, improving container security."
+    },
+    {
+      "q": "What is the purpose of a /health endpoint in a deployed container?",
+      "options": [
+        "To store secrets",
+        "To let the cloud platform verify the app is alive and ready",
+        "To increase request timeout",
+        "To cache LLM responses"
+      ],
+      "answer": 1,
+      "why": "Platforms use health checks to determine if a container instance is healthy and route traffic accordingly."
+    },
+    {
+      "q": "Name one reason LLM apps often need higher request timeouts in production than typical web apps.",
+      "answer": "LLM model inference/API calls are slow and can take many seconds, so default short timeouts would cut off responses.",
+      "why": "LLM completions can take several seconds or more, so request timeouts must be raised to avoid prematurely terminating valid requests."
+    },
+    {
+      "q": "What file should you add to keep secrets and clutter out of the Docker build context?",
+      "answer": ".dockerignore",
+      "why": "A .dockerignore excludes files like .env, .git, and __pycache__ from the build context, keeping images clean and secrets out."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Docker official documentation",
+      "url": "https://docs.docker.com/"
+    },
+    {
+      "label": "Dockerfile best practices",
+      "url": "https://docs.docker.com/develop/develop-images/dockerfile_best-practices/"
+    },
+    {
+      "label": "Google Cloud Run — Deploy a container",
+      "url": "https://cloud.google.com/run/docs/deploying"
+    },
+    {
+      "label": "Twelve-Factor App: Config & Backing Services",
+      "url": "https://12factor.net/config"
+    }
+  ],
+  "body_markdown": "## Why Containerize?\n\nContainers package your application code, runtime, and dependencies into a single portable artifact. For LLM-powered apps this matters because you often have specific Python versions, native libraries, and pinned SDK versions that must behave identically in development and production.\n\nBenefits:\n- **Reproducibility** — \"works on my machine\" disappears.\n- **Portability** — run the same image locally, in CI, and in any cloud.\n- **Isolation** — dependencies don't collide with the host.\n- **Scalability** — cloud platforms scale container replicas easily.\n\n## Anatomy of a Good Dockerfile\n\nA minimal FastAPI LLM app Dockerfile:\n\n```dockerfile\nFROM python:3.11-slim\n\nWORKDIR /app\n\n# Install dependencies first for better layer caching\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\n\n# Copy app code\nCOPY . .\n\n# Run as non-root user\nRUN useradd -m appuser\nUSER appuser\n\nEXPOSE 8000\nCMD [\"uvicorn\", \"main:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"]\n```\n\nKey practices:\n- Use a **slim** base image to reduce size and attack surface.\n- Copy `requirements.txt` and install **before** copying source so the dependency layer is cached.\n- Use `--no-cache-dir` to keep image small.\n- Run as a **non-root user** for security.\n- Add a `.dockerignore` (exclude `.git`, `.env`, `__pycache__`, `venv`).\n\n## Environment Configuration\n\nNever hardcode config. Read it from environment variables:\n\n```python\nimport os\nAPI_KEY = os.environ[\"OPENAI_API_KEY\"]\nMODEL = os.environ.get(\"MODEL\", \"gpt-4o-mini\")\n```\n\nLocally you can use a `.env` file (loaded with `python-dotenv`), but **never commit it** and **never COPY it into the image**. The `.env` is for local dev only.\n\n## Secrets Management\n\nSecrets (API keys, DB passwords) must never be:\n- Committed to source control\n- Baked into image layers (they persist even if deleted later)\n- Passed via `ARG` (visible in image history)\n\nInstead:\n- **Local:** pass `--env-file .env` to `docker run`.\n- **Cloud:** use the platform's secret manager (e.g., Cloud Run secrets, AWS Secrets Manager, Azure Key Vault, or platform env-var settings injected at runtime).\n\n## Build, Run, and Test Locally\n\n```bash\n# Build\ndocker build -t my-llm-app:latest .\n\n# Run with secrets from a file\ndocker run -p 8000:8000 --env-file .env my-llm-app:latest\n\n# Test\ncurl http://localhost:8000/health\n```\n\nAlways verify the container works locally before pushing to the cloud — it's the fastest feedback loop.\n\n## Deploying to the Cloud\n\nThe general flow for a managed container platform (Google Cloud Run as the example):\n\n```bash\n# Tag and push to a registry\ndocker tag my-llm-app gcr.io/my-project/my-llm-app\ndocker push gcr.io/my-project/my-llm-app\n\n# Deploy\ngcloud run deploy my-llm-app \\\n  --image gcr.io/my-project/my-llm-app \\\n  --set-secrets OPENAI_API_KEY=openai-key:latest \\\n  --region us-central1 \\\n  --allow-unauthenticated\n```\n\nMost platforms (Render, Railway, Fly.io, AWS App Runner) follow the same pattern: push image → configure env/secrets → deploy → get a URL.\n\n## Production Considerations\n\n- **Health checks** — expose a `/health` endpoint so the platform knows the app is alive.\n- **Scaling & timeouts** — LLM calls are slow; raise request timeouts and set sensible concurrency.\n- **Cost control** — set max instances; scale to zero when idle.\n- **Observability** — log requests, latencies, and token usage.\n- **Image scanning** — scan images for vulnerabilities in CI.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Containerizing and Deploying to the Cloud",
+      "sub": "From local app to a live, scalable LLM service",
+      "narration": "Welcome. In this lesson we'll take the LLM-powered app you've built and turn it into something the world can actually use. We'll containerize it with Docker, manage configuration and secrets safely, and deploy it to a cloud platform. By the end you'll have a repeatable path from your laptop to a live URL."
+    },
+    {
+      "type": "content",
+      "title": "Why Containers?",
+      "bullets": [
+        "Reproducible: ends 'works on my machine'",
+        "Portable: same image local, CI, and cloud",
+        "Isolated dependencies and runtime",
+        "Easy to scale replicas in the cloud"
+      ],
+      "narration": "Why bother with containers? An LLM app often depends on a specific Python version, pinned SDKs, and native libraries. A container packages code, runtime, and dependencies into one portable artifact, so it behaves identically everywhere. That reproducibility, portability, and isolation are exactly what cloud platforms need to scale your app reliably."
+    },
+    {
+      "type": "content",
+      "title": "Anatomy of a Dockerfile",
+      "bullets": [
+        "Start from a slim base image",
+        "Install deps before copying code for caching",
+        "Use --no-cache-dir to stay small",
+        "Run as a non-root user",
+        "Define EXPOSE and CMD"
+      ],
+      "code": "FROM python:3.11-slim\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY . .\nRUN useradd -m appuser\nUSER appuser\nEXPOSE 8000\nCMD [\"uvicorn\",\"main:app\",\"--host\",\"0.0.0.0\",\"--port\",\"8000\"]",
+      "narration": "Here's a solid Dockerfile. Notice the order: we copy requirements and install dependencies before copying the rest of the code. That lets Docker cache the dependency layer so rebuilds are fast. We use a slim base image to reduce size and attack surface, clean up the pip cache, and switch to a non-root user for security. Finally we expose the port and define the start command."
+    },
+    {
+      "type": "content",
+      "title": "Environment Configuration",
+      "bullets": [
+        "Read config from environment variables",
+        "Provide defaults with os.environ.get",
+        "Use .env locally with python-dotenv",
+        "Never COPY .env into the image",
+        "Add a .dockerignore"
+      ],
+      "code": "import os\nAPI_KEY = os.environ[\"OPENAI_API_KEY\"]\nMODEL = os.environ.get(\"MODEL\", \"gpt-4o-mini\")",
+      "narration": "Configuration should come from the environment, never hardcoded. Required values can be read directly, while optional ones get sensible defaults. Locally you can keep a dot-env file loaded with python-dotenv, but it's strictly for development. Never commit it and never copy it into your image. Add a dockerignore to keep secrets and clutter out of the build context."
+    },
+    {
+      "type": "content",
+      "title": "Secrets Management",
+      "bullets": [
+        "Never commit secrets to source control",
+        "Never bake them into image layers",
+        "Avoid ARG — visible in image history",
+        "Local: --env-file .env",
+        "Cloud: platform secret manager"
+      ],
+      "narration": "Secrets need special care. Anything baked into an image layer stays there forever, even if you delete it later, and build ARGs show up in image history. So for local runs pass secrets with the env-file flag at runtime. In the cloud, use the platform's secret manager which injects values at runtime rather than storing them in the image. This keeps your keys out of the artifact entirely."
+    },
+    {
+      "type": "content",
+      "title": "Build, Run, Test Locally",
+      "bullets": [
+        "Build a tagged image",
+        "Run with --env-file for secrets",
+        "Map the container port to localhost",
+        "Hit a /health endpoint to verify"
+      ],
+      "code": "docker build -t my-llm-app:latest .\ndocker run -p 8000:8000 --env-file .env my-llm-app:latest\ncurl http://localhost:8000/health",
+      "narration": "Before deploying, always test locally — it's your fastest feedback loop. Build a tagged image, run it with your env-file to supply secrets, and map the container port to your machine. Then hit a health endpoint to confirm everything starts correctly. If it works here, it's far more likely to work in the cloud."
+    },
+    {
+      "type": "content",
+      "title": "Deploying to the Cloud",
+      "bullets": [
+        "Tag and push image to a registry",
+        "Configure env vars and secrets",
+        "Deploy and receive a public URL",
+        "Same pattern across most platforms"
+      ],
+      "code": "docker tag my-llm-app gcr.io/my-project/my-llm-app\ndocker push gcr.io/my-project/my-llm-app\ngcloud run deploy my-llm-app \\\n  --image gcr.io/my-project/my-llm-app \\\n  --set-secrets OPENAI_API_KEY=openai-key:latest \\\n  --allow-unauthenticated",
+      "narration": "Deployment follows a consistent pattern. Tag your image and push it to a container registry, then deploy with secrets injected from the secret manager. Here we use Google Cloud Run, but Render, Railway, Fly.io, and AWS App Runner all work the same way: push the image, wire up environment and secrets, deploy, and get a public URL back."
+    },
+    {
+      "type": "content",
+      "title": "Production Considerations",
+      "bullets": [
+        "Expose a /health endpoint",
+        "Raise timeouts — LLM calls are slow",
+        "Set max instances and scale to zero",
+        "Log latency and token usage",
+        "Scan images for vulnerabilities"
+      ],
+      "narration": "A few things separate a demo from production. Give the platform a health endpoint so it knows your app is alive. Because LLM calls can be slow, raise your request timeouts and tune concurrency. Control costs by capping max instances and scaling to zero when idle. Finally, log latency and token usage for observability, and scan images for vulnerabilities in your pipeline. Do these and you've shipped a real, resilient service."
+    }
+  ]
+}

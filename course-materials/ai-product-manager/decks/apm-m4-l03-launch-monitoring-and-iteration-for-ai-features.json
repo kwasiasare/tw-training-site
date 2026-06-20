@@ -1,0 +1,176 @@
+{
+  "slug": "apm-m4-l03-launch-monitoring-and-iteration-for-ai-features",
+  "title": "Launch, Monitoring, and Iteration for AI Features",
+  "month": 4,
+  "monthTitle": "Stakeholders, Metrics, and Launch Capstone",
+  "lesson": 3,
+  "video": "apm-m4-l03-launch-monitoring-and-iteration-for-ai-features.mp4",
+  "summary": "This lesson teaches AI Product Managers how to safely launch, monitor, and iterate on AI features. You'll learn to design staged rollouts, define monitoring dashboards that catch model and product issues, build feedback loops that fuel continuous improvement, and run incident response when AI behavior goes wrong.",
+  "objectives": [
+    "Design a staged rollout plan (internal, beta, percentage ramp) with clear gates and rollback criteria",
+    "Define a monitoring stack covering model quality, product, operational, and guardrail metrics",
+    "Build feedback loops that turn user signals and labeled data into model and prompt improvements",
+    "Create an AI incident response playbook with severity levels, roles, and mitigation steps",
+    "Prioritize and sequence post-launch iterations using evidence from monitoring and feedback"
+  ],
+  "quiz": [
+    {
+      "q": "What is the primary purpose of a percentage ramp during an AI feature rollout?",
+      "options": [
+        "To reduce cloud hosting costs",
+        "To limit exposure so problems are caught while affecting few users",
+        "To improve model accuracy automatically",
+        "To skip the need for monitoring"
+      ],
+      "answer": 1,
+      "why": "A percentage ramp progressively exposes the feature, so any issues surface while only a small fraction of users are affected, allowing safe observation and rollback."
+    },
+    {
+      "q": "Which metric is an example of an operational (not model-quality) metric?",
+      "options": [
+        "Hallucination rate",
+        "Groundedness",
+        "p95 latency",
+        "Win-rate vs. baseline"
+      ],
+      "answer": 2,
+      "why": "p95 latency is an operational metric. Hallucination rate, groundedness, and win-rate are all measures of model quality."
+    },
+    {
+      "q": "Why is implicit feedback (e.g., whether users edit or discard AI output) valuable?",
+      "options": [
+        "It is cheaper to store than explicit ratings",
+        "It reveals real user satisfaction even when users don't leave explicit feedback",
+        "It eliminates the need for human review",
+        "It guarantees the model won't drift"
+      ],
+      "answer": 1,
+      "why": "Most users never click thumbs up/down, but their behavior—accepting, editing, or discarding output—is a high-volume, honest signal of quality and satisfaction."
+    },
+    {
+      "q": "During a SEV1 incident where the AI produces harmful output, what is the fastest mitigation?",
+      "options": [
+        "Retrain the model from scratch",
+        "Use the feature-flag kill switch or fall back to a safe baseline",
+        "Wait for the next scheduled release",
+        "Email all users an apology"
+      ],
+      "answer": 1,
+      "why": "A feature-flag kill switch or fallback to a previous safe model/rules system instantly contains harm without requiring a redeploy or retraining."
+    },
+    {
+      "q": "In one sentence, what should you add to your eval set after resolving an AI incident, and why?",
+      "answer": "Add a regression test based on the failure case so the same issue is automatically caught before future releases.",
+      "why": "Capturing real failures as eval cases builds a growing golden test set that prevents regressions and institutionalizes learning from incidents."
+    },
+    {
+      "q": "Name two things every rollout stage should have defined before ramping.",
+      "answer": "Entry gates (conditions to advance) and rollback criteria (thresholds that trigger a pullback), each with an owner.",
+      "why": "Defining advancement gates and rollback triggers in advance—with clear ownership—prevents indecision and slow responses during a live problem."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Google People + AI Guidebook (PAIR)",
+      "url": "https://pair.withgoogle.com/guidebook/"
+    },
+    {
+      "label": "Microsoft Responsible AI Standard",
+      "url": "https://www.microsoft.com/en-us/ai/responsible-ai"
+    },
+    {
+      "label": "OpenAI Production Best Practices",
+      "url": "https://platform.openai.com/docs/guides/production-best-practices"
+    },
+    {
+      "label": "PagerDuty Incident Response Documentation",
+      "url": "https://response.pagerduty.com/"
+    }
+  ],
+  "body_markdown": "## Why Launching AI Features Is Different\n\nShipping an AI feature is not a one-time event—it's the start of an ongoing relationship with a probabilistic system. Unlike deterministic software, AI behavior drifts as data, users, and the world change. A model that performs well in offline evaluation can degrade in production due to distribution shift, prompt injection, edge-case inputs, or upstream dependency changes. Your launch plan must assume the feature will behave unexpectedly and build in the ability to detect, contain, and correct problems quickly.\n\n## Staged Rollout\n\nNever flip an AI feature to 100% of users on day one. Use progressive exposure:\n\n1. **Internal dogfooding** — Your team uses the feature daily. Catches obvious quality and UX issues cheaply.\n2. **Closed beta** — A small group of friendly, informed users. Collect qualitative feedback and rare-case behavior.\n3. **Percentage ramp** — 1% → 5% → 25% → 50% → 100%, with a hold at each stage to observe metrics.\n4. **Shadow mode (optional)** — Run the model on real traffic without showing output to users, comparing predictions to ground truth or the existing system.\n\nEach stage needs **entry gates** (what must be true to advance) and **rollback criteria** (what triggers a pullback). Use **feature flags** so you can disable the feature instantly without a deploy.\n\n## Monitoring Stack\n\nMonitor four layers:\n\n- **Model quality**: accuracy, precision/recall, hallucination rate, groundedness, win-rate vs. baseline. Often requires sampling + human or LLM-as-judge evaluation.\n- **Product metrics**: adoption, task completion, retention, thumbs-up/down rate, edit/override rate, abandonment.\n- **Operational metrics**: latency (p50/p95), error rate, token cost per request, throughput, dependency uptime.\n- **Guardrail/safety metrics**: toxicity, PII leakage, refusal rate, jailbreak attempts, bias indicators.\n\nWatch for **drift**: changes in input distribution or output quality over time. Set alert thresholds and a designated owner for each metric.\n\n## Feedback Loops\n\nThe value of AI features compounds when you systematically capture and act on signals:\n\n- **Explicit feedback**: thumbs up/down, ratings, free-text reports.\n- **Implicit feedback**: did the user accept, edit, or discard the AI output? Did they retry?\n- **Labeled data pipeline**: route low-confidence or flagged outputs to human review; feed corrected labels back into evals and fine-tuning.\n- **Eval-driven iteration**: maintain a growing golden test set drawn from real failures so regressions are caught before the next release.\n\n## Incident Response for AI\n\nDefine severity levels (e.g., SEV1 = harmful/unsafe output or outage, SEV3 = minor quality regression). For each:\n\n- **Detection**: alerts, user reports, monitoring anomalies.\n- **Roles**: incident commander, comms lead, on-call engineer; the PM often owns user/stakeholder communication and the decision to roll back.\n- **Mitigation**: kill switch via feature flag, fallback to previous model or rules-based system, prompt patch, rate limiting.\n- **Postmortem**: blameless review, root cause, add a regression test to your eval set.\n\n## Iteration Cadence\n\nTreat the launch as the beginning. Run a regular review (weekly early on) of metrics and feedback, prioritize fixes vs. enhancements using impact and effort, and tie every change back to a measurable hypothesis. Close the loop: ship → measure → learn → repeat.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Launch, Monitoring, and Iteration for AI Features",
+      "sub": "Stakeholders, Metrics, and Launch Capstone",
+      "narration": "Welcome. In this lesson we'll cover how to safely launch an AI feature, monitor it in production, build feedback loops, and respond when things go wrong. Launching AI is the start of an ongoing process, not a finish line, and by the end you'll have a practical playbook for doing it well."
+    },
+    {
+      "type": "content",
+      "title": "Why AI Launches Are Different",
+      "bullets": [
+        "AI is probabilistic—behavior drifts over time",
+        "Offline eval success doesn't guarantee production success",
+        "Distribution shift, prompt injection, and edge cases emerge live",
+        "Assume surprises; build detection and rollback in advance"
+      ],
+      "narration": "Unlike deterministic software, AI features behave probabilistically and their quality drifts as data, users, and the world change. A model that aced your offline tests can still fail in production due to distribution shift, prompt injection, or unexpected inputs. So your launch plan should assume the feature will surprise you, and design from the start for detecting, containing, and correcting problems fast."
+    },
+    {
+      "type": "content",
+      "title": "Staged Rollout",
+      "bullets": [
+        "Internal dogfooding → closed beta → percentage ramp",
+        "Ramp: 1% → 5% → 25% → 50% → 100% with holds",
+        "Optional shadow mode: run silently, compare to baseline",
+        "Use feature flags for instant disable—no redeploy"
+      ],
+      "narration": "Never go straight to a hundred percent. Start with internal dogfooding, then a closed beta of friendly users, then ramp by percentage—one, five, twenty-five, fifty, and finally a hundred—holding at each stage to observe. Shadow mode lets you run the model on real traffic without showing users, comparing it to the existing system. And always wire it behind a feature flag so you can kill it instantly."
+    },
+    {
+      "type": "content",
+      "title": "Rollout Gates and Rollback Criteria",
+      "bullets": [
+        "Entry gate: what must be true to advance a stage",
+        "Rollback trigger: thresholds that force a pullback",
+        "Define metrics and owners before you ramp",
+        "Example: rollback if hallucination rate > 3% or p95 latency > 2s"
+      ],
+      "narration": "Each rollout stage needs two things defined in advance: entry gates, the conditions that must be true to move up, and rollback criteria, the thresholds that force you to pull back. Decide these and assign owners before you launch, not in the heat of an incident. For example, you might roll back automatically if hallucination rate exceeds three percent or p95 latency crosses two seconds."
+    },
+    {
+      "type": "content",
+      "title": "The Monitoring Stack",
+      "bullets": [
+        "Model quality: accuracy, hallucination rate, groundedness, win-rate",
+        "Product: adoption, completion, edit/override rate, retention",
+        "Operational: latency p50/p95, errors, cost per request",
+        "Guardrails: toxicity, PII leakage, jailbreak attempts"
+      ],
+      "narration": "Monitor four layers. Model quality—accuracy, hallucination rate, groundedness, win-rate versus baseline, often via sampling and LLM-as-judge or human review. Product metrics—adoption, task completion, and especially edit or override rates that reveal silent dissatisfaction. Operational metrics—latency, error rate, and cost per request. And guardrail metrics—toxicity, PII leakage, and jailbreak attempts. Each metric needs a threshold and an owner."
+    },
+    {
+      "type": "content",
+      "title": "Feedback Loops",
+      "bullets": [
+        "Explicit: thumbs up/down, ratings, reports",
+        "Implicit: accept, edit, discard, retry behavior",
+        "Route flagged outputs to human review for labels",
+        "Grow a golden eval set from real failures"
+      ],
+      "narration": "AI features get better when you systematically capture signals. Explicit feedback like thumbs up and down is useful, but implicit feedback is gold—did the user accept the output, edit it, discard it, or retry? Route low-confidence or flagged outputs to human review, feed the corrected labels back into your evals and fine-tuning, and grow a golden test set from real failures so you catch regressions before the next release."
+    },
+    {
+      "type": "content",
+      "title": "AI Incident Response",
+      "bullets": [
+        "Severity levels: SEV1 harmful/outage → SEV3 minor regression",
+        "Roles: incident commander, comms lead, on-call eng; PM owns comms",
+        "Mitigate: kill switch, fallback model, prompt patch, rate limit",
+        "Blameless postmortem → add a regression test"
+      ],
+      "narration": "Define severity levels, from SEV1 for harmful output or an outage down to SEV3 for a minor quality regression. Assign roles ahead of time—an incident commander, a comms lead, on-call engineering—and as the PM you typically own stakeholder and user communication and the rollback call. Mitigations include the feature-flag kill switch, falling back to a previous model or rules system, patching the prompt, or rate limiting. Always finish with a blameless postmortem and add a regression test."
+    },
+    {
+      "type": "content",
+      "title": "Iteration Cadence",
+      "bullets": [
+        "Launch is the beginning, not the end",
+        "Weekly metric + feedback review early on",
+        "Prioritize fixes vs. enhancements by impact and effort",
+        "Every change ties to a measurable hypothesis"
+      ],
+      "narration": "Finally, treat launch as the start of a loop. Hold a regular review—weekly in the early days—of your metrics and feedback. Prioritize fixes and enhancements by impact and effort, and tie every change to a measurable hypothesis. Ship, measure, learn, repeat. That disciplined cadence is what turns a risky AI launch into a feature that compounds in value over time."
+    }
+  ]
+}

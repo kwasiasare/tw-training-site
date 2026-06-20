@@ -1,0 +1,193 @@
+{
+  "slug": "aad-m1-l01-python-essentials-for-ai-developers",
+  "title": "Python Essentials for AI Developers",
+  "month": 1,
+  "monthTitle": "Python and LLM Foundations",
+  "lesson": 1,
+  "video": "aad-m1-l01-python-essentials-for-ai-developers.mp4",
+  "summary": "Set up a modern Python environment and master the core patterns—virtual environments, typing, async I/O, and structured data handling—that you'll rely on in every LLM-powered project.",
+  "objectives": [
+    "Set up an isolated Python project environment with virtual environments and dependency management",
+    "Use type hints and Pydantic models to validate and structure LLM inputs and outputs",
+    "Write async functions to make concurrent API calls efficiently",
+    "Handle JSON and structured data cleanly when working with LLM responses",
+    "Apply error handling and retry patterns for unreliable network calls"
+  ],
+  "quiz": [
+    {
+      "q": "Why should you use a virtual environment for each Python project?",
+      "options": [
+        "To make Python run faster",
+        "To isolate dependencies so they don't collide between projects",
+        "To automatically encrypt your API keys",
+        "To enable async functions"
+      ],
+      "answer": 1,
+      "why": "Virtual environments isolate each project's dependencies, preventing version conflicts between projects."
+    },
+    {
+      "q": "What is the primary benefit of using Pydantic with LLM output?",
+      "options": [
+        "It makes API calls faster",
+        "It validates and coerces text into typed Python objects, catching malformed data",
+        "It replaces the need for try/except",
+        "It stores your API keys securely"
+      ],
+      "answer": 1,
+      "why": "Pydantic validates LLM output against a defined schema, coercing it into typed objects and raising clear errors on bad data."
+    },
+    {
+      "q": "Why is async particularly well-suited for LLM API calls?",
+      "options": [
+        "LLM calls are CPU-bound and need multiple cores",
+        "LLM calls are I/O-bound, so concurrency reduces total waiting time",
+        "Async makes the model more accurate",
+        "Async encrypts the network traffic"
+      ],
+      "answer": 1,
+      "why": "LLM calls spend most time waiting on the network (I/O-bound), so running them concurrently with asyncio dramatically cuts total wait time."
+    },
+    {
+      "q": "Which function runs multiple coroutines concurrently and waits for all of them?",
+      "options": [
+        "asyncio.sleep",
+        "asyncio.gather",
+        "json.loads",
+        "time.wait"
+      ],
+      "answer": 1,
+      "why": "asyncio.gather schedules multiple coroutines to run concurrently and returns when all have completed."
+    },
+    {
+      "q": "What technique is used to space out retries after failed network calls, and what is its name?",
+      "answer": "Exponential backoff",
+      "why": "Exponential backoff waits progressively longer (e.g., 2**attempt seconds) between retries to avoid hammering a failing service."
+    },
+    {
+      "q": "Which dict method safely returns a default when a key may be missing from LLM output?",
+      "answer": "dict.get",
+      "why": "dict.get(key, default) returns the default instead of raising a KeyError when the key is absent, which is common with unpredictable LLM responses."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Python asyncio official documentation",
+      "url": "https://docs.python.org/3/library/asyncio.html"
+    },
+    {
+      "label": "Pydantic documentation",
+      "url": "https://docs.pydantic.dev/latest/"
+    },
+    {
+      "label": "Python venv and virtual environments guide",
+      "url": "https://docs.python.org/3/library/venv.html"
+    },
+    {
+      "label": "httpx: a next-generation HTTP client",
+      "url": "https://www.python-httpx.org/"
+    }
+  ],
+  "body_markdown": "## Why Python for AI Developers\n\nPython is the lingua franca of AI. Nearly every LLM provider ships a Python SDK first, and the ecosystem (Pydantic, httpx, asyncio, FastAPI) is built around the patterns you'll use to ship real apps. This lesson focuses on the practical subset of Python you actually need—not the whole language.\n\n## Setting Up Your Environment\n\nNever install packages globally. Each project gets its own isolated environment so dependencies don't collide.\n\n```bash\n# Create and activate a virtual environment\npython -m venv .venv\nsource .venv/bin/activate   # Windows: .venv\\Scripts\\activate\n\n# Install dependencies\npip install openai pydantic httpx python-dotenv\n\n# Freeze for reproducibility\npip freeze > requirements.txt\n```\n\nStore secrets like API keys in a `.env` file (never commit it) and load them with `python-dotenv`:\n\n```python\nfrom dotenv import load_dotenv\nimport os\n\nload_dotenv()\napi_key = os.environ[\"OPENAI_API_KEY\"]\n```\n\n## Type Hints: Your First Line of Defense\n\nType hints make code self-documenting and let editors catch bugs before runtime. They're essential when passing structured data to and from LLMs.\n\n```python\nfrom typing import Optional\n\ndef summarize(text: str, max_words: int = 100) -> str:\n    ...\n\ndef find_user(user_id: int) -> Optional[dict]:\n    ...\n```\n\n## Pydantic: Validate LLM Output\n\nLLMs return text—often JSON-shaped text that may be malformed. Pydantic models validate and coerce that data into typed Python objects, raising clear errors when something is wrong.\n\n```python\nfrom pydantic import BaseModel\n\nclass Recipe(BaseModel):\n    title: str\n    servings: int\n    ingredients: list[str]\n\n# Parse model output safely\nraw = '{\"title\": \"Soup\", \"servings\": 4, \"ingredients\": [\"water\", \"salt\"]}'\nrecipe = Recipe.model_validate_json(raw)\nprint(recipe.servings)  # 4, as an int\n```\n\nMany modern LLM SDKs accept a Pydantic model directly to enforce structured outputs.\n\n## Async: Talk to APIs Concurrently\n\nLLM calls are I/O-bound—you spend most time waiting on the network. `asyncio` lets you fire many requests concurrently instead of one at a time, dramatically speeding up batch work.\n\n```python\nimport asyncio\nimport httpx\n\nasync def fetch(client: httpx.AsyncClient, prompt: str) -> str:\n    resp = await client.post(\"https://api.example.com/v1/chat\",\n                             json={\"prompt\": prompt})\n    return resp.json()[\"text\"]\n\nasync def main(prompts: list[str]) -> list[str]:\n    async with httpx.AsyncClient() as client:\n        tasks = [fetch(client, p) for p in prompts]\n        return await asyncio.gather(*tasks)\n\nresults = asyncio.run(main([\"hi\", \"hello\", \"hey\"]))\n```\n\nKey rules: use `async def` to define coroutines, `await` to call them, and `asyncio.gather` to run many concurrently. Never block an event loop with synchronous sleeps or heavy CPU work.\n\n## Handling JSON and Structured Data\n\nYou'll constantly convert between JSON and Python objects. The `json` module handles the basics; Pydantic handles validation.\n\n```python\nimport json\n\ndata = json.loads('{\"key\": \"value\"}')   # str -> dict\ntext = json.dumps(data)                  # dict -> str\n```\n\nUse `dict.get(key, default)` to avoid `KeyError` when a field might be missing—common with LLM output.\n\n## Error Handling and Retries\n\nNetwork calls fail. Wrap API calls in try/except and retry transient errors with backoff.\n\n```python\nimport asyncio\n\nasync def call_with_retry(fn, retries: int = 3):\n    for attempt in range(retries):\n        try:\n            return await fn()\n        except Exception as e:\n            if attempt == retries - 1:\n                raise\n            await asyncio.sleep(2 ** attempt)  # exponential backoff\n```\n\n## Putting It Together\n\nA typical AI app flow: load config from `.env`, define Pydantic models for your data, make async calls to the LLM, validate the response, and handle errors gracefully. Master these patterns and the rest of the course will feel natural.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Python Essentials for AI Developers",
+      "sub": "Python and LLM Foundations",
+      "narration": "Welcome. In this lesson we'll cover the practical Python patterns you'll use in every LLM-powered project: setting up your environment, type hints, Pydantic validation, async programming, and clean data handling. We're focusing only on what you actually need to ship AI apps."
+    },
+    {
+      "type": "content",
+      "title": "Why These Python Skills Matter",
+      "bullets": [
+        "Every major LLM provider ships a Python SDK",
+        "The ecosystem is built on typing, async, and Pydantic",
+        "Focus on the practical subset, not the whole language",
+        "These patterns repeat in every project you'll build"
+      ],
+      "narration": "Python is the default language of AI development. Almost every provider ships a Python SDK first, and the surrounding tools like Pydantic, httpx, and asyncio shape how you write code. Rather than teaching all of Python, we focus on the handful of patterns you'll use over and over."
+    },
+    {
+      "type": "content",
+      "title": "Set Up an Isolated Environment",
+      "bullets": [
+        "Create a virtual environment per project",
+        "Activate it before installing anything",
+        "Freeze dependencies for reproducibility",
+        "Store secrets in .env, never in code"
+      ],
+      "code": "python -m venv .venv\nsource .venv/bin/activate\npip install openai pydantic httpx python-dotenv\npip freeze > requirements.txt",
+      "narration": "Always isolate each project in its own virtual environment so dependencies never collide. Activate it, install your packages, and freeze them to a requirements file for reproducibility. Keep secrets like API keys out of your code—store them in a dot-env file that you never commit, and load them at runtime."
+    },
+    {
+      "type": "content",
+      "title": "Type Hints",
+      "bullets": [
+        "Make code self-documenting",
+        "Let editors catch bugs before runtime",
+        "Essential for structured LLM data",
+        "Use Optional, list, dict annotations"
+      ],
+      "code": "def summarize(text: str, max_words: int = 100) -> str:\n    ...",
+      "narration": "Type hints describe what your functions expect and return. They make code self-documenting and let your editor flag mistakes before you ever run the program. This matters even more when you're passing structured data in and out of language models."
+    },
+    {
+      "type": "content",
+      "title": "Pydantic: Validate LLM Output",
+      "bullets": [
+        "LLMs return text that may be malformed",
+        "Pydantic coerces JSON into typed objects",
+        "Raises clear errors on bad data",
+        "Many SDKs accept models for structured output"
+      ],
+      "code": "class Recipe(BaseModel):\n    title: str\n    servings: int\n    ingredients: list[str]\n\nrecipe = Recipe.model_validate_json(raw)",
+      "narration": "Language models return text—often JSON-shaped, sometimes malformed. Pydantic models let you validate and coerce that text into typed Python objects, raising clear errors when a field is missing or the wrong type. Modern SDKs can even take a Pydantic model directly to enforce structured outputs."
+    },
+    {
+      "type": "content",
+      "title": "Async: Concurrent API Calls",
+      "bullets": [
+        "LLM calls are I/O-bound—mostly waiting",
+        "async lets you run many requests at once",
+        "Use async def, await, and asyncio.gather",
+        "Never block the event loop with heavy work"
+      ],
+      "code": "async def main(prompts):\n    async with httpx.AsyncClient() as client:\n        tasks = [fetch(client, p) for p in prompts]\n        return await asyncio.gather(*tasks)",
+      "narration": "LLM calls spend most of their time waiting on the network. With asyncio you can fire many requests concurrently instead of one at a time, which dramatically speeds up batch processing. Define coroutines with async def, call them with await, and run many together with asyncio.gather. Just don't block the event loop with synchronous sleeps or heavy CPU work."
+    },
+    {
+      "type": "content",
+      "title": "JSON and Structured Data",
+      "bullets": [
+        "json.loads turns strings into dicts",
+        "json.dumps turns dicts into strings",
+        "Use dict.get(key, default) for missing fields",
+        "Combine with Pydantic for validation"
+      ],
+      "code": "import json\ndata = json.loads('{\"key\": \"value\"}')\nvalue = data.get(\"missing\", \"fallback\")",
+      "narration": "You'll constantly move between JSON and Python objects. The json module handles the basics with loads and dumps. When a field might be missing—common with LLM output—use dict.get with a default to avoid crashes. For anything more complex, reach for Pydantic to validate the shape."
+    },
+    {
+      "type": "content",
+      "title": "Error Handling and Retries",
+      "bullets": [
+        "Network calls fail—plan for it",
+        "Wrap API calls in try/except",
+        "Retry transient errors with backoff",
+        "Re-raise after exhausting retries"
+      ],
+      "code": "for attempt in range(retries):\n    try:\n        return await fn()\n    except Exception:\n        await asyncio.sleep(2 ** attempt)",
+      "narration": "Network calls fail regularly, so build resilience in from the start. Wrap calls in try-except, and retry transient failures using exponential backoff—waiting longer after each attempt. If you exhaust your retries, re-raise the error so it surfaces clearly rather than failing silently."
+    },
+    {
+      "type": "content",
+      "title": "Putting It Together",
+      "bullets": [
+        "Load config from .env",
+        "Define Pydantic models for your data",
+        "Make async calls and validate responses",
+        "Handle errors gracefully"
+      ],
+      "narration": "A typical AI app ties all of this together: load your config from dot-env, define Pydantic models for your data, make async calls to the language model, validate the responses, and handle errors gracefully. Master these patterns and the rest of the course will feel natural."
+    }
+  ]
+}

@@ -1,0 +1,189 @@
+{
+  "slug": "aad-m4-l04-capstone-ship-a-full-stack-ai-application",
+  "title": "Capstone: Ship a Full-Stack AI Application",
+  "month": 4,
+  "monthTitle": "Deployment and Capstone Project",
+  "lesson": 4,
+  "video": "aad-m4-l04-capstone-ship-a-full-stack-ai-application.mp4",
+  "summary": "In this capstone lesson you'll combine everything you've learned—RAG pipelines, agents, and APIs—into a single deployed, portfolio-ready AI application. You'll architect the system, build a backend and frontend, deploy to a public URL, add observability and cost controls, and write documentation that makes your project demo-ready for recruiters and users.",
+  "objectives": [
+    "Architect a full-stack AI application that integrates RAG, agent workflows, and external APIs into a coherent system",
+    "Build and connect a backend (API + LLM logic) and a frontend (chat/UI) with streaming responses",
+    "Deploy the application to a public cloud platform with environment-based secrets and a working demo URL",
+    "Add observability, evaluation, and cost/rate-limit safeguards for production reliability",
+    "Write portfolio-quality documentation including architecture diagrams, setup steps, and a demo walkthrough"
+  ],
+  "quiz": [
+    {
+      "q": "Where should your LLM provider API keys live in a deployed full-stack AI app?",
+      "options": [
+        "In the frontend JavaScript bundle",
+        "In a public environment file in the repo",
+        "Server-side as environment variables",
+        "Hardcoded in the React component"
+      ],
+      "answer": 2,
+      "why": "Keys must stay server-side as environment variables so the browser never exposes them and they aren't committed to the repository."
+    },
+    {
+      "q": "What is the best scoping strategy for a capstone project?",
+      "options": [
+        "Add as many features and tools as possible",
+        "One clear user, one job-to-be-done, one or two tools",
+        "Build a general-purpose assistant that does everything",
+        "Skip retrieval to save time"
+      ],
+      "answer": 1,
+      "why": "Tight scope—one user, one job, minimal tools—lets you finish something polished, which is more impressive than an unfinished ambitious app."
+    },
+    {
+      "q": "Which technique makes a chat UI feel fast and modern during model responses?",
+      "options": [
+        "Showing a static loading spinner until the full answer returns",
+        "Streaming tokens via Server-Sent Events",
+        "Polling the database every 10 seconds",
+        "Disabling the input until done"
+      ],
+      "answer": 1,
+      "why": "Streaming tokens as they're generated (e.g., via SSE) gives immediate visible feedback and the perception of speed."
+    },
+    {
+      "q": "Which of these is NOT a production safeguard you should add before shipping?",
+      "options": [
+        "Rate limiting per user or IP",
+        "Cost caps on max tokens",
+        "Committing API keys to the repo for convenience",
+        "Logging latency and token usage"
+      ],
+      "answer": 2,
+      "why": "Committing API keys is a security risk and the opposite of a safeguard; rate limiting, cost caps, and observability are all proper safeguards."
+    },
+    {
+      "q": "Name one thing your capstone README must include to be portfolio-ready.",
+      "answer": "A live demo link (also acceptable: architecture diagram, setup steps, environment variables, or a demo video)",
+      "why": "Portfolio-ready documentation needs a live demo link, an architecture diagram, the tech stack, setup steps with env vars, and ideally a short demo video—any of these is a valid answer."
+    },
+    {
+      "q": "Why should you test your deployed app in an incognito window with no local state?",
+      "answer": "To confirm it works for a new user/stranger without relying on cached data, local secrets, or local setup",
+      "why": "An incognito test simulates a first-time visitor, ensuring the public demo truly works independently of your local environment."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Vercel Deployment Documentation",
+      "url": "https://vercel.com/docs"
+    },
+    {
+      "label": "FastAPI Streaming Responses Guide",
+      "url": "https://fastapi.tiangolo.com/advanced/custom-response/"
+    },
+    {
+      "label": "LangSmith Observability for LLM Apps",
+      "url": "https://docs.smith.langchain.com/"
+    },
+    {
+      "label": "How to Write a Great Project README",
+      "url": "https://www.makeareadme.com/"
+    }
+  ],
+  "body_markdown": "## Capstone Overview\n\nThis is where the course comes together. You will ship a **full-stack AI application** that someone can click a link and use. The goal is not just to make it work locally, but to produce a **portfolio-ready** project: deployed, documented, and demonstrating the core skills of an AI Application Developer—RAG, agents, and API integration.\n\nA strong capstone answers three questions for a viewer in under 60 seconds: *What does it do? How is it built? Can I try it right now?*\n\n## Choosing a Scoped Project\n\nPick a project narrow enough to finish but rich enough to show depth. Good patterns:\n\n- **Documentation assistant** — RAG over a docs corpus + an agent that can run code examples.\n- **Research copilot** — agent that searches the web (API), summarizes, and cites sources stored via RAG.\n- **Support triage bot** — classifies tickets, retrieves relevant KB articles, and drafts replies.\n\nScope rule: one clear user, one clear job-to-be-done, one or two agent tools. Resist feature creep.\n\n## Reference Architecture\n\nA clean separation of concerns keeps the app deployable and debuggable:\n\n- **Frontend**: a chat or form UI (Next.js, React, or Streamlit) that streams responses.\n- **Backend API**: FastAPI/Express endpoint that orchestrates the LLM, RAG retrieval, and agent tools.\n- **Vector store**: managed (Pinecone, Supabase pgvector, Chroma Cloud) for retrieval.\n- **LLM provider**: OpenAI/Anthropic/etc., accessed with a server-side key.\n- **Agent layer**: tool-calling loop that decides when to retrieve, call APIs, or answer directly.\n\nKeep all secrets server-side. The browser never sees your API keys.\n\n## Backend: Orchestration\n\nYour backend exposes a single `/chat` endpoint that:\n\n1. Accepts a user message and conversation history.\n2. Runs retrieval against the vector store when relevant.\n3. Passes tools + context to the model in a tool-calling loop.\n4. Streams tokens back to the client (Server-Sent Events).\n\nKeep prompt templates, tool definitions, and retrieval logic in separate modules so they are testable.\n\n## Frontend: The Demo Surface\n\nThe UI is what recruiters see first. Prioritize:\n\n- Streaming output (feels fast and modern).\n- Visible citations/sources from RAG to build trust.\n- A clear empty state with example prompts.\n- Graceful error handling when the API or model fails.\n\n## Deployment\n\nDeploy frontend and backend to a public platform:\n\n- **Vercel/Netlify** for the frontend.\n- **Render, Railway, Fly.io, or a serverless function** for the backend.\n- Store secrets as **environment variables**, never in the repo.\n- Add a **health-check** route and confirm CORS allows your frontend origin.\n\nTag a release and verify the public URL works in an incognito window with no local state.\n\n## Production Safeguards\n\nBefore you call it done:\n\n- **Rate limiting** per IP/user to prevent runaway cost.\n- **Cost caps**: cap max tokens, use a cheaper model for routing.\n- **Observability**: log prompts, latency, token usage (LangSmith, Helicone, or simple logging).\n- **Evaluation**: a small test set of questions with expected behaviors you can re-run.\n- **Guardrails**: input validation and a fallback message when retrieval returns nothing.\n\n## Documentation and Demo\n\nYour README should include: a one-line description, a live demo link, an architecture diagram, the tech stack, local setup steps, environment variables, and known limitations. Record a 60–90 second demo video (GIF or Loom). This documentation is often what gets you the interview.\n\n## Shipping Checklist\n\n- [ ] Public demo URL works without local setup\n- [ ] RAG retrieves and cites sources\n- [ ] At least one agent tool functions end-to-end\n- [ ] Secrets are server-side env vars\n- [ ] Rate limiting + cost cap in place\n- [ ] README with diagram + demo video\n- [ ] Repo is public and clean",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Capstone: Ship a Full-Stack AI Application",
+      "sub": "Combine RAG, agents, and APIs into a deployed, portfolio-ready project",
+      "narration": "Welcome to the capstone. This is where everything you've learned in this course comes together. By the end, you'll have a deployed, full-stack AI application combining retrieval-augmented generation, agents, and external APIs—something with a public link you can put in your portfolio and show to employers."
+    },
+    {
+      "type": "content",
+      "title": "What 'Done' Looks Like",
+      "bullets": [
+        "A public URL anyone can click and use",
+        "Clear answer to: what it does, how it's built, can I try it",
+        "RAG + at least one agent tool working end-to-end",
+        "Documentation and a short demo video"
+      ],
+      "narration": "Let's define done. A finished capstone isn't code that runs on your laptop—it's a live application someone can use right now. In under a minute, a viewer should understand what your app does, how it's built, and be able to try it. It must demonstrate real retrieval plus at least one agent tool, and it must be documented with a short demo video."
+    },
+    {
+      "type": "content",
+      "title": "Scope It Tightly",
+      "bullets": [
+        "One user, one job-to-be-done, one or two tools",
+        "Examples: docs assistant, research copilot, support triage",
+        "Depth beats breadth—finish something polished",
+        "Resist feature creep"
+      ],
+      "narration": "The biggest risk in a capstone is overscoping. Pick a project with one clear user and one clear job. A documentation assistant, a research copilot, or a support triage bot are all great patterns. Limit yourself to one or two agent tools. A small, polished, fully-working app impresses far more than an ambitious half-finished one."
+    },
+    {
+      "type": "content",
+      "title": "Reference Architecture",
+      "bullets": [
+        "Frontend: chat/form UI with streaming",
+        "Backend API: orchestrates LLM, RAG, and tools",
+        "Vector store + LLM provider (server-side keys)",
+        "Agent layer: tool-calling loop"
+      ],
+      "code": "Browser UI\n  -> /chat (FastAPI)\n     -> retrieve(vector store)\n     -> agent loop(tools, LLM)\n     -> stream tokens back",
+      "narration": "Here's a clean reference architecture. Your frontend is a chat or form UI that streams responses. Your backend exposes a chat endpoint that orchestrates retrieval, the agent's tool-calling loop, and the LLM call. The vector store and LLM provider are accessed server-side only. This separation keeps your app deployable and debuggable—and crucially, your API keys never reach the browser."
+    },
+    {
+      "type": "content",
+      "title": "Backend Orchestration",
+      "bullets": [
+        "Single /chat endpoint takes message + history",
+        "Retrieve context when relevant",
+        "Tool-calling loop for agent decisions",
+        "Stream tokens via Server-Sent Events"
+      ],
+      "code": "@app.post('/chat')\nasync def chat(req):\n    ctx = retrieve(req.message)\n    return stream(agent_loop(req.message, ctx, tools))",
+      "narration": "Your backend centers on a single chat endpoint. It accepts the user message and conversation history, runs retrieval against your vector store when relevant, then enters a tool-calling loop where the model decides whether to retrieve more, call an API, or answer. Stream tokens back using server-sent events so the UI feels fast. Keep prompts, tools, and retrieval in separate modules so each is testable."
+    },
+    {
+      "type": "content",
+      "title": "Frontend: Your Demo Surface",
+      "bullets": [
+        "Streaming output feels fast and modern",
+        "Show citations to build trust",
+        "Empty state with example prompts",
+        "Graceful error handling"
+      ],
+      "narration": "The frontend is what recruiters see first, so invest in it. Stream the output so it feels responsive. Show the sources your RAG system retrieved to build trust and prove the retrieval is real. Add a welcoming empty state with example prompts so users know what to type. And handle errors gracefully—nothing kills a demo like a blank screen when the model times out."
+    },
+    {
+      "type": "content",
+      "title": "Deploy to a Public URL",
+      "bullets": [
+        "Frontend: Vercel/Netlify; Backend: Render/Railway/Fly",
+        "Secrets as environment variables, never in repo",
+        "Add a health-check route; configure CORS",
+        "Verify in incognito with no local state"
+      ],
+      "narration": "Now deploy. Host the frontend on Vercel or Netlify and the backend on Render, Railway, or Fly. Store every secret as an environment variable, never committed to the repo. Add a health-check route and make sure CORS allows your frontend's origin. Then the critical test: open the public URL in an incognito window with no local state and confirm it works for a stranger."
+    },
+    {
+      "type": "content",
+      "title": "Production Safeguards",
+      "bullets": [
+        "Rate limiting per user/IP",
+        "Cost caps: max tokens, cheaper routing model",
+        "Observability: log latency, tokens, prompts",
+        "A small eval set + retrieval fallback message"
+      ],
+      "narration": "Before you call it done, add safeguards. Rate-limit per IP to prevent a runaway bill. Cap max tokens and consider a cheaper model for routing tasks. Add observability—log latency, token usage, and prompts using tools like Helicone or LangSmith. Keep a small evaluation set you can re-run, and always have a graceful fallback message when retrieval returns nothing relevant."
+    },
+    {
+      "type": "content",
+      "title": "Document and Ship",
+      "bullets": [
+        "README: description, demo link, diagram, setup, env vars",
+        "Record a 60-90s demo video or GIF",
+        "Public, clean repo",
+        "Run the shipping checklist"
+      ],
+      "narration": "Finally, document. Your README needs a one-line description, the live demo link, an architecture diagram, the stack, setup steps, and environment variables. Record a sixty to ninety second demo video—this is often what gets you the interview. Make the repo public and clean. Run through the shipping checklist one last time, and you've shipped a real, portfolio-ready AI application."
+    }
+  ]
+}

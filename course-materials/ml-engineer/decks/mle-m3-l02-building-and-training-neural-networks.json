@@ -1,0 +1,183 @@
+{
+  "slug": "mle-m3-l02-building-and-training-neural-networks",
+  "title": "Building and Training Neural Networks",
+  "month": 3,
+  "monthTitle": "Deep Learning with PyTorch",
+  "lesson": 2,
+  "video": "mle-m3-l02-building-and-training-neural-networks.mp4",
+  "summary": "Learn to build, train, and tune a feedforward neural network in PyTorch using nn.Module, Dataset/DataLoader, an optimizer, and a loss function, then evaluate it on a real dataset with proper train/validation splits.",
+  "objectives": [
+    "Define a feedforward neural network by subclassing torch.nn.Module",
+    "Load and batch real data efficiently with Dataset and DataLoader",
+    "Implement a complete training loop with forward pass, loss, backprop, and optimizer step",
+    "Evaluate models correctly using eval mode and torch.no_grad",
+    "Apply tuning techniques (learning rate, batch size, regularization) to improve generalization",
+    "Save and reload trained model weights for reuse"
+  ],
+  "quiz": [
+    {
+      "q": "Why do we typically output raw logits from the model instead of applying softmax?",
+      "options": [
+        "Softmax is too slow to compute",
+        "nn.CrossEntropyLoss applies log-softmax internally",
+        "Logits are required by DataLoader",
+        "Softmax cannot be backpropagated"
+      ],
+      "answer": 1,
+      "why": "nn.CrossEntropyLoss combines log-softmax and negative log-likelihood, so applying softmax yourself would double-apply the transformation and hurt training."
+    },
+    {
+      "q": "What is the purpose of calling optimizer.zero_grad() in the training loop?",
+      "options": [
+        "It resets the model weights",
+        "It clears accumulated gradients from the previous step",
+        "It shuffles the data",
+        "It switches the model to eval mode"
+      ],
+      "answer": 1,
+      "why": "PyTorch accumulates gradients by default, so you must zero them each iteration or gradients from prior batches will contaminate the current update."
+    },
+    {
+      "q": "Which mode and context should wrap your evaluation loop?",
+      "options": [
+        "model.train() and torch.enable_grad()",
+        "model.eval() and torch.no_grad()",
+        "model.eval() and torch.enable_grad()",
+        "model.train() and torch.no_grad()"
+      ],
+      "answer": 1,
+      "why": "model.eval() disables dropout and uses running batchnorm stats, while torch.no_grad() avoids tracking gradients for faster, memory-efficient inference."
+    },
+    {
+      "q": "Why should feature standardization statistics be computed only on the training set?",
+      "options": [
+        "To make training faster",
+        "To prevent data leakage from validation/test into the model",
+        "Because validation data has no features",
+        "To increase the batch size"
+      ],
+      "answer": 1,
+      "why": "Using validation or test statistics leaks information about unseen data into preprocessing, producing overly optimistic and invalid performance estimates."
+    },
+    {
+      "q": "In one short phrase, which hyperparameter generally has the largest effect on training and should be tuned first?",
+      "answer": "learning rate",
+      "why": "The learning rate controls step size during optimization; too high diverges and too low stalls, making it the most impactful hyperparameter to tune first."
+    },
+    {
+      "q": "What object should you save for a portable model checkpoint in PyTorch?",
+      "answer": "the state_dict",
+      "why": "Saving model.state_dict() stores just the learned parameters, which is more portable and robust across code changes than pickling the entire model object."
+    }
+  ],
+  "resources": [
+    {
+      "label": "PyTorch Official Tutorials: Learn the Basics",
+      "url": "https://pytorch.org/tutorials/beginner/basics/intro.html"
+    },
+    {
+      "label": "torch.nn Module Documentation",
+      "url": "https://pytorch.org/docs/stable/nn.html"
+    },
+    {
+      "label": "PyTorch Data Loading: Dataset and DataLoader",
+      "url": "https://pytorch.org/tutorials/beginner/data_loading_tutorial.html"
+    },
+    {
+      "label": "Deep Learning with PyTorch (Free Book PDF)",
+      "url": "https://pytorch.org/assets/deep-learning/Deep-Learning-with-PyTorch.pdf"
+    }
+  ],
+  "body_markdown": "## Overview\n\nIn this lesson you will build a feedforward (fully connected) neural network in PyTorch and train it end-to-end on a real tabular dataset. We cover the four pillars of any PyTorch training pipeline: **the model**, **the data**, **the loss function**, and **the optimizer**.\n\n## 1. The Model: subclassing nn.Module\n\nEvery network in PyTorch is a subclass of `nn.Module`. You define layers in `__init__` and the data flow in `forward`.\n\n```python\nimport torch\nimport torch.nn as nn\n\nclass MLP(nn.Module):\n    def __init__(self, in_features, hidden, n_classes):\n        super().__init__()\n        self.net = nn.Sequential(\n            nn.Linear(in_features, hidden),\n            nn.ReLU(),\n            nn.Dropout(0.2),\n            nn.Linear(hidden, n_classes),\n        )\n    def forward(self, x):\n        return self.net(x)  # raw logits\n```\n\nNote we output **raw logits** (no softmax) because `nn.CrossEntropyLoss` applies log-softmax internally.\n\n## 2. The Data: Dataset and DataLoader\n\nA `Dataset` knows how to return a single `(features, label)` pair. A `DataLoader` wraps it to provide batching, shuffling, and parallel loading.\n\n```python\nfrom torch.utils.data import TensorDataset, DataLoader\n\ntrain_ds = TensorDataset(X_train, y_train)\ntrain_dl = DataLoader(train_ds, batch_size=64, shuffle=True)\nval_dl   = DataLoader(val_ds, batch_size=256, shuffle=False)\n```\n\nAlways **shuffle the training set** and never shuffle validation/test. Standardize numeric features (zero mean, unit variance) using statistics computed only on the training split to avoid data leakage.\n\n## 3. Loss and Optimizer\n\n```python\nmodel = MLP(in_features=20, hidden=64, n_classes=2)\ncriterion = nn.CrossEntropyLoss()\noptimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-4)\n```\n\n`weight_decay` adds L2 regularization. Adam is a solid default optimizer; SGD with momentum can generalize better but needs more tuning.\n\n## 4. The Training Loop\n\nThe core cycle for every batch: zero gradients → forward → compute loss → backward → step.\n\n```python\nfor epoch in range(epochs):\n    model.train()\n    for xb, yb in train_dl:\n        optimizer.zero_grad()\n        logits = model(xb)\n        loss = criterion(logits, yb)\n        loss.backward()\n        optimizer.step()\n```\n\n`optimizer.zero_grad()` is essential because PyTorch **accumulates** gradients by default; forgetting it is a classic bug.\n\n## 5. Evaluation\n\nUse `model.eval()` to disable dropout/batchnorm updates, and `torch.no_grad()` to skip gradient tracking for speed and memory.\n\n```python\nmodel.eval()\ncorrect = 0\nwith torch.no_grad():\n    for xb, yb in val_dl:\n        preds = model(xb).argmax(dim=1)\n        correct += (preds == yb).sum().item()\nacc = correct / len(val_ds)\n```\n\n## 6. Tuning for Better Generalization\n\n- **Learning rate** is the most important hyperparameter. Try a sweep (1e-2, 1e-3, 1e-4).\n- **Batch size** trades stability vs. speed; larger batches may need a larger LR.\n- **Regularization**: dropout, weight decay, and early stopping fight overfitting.\n- **Monitor the gap** between training and validation loss; a widening gap signals overfitting.\n\n## 7. Saving and Loading\n\n```python\ntorch.save(model.state_dict(), 'model.pt')\nmodel.load_state_dict(torch.load('model.pt'))\nmodel.eval()\n```\n\nSave the `state_dict` (the learned parameters), not the whole object, for portability.\n\n## Key Takeaways\n\nA PyTorch pipeline always combines model, data, loss, and optimizer. Master the zero_grad → forward → loss → backward → step rhythm, separate train/eval modes properly, and tune the learning rate first.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Building and Training Neural Networks",
+      "sub": "Deep Learning with PyTorch",
+      "narration": "Welcome. In this lesson we'll build a feedforward neural network from scratch in PyTorch and train it end-to-end on a real dataset. By the end you'll understand the complete training pipeline and how to tune it."
+    },
+    {
+      "type": "content",
+      "title": "The Four Pillars",
+      "bullets": [
+        "Model: the network architecture (nn.Module)",
+        "Data: Dataset and DataLoader for batching",
+        "Loss: measures prediction error",
+        "Optimizer: updates weights from gradients"
+      ],
+      "narration": "Every PyTorch training pipeline rests on four pillars. The model defines the architecture, the data layer feeds batches, the loss function measures how wrong predictions are, and the optimizer adjusts weights to reduce that loss. Keep these four in mind as we build each piece."
+    },
+    {
+      "type": "content",
+      "title": "Defining the Model",
+      "bullets": [
+        "Subclass nn.Module",
+        "Declare layers in __init__",
+        "Define data flow in forward",
+        "Output raw logits, not softmax"
+      ],
+      "code": "class MLP(nn.Module):\n    def __init__(self, n_in, h, n_out):\n        super().__init__()\n        self.net = nn.Sequential(\n            nn.Linear(n_in, h), nn.ReLU(),\n            nn.Dropout(0.2),\n            nn.Linear(h, n_out))\n    def forward(self, x):\n        return self.net(x)",
+      "narration": "We define our model by subclassing nn.Module. Layers are declared in the constructor and the forward method describes how data flows through them. Notice we return raw logits, because CrossEntropyLoss applies log-softmax internally, so adding softmax ourselves would be a mistake."
+    },
+    {
+      "type": "content",
+      "title": "Loading Data",
+      "bullets": [
+        "Dataset returns one (features, label) pair",
+        "DataLoader handles batching and shuffling",
+        "Shuffle training data, not validation",
+        "Standardize using train statistics only"
+      ],
+      "code": "train_dl = DataLoader(train_ds,\n    batch_size=64, shuffle=True)\nval_dl = DataLoader(val_ds,\n    batch_size=256, shuffle=False)",
+      "narration": "The Dataset object returns individual samples while the DataLoader batches them, shuffles, and can load in parallel. Always shuffle the training set to break ordering bias, but never shuffle validation. Standardize features using statistics computed only on the training split to avoid data leakage."
+    },
+    {
+      "type": "content",
+      "title": "Loss and Optimizer",
+      "bullets": [
+        "CrossEntropyLoss for classification",
+        "Adam is a reliable default",
+        "weight_decay adds L2 regularization",
+        "Pass model.parameters() to the optimizer"
+      ],
+      "code": "criterion = nn.CrossEntropyLoss()\noptimizer = torch.optim.Adam(\n    model.parameters(),\n    lr=1e-3, weight_decay=1e-4)",
+      "narration": "For classification we use CrossEntropyLoss. Adam is a strong default optimizer that adapts learning rates per parameter. The weight_decay argument adds L2 regularization to combat overfitting. We pass the model's parameters so the optimizer knows what to update."
+    },
+    {
+      "type": "content",
+      "title": "The Training Loop",
+      "bullets": [
+        "zero_grad → forward → loss → backward → step",
+        "Gradients accumulate by default",
+        "Set model.train() each epoch",
+        "Iterate over batches from the DataLoader"
+      ],
+      "code": "model.train()\nfor xb, yb in train_dl:\n    optimizer.zero_grad()\n    loss = criterion(model(xb), yb)\n    loss.backward()\n    optimizer.step()",
+      "narration": "Here is the heart of training. For each batch we zero the gradients, run a forward pass, compute the loss, backpropagate, and step the optimizer. Remember PyTorch accumulates gradients, so forgetting zero_grad is a classic bug that silently breaks training."
+    },
+    {
+      "type": "content",
+      "title": "Evaluation",
+      "bullets": [
+        "model.eval() disables dropout",
+        "torch.no_grad() skips gradient tracking",
+        "Compare argmax predictions to labels",
+        "Report accuracy on validation set"
+      ],
+      "code": "model.eval()\nwith torch.no_grad():\n    for xb, yb in val_dl:\n        preds = model(xb).argmax(1)\n        correct += (preds==yb).sum().item()",
+      "narration": "When evaluating, switch to eval mode so dropout and batchnorm behave correctly, and wrap the loop in no_grad to save memory and speed up computation. We take the argmax of the logits as the predicted class and compare against the true labels to compute accuracy."
+    },
+    {
+      "type": "content",
+      "title": "Tuning and Saving",
+      "bullets": [
+        "Learning rate matters most—sweep it",
+        "Use dropout, weight decay, early stopping",
+        "Watch the train/val loss gap",
+        "Save state_dict, not the whole model"
+      ],
+      "code": "torch.save(model.state_dict(), 'model.pt')\nmodel.load_state_dict(\n    torch.load('model.pt'))",
+      "narration": "Tune the learning rate first since it has the biggest impact. Fight overfitting with dropout, weight decay, and early stopping, and watch the gap between training and validation loss. Finally, save the state_dict rather than the entire object for portable, reliable checkpoints. That completes our full pipeline."
+    }
+  ]
+}

@@ -1,0 +1,193 @@
+{
+  "slug": "mle-m1-l01-python-for-ml-numpy-pandas-and-clean-code",
+  "title": "Python for ML: NumPy, Pandas, and Clean Code",
+  "month": 1,
+  "monthTitle": "Foundations: Python and Math for ML",
+  "lesson": 1,
+  "video": "mle-m1-l01-python-for-ml-numpy-pandas-and-clean-code.mp4",
+  "summary": "A hands-on lesson that builds your core data-wrangling toolkit using NumPy and Pandas. You'll learn to create and manipulate arrays, load and clean real-world tabular data, explore datasets, and write clean, maintainable Python that scales into production ML pipelines.",
+  "objectives": [
+    "Create, index, and perform vectorized operations on NumPy arrays instead of slow Python loops",
+    "Load tabular data into Pandas DataFrames and inspect its structure, types, and summary statistics",
+    "Clean messy data by handling missing values, fixing dtypes, and removing duplicates",
+    "Explore and transform data using filtering, grouping, and aggregation",
+    "Apply clean-code practices (clear names, small functions, vectorization) to data-wrangling scripts"
+  ],
+  "quiz": [
+    {
+      "q": "Why are vectorized NumPy operations generally preferred over Python for-loops for numeric work?",
+      "options": [
+        "They use more memory but are easier to read",
+        "They run in optimized C and are faster and clearer",
+        "They automatically handle missing values",
+        "They only work on integers"
+      ],
+      "answer": 1,
+      "why": "Vectorized operations apply to the whole array at once in optimized C code, making them both faster than Python loops and more readable."
+    },
+    {
+      "q": "Which Pandas method gives you column data types and a count of non-null values?",
+      "options": [
+        "df.describe()",
+        "df.head()",
+        "df.info()",
+        "df.shape"
+      ],
+      "answer": 2,
+      "why": "df.info() reports each column's dtype along with non-null counts, while describe() gives numeric summary stats and head() shows sample rows."
+    },
+    {
+      "q": "What is the difference between df.loc and df.iloc?",
+      "options": [
+        "loc selects by label, iloc selects by integer position",
+        "loc is faster than iloc",
+        "iloc only works on columns",
+        "There is no difference"
+      ],
+      "answer": 0,
+      "why": "loc indexes by row/column labels, whereas iloc indexes by integer positions."
+    },
+    {
+      "q": "Which approach avoids the SettingWithCopyWarning when assigning to a subset of rows?",
+      "options": [
+        "df[df.a > 1]['b'] = 0",
+        "Using a for-loop with iterrows",
+        "Using df.loc[df.a > 1, 'b'] = 0",
+        "Converting to a NumPy array first"
+      ],
+      "answer": 2,
+      "why": "Chained indexing can operate on a copy; using a single .loc call with both row and column selectors ensures the assignment targets the original DataFrame."
+    },
+    {
+      "q": "In one short phrase, name the Pandas pattern used to compute survival rate per passenger class.",
+      "answer": "split-apply-combine (groupby)",
+      "why": "groupby implements split-apply-combine: data is split into groups, an aggregation is applied, and results are combined."
+    },
+    {
+      "q": "Name one reason filling missing ages with the median is often preferred over the mean.",
+      "answer": "The median is robust to outliers",
+      "why": "Outliers skew the mean but have little effect on the median, making median imputation more stable for skewed numeric columns."
+    }
+  ],
+  "resources": [
+    {
+      "label": "NumPy: The Absolute Basics for Beginners",
+      "url": "https://numpy.org/doc/stable/user/absolute_beginners.html"
+    },
+    {
+      "label": "Pandas: 10 Minutes to Pandas",
+      "url": "https://pandas.pydata.org/docs/user_guide/10min.html"
+    },
+    {
+      "label": "Pandas User Guide: Working with Missing Data",
+      "url": "https://pandas.pydata.org/docs/user_guide/missing_data.html"
+    },
+    {
+      "label": "PEP 8 – Style Guide for Python Code",
+      "url": "https://peps.python.org/pep-0008/"
+    }
+  ],
+  "body_markdown": "## Why NumPy and Pandas?\n\nMachine learning starts with data, and the vast majority of an ML engineer's early work is loading, cleaning, and exploring that data. Two libraries form the backbone of this work in Python:\n\n- **NumPy** provides the `ndarray`, a fast, memory-efficient n-dimensional array that powers nearly every numeric library in Python (including Pandas, scikit-learn, and PyTorch).\n- **Pandas** provides the `DataFrame`, a labeled, table-like structure ideal for real-world, heterogeneous datasets.\n\nUnderstanding both — and when to use which — is foundational for every downstream ML task.\n\n## NumPy: Vectorized Numeric Computing\n\nA NumPy array stores elements of a single type in contiguous memory, which makes operations dramatically faster than Python lists.\n\n```python\nimport numpy as np\n\na = np.array([1, 2, 3, 4])\nb = np.arange(0, 8, 2)      # [0 2 4 6]\nz = np.zeros((2, 3))         # 2x3 matrix of zeros\n\n# Vectorized math: no loops needed\nprint(a * 2)                 # [2 4 6 8]\nprint(a + b)                 # elementwise add\nprint(a.mean(), a.sum())\n```\n\n### Vectorization beats loops\n\nInstead of writing a `for` loop to process each element, apply operations to the whole array at once. This is faster (executed in optimized C) and clearer.\n\n```python\n# Slow, un-Pythonic\nresult = [x ** 2 for x in range(1000)]\n\n# Fast, vectorized\nresult = np.arange(1000) ** 2\n```\n\n### Indexing, slicing, and boolean masks\n\n```python\nm = np.array([[1, 2, 3], [4, 5, 6]])\nm[0, 1]        # 2\nm[:, 0]        # first column -> [1 4]\nm[m > 3]       # boolean mask -> [4 5 6]\n```\n\nBroadcasting lets arrays of different shapes combine automatically, e.g. adding a row vector to every row of a matrix.\n\n## Pandas: Working with Real Data\n\nA `DataFrame` is a collection of columns (each a `Series`) sharing an index. Load data from CSV and inspect it immediately:\n\n```python\nimport pandas as pd\n\ndf = pd.read_csv('titanic.csv')\ndf.head()          # first 5 rows\ndf.shape           # (rows, columns)\ndf.info()          # dtypes and non-null counts\ndf.describe()      # summary stats for numeric columns\ndf['age'].value_counts()\n```\n\n### Selecting data\n\n- `df['age']` selects one column (a Series).\n- `df[['age', 'fare']]` selects multiple columns.\n- `df.loc[row_label, col_label]` selects by label.\n- `df.iloc[row_pos, col_pos]` selects by integer position.\n- Boolean filtering: `df[df['age'] > 30]`.\n\n## Cleaning Messy Data\n\nReal datasets are rarely clean. Common steps:\n\n```python\n# 1. Detect missing values\ndf.isnull().sum()\n\n# 2. Fill or drop them\ndf['age'] = df['age'].fillna(df['age'].median())\ndf = df.dropna(subset=['embarked'])\n\n# 3. Fix dtypes\ndf['survived'] = df['survived'].astype('int')\n\n# 4. Remove duplicates\ndf = df.drop_duplicates()\n\n# 5. Standardize text\ndf['sex'] = df['sex'].str.strip().str.lower()\n```\n\nChoose imputation strategies thoughtfully — median is robust to outliers, while dropping rows loses data. Document your decisions.\n\n## Exploring with Group-By and Aggregation\n\nThe split-apply-combine pattern answers analytical questions quickly:\n\n```python\n# Survival rate by passenger class\ndf.groupby('pclass')['survived'].mean()\n\n# Multiple aggregations\ndf.groupby('sex').agg(\n    avg_age=('age', 'mean'),\n    count=('survived', 'size'),\n)\n```\n\n## Clean Code for Data Work\n\nData scripts rot fast. Keep them maintainable:\n\n- **Prefer vectorized operations** over `iterrows()` loops — they're faster and clearer.\n- **Avoid chained assignment** like `df[df.a > 1]['b'] = 0`; use `.loc` instead to prevent `SettingWithCopyWarning`.\n- **Use descriptive names**: `passengers_df`, not `d2`.\n- **Wrap reusable logic in small functions** with a single responsibility.\n- **Avoid mutating in place silently**; return new DataFrames or be explicit.\n\n```python\ndef clean_passengers(df: pd.DataFrame) -> pd.DataFrame:\n    df = df.copy()\n    df['age'] = df['age'].fillna(df['age'].median())\n    df['sex'] = df['sex'].str.strip().str.lower()\n    return df.drop_duplicates()\n```\n\nA clean cleaning function is testable, reusable, and the first step toward a production pipeline.\n\n## Key Takeaways\n\n- NumPy gives you fast vectorized numeric arrays; Pandas gives you labeled tabular data.\n- Inspect before you transform: `head`, `info`, `describe`.\n- Handle missing data, dtypes, and duplicates deliberately.\n- Use group-by for fast exploration, and write clean, function-based code.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Python for ML: NumPy, Pandas, and Clean Code",
+      "sub": "Building your data-wrangling toolkit",
+      "narration": "Welcome. In this lesson we build the foundational data-wrangling toolkit every machine learning engineer needs. We'll work with NumPy for fast numeric arrays, Pandas for real-world tabular data, and we'll wrap it all in clean, maintainable code. By the end you'll be able to load, clean, and explore a real dataset confidently."
+    },
+    {
+      "type": "content",
+      "title": "Why These Tools?",
+      "bullets": [
+        "NumPy: fast n-dimensional arrays powering the whole ML stack",
+        "Pandas: labeled DataFrames for messy, real-world tables",
+        "Most early ML work is loading and cleaning data",
+        "Both integrate with scikit-learn, PyTorch, and more"
+      ],
+      "narration": "Machine learning starts with data, and most of an engineer's early effort goes into loading and cleaning it. NumPy provides the array — a fast, contiguous block of numbers that underpins virtually every numeric Python library. Pandas builds on top of it to give you labeled, table-like structures perfect for heterogeneous real-world data. Knowing when to reach for each is a core skill."
+    },
+    {
+      "type": "content",
+      "title": "NumPy Arrays and Vectorization",
+      "bullets": [
+        "Arrays store one type in contiguous memory — fast",
+        "Operations apply elementwise without loops",
+        "Vectorized code is faster and clearer than for-loops",
+        "Slicing and boolean masks select data efficiently"
+      ],
+      "code": "import numpy as np\na = np.array([1, 2, 3, 4])\nprint(a * 2)        # [2 4 6 8]\nprint(a[a > 2])     # [3 4]\nresult = np.arange(1000) ** 2",
+      "narration": "A NumPy array stores elements of one type in contiguous memory, which makes math operations dramatically faster than Python lists. The key idea is vectorization: instead of looping over elements, you apply an operation to the entire array at once. It runs in optimized C under the hood and reads more cleanly. You can also slice arrays and use boolean masks to pull out exactly the values you want."
+    },
+    {
+      "type": "content",
+      "title": "Loading and Inspecting Data",
+      "bullets": [
+        "read_csv loads a file into a DataFrame",
+        "head() shows the first rows; shape gives dimensions",
+        "info() reveals dtypes and missing counts",
+        "describe() summarizes numeric columns"
+      ],
+      "code": "import pandas as pd\ndf = pd.read_csv('titanic.csv')\ndf.head()\ndf.info()\ndf.describe()",
+      "narration": "With Pandas, you load a CSV into a DataFrame in one line. Before transforming anything, always inspect. Use head to eyeball the first rows, shape to learn the size, info to see column data types and how many values are missing, and describe to get summary statistics on numeric columns. Inspecting first prevents costly mistakes later."
+    },
+    {
+      "type": "content",
+      "title": "Selecting and Filtering",
+      "bullets": [
+        "df['col'] selects a column; double brackets select many",
+        "loc selects by label, iloc by integer position",
+        "Boolean filters: df[df['age'] > 30]",
+        "Combine conditions with & and | inside parentheses"
+      ],
+      "code": "df[['age', 'fare']]\ndf.loc[0, 'age']\ndf.iloc[0, 3]\ndf[(df['age'] > 30) & (df['sex'] == 'female')]",
+      "narration": "Selecting data is something you'll do constantly. Single brackets with a string give you one column as a Series; a list of names gives several columns. Use loc to select by label and iloc to select by integer position. Boolean filtering is powerful: pass a condition inside the brackets to keep only matching rows, and combine multiple conditions with ampersand and pipe, wrapping each in parentheses."
+    },
+    {
+      "type": "content",
+      "title": "Cleaning Messy Data",
+      "bullets": [
+        "Detect missing values with isnull().sum()",
+        "Impute with fillna or drop with dropna",
+        "Fix dtypes with astype; standardize text",
+        "Remove duplicates with drop_duplicates"
+      ],
+      "code": "df.isnull().sum()\ndf['age'] = df['age'].fillna(df['age'].median())\ndf['sex'] = df['sex'].str.strip().str.lower()\ndf = df.drop_duplicates()",
+      "narration": "Real data is messy. Start by detecting missing values with isnull and sum. Then decide deliberately: filling the age column with its median is robust to outliers, while dropping rows loses information. Fix incorrect data types, standardize text by stripping whitespace and lowercasing, and remove duplicate rows. Document why you chose each strategy — these choices affect your model."
+    },
+    {
+      "type": "content",
+      "title": "Exploring with Group-By",
+      "bullets": [
+        "Split-apply-combine answers questions fast",
+        "groupby('pclass')['survived'].mean() gives rates per group",
+        "agg() applies multiple aggregations at once",
+        "Great for spotting patterns before modeling"
+      ],
+      "code": "df.groupby('pclass')['survived'].mean()\ndf.groupby('sex').agg(\n    avg_age=('age', 'mean'),\n    count=('survived', 'size'),\n)",
+      "narration": "Group-by implements the split-apply-combine pattern: split the data into groups, apply an aggregation, and combine the results. Asking for survival rate by passenger class is a single expressive line. The agg method lets you compute several named aggregations at once. This is your fastest way to find patterns and sanity-check the data before you ever train a model."
+    },
+    {
+      "type": "content",
+      "title": "Clean Code for Data Work",
+      "bullets": [
+        "Prefer vectorized ops over iterrows loops",
+        "Use .loc to avoid SettingWithCopyWarning",
+        "Descriptive names and small single-purpose functions",
+        "Return new DataFrames; don't mutate silently"
+      ],
+      "code": "def clean_passengers(df: pd.DataFrame) -> pd.DataFrame:\n    df = df.copy()\n    df['age'] = df['age'].fillna(df['age'].median())\n    df['sex'] = df['sex'].str.strip().str.lower()\n    return df.drop_duplicates()",
+      "narration": "Finally, data scripts rot quickly without discipline. Prefer vectorized operations over row-by-row loops. Use loc for assignment to avoid the dreaded SettingWithCopyWarning. Choose descriptive variable names, and wrap reusable logic in small functions with a single responsibility. A clean cleaning function like this one is testable, reusable, and the first step toward a real production pipeline."
+    },
+    {
+      "type": "content",
+      "title": "Key Takeaways",
+      "bullets": [
+        "NumPy = fast vectorized arrays; Pandas = labeled tables",
+        "Inspect before you transform",
+        "Handle missing data, dtypes, and duplicates deliberately",
+        "Write clean, function-based, vectorized code"
+      ],
+      "narration": "To recap: NumPy gives you fast vectorized numeric arrays, while Pandas gives you labeled tabular data for real datasets. Always inspect before transforming, handle missing values, dtypes, and duplicates with intention, and keep your code clean and function-based. Master these foundations and the rest of the ML pipeline becomes far smoother. Practice on a real dataset next."
+    }
+  ]
+}

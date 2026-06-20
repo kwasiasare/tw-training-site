@@ -1,0 +1,191 @@
+{
+  "slug": "mle-m3-l01-pytorch-fundamentals-tensors-and-autograd",
+  "title": "PyTorch Fundamentals: Tensors and Autograd",
+  "month": 3,
+  "monthTitle": "Deep Learning with PyTorch",
+  "lesson": 1,
+  "video": "mle-m3-l01-pytorch-fundamentals-tensors-and-autograd.mp4",
+  "summary": "Learn PyTorch's core building blocks: tensors and automatic differentiation. You'll create and manipulate tensors, understand the autograd engine, and implement gradient descent from scratch to fit a simple model.",
+  "objectives": [
+    "Create, reshape, and perform operations on PyTorch tensors",
+    "Move tensors between CPU and GPU and convert to/from NumPy",
+    "Explain how autograd builds a computation graph and computes gradients",
+    "Use requires_grad, .backward(), and .grad to obtain gradients",
+    "Implement gradient descent manually to fit a linear model",
+    "Apply torch.no_grad() and zero_grad practices to write correct training loops"
+  ],
+  "quiz": [
+    {
+      "q": "What does setting requires_grad=True on a tensor do?",
+      "options": [
+        "Moves the tensor to the GPU",
+        "Tells PyTorch to track operations so gradients can be computed",
+        "Converts the tensor to a NumPy array",
+        "Makes the tensor immutable"
+      ],
+      "answer": 1,
+      "why": "requires_grad=True signals autograd to record operations on the tensor into the computation graph so .backward() can compute gradients."
+    },
+    {
+      "q": "Why must you call zero_grad (or .grad.zero_()) each training iteration?",
+      "options": [
+        "To reset the model weights",
+        "Because gradients accumulate across backward calls",
+        "To move data to the GPU",
+        "To convert gradients to floats"
+      ],
+      "answer": 1,
+      "why": "PyTorch accumulates gradients into .grad on each backward call, so they must be cleared between steps or they pile up and corrupt updates."
+    },
+    {
+      "q": "Why are parameter updates wrapped in torch.no_grad()?",
+      "options": [
+        "To speed up the forward pass",
+        "To prevent the update operations from being tracked in the computation graph",
+        "To enable GPU acceleration",
+        "To compute second derivatives"
+      ],
+      "answer": 1,
+      "why": "Updates change parameter values; without no_grad these in-place operations would be recorded by autograd, corrupting the graph."
+    },
+    {
+      "q": "What is required for .backward() to work without extra arguments?",
+      "options": [
+        "The tensor must be on the GPU",
+        "The output must be a scalar",
+        "The tensor must be an integer type",
+        "requires_grad must be False"
+      ],
+      "answer": 1,
+      "why": "backward() computes gradients of a scalar with respect to inputs; for non-scalar outputs you must pass a gradient tensor."
+    },
+    {
+      "q": "In one sentence, what does loss.backward() do in a training loop?",
+      "answer": "It computes the gradients of the loss with respect to all tensors with requires_grad=True and stores them in their .grad attributes.",
+      "why": "backward() traverses the computation graph in reverse applying the chain rule, populating each parameter's .grad."
+    },
+    {
+      "q": "What attribute tells you which device (CPU or GPU) a tensor lives on?",
+      "answer": ".device",
+      "why": "Every tensor exposes a .device attribute; operations require tensors on the same device."
+    }
+  ],
+  "resources": [
+    {
+      "label": "PyTorch Official Tutorial: Tensors",
+      "url": "https://pytorch.org/tutorials/beginner/basics/tensorqs_tutorial.html"
+    },
+    {
+      "label": "PyTorch Autograd Mechanics",
+      "url": "https://pytorch.org/docs/stable/notes/autograd.html"
+    },
+    {
+      "label": "Deep Learning with PyTorch: A 60 Minute Blitz",
+      "url": "https://pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html"
+    }
+  ],
+  "body_markdown": "## Why Tensors and Autograd Matter\n\nEvery deep learning model in PyTorch is built on two foundations: **tensors** (the data structure that holds numbers) and **autograd** (the engine that computes gradients automatically). Master these and the rest of PyTorch becomes far easier.\n\n## Tensors: The Core Data Structure\n\nA tensor is an n-dimensional array, similar to a NumPy array but with two superpowers: it can live on a GPU and it can track gradients.\n\n```python\nimport torch\n\n# Creating tensors\na = torch.tensor([1.0, 2.0, 3.0])      # from data\nz = torch.zeros(2, 3)                   # 2x3 of zeros\nr = torch.randn(2, 3)                   # random normal\n\nprint(a.shape, a.dtype, a.device)\n```\n\n### Common Operations\n\n```python\nx = torch.randn(2, 3)\nx.sum(), x.mean()            # reductions\nx.reshape(3, 2)              # change shape\nx.T                          # transpose\nx @ x.T                      # matrix multiply\nx + 1                        # broadcasting\n```\n\nBroadcasting lets tensors of different shapes combine by automatically expanding dimensions, just like NumPy.\n\n### GPU and NumPy Interop\n\n```python\nif torch.cuda.is_available():\n    x = x.to('cuda')         # move to GPU\n\nimport numpy as np\nn = x.cpu().numpy()          # tensor -> numpy\nt = torch.from_numpy(n)      # numpy -> tensor (shares memory)\n```\n\n## Autograd: Automatic Differentiation\n\nWhen you set `requires_grad=True`, PyTorch records every operation into a **dynamic computation graph**. Calling `.backward()` on a scalar walks this graph backward applying the chain rule, storing gradients in each tensor's `.grad` attribute.\n\n```python\nx = torch.tensor(2.0, requires_grad=True)\ny = x ** 2 + 3 * x          # y = x^2 + 3x\ny.backward()                # compute dy/dx\nprint(x.grad)               # 2x + 3 = 7.0\n```\n\nKey points:\n- `.backward()` requires a scalar output (or you must pass a gradient argument).\n- Gradients **accumulate** in `.grad`, so you must zero them between steps.\n- Wrap inference or parameter updates in `torch.no_grad()` to avoid tracking.\n\n## Implementing Gradient Descent from Scratch\n\nLet's fit `y = w*x + b` to data using nothing but tensors and autograd.\n\n```python\nimport torch\n\n# Synthetic data: true relationship y = 2x + 1\nX = torch.linspace(0, 1, 100).reshape(-1, 1)\ny = 2 * X + 1 + 0.1 * torch.randn_like(X)\n\n# Parameters to learn\nw = torch.randn(1, requires_grad=True)\nb = torch.randn(1, requires_grad=True)\nlr = 0.1\n\nfor epoch in range(200):\n    y_pred = X * w + b                  # forward pass\n    loss = ((y_pred - y) ** 2).mean()   # MSE loss\n\n    loss.backward()                     # compute gradients\n\n    with torch.no_grad():               # update without tracking\n        w -= lr * w.grad\n        b -= lr * b.grad\n        w.grad.zero_()                  # reset gradients\n        b.grad.zero_()\n\nprint(w.item(), b.item())               # ~2.0 and ~1.0\n```\n\n### The Anatomy of a Training Loop\n1. **Forward pass** — compute predictions.\n2. **Loss** — measure error with a scalar.\n3. **Backward pass** — `loss.backward()` fills `.grad`.\n4. **Update** — adjust parameters in the negative gradient direction.\n5. **Zero gradients** — clear `.grad` for the next iteration.\n\nThis exact pattern, with `torch.optim` and `nn.Module` layered on top, powers every PyTorch model you'll build later.\n\n## Common Pitfalls\n- Forgetting `zero_grad()` causes gradients to pile up and training to diverge.\n- Updating parameters outside `torch.no_grad()` adds the update to the graph.\n- Calling `.backward()` on a non-scalar without a gradient argument raises an error.\n- Mixing tensors on different devices (CPU vs GPU) throws errors.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "PyTorch Fundamentals: Tensors and Autograd",
+      "sub": "Implementing gradient descent from the ground up",
+      "narration": "Welcome. In this lesson we'll cover the two pillars of PyTorch: tensors and autograd. By the end you'll implement gradient descent from scratch, which is the engine behind every deep learning model you'll ever train."
+    },
+    {
+      "type": "content",
+      "title": "What Is a Tensor?",
+      "bullets": [
+        "An n-dimensional array, like a NumPy array",
+        "Can run on GPU for fast computation",
+        "Can track gradients for learning",
+        "Has shape, dtype, and device attributes"
+      ],
+      "code": "a = torch.tensor([1.0, 2.0, 3.0])\nprint(a.shape, a.dtype, a.device)",
+      "narration": "A tensor is PyTorch's core data structure. Think of it as a NumPy array with two extra abilities: it can live on a GPU, and it can remember the operations applied to it so gradients can be computed. Every tensor has a shape, a data type, and a device telling you where it lives."
+    },
+    {
+      "type": "content",
+      "title": "Tensor Operations",
+      "bullets": [
+        "Reductions: sum, mean, max",
+        "Reshape and transpose change layout",
+        "Matrix multiply with @",
+        "Broadcasting combines different shapes"
+      ],
+      "code": "x = torch.randn(2, 3)\nx.reshape(3, 2)\nx @ x.T\nx + 1   # broadcasting",
+      "narration": "PyTorch supports the full range of array operations: reductions like sum and mean, reshaping, transposing, and matrix multiplication with the at symbol. Broadcasting automatically expands mismatched shapes, so adding a scalar to a matrix just works, exactly like NumPy."
+    },
+    {
+      "type": "content",
+      "title": "GPU and NumPy Interop",
+      "bullets": [
+        "Move tensors with .to('cuda')",
+        "Convert to NumPy with .numpy()",
+        "Create from NumPy with from_numpy()",
+        "from_numpy shares memory; be careful"
+      ],
+      "code": "x = x.to('cuda')          # if available\nn = x.cpu().numpy()       # to numpy\nt = torch.from_numpy(n)   # from numpy",
+      "narration": "You can move tensors to the GPU with the to method and bring them back to the CPU before converting to NumPy. Note that from_numpy shares the underlying memory, so changing one changes the other. Operations need tensors on the same device, or you'll get an error."
+    },
+    {
+      "type": "content",
+      "title": "Autograd: Automatic Gradients",
+      "bullets": [
+        "Set requires_grad=True to track ops",
+        "PyTorch builds a dynamic graph",
+        "Call .backward() to compute gradients",
+        "Gradients stored in .grad attribute"
+      ],
+      "code": "x = torch.tensor(2.0, requires_grad=True)\ny = x**2 + 3*x\ny.backward()\nprint(x.grad)   # 2x+3 = 7.0",
+      "narration": "Autograd is PyTorch's automatic differentiation engine. When you mark a tensor with requires_grad, PyTorch records every operation into a computation graph. Calling backward walks that graph in reverse using the chain rule, depositing the derivative into each tensor's grad attribute. Here the derivative of x squared plus three x at x equals two is seven."
+    },
+    {
+      "type": "content",
+      "title": "Gradient Accumulation and no_grad",
+      "bullets": [
+        "Gradients accumulate across backward calls",
+        "Always zero_grad before next step",
+        "Use torch.no_grad() for updates/inference",
+        "backward() needs a scalar output"
+      ],
+      "code": "with torch.no_grad():\n    w -= lr * w.grad\nw.grad.zero_()",
+      "narration": "Two crucial rules. First, gradients accumulate, so you must zero them between optimization steps or they pile up. Second, when updating parameters or running inference, wrap the code in torch dot no_grad so those operations aren't added to the graph. Also remember backward needs a scalar loss."
+    },
+    {
+      "type": "content",
+      "title": "Gradient Descent from Scratch",
+      "bullets": [
+        "Forward: compute predictions",
+        "Loss: scalar measure of error",
+        "Backward: fill .grad with gradients",
+        "Update params, then zero gradients"
+      ],
+      "code": "y_pred = X * w + b\nloss = ((y_pred - y)**2).mean()\nloss.backward()\nwith torch.no_grad():\n    w -= lr*w.grad; b -= lr*b.grad\n    w.grad.zero_(); b.grad.zero_()",
+      "narration": "Now we put it together to fit a line. Each iteration: do a forward pass to predict, compute the mean squared error loss, call backward to get gradients, then update the weights in the negative gradient direction inside no_grad, and finally zero the gradients. Repeat this loop and the parameters converge to the true values."
+    },
+    {
+      "type": "content",
+      "title": "The Training Loop Pattern",
+      "bullets": [
+        "1. Forward pass",
+        "2. Compute loss",
+        "3. loss.backward()",
+        "4. Update parameters",
+        "5. Zero gradients"
+      ],
+      "narration": "This five-step pattern, forward, loss, backward, update, zero, is the heartbeat of every PyTorch model. Later we'll replace manual updates with torch.optim and manual parameters with nn.Module, but the underlying cycle never changes. Master it now and the rest of deep learning falls into place."
+    },
+    {
+      "type": "content",
+      "title": "Common Pitfalls",
+      "bullets": [
+        "Forgetting zero_grad → diverging training",
+        "Updating params outside no_grad",
+        "Calling backward on non-scalar",
+        "Mixing CPU and GPU tensors"
+      ],
+      "narration": "Watch out for these common mistakes: forgetting to zero gradients causes them to accumulate and training to blow up; updating parameters outside no_grad pollutes the graph; calling backward on a non-scalar without a gradient argument errors out; and mixing tensors across devices raises errors. Knowing these saves hours of debugging."
+    }
+  ]
+}

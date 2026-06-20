@@ -1,0 +1,204 @@
+{
+  "slug": "age-m3-l03-orchestration-patterns-supervisor-hierarchical-a",
+  "title": "Orchestration Patterns: Supervisor, Hierarchical, and Parallel Agents",
+  "month": 3,
+  "monthTitle": "Multi-Agent Orchestration with LangGraph",
+  "lesson": 3,
+  "video": "age-m3-l03-orchestration-patterns-supervisor-hierarchical-a.mp4",
+  "summary": "Learn to implement the three foundational multi-agent coordination topologies in LangGraph—supervisor routing, hierarchical teams, and parallel fan-out/fan-in—so you can route tasks intelligently, compose nested agent teams, and run independent work concurrently while safely merging results.",
+  "objectives": [
+    "Distinguish the supervisor, hierarchical, and parallel orchestration patterns and when each is appropriate",
+    "Implement a supervisor agent in LangGraph that routes tasks to specialized workers using conditional edges",
+    "Compose nested teams into a hierarchical graph using subgraphs and shared state",
+    "Run agents concurrently with fan-out edges and merge their outputs safely using reducer-based state",
+    "Apply state-management and error-handling practices that keep multi-agent systems production-ready"
+  ],
+  "quiz": [
+    {
+      "q": "In the supervisor pattern, what determines which worker node runs next?",
+      "options": [
+        "A fixed sequential edge order",
+        "The supervisor's routing decision via conditional edges",
+        "Random selection by the runtime",
+        "Whichever worker has the lowest latency"
+      ],
+      "answer": 1,
+      "why": "The supervisor node returns a routing decision (e.g., the 'next' field), and add_conditional_edges maps that value to the target node, enabling dynamic LLM-driven routing."
+    },
+    {
+      "q": "Why must channels written by parallel branches use a reducer like operator.add?",
+      "options": [
+        "To make the graph compile faster",
+        "To avoid conflicting concurrent writes to the same state key",
+        "To enable checkpointing",
+        "To bypass the recursion limit"
+      ],
+      "answer": 1,
+      "why": "When multiple nodes run in the same superstep and write the same key, LangGraph needs a reducer to merge the updates; without one it raises a conflict error."
+    },
+    {
+      "q": "How is a hierarchical orchestration implemented in LangGraph?",
+      "options": [
+        "By increasing the recursion_limit",
+        "By using a compiled team graph as a node (subgraph) inside a parent graph",
+        "By disabling reducers",
+        "By calling the LLM with more tokens"
+      ],
+      "answer": 1,
+      "why": "A compiled graph can be added as a node in another graph, so each team becomes a subgraph governed by a top-level supervisor."
+    },
+    {
+      "q": "What is the purpose of the Send API?",
+      "options": [
+        "To checkpoint state to disk",
+        "To dynamically spawn a variable number of parallel node invocations at runtime",
+        "To stop infinite supervisor loops",
+        "To convert messages into embeddings"
+      ],
+      "answer": 1,
+      "why": "Send lets a node return a list of invocations (each with its own payload) so LangGraph runs N copies of a worker concurrently—dynamic fan-out for map-style work."
+    },
+    {
+      "q": "In a fan-out/fan-in design, when does the aggregator node execute?",
+      "options": [
+        "As soon as the first branch completes",
+        "Only after all incoming branches complete",
+        "Before the branches run",
+        "Once per branch, repeatedly"
+      ],
+      "answer": 1,
+      "why": "The aggregator acts as a synchronization barrier: it runs a single time after every incoming parallel branch has finished."
+    },
+    {
+      "q": "Name one safeguard you should add to prevent a supervisor from looping forever.",
+      "answer": "Set a recursion_limit (or track a step counter to force FINISH).",
+      "why": "Supervisor loops can run indefinitely if the LLM never returns FINISH; a recursion limit or explicit step counter stops runaway execution."
+    }
+  ],
+  "resources": [
+    {
+      "label": "LangGraph Multi-Agent Concepts (official docs)",
+      "url": "https://langchain-ai.github.io/langgraph/concepts/multi_agent/"
+    },
+    {
+      "label": "LangGraph Tutorial: Hierarchical Agent Teams",
+      "url": "https://langchain-ai.github.io/langgraph/tutorials/multi_agent/hierarchical_agent_teams/"
+    },
+    {
+      "label": "LangGraph How-to: Map-Reduce with the Send API",
+      "url": "https://langchain-ai.github.io/langgraph/how-tos/map-reduce/"
+    },
+    {
+      "label": "LangGraph State, Reducers, and Channels Reference",
+      "url": "https://langchain-ai.github.io/langgraph/concepts/low_level/"
+    }
+  ],
+  "body_markdown": "## Why Orchestration Patterns Matter\n\nA single LLM agent works for simple tasks, but real workloads need multiple specialized agents that coordinate. LangGraph models this as a **stateful graph**: nodes are agents (or functions), edges define control flow, and a shared **state** object carries data between nodes. The way you wire nodes and edges *is* your orchestration pattern.\n\nThree patterns cover the vast majority of production designs:\n\n- **Supervisor** — one coordinator decides who acts next.\n- **Hierarchical** — supervisors of supervisors; teams nested inside teams.\n- **Parallel** — multiple agents run concurrently, then results are merged.\n\n## State Is the Backbone\n\nEvery LangGraph app defines a typed state. Channels can have **reducers** that control how updates merge—critical once agents run in parallel.\n\n```python\nfrom typing import Annotated, TypedDict\nimport operator\n\nclass AgentState(TypedDict):\n    messages: Annotated[list, operator.add]  # appends across nodes\n    next: str                                # supervisor routing decision\n    results: Annotated[list, operator.add]   # parallel workers append here\n```\n\nWithout a reducer, two parallel nodes writing the same key cause a conflict error. With `operator.add`, their lists are concatenated automatically.\n\n## Pattern 1: Supervisor\n\nA supervisor agent inspects the state and chooses the next worker, or decides the task is done. Workers report back to the supervisor, creating a hub-and-spoke loop.\n\n```python\nfrom langgraph.graph import StateGraph, START, END\n\ndef supervisor(state: AgentState):\n    # An LLM call returns one of: \"researcher\", \"coder\", or \"FINISH\"\n    decision = route_with_llm(state[\"messages\"])\n    return {\"next\": decision}\n\ndef researcher(state): ...\ndef coder(state): ...\n\ngraph = StateGraph(AgentState)\ngraph.add_node(\"supervisor\", supervisor)\ngraph.add_node(\"researcher\", researcher)\ngraph.add_node(\"coder\", coder)\n\ngraph.add_edge(START, \"supervisor\")\n# Conditional edge maps the routing decision to a node\ngraph.add_conditional_edges(\n    \"supervisor\",\n    lambda s: s[\"next\"],\n    {\"researcher\": \"researcher\", \"coder\": \"coder\", \"FINISH\": END},\n)\ngraph.add_edge(\"researcher\", \"supervisor\")\ngraph.add_edge(\"coder\", \"supervisor\")\napp = graph.compile()\n```\n\n**Use when** tasks need dynamic, LLM-driven routing and a clear point of accountability. Watch out for infinite loops—add a step counter or `recursion_limit`.\n\n## Pattern 2: Hierarchical\n\nWhen the number of workers grows, a single supervisor becomes a bottleneck and its prompt gets unwieldy. Split workers into **teams**, each with its own sub-supervisor, then add a **top-level supervisor** that routes between teams.\n\nIn LangGraph, a compiled graph can be used as a node inside another graph (a **subgraph**). The research team and the writing team are each their own supervisor graph; the top graph routes between them.\n\n```python\nresearch_team = build_research_graph().compile()\nwriting_team = build_writing_graph().compile()\n\ntop = StateGraph(AgentState)\ntop.add_node(\"research_team\", research_team)\ntop.add_node(\"writing_team\", writing_team)\ntop.add_node(\"top_supervisor\", top_supervisor)\n# top_supervisor routes between the two team subgraphs\n```\n\n**Use when** you have many specialists, distinct domains, or want to reuse a team across projects. Keep state schemas compatible across levels (or transform at the boundary).\n\n## Pattern 3: Parallel (Fan-Out / Fan-In)\n\nWhen subtasks are independent, run them concurrently to cut latency. From one node, add edges to several nodes; LangGraph executes them in the same **superstep**. A downstream **aggregator** node fans them back in.\n\n```python\ngraph.add_edge(\"dispatch\", \"search_web\")\ngraph.add_edge(\"dispatch\", \"search_docs\")\ngraph.add_edge(\"dispatch\", \"search_db\")\n# All three run concurrently, each appends to results (reducer required)\ngraph.add_edge(\"search_web\", \"aggregate\")\ngraph.add_edge(\"search_docs\", \"aggregate\")\ngraph.add_edge(\"search_db\", \"aggregate\")\n```\n\nThe `aggregate` node only runs once **all** its incoming branches complete (a synchronization barrier). Because the workers write to a reducer channel (`results` with `operator.add`), their outputs merge without conflict.\n\nFor dynamic fan-out (unknown number of branches at build time), use the **Send** API to spawn N parallel invocations of the same node.\n\n```python\nfrom langgraph.constants import Send\n\ndef dispatch(state):\n    return [Send(\"worker\", {\"task\": t}) for t in state[\"tasks\"]]\n```\n\n## Choosing and Combining Patterns\n\nThese patterns compose. A common production shape is a **hierarchical supervisor** whose teams internally **fan out** work in parallel. Start simple (single supervisor), measure latency and accuracy, then introduce hierarchy or parallelism only where it pays off.\n\n## Production Considerations\n\n- **Loop guards**: set `recursion_limit` and track step counts to prevent runaway supervisors.\n- **State reducers**: always use reducers for any channel written by parallel branches.\n- **Checkpointing**: attach a checkpointer for durability, retries, and human-in-the-loop pauses.\n- **Observability**: trace each node (e.g., LangSmith) to debug routing decisions.\n- **Cost/latency**: parallelism reduces wall-clock time but increases concurrent token spend—budget accordingly.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Orchestration Patterns in LangGraph",
+      "sub": "Supervisor, Hierarchical, and Parallel Agents",
+      "narration": "Welcome. In this lesson we'll build the three coordination topologies you'll reach for again and again when building multi-agent systems in LangGraph: the supervisor pattern, hierarchical teams, and parallel execution. By the end you'll know how to route tasks dynamically, nest agent teams, and run work concurrently while safely merging results."
+    },
+    {
+      "type": "content",
+      "title": "State: The Backbone of Every Pattern",
+      "bullets": [
+        "LangGraph apps are stateful graphs: nodes act, edges route, state carries data",
+        "Define a typed state with TypedDict",
+        "Channels can have reducers controlling how updates merge",
+        "Reducers are essential once agents run in parallel"
+      ],
+      "code": "class AgentState(TypedDict):\n    messages: Annotated[list, operator.add]\n    next: str\n    results: Annotated[list, operator.add]",
+      "narration": "Before any pattern, understand state. Every LangGraph application defines a typed state object that flows between nodes. Each channel can have a reducer—a function that merges incoming updates. The messages and results channels here use operator.add so updates append instead of overwrite. This becomes critical the moment two parallel nodes write to the same key; without a reducer you'll get a conflict error."
+    },
+    {
+      "type": "content",
+      "title": "Pattern 1: Supervisor",
+      "bullets": [
+        "One coordinator inspects state and picks the next worker",
+        "Workers report back, forming a hub-and-spoke loop",
+        "Implemented with add_conditional_edges",
+        "Best for dynamic, LLM-driven routing with clear accountability",
+        "Guard against infinite loops with a recursion limit"
+      ],
+      "code": "graph.add_conditional_edges(\n  \"supervisor\",\n  lambda s: s[\"next\"],\n  {\"researcher\": \"researcher\",\n   \"coder\": \"coder\", \"FINISH\": END})",
+      "narration": "The supervisor pattern centralizes decision-making. A supervisor node—usually an LLM call—reads the state and returns a routing decision: which worker should act, or FINISH. Conditional edges map that decision string to the corresponding node. Workers route back to the supervisor, creating a loop. This gives you flexible routing and a single point of accountability, but always add a recursion limit so a confused supervisor can't loop forever."
+    },
+    {
+      "type": "content",
+      "title": "Pattern 2: Hierarchical",
+      "bullets": [
+        "Single supervisor becomes a bottleneck as workers multiply",
+        "Group workers into teams, each with its own sub-supervisor",
+        "Add a top-level supervisor that routes between teams",
+        "A compiled graph can be a node in another graph (subgraph)",
+        "Keep state schemas compatible across levels"
+      ],
+      "code": "top.add_node(\"research_team\", research_team)\ntop.add_node(\"writing_team\", writing_team)\ntop.add_node(\"top_supervisor\", top_supervisor)",
+      "narration": "As your team of agents grows, one supervisor's prompt gets bloated and slow. The hierarchical pattern divides workers into specialized teams, each governed by its own sub-supervisor, with a top-level supervisor routing between them. In LangGraph this is elegant: a compiled graph is itself a node, so each team is a subgraph plugged into the parent. Just make sure state schemas line up at the boundaries, or transform them explicitly."
+    },
+    {
+      "type": "content",
+      "title": "Pattern 3: Parallel (Fan-Out / Fan-In)",
+      "bullets": [
+        "Independent subtasks run concurrently in one superstep",
+        "One node fans out to several; an aggregator fans in",
+        "Aggregator waits for all branches—a synchronization barrier",
+        "Parallel writers must target a reducer channel",
+        "Use Send API for dynamic, runtime-determined fan-out"
+      ],
+      "code": "graph.add_edge(\"dispatch\", \"search_web\")\ngraph.add_edge(\"dispatch\", \"search_docs\")\ngraph.add_edge(\"dispatch\", \"search_db\")",
+      "narration": "When subtasks don't depend on each other, run them in parallel to cut latency. Adding multiple edges out of one node makes those targets execute in the same superstep. A downstream aggregator node only fires once every incoming branch finishes—a built-in synchronization barrier. Because each worker appends to a reducer channel, their outputs merge cleanly. When you don't know how many branches you'll need until runtime, the Send API spawns N parallel copies of a node dynamically."
+    },
+    {
+      "type": "content",
+      "title": "Dynamic Fan-Out with Send",
+      "bullets": [
+        "Send dispatches a node invocation with a custom payload",
+        "Return a list of Send objects to spawn many in parallel",
+        "Great for map-style work over a variable list",
+        "Each invocation gets its own slice of input"
+      ],
+      "code": "from langgraph.constants import Send\n\ndef dispatch(state):\n    return [Send(\"worker\", {\"task\": t})\n            for t in state[\"tasks\"]]",
+      "narration": "The Send API is the key to dynamic parallelism. Instead of hard-wiring three branches at build time, your dispatch node returns a list of Send objects—one per task. Each Send targets the same worker node but with its own payload. LangGraph runs them all concurrently and merges results through your reducer. This is the classic map step of a map-reduce workflow inside a single graph."
+    },
+    {
+      "type": "content",
+      "title": "Choosing and Combining Patterns",
+      "bullets": [
+        "Supervisor: dynamic routing, single coordinator",
+        "Hierarchical: many specialists across distinct domains",
+        "Parallel: independent subtasks, latency-sensitive",
+        "Patterns compose—e.g., hierarchical teams that fan out internally",
+        "Start simple, then add complexity where it pays off"
+      ],
+      "narration": "These aren't competing choices—they compose. A very common production shape is a hierarchical supervisor whose teams internally fan out their work in parallel. My advice: start with a single supervisor, measure latency and accuracy, and only introduce hierarchy or parallelism where the data shows it helps. Premature complexity is the enemy of debuggable agent systems."
+    },
+    {
+      "type": "content",
+      "title": "Production Considerations",
+      "bullets": [
+        "Loop guards: set recursion_limit and track steps",
+        "Reducers: mandatory for any parallel-written channel",
+        "Checkpointing: durability, retries, human-in-the-loop",
+        "Observability: trace every node to debug routing",
+        "Cost: parallelism trades token spend for lower latency"
+      ],
+      "narration": "To ship these patterns, mind the production details. Always set a recursion limit to tame supervisor loops. Use reducers on every channel touched by parallel branches. Attach a checkpointer for durability and to enable human-in-the-loop pauses. Trace each node with something like LangSmith so you can see why the supervisor routed where it did. And remember parallelism cuts wall-clock time but increases concurrent token cost—budget accordingly."
+    },
+    {
+      "type": "content",
+      "title": "Summary & Next Steps",
+      "bullets": [
+        "State plus reducers underpins every topology",
+        "Supervisor centralizes routing decisions",
+        "Hierarchy scales via nested team subgraphs",
+        "Parallel fan-out/fan-in cuts latency safely",
+        "Combine patterns deliberately, instrument everything"
+      ],
+      "narration": "To wrap up: master the state model with reducers first, because it makes every pattern work. Use the supervisor for dynamic routing, hierarchy to scale across teams, and parallel fan-out to reduce latency. Combine them intentionally and instrument everything. Next, build a small supervisor graph, then refactor it into a hierarchical, partially-parallel system and compare the traces. That hands-on iteration is how these patterns become second nature."
+    }
+  ]
+}

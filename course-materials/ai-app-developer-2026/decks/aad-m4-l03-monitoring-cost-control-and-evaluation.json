@@ -1,0 +1,191 @@
+{
+  "slug": "aad-m4-l03-monitoring-cost-control-and-evaluation",
+  "title": "Monitoring, Cost Control, and Evaluation",
+  "month": 4,
+  "monthTitle": "Deployment and Capstone Project",
+  "lesson": 3,
+  "video": "aad-m4-l03-monitoring-cost-control-and-evaluation.mp4",
+  "summary": "Learn to keep a deployed LLM app reliable and affordable by adding structured logging, token-cost tracking, and automated evaluation tests. This lesson covers what to instrument, how to estimate and cap spend, and how to build a lightweight eval harness so quality doesn't silently regress.",
+  "objectives": [
+    "Instrument an LLM app with structured logging that captures prompts, responses, latency, and token usage",
+    "Calculate and track token costs per request, per user, and per feature to forecast and control spend",
+    "Apply cost-control techniques like caching, model routing, max-token limits, and budget alerts",
+    "Build an automated evaluation suite using golden datasets and LLM-as-judge to catch quality regressions",
+    "Define key monitoring metrics and set up alerts that flag reliability and cost problems in production"
+  ],
+  "quiz": [
+    {
+      "q": "Why is structured (JSON) logging preferred over plain-text logging for LLM apps?",
+      "options": [
+        "It uses less disk space",
+        "It can be queried and aggregated to compute metrics",
+        "It automatically redacts PII",
+        "It is required by all LLM providers"
+      ],
+      "answer": 1,
+      "why": "Structured logs let you filter, group, and aggregate fields like tokens, latency, and cost — essential for building dashboards and metrics. Plain text is hard to query reliably."
+    },
+    {
+      "q": "Which technique most directly prevents a single request from generating an unexpectedly huge (and expensive) response?",
+      "options": [
+        "Caching prompts",
+        "Setting max_tokens on the completion",
+        "Adding a request_id",
+        "Using LLM-as-judge"
+      ],
+      "answer": 1,
+      "why": "max_tokens caps the length of the generated output, directly bounding the most variable and often costliest part of a call."
+    },
+    {
+      "q": "What is the main purpose of a golden dataset in an evaluation harness?",
+      "options": [
+        "To store production logs for billing",
+        "To provide curated inputs with expected outputs/criteria for repeatable scoring",
+        "To cache responses for cost savings",
+        "To redact sensitive data before logging"
+      ],
+      "answer": 1,
+      "why": "A golden dataset is a curated, representative set of inputs with acceptance criteria, used to score the app consistently and catch regressions over time."
+    },
+    {
+      "q": "Which is a valid concern when using LLM-as-judge for evaluation?",
+      "options": [
+        "It cannot score text outputs",
+        "It always costs more than human review",
+        "It may be biased and should be validated against human labels",
+        "It only works with deterministic outputs"
+      ],
+      "answer": 2,
+      "why": "LLM judges can carry biases (e.g., favoring verbose answers), so you should validate their scores against human-labeled examples before relying on them."
+    },
+    {
+      "q": "Name two dimensions you should aggregate token cost by to find expensive features and forecast spend.",
+      "answer": "Per feature and per user (also per request and per day)",
+      "why": "Aggregating cost by feature reveals which parts of the app are expensive, while per-user (and per-day) aggregation supports forecasting, billing insight, and abuse detection."
+    },
+    {
+      "q": "Give one example of a deterministic scorer you could use in an eval suite.",
+      "answer": "Exact match, regex match, JSON-schema validity, or contains-keyword check",
+      "why": "Deterministic scorers give fast, reproducible pass/fail signals without needing another model, ideal for structured or constrained outputs."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Langfuse — open-source LLM observability and evals",
+      "url": "https://langfuse.com/docs"
+    },
+    {
+      "label": "OpenAI Evals framework",
+      "url": "https://github.com/openai/evals"
+    },
+    {
+      "label": "Helicone — LLM logging and cost monitoring",
+      "url": "https://docs.helicone.ai/"
+    },
+    {
+      "label": "OpenAI pricing and token usage docs",
+      "url": "https://platform.openai.com/docs/guides/production-best-practices"
+    }
+  ],
+  "body_markdown": "## Why Monitoring, Cost, and Evaluation Matter\n\nShipping an LLM app is the start, not the finish. Unlike traditional software, LLM apps fail *silently*: outputs can degrade in quality, costs can spike with usage, and a model or prompt change can break behavior without throwing an error. Three disciplines keep a deployed app healthy:\n\n- **Monitoring** — know what's happening right now (latency, errors, traffic, token use).\n- **Cost control** — keep spend predictable and bounded.\n- **Evaluation** — verify output quality stays acceptable over time.\n\n## Logging: What to Capture\n\nUse **structured logging** (JSON), not plain text, so you can query and aggregate later. For every LLM call, log:\n\n- A `request_id` (trace ID) to correlate multi-step flows\n- `timestamp`, `user_id` (or hashed), and `feature` name\n- `model`, `prompt_tokens`, `completion_tokens`, `total_tokens`\n- `latency_ms` and `status` (success/error/timeout)\n- The prompt and response (redact PII; consider truncation or sampling)\n\n```python\nimport json, time, logging\nlogger = logging.getLogger(\"llm\")\n\ndef log_call(request_id, model, usage, latency_ms, status):\n    logger.info(json.dumps({\n        \"request_id\": request_id,\n        \"model\": model,\n        \"prompt_tokens\": usage[\"prompt_tokens\"],\n        \"completion_tokens\": usage[\"completion_tokens\"],\n        \"latency_ms\": latency_ms,\n        \"status\": status,\n    }))\n```\n\n**Privacy note:** prompts and responses may contain sensitive data. Redact or hash PII, set retention limits, and follow your data policy.\n\n## Token-Cost Tracking\n\nProviders bill per token, usually at different rates for input vs. output. Compute cost per call from the usage object:\n\n```python\nPRICES = {  # USD per 1K tokens (example rates)\n    \"gpt-4o-mini\": {\"in\": 0.00015, \"out\": 0.0006},\n}\n\ndef cost(model, usage):\n    p = PRICES[model]\n    return (usage[\"prompt_tokens\"]/1000)*p[\"in\"] + \\\n           (usage[\"completion_tokens\"]/1000)*p[\"out\"]\n```\n\nAggregate cost **per request, per user, per feature, and per day**. This tells you which features are expensive and lets you forecast monthly spend. Tag every call so you can slice the data later.\n\n## Cost-Control Techniques\n\n- **Cap output** with `max_tokens` — runaway completions are a common cost leak.\n- **Cache** repeated or similar prompts (exact-match or semantic cache) to skip calls entirely.\n- **Model routing** — send easy requests to a cheap/small model, escalate only hard ones.\n- **Trim context** — don't stuff the whole history; retrieve and include only what's needed.\n- **Set budgets and alerts** — daily/monthly spend thresholds that page you before the bill does.\n- **Rate-limit per user** to prevent abuse and cost spikes.\n\n## Evaluation: Catching Quality Regressions\n\nManual spot-checks don't scale. Build a repeatable **eval harness**:\n\n1. **Golden dataset** — a curated set of representative inputs with expected outputs or acceptance criteria.\n2. **Scorers** — choose metrics that fit the task:\n   - Deterministic: exact match, regex, JSON-schema validity, contains-keyword.\n   - **LLM-as-judge**: a model scores correctness, relevance, or tone against a rubric (cheaper to scale, but validate the judge).\n   - Human review for a sampled subset.\n3. **Run on every change** — new prompt, new model, new retrieval config. Treat it like a test suite in CI.\n\n```python\ndef evaluate(cases, run_app):\n    passed = 0\n    for c in cases:\n        out = run_app(c[\"input\"])\n        if c[\"check\"](out):\n            passed += 1\n    return passed / len(cases)\n```\n\nTrack the **pass rate over time** and gate deployments on a minimum threshold.\n\n## Putting It Together in Production\n\n- Emit structured logs → ship to a dashboard (Grafana, Datadog, or a hosted LLM observability tool like Langfuse/Helicone).\n- Define **SLOs**: e.g., p95 latency < 3s, error rate < 1%, daily cost < $X.\n- Alert on threshold breaches and on **eval pass-rate drops**.\n- Review dashboards regularly; close the loop by feeding production failures back into your golden dataset.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Monitoring, Cost Control, and Evaluation",
+      "sub": "Keeping your deployed LLM app reliable and affordable",
+      "narration": "Welcome. Once your LLM app is live, the real work begins. In this lesson we'll cover three disciplines that keep a deployed app healthy: monitoring so you know what's happening, cost control so the bill stays predictable, and evaluation so quality doesn't silently degrade."
+    },
+    {
+      "type": "content",
+      "title": "Why LLM Apps Need Special Care",
+      "bullets": [
+        "LLM apps fail silently — no error, just worse output",
+        "Costs scale with usage and can spike unexpectedly",
+        "A prompt or model change can break behavior invisibly",
+        "Three pillars: monitoring, cost control, evaluation"
+      ],
+      "narration": "Unlike traditional software, LLM apps rarely crash when something goes wrong. Instead, output quality quietly degrades, costs creep up with traffic, and a small prompt tweak can change behavior with no exception thrown. That's why we lean on three pillars: monitoring tells us what's happening now, cost control keeps spend bounded, and evaluation verifies quality stays acceptable."
+    },
+    {
+      "type": "content",
+      "title": "Structured Logging",
+      "bullets": [
+        "Log JSON, not plain text, so you can query and aggregate",
+        "Capture request_id, model, tokens, latency, status",
+        "Include user and feature tags for slicing later",
+        "Redact PII and set retention limits"
+      ],
+      "code": "logger.info(json.dumps({\n  \"request_id\": rid, \"model\": model,\n  \"prompt_tokens\": u[\"prompt_tokens\"],\n  \"completion_tokens\": u[\"completion_tokens\"],\n  \"latency_ms\": ms, \"status\": status}))",
+      "narration": "Start with structured logging. Emit JSON for every LLM call so you can later query and aggregate. Capture a request ID to trace multi-step flows, the model used, prompt and completion token counts, latency, and status. Tag each call with a user and feature so you can slice the data. And because prompts can contain sensitive data, redact PII and set retention limits."
+    },
+    {
+      "type": "content",
+      "title": "Tracking Token Cost",
+      "bullets": [
+        "Providers bill per token, input and output at different rates",
+        "Compute cost from the usage object on every call",
+        "Aggregate per request, user, feature, and day",
+        "Use it to forecast monthly spend"
+      ],
+      "code": "def cost(model, usage):\n    p = PRICES[model]\n    return (usage['prompt_tokens']/1000)*p['in'] \\\n         + (usage['completion_tokens']/1000)*p['out']",
+      "narration": "Next, turn token usage into dollars. Providers charge per thousand tokens, usually with input cheaper than output. Compute the cost on every call from the usage object, then aggregate it per request, per user, per feature, and per day. This reveals which features are expensive and lets you forecast your monthly bill instead of being surprised by it."
+    },
+    {
+      "type": "content",
+      "title": "Cost-Control Techniques",
+      "bullets": [
+        "Cap output with max_tokens to stop runaway completions",
+        "Cache exact or semantically similar prompts",
+        "Route easy requests to a cheaper, smaller model",
+        "Trim context and rate-limit per user",
+        "Set budget alerts before the bill arrives"
+      ],
+      "narration": "Now control the spend. Always cap output with max_tokens, since runaway completions are a common leak. Cache repeated or similar prompts to skip calls entirely. Route easy requests to a small cheap model and only escalate hard ones. Trim the context you send, rate-limit per user to prevent abuse, and set budget alerts that page you before the invoice does."
+    },
+    {
+      "type": "content",
+      "title": "Evaluation: An Eval Harness",
+      "bullets": [
+        "Build a golden dataset of representative inputs",
+        "Use deterministic scorers and LLM-as-judge",
+        "Sample human review for nuanced cases",
+        "Run on every prompt, model, or retrieval change"
+      ],
+      "code": "def evaluate(cases, run_app):\n    passed = sum(c['check'](run_app(c['input']))\n                 for c in cases)\n    return passed / len(cases)",
+      "narration": "Manual spot-checks don't scale, so build an evaluation harness. Curate a golden dataset of representative inputs with acceptance criteria. Score with a mix: deterministic checks like exact match or JSON validity, an LLM-as-judge for things like relevance and tone, and sampled human review for nuance. Run this suite on every change — new prompt, new model, new retrieval config — just like a test suite."
+    },
+    {
+      "type": "content",
+      "title": "LLM-as-Judge: Use With Care",
+      "bullets": [
+        "Scale subjective scoring cheaply with a rubric",
+        "Define clear criteria — correctness, relevance, tone",
+        "Validate the judge against human labels",
+        "Watch for bias toward verbose or familiar answers"
+      ],
+      "narration": "LLM-as-judge lets you scale subjective scoring affordably. Give the judge a clear rubric and ask it to score against specific criteria. But validate it — compare its scores against a set of human labels before trusting it, and be aware judges can be biased toward longer or stylistically familiar answers. It's a powerful tool, not an oracle."
+    },
+    {
+      "type": "content",
+      "title": "Production: Close the Loop",
+      "bullets": [
+        "Ship logs to a dashboard (Grafana, Datadog, Langfuse)",
+        "Define SLOs: p95 latency, error rate, daily cost",
+        "Alert on breaches and on eval pass-rate drops",
+        "Feed production failures back into the golden set"
+      ],
+      "narration": "Finally, tie it together in production. Ship your structured logs to a dashboard or a hosted LLM observability tool. Define service-level objectives — for example p95 latency under three seconds, error rate under one percent, daily cost under a set ceiling. Alert when those break, and also when your eval pass rate drops. Crucially, close the loop: take real production failures and add them to your golden dataset so your evals keep getting smarter."
+    },
+    {
+      "type": "content",
+      "title": "Key Takeaways",
+      "bullets": [
+        "Log structured data for every call — tokens, latency, status",
+        "Convert tokens to cost and aggregate by dimension",
+        "Control spend with caps, caching, routing, and budgets",
+        "Automate evals and gate deploys on pass rate"
+      ],
+      "narration": "To recap: instrument every call with structured logging, convert token usage into cost and slice it by user and feature, control spend with output caps, caching, model routing, and budget alerts, and automate your evaluation so quality regressions are caught before users notice. Do these three things and your app stays reliable and affordable as it grows."
+    }
+  ]
+}

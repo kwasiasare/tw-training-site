@@ -1,0 +1,188 @@
+{
+  "slug": "mle-m2-l02-classification-algorithms-and-decision-boundarie",
+  "title": "Classification Algorithms and Decision Boundaries",
+  "month": 2,
+  "monthTitle": "Core Machine Learning Algorithms",
+  "lesson": 2,
+  "video": "mle-m2-l02-classification-algorithms-and-decision-boundarie.mp4",
+  "summary": "This lesson teaches you how to train and compare three foundational classifiers—logistic regression, decision trees, and support vector machines—on a real classification problem. You'll learn what a decision boundary is, how each algorithm carves up feature space, and how to interpret model outputs, evaluate performance, and choose the right tool for the job.",
+  "objectives": [
+    "Explain what a decision boundary is and how it differs across logistic regression, decision trees, and SVMs",
+    "Train logistic regression, decision tree, and SVM classifiers using scikit-learn",
+    "Interpret model coefficients, feature importances, and support vectors to understand predictions",
+    "Evaluate and compare classifiers using accuracy, precision, recall, F1, and confusion matrices",
+    "Diagnose underfitting vs. overfitting and tune key hyperparameters for each algorithm"
+  ],
+  "quiz": [
+    {
+      "q": "Which statement best describes the decision boundary of logistic regression?",
+      "options": [
+        "A set of axis-aligned rectangles",
+        "A straight hyperplane where w·x + b = 0",
+        "A smooth curve defined by support vectors",
+        "A random partition of feature space"
+      ],
+      "answer": 1,
+      "why": "Logistic regression is a linear classifier; its boundary is the hyperplane where the linear combination w·x + b equals zero."
+    },
+    {
+      "q": "Why is feature scaling important for SVMs and logistic regression but not strictly for decision trees?",
+      "options": [
+        "Trees train faster when unscaled",
+        "Distance- and magnitude-based methods are sensitive to feature scale, while tree splits compare values within a single feature",
+        "Scaling changes the class labels",
+        "SVMs ignore feature values entirely"
+      ],
+      "answer": 1,
+      "why": "SVMs (margins/distances) and logistic regression (coefficient magnitudes) are sensitive to differing feature scales, whereas a tree splits on one feature at a time so monotonic scaling doesn't change splits."
+    },
+    {
+      "q": "In a cancer-detection model, which metric is usually the highest priority and why?",
+      "options": [
+        "Precision, because false alarms are most costly",
+        "Recall, because missing a malignant case (false negative) is dangerous",
+        "Accuracy, because classes are balanced",
+        "Training speed, because data is small"
+      ],
+      "answer": 1,
+      "why": "Missing a malignant tumor (a false negative) can be life-threatening, so recall—catching as many true positives as possible—is typically prioritized."
+    },
+    {
+      "q": "Which hyperparameter most directly controls overfitting in a decision tree?",
+      "options": [
+        "gamma",
+        "kernel",
+        "max_depth",
+        "learning_rate"
+      ],
+      "answer": 2,
+      "why": "Limiting max_depth (along with min_samples_leaf) restricts how complex the tree can grow, reducing overfitting."
+    },
+    {
+      "q": "Short answer: What are the points called that lie closest to an SVM's decision boundary and define its margin?",
+      "answer": "support vectors",
+      "why": "The maximum-margin hyperplane is determined by the closest training points, which are called support vectors."
+    },
+    {
+      "q": "Short answer: Name the scikit-learn hyperparameter that controls regularization strength in both LogisticRegression and SVC (it is the inverse of regularization strength).",
+      "answer": "C",
+      "why": "In both LogisticRegression and SVC, C is the inverse regularization parameter—smaller C means stronger regularization."
+    }
+  ],
+  "resources": [
+    {
+      "label": "scikit-learn: Supervised Learning – Classification",
+      "url": "https://scikit-learn.org/stable/supervised_learning.html"
+    },
+    {
+      "label": "scikit-learn: Plot classifier decision boundaries (Classifier comparison)",
+      "url": "https://scikit-learn.org/stable/auto_examples/classification/plot_classifier_comparison.html"
+    },
+    {
+      "label": "scikit-learn: SVM kernels and parameters guide",
+      "url": "https://scikit-learn.org/stable/modules/svm.html"
+    },
+    {
+      "label": "Breast Cancer Wisconsin dataset documentation",
+      "url": "https://scikit-learn.org/stable/datasets/toy_dataset.html#breast-cancer-dataset"
+    }
+  ],
+  "body_markdown": "## Overview\n\nClassification is the task of assigning inputs to one of several discrete categories. In this lesson we solve a binary classification problem (predicting whether a tumor is malignant or benign using the Breast Cancer Wisconsin dataset) with three classic algorithms and compare how each separates the classes.\n\nThe central idea uniting them is the **decision boundary**: the surface in feature space where the model switches from predicting one class to another. Different algorithms produce different boundary shapes, which directly affects bias, variance, and interpretability.\n\n## The Three Algorithms\n\n### Logistic Regression\nDespite the name, logistic regression is a **linear classifier**. It models the probability of the positive class with the sigmoid of a linear combination of features:\n\n```\np(y=1 | x) = 1 / (1 + e^-(w·x + b))\n```\n\n- The decision boundary is a **straight line** (hyperplane in higher dimensions) where `w·x + b = 0`.\n- Coefficients `w` are interpretable: a positive weight pushes the prediction toward the positive class.\n- Regularization (`C` in scikit-learn, the inverse of regularization strength) controls overfitting.\n\n### Decision Trees\nA decision tree splits the data with a sequence of **axis-aligned** if/else rules, producing a boundary made of rectangular regions.\n\n- Highly interpretable—you can read the rules directly.\n- Handles non-linear relationships and mixed feature types without scaling.\n- Prone to **overfitting**; control with `max_depth`, `min_samples_leaf`, and pruning.\n- Feature importances tell you which features drive the splits.\n\n### Support Vector Machines (SVM)\nAn SVM finds the hyperplane that **maximizes the margin** between classes. The points closest to the boundary are the **support vectors**.\n\n- With a linear kernel the boundary is a line; with an **RBF kernel** it becomes smoothly curved.\n- Key hyperparameters: `C` (margin softness vs. misclassification) and `gamma` (RBF kernel reach).\n- Requires **feature scaling** to work well.\n\n## A Practical Workflow\n\n```python\nfrom sklearn.datasets import load_breast_cancer\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.tree import DecisionTreeClassifier\nfrom sklearn.svm import SVC\nfrom sklearn.metrics import classification_report, confusion_matrix\n\nX, y = load_breast_cancer(return_X_y=True)\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.2, stratify=y, random_state=42)\n\nscaler = StandardScaler().fit(X_train)\nX_train_s, X_test_s = scaler.transform(X_train), scaler.transform(X_test)\n\nmodels = {\n    'logreg': LogisticRegression(max_iter=5000, C=1.0),\n    'tree':   DecisionTreeClassifier(max_depth=4, random_state=42),\n    'svm':    SVC(kernel='rbf', C=1.0, gamma='scale'),\n}\n\nfor name, model in models.items():\n    # tree doesn't need scaling, but scaled input is harmless\n    model.fit(X_train_s, y_train)\n    preds = model.predict(X_test_s)\n    print(name)\n    print(confusion_matrix(y_test, preds))\n    print(classification_report(y_test, preds))\n```\n\n## Interpreting Results\n\n- **Confusion matrix**: rows are true labels, columns are predictions. In medical contexts, false negatives (missing a malignant tumor) are far costlier than false positives.\n- **Precision** = TP / (TP + FP): of predicted positives, how many were correct.\n- **Recall** = TP / (TP + FN): of actual positives, how many we caught. Often the priority in healthcare.\n- **F1** balances precision and recall.\n- Prefer **stratified** splits and cross-validation so class proportions stay consistent.\n\n## Choosing the Right Model\n\n| Need | Best fit |\n|------|----------|\n| Interpretable rules | Decision tree |\n| Probability estimates + linear signal | Logistic regression |\n| Complex non-linear boundary, medium data | SVM (RBF) |\n| Fast training on huge data | Logistic regression |\n\nAlways scale features for logistic regression and SVMs, tune hyperparameters with cross-validation, and judge models on the metric that matches your business cost.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Classification Algorithms and Decision Boundaries",
+      "sub": "Logistic Regression, Decision Trees, and SVMs",
+      "narration": "Welcome. In this lesson we'll train three classic classification algorithms—logistic regression, decision trees, and support vector machines—on a real medical dataset, and learn how each one draws its decision boundary. By the end you'll know how to train, interpret, and compare them."
+    },
+    {
+      "type": "content",
+      "title": "What Is a Decision Boundary?",
+      "bullets": [
+        "The surface where a model switches its predicted class",
+        "Linear models produce straight boundaries (hyperplanes)",
+        "Trees produce axis-aligned rectangular regions",
+        "SVMs with RBF kernels produce smooth curves",
+        "Boundary shape controls bias, variance, and interpretability"
+      ],
+      "narration": "A decision boundary is simply the dividing line in feature space where the model changes which class it predicts. Logistic regression draws a straight line. Decision trees carve the space into rectangular boxes with if-else rules. And kernel SVMs can bend the boundary into smooth curves. The shape of this boundary determines how flexible the model is and how easy it is to interpret."
+    },
+    {
+      "type": "content",
+      "title": "Logistic Regression",
+      "bullets": [
+        "A linear classifier despite the name",
+        "Outputs class probabilities via the sigmoid function",
+        "Boundary is where w·x + b = 0",
+        "Coefficients are directly interpretable",
+        "Tune C to control regularization"
+      ],
+      "code": "LogisticRegression(max_iter=5000, C=1.0)",
+      "narration": "Logistic regression models the probability of the positive class using the sigmoid of a linear combination of features. Its boundary is a straight hyperplane. A big advantage is interpretability: each coefficient tells you how a feature pushes the prediction. The C parameter controls regularization—smaller C means stronger regularization and a simpler model."
+    },
+    {
+      "type": "content",
+      "title": "Decision Trees",
+      "bullets": [
+        "A series of if/else splits on single features",
+        "Boundary is rectangular and axis-aligned",
+        "Very interpretable—read the rules directly",
+        "No feature scaling required",
+        "Limit max_depth to prevent overfitting"
+      ],
+      "code": "DecisionTreeClassifier(max_depth=4, random_state=42)",
+      "narration": "A decision tree repeatedly splits the data on one feature at a time, building rectangular regions. It's the most human-readable model—you can literally trace the path to a prediction. It handles non-linear patterns and doesn't need scaling. But trees overfit easily, so you control depth, minimum samples per leaf, or apply pruning."
+    },
+    {
+      "type": "content",
+      "title": "Support Vector Machines",
+      "bullets": [
+        "Finds the maximum-margin separating hyperplane",
+        "Support vectors are the closest points to the boundary",
+        "RBF kernel enables smooth non-linear boundaries",
+        "Key knobs: C (margin) and gamma (kernel reach)",
+        "Always scale your features first"
+      ],
+      "code": "SVC(kernel='rbf', C=1.0, gamma='scale')",
+      "narration": "An SVM seeks the boundary that maximizes the margin between classes. The points sitting on that margin are the support vectors. With the RBF kernel, the SVM can produce curved boundaries to capture complex patterns. Two key hyperparameters control it: C trades off margin width against misclassification, and gamma sets how far each point's influence reaches. Scaling is essential for SVMs."
+    },
+    {
+      "type": "content",
+      "title": "The Training Workflow",
+      "bullets": [
+        "Split data with stratification to preserve class ratios",
+        "Fit a StandardScaler on training data only",
+        "Train all three models on the same split",
+        "Predict on the held-out test set",
+        "Compare with a consistent metric"
+      ],
+      "code": "X_tr, X_te, y_tr, y_te = train_test_split(\n  X, y, stratify=y, random_state=42)\nscaler = StandardScaler().fit(X_tr)",
+      "narration": "Our workflow is the same for every model: do a stratified train-test split so class proportions match, fit the scaler only on training data to avoid leakage, then train each model on identical data. We predict on the unseen test set and compare results using a metric that fits the problem. Reusing the same split makes the comparison fair."
+    },
+    {
+      "type": "content",
+      "title": "Interpreting the Results",
+      "bullets": [
+        "Confusion matrix shows TP, FP, FN, TN",
+        "Precision = TP/(TP+FP); Recall = TP/(TP+FN)",
+        "F1 balances precision and recall",
+        "In medicine, false negatives are the costliest",
+        "Use cross-validation for reliable estimates"
+      ],
+      "code": "print(classification_report(y_test, preds))",
+      "narration": "Accuracy alone can mislead, especially with imbalanced classes. The confusion matrix breaks down exactly which errors occur. Precision asks how trustworthy positive predictions are; recall asks how many real positives we caught. For a cancer detector, recall matters most because a missed malignant tumor is dangerous. Always confirm with cross-validation rather than a single split."
+    },
+    {
+      "type": "content",
+      "title": "Choosing the Right Model",
+      "bullets": [
+        "Need readable rules? Decision tree",
+        "Need probabilities + linear signal? Logistic regression",
+        "Need complex curves on medium data? SVM with RBF",
+        "Need speed on huge data? Logistic regression",
+        "Match the eval metric to the business cost"
+      ],
+      "narration": "There's no single best classifier. Pick a decision tree when interpretability matters, logistic regression when you want calibrated probabilities and have a roughly linear signal, and an RBF SVM when the boundary is complex and your dataset is moderate in size. For massive data, logistic regression scales best. Above all, judge your models on the metric that reflects the real cost of errors."
+    }
+  ]
+}

@@ -75,6 +75,46 @@ export const COURSES: Course[] = [
     sample: 'ht4-l05-building-an-ai-triage-agent',
     accent: '#db2777',
   },
+  {
+    slug: 'data-scientist',
+    title: 'Data Scientist Career Accelerator: From Python to Production Insights',
+    tagline: 'Aspiring data scientists, analysts, or developers with basic computer literacy who want to transition into a data science role through hands-on, portfolio-building work.',
+    blurb: 'A project-based course that takes you from programming and statistics fundamentals to building, evaluating, and communicating machine learning models. You\'ll work with real datasets to build a portfolio of analyses, dashboards, and end-to-end ML projects that prove you\'re ready for a data scientist role.',
+    sample: 'dsc-m1-l01-python-essentials-for-data-work',
+    accent: '#7c3aed',
+  },
+  {
+    slug: 'ai-app-developer-2026',
+    title: 'AI Application Developer: Build and Ship LLM-Powered Apps',
+    tagline: 'Aspiring AI Application Developers with basic programming exposure who want to build and deploy real LLM-powered applications and land a job in the field.',
+    blurb: 'A hands-on, project-based course that takes you from Python foundations to deploying production-ready AI applications using LLMs, RAG pipelines, autonomous agents, and vector databases. You\'ll build a portfolio of real apps culminating in a deployed capstone project.',
+    sample: 'aad-m1-l01-python-essentials-for-ai-developers',
+    accent: '#7c3aed',
+  },
+  {
+    slug: 'ai-product-manager',
+    title: 'AI Product Management: From Fundamentals to Shipping AI Products',
+    tagline: 'Aspiring and transitioning product managers, technical PMs, founders, and analysts who want to lead AI/LLM products and need practical, portfolio-building experience to land an AI Product Manager role.',
+    blurb: 'A hands-on, project-based course that prepares you to lead AI and LLM-powered products end to end. You\'ll build AI literacy, master LLM capabilities and limits, craft product strategy and roadmaps, design evaluation frameworks and prompts, manage cross-functional stakeholders, and define metrics that prove impact. By the end, you\'ll have a portfolio-ready AI product spec, roadmap, eval suite, and launch plan.',
+    sample: 'apm-m1-l01-how-modern-ai-works-a-no-math-mental-model-for-p',
+    accent: '#7c3aed',
+  },
+  {
+    slug: 'ml-engineer',
+    title: 'Machine Learning Engineer Bootcamp: From Fundamentals to Production',
+    tagline: 'Aspiring Machine Learning Engineers with basic programming exposure who want to bridge résumé gaps and become job-ready for ML engineering roles.',
+    blurb: 'A project-based course that builds the practical skills needed to land a Machine Learning Engineer role, covering Python, math foundations, ML algorithms, PyTorch, feature engineering, model training and evaluation, and production-ready data pipelines. Learners build a portfolio of hands-on projects culminating in an end-to-end ML system.',
+    sample: 'mle-m1-l01-python-for-ml-numpy-pandas-and-clean-code',
+    accent: '#7c3aed',
+  },
+  {
+    slug: 'agentic-ai-engineer',
+    title: 'Agentic AI Engineer: Building Production-Ready LLM Agents',
+    tagline: 'Python developers and ML practitioners who want to transition into building, orchestrating, and deploying autonomous LLM-powered agents in production.',
+    blurb: 'A hands-on, project-based course that takes you from Python-driven LLM API calls to deploying sophisticated multi-agent systems with planning, memory, RAG, and orchestration using LangGraph. You\'ll build a portfolio of working agents culminating in a deployed capstone application.',
+    sample: 'age-m1-l01-calling-llm-apis-in-python-completions-chat-and-',
+    accent: '#7c3aed',
+  },
 ];
 
 export function getCourse(slug: string): Course | undefined {

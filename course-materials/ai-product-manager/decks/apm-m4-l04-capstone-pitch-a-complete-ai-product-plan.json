@@ -1,0 +1,198 @@
+{
+  "slug": "apm-m4-l04-capstone-pitch-a-complete-ai-product-plan",
+  "title": "Capstone: Pitch a Complete AI Product Plan",
+  "month": 4,
+  "monthTitle": "Stakeholders, Metrics, and Launch Capstone",
+  "lesson": 4,
+  "video": "apm-m4-l04-capstone-pitch-a-complete-ai-product-plan.mp4",
+  "summary": "This capstone lesson guides aspiring AI Product Managers to synthesize everything learned across the course—strategy, roadmap, PRD, evaluation plans, and success metrics—into a single portfolio-ready AI product proposal. Learners then deliver it as a mock leadership pitch, practicing the storytelling, prioritization, and risk-framing skills that distinguish strong AI PMs.",
+  "objectives": [
+    "Synthesize strategy, roadmap, PRD, eval plans, and metrics into a single coherent AI product proposal",
+    "Structure a compelling executive pitch narrative that ties user problem to business value",
+    "Define both product success metrics and AI-specific quality/eval metrics with clear targets",
+    "Articulate AI-specific risks (data, model, safety, cost) and concrete mitigations",
+    "Anticipate and answer tough leadership questions about ROI, feasibility, and trade-offs",
+    "Self-assess the proposal against a portfolio-ready rubric"
+  ],
+  "quiz": [
+    {
+      "q": "Why should an AI product pitch translate '95% precision' into business terms like hours saved?",
+      "options": [
+        "Because precision is not a real metric",
+        "Executives fund outcomes, not raw benchmark numbers",
+        "It makes the model more accurate",
+        "Business terms are always more impressive"
+      ],
+      "answer": 1,
+      "why": "Leadership cares about business impact. Translating model metrics into dollars or hours makes the value concrete and fundable, whereas a raw benchmark figure is hard to act on."
+    },
+    {
+      "q": "Which pair correctly separates product metrics from model metrics?",
+      "options": [
+        "Adoption & retention vs. hallucination rate & latency",
+        "Precision vs. recall",
+        "Cost per query vs. inference cost",
+        "Roadmap phases vs. PRD sections"
+      ],
+      "answer": 0,
+      "why": "Product metrics (adoption, retention, task success) measure user/business outcomes; model metrics (hallucination rate, latency, precision) measure system quality. Keeping them separate clarifies what success means."
+    },
+    {
+      "q": "When should acceptance thresholds for model quality be defined?",
+      "options": [
+        "After launch, based on user complaints",
+        "Before launch, as part of the eval plan",
+        "Only if the model underperforms",
+        "Never — AI is probabilistic"
+      ],
+      "answer": 1,
+      "why": "Defining acceptance thresholds before launch prevents moving the goalposts and creates an objective go/no-go gate, which de-risks the bet."
+    },
+    {
+      "q": "What makes a roadmap phase strong in an AI product plan?",
+      "options": [
+        "It lists as many features as possible",
+        "It is tied to a learning milestone, not just features",
+        "It avoids mentioning risks",
+        "It hides the cost model"
+      ],
+      "answer": 1,
+      "why": "Crawl-walk-run phases should be organized around what you need to learn or validate, so each phase reduces uncertainty before scaling investment."
+    },
+    {
+      "q": "Name one AI-specific risk an executive will likely ask about, and a mitigation you would pair with it.",
+      "answer": "Example: Cost overruns from inference at scale — mitigation: model a cost-per-query budget, cache results, and set a usage-based guardrail with an owner. (Other valid risks: model drift with monitoring/retraining; bias/safety with eval audits; data quality with validation pipelines.)",
+      "why": "AI introduces risks beyond traditional products. Pairing each named risk with a concrete mitigation and an owner shows leadership the bet is managed, not hopeful."
+    },
+    {
+      "q": "In the pitch narrative arc, what should come immediately after the 'Hook'?",
+      "options": [
+        "The detailed cost model",
+        "The Insight — why it's solvable now with AI",
+        "The full PRD",
+        "The team org chart"
+      ],
+      "answer": 1,
+      "why": "After hooking with the problem, the Insight explains why this is newly solvable with AI, setting up the credibility for your solution before proof and the ask."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Lenny's Newsletter — How to write a compelling product strategy & pitch",
+      "url": "https://www.lennysnewsletter.com/"
+    },
+    {
+      "label": "Google PAIR — People + AI Guidebook (metrics, evals, UX patterns)",
+      "url": "https://pair.withgoogle.com/guidebook/"
+    },
+    {
+      "label": "OpenAI — Evals best practices for LLM products",
+      "url": "https://platform.openai.com/docs/guides/evals"
+    },
+    {
+      "label": "Amazon Working Backwards / PR-FAQ template",
+      "url": "https://www.workingbackwards.com/"
+    }
+  ],
+  "body_markdown": "## Capstone Overview\n\nThis is where it all comes together. Across this course you learned to identify AI opportunities, write PRDs, design evaluation plans, choose metrics, and manage stakeholders. The capstone asks you to **package all of that into one cohesive proposal and pitch it** as if you were seeking executive funding and headcount.\n\nThe deliverable is two things: (1) a written **AI Product Plan** (your portfolio artifact) and (2) a **10-minute mock leadership pitch** with Q&A.\n\n## The AI Product Plan: Required Sections\n\nA strong plan reads as a tight story, not a data dump. Include:\n\n1. **Problem & Opportunity** — Who is the user, what painful job are they doing, and how big is the prize? Quantify with TAM/usage data where possible.\n2. **Why AI, Why Now** — Justify that AI is the right tool (vs. rules/heuristics). Name the capability unlock (e.g., unstructured text understanding) and the enabling shift (cheaper inference, better models).\n3. **Solution & Strategy** — Your product concept, the wedge, and the moat. One crisp sentence of positioning.\n4. **Roadmap** — Phased plan: crawl (validate), walk (scale), run (differentiate). Tie phases to learning milestones, not just features.\n5. **PRD Highlights** — Core user stories, the happy path, and the human-in-the-loop design. Include what is explicitly out of scope.\n6. **Evaluation Plan** — How you measure model quality offline (golden datasets, rubrics, LLM-as-judge) and online (A/B, shadow mode). Define acceptance thresholds before launch.\n7. **Metrics & Targets** — Separate **product metrics** (adoption, retention, task success, time saved) from **model metrics** (accuracy, precision/recall, hallucination rate, latency, cost per query). Always name a North Star and guardrail metrics.\n8. **Risks & Mitigations** — Data quality, model drift, safety/bias, cost overruns, regulatory exposure. Pair each risk with a mitigation and an owner.\n9. **Ask** — The decision you want: budget, headcount, timeline, and the go/no-go gate.\n\n## Crafting the Pitch Narrative\n\nLeadership pitches reward clarity over completeness. Use a simple arc:\n\n- **Hook** (problem framed as money or pain) →\n- **Insight** (why this is solvable now with AI) →\n- **Solution** (your product) →\n- **Proof** (eval results, prototype, or comparable benchmarks) →\n- **Plan & Ask** (roadmap, metrics, what you need).\n\nLead with the conclusion. Executives are busy—state the ask early, then support it. Use one chart per idea. Pre-empt objections by addressing the biggest risk yourself.\n\n## AI-Specific Pitch Tips\n\n- **Be honest about uncertainty.** AI outcomes are probabilistic. Show how your eval plan de-risks the bet rather than pretending the model is perfect.\n- **Frame metrics in business terms.** \"95% precision\" means little; \"fewer than 1 wrong escalation per 100, saving 200 agent-hours/month\" lands.\n- **Show the cost model.** Inference cost per query × volume is a real P&L line. Executives will ask.\n- **Define the guardrail.** What's the safety/quality floor below which you would not ship?\n\n## Anticipating Tough Questions\n\nPrepare answers for: *What if the model isn't accurate enough? How much does this cost at scale? What's the build vs. buy decision? How do we measure success in 90 days? What's the biggest reason this fails?* Strong PMs rehearse these.\n\n## Self-Assessment Rubric\n\nScore your plan 1-5 on: problem clarity, AI justification, eval rigor, metric quality (leading + guardrail), risk realism, and pitch storytelling. Anything scoring ≤3 is your revision priority before adding it to your portfolio.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Capstone: Pitch a Complete AI Product Plan",
+      "sub": "Synthesize strategy, roadmap, PRD, evals & metrics into a leadership pitch",
+      "narration": "Welcome to the capstone. This is the moment where everything you've learned in this course converges. Your task is to take strategy, roadmap, PRD, evaluation plans, and metrics, and weave them into one coherent AI product proposal that you'll pitch to mock leadership. By the end you'll have a portfolio-ready artifact and a rehearsed presentation."
+    },
+    {
+      "type": "content",
+      "title": "What You'll Deliver",
+      "bullets": [
+        "A written AI Product Plan — your portfolio artifact",
+        "A 10-minute mock leadership pitch with Q&A",
+        "Clear ask: budget, headcount, timeline, go/no-go gate",
+        "Evidence the bet is de-risked, not certain"
+      ],
+      "narration": "You have two deliverables. First, a written AI Product Plan that lives in your portfolio and proves you can think end to end. Second, a ten-minute pitch with question and answer, simulating a real funding conversation. The plan should culminate in a clear ask, and throughout you should demonstrate that you've de-risked the bet rather than promising perfection."
+    },
+    {
+      "type": "content",
+      "title": "The Plan's Backbone",
+      "bullets": [
+        "Problem & Opportunity — who, what job, how big",
+        "Why AI, Why Now — capability unlock + enabling shift",
+        "Solution & Strategy — concept, wedge, moat",
+        "Roadmap — crawl, walk, run tied to learning milestones"
+      ],
+      "narration": "The first half of your plan sets up the bet. Start with the problem and the size of the prize. Then justify why AI is the right tool now—name the specific capability it unlocks and the shift that makes it feasible today. Present your solution and strategy in one crisp positioning statement, then lay out a phased roadmap where each phase is tied to a learning milestone, not just a feature dump."
+    },
+    {
+      "type": "content",
+      "title": "Evals & Metrics — The PM Differentiator",
+      "bullets": [
+        "Eval plan: offline golden sets + online A/B and shadow mode",
+        "Set acceptance thresholds BEFORE launch",
+        "Product metrics: adoption, retention, task success, time saved",
+        "Model metrics: precision/recall, hallucination rate, latency, cost/query",
+        "Name a North Star + guardrail metrics"
+      ],
+      "narration": "This is where great AI PMs separate themselves. Your evaluation plan should cover offline testing against golden datasets and online validation through A-B tests or shadow mode, with acceptance thresholds defined before launch. Then split your metrics: product metrics like adoption and time saved, and model metrics like hallucination rate, latency, and cost per query. Always name one North Star metric and the guardrails that protect quality and safety."
+    },
+    {
+      "type": "content",
+      "title": "Risks & Mitigations",
+      "bullets": [
+        "Data quality, model drift, bias/safety, cost, regulation",
+        "Pair every risk with a mitigation AND an owner",
+        "Define your quality floor — when would you NOT ship?",
+        "Show a cost model: cost/query × volume"
+      ],
+      "narration": "AI introduces risks that traditional products don't have. Address data quality, model drift, bias and safety, runaway costs, and regulatory exposure. For each, pair a concrete mitigation and an owner. Crucially, define your quality floor—the threshold below which you simply would not ship. And bring a cost model, because inference cost times volume is a real line on the P&L that leadership will scrutinize."
+    },
+    {
+      "type": "content",
+      "title": "The Pitch Narrative Arc",
+      "bullets": [
+        "Hook — problem as money or pain",
+        "Insight — why solvable now with AI",
+        "Solution — your product",
+        "Proof — eval results, prototype, benchmarks",
+        "Plan & Ask — roadmap, metrics, what you need"
+      ],
+      "narration": "Structure your pitch as a story. Open with a hook that frames the problem in terms of money or pain. Share the insight about why it's solvable now. Present your solution, then back it with proof—eval results, a prototype, or comparable benchmarks. Close with the plan and a specific ask. Lead with your conclusion, use one chart per idea, and pre-empt your biggest objection by raising it yourself."
+    },
+    {
+      "type": "content",
+      "title": "Speak Business, Not Benchmarks",
+      "bullets": [
+        "Translate '95% precision' into hours or dollars saved",
+        "Be honest about probabilistic uncertainty",
+        "Explain how evals de-risk the bet",
+        "Frame build vs. buy explicitly"
+      ],
+      "code": "Bad:  'Model hits 95% precision.'\nGood: '<1 wrong escalation per 100,\n       saving ~200 agent-hours/month.'",
+      "narration": "Executives don't fund benchmark numbers; they fund outcomes. Translate model metrics into hours or dollars. Notice the example: 95% precision means nothing on its own, but framing it as fewer than one wrong escalation per hundred, saving two hundred agent-hours a month, immediately lands. Be honest that AI is probabilistic, and show how your eval plan reduces that uncertainty over time."
+    },
+    {
+      "type": "content",
+      "title": "Rehearse the Hard Questions",
+      "bullets": [
+        "What if accuracy isn't good enough?",
+        "What does this cost at scale?",
+        "Build vs. buy — and why?",
+        "How do we measure success in 90 days?",
+        "What's the single biggest reason this fails?"
+      ],
+      "narration": "Strong PMs rehearse the tough questions. Be ready to answer what happens if accuracy falls short, what the solution costs at scale, your build-versus-buy reasoning, how you'll measure success in the first ninety days, and the single biggest reason this could fail. Having crisp, honest answers signals maturity and earns trust."
+    },
+    {
+      "type": "content",
+      "title": "Self-Assess Before You Ship",
+      "bullets": [
+        "Score 1-5: problem clarity, AI justification, eval rigor",
+        "Metric quality: leading + guardrail present?",
+        "Risk realism and pitch storytelling",
+        "Revise anything scoring ≤3 before adding to portfolio"
+      ],
+      "narration": "Before you call it done, score your plan one to five across problem clarity, AI justification, eval rigor, metric quality, risk realism, and storytelling. Anything scoring three or below is your revision priority. Only after that should this become a portfolio piece. Now go build, pitch, and iterate—this is the artifact that will land you the AI PM role."
+    }
+  ]
+}

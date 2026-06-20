@@ -1,0 +1,180 @@
+{
+  "slug": "aad-m1-l02-calling-your-first-llm-api",
+  "title": "Calling Your First LLM API",
+  "month": 1,
+  "monthTitle": "Python and LLM Foundations",
+  "lesson": 2,
+  "video": "aad-m1-l02-calling-your-first-llm-api.mp4",
+  "summary": "Learn to make your first programmatic call to an LLM provider's API. You'll set up authentication securely, send a chat request, parse the response, stream tokens as they arrive, and handle rate limits and errors gracefully.",
+  "objectives": [
+    "Configure API keys securely using environment variables and avoid hard-coding secrets",
+    "Make a basic chat completion request to an LLM API and parse the response",
+    "Implement token streaming to display output incrementally",
+    "Handle common errors and rate limits with retries and backoff",
+    "Understand request parameters like model, temperature, and max tokens"
+  ],
+  "quiz": [
+    {
+      "q": "What is the safest way to provide your API key to your application?",
+      "options": [
+        "Hard-code it directly in the source file",
+        "Store it in an environment variable or .env file that is git-ignored",
+        "Paste it into a public README for the team",
+        "Send it as a query parameter in the URL"
+      ],
+      "answer": 1,
+      "why": "Keys should never be in source code or public files. Environment variables or a git-ignored .env file (and a secrets manager in production) keep them out of version control."
+    },
+    {
+      "q": "What does setting stream=True accomplish?",
+      "options": [
+        "It makes the model more accurate",
+        "It returns the response incrementally as chunks/deltas",
+        "It disables rate limiting",
+        "It reduces token cost to zero"
+      ],
+      "answer": 1,
+      "why": "Streaming returns the response in small delta chunks as they're generated, improving perceived responsiveness, but does not change accuracy, cost, or rate limits."
+    },
+    {
+      "q": "Which HTTP status code typically indicates you've hit a rate limit?",
+      "options": [
+        "200",
+        "404",
+        "429",
+        "500"
+      ],
+      "answer": 2,
+      "why": "A 429 Too Many Requests response signals you've exceeded the provider's rate limit; the recommended response is to retry with exponential backoff."
+    },
+    {
+      "q": "Which parameter most directly controls the maximum length and cost of a response?",
+      "options": [
+        "temperature",
+        "model",
+        "max_tokens",
+        "stream"
+      ],
+      "answer": 2,
+      "why": "max_tokens caps how many tokens the model can generate, directly limiting response length and the associated cost."
+    },
+    {
+      "q": "In one short phrase, name the retry strategy recommended for handling 429 rate-limit errors.",
+      "answer": "exponential backoff",
+      "why": "Exponential backoff increases the wait time after each failed attempt (e.g., 1s, 2s, 4s), reducing pressure on the API and improving the chance of success."
+    },
+    {
+      "q": "Which field in the response object should you log to monitor token consumption and cost?",
+      "answer": "usage",
+      "why": "The usage field reports prompt_tokens, completion_tokens, and total_tokens, which you log to track spending."
+    }
+  ],
+  "resources": [
+    {
+      "label": "OpenAI API Reference – Chat Completions",
+      "url": "https://platform.openai.com/docs/api-reference/chat"
+    },
+    {
+      "label": "OpenAI Python SDK (GitHub)",
+      "url": "https://github.com/openai/openai-python"
+    },
+    {
+      "label": "python-dotenv documentation",
+      "url": "https://pypi.org/project/python-dotenv/"
+    },
+    {
+      "label": "OpenAI Rate Limits Guide",
+      "url": "https://platform.openai.com/docs/guides/rate-limits"
+    }
+  ],
+  "body_markdown": "## Overview\n\nCalling an LLM API is the foundational skill for building AI applications. At its core, you send a structured request (your prompt plus parameters) over HTTPS and receive a generated response. This lesson uses the OpenAI Python SDK as the example, but the same concepts apply to Anthropic, Google, and most providers.\n\n## Setting Up Your Environment\n\nInstall the SDK and a dotenv helper:\n\n```bash\npip install openai python-dotenv\n```\n\n**Never hard-code API keys.** Store them in environment variables or a `.env` file that is git-ignored.\n\n```\n# .env\nOPENAI_API_KEY=sk-...\n```\n\n```python\nfrom dotenv import load_dotenv\nimport os\nload_dotenv()\napi_key = os.environ[\"OPENAI_API_KEY\"]\n```\n\nAdd `.env` to `.gitignore` so secrets never reach version control. In production, use a secrets manager (AWS Secrets Manager, Vault, or platform env vars).\n\n## Your First Call\n\n```python\nfrom openai import OpenAI\n\nclient = OpenAI()  # reads OPENAI_API_KEY from env automatically\n\nresponse = client.chat.completions.create(\n    model=\"gpt-4o-mini\",\n    messages=[\n        {\"role\": \"system\", \"content\": \"You are a concise assistant.\"},\n        {\"role\": \"user\", \"content\": \"Explain what an API is in one sentence.\"}\n    ],\n    temperature=0.7,\n    max_tokens=100,\n)\n\nprint(response.choices[0].message.content)\n```\n\n### Key Request Parameters\n\n- **model**: which model to use (affects cost, speed, quality)\n- **messages**: the conversation history; roles are `system`, `user`, `assistant`\n- **temperature**: 0 = deterministic, higher = more creative (0.0–2.0)\n- **max_tokens**: cap on response length\n\n### Reading the Response\n\nThe response object contains `choices` (usually one), each with a `message`. It also includes a `usage` field reporting `prompt_tokens`, `completion_tokens`, and `total_tokens` — essential for tracking cost.\n\n```python\nprint(response.usage.total_tokens)\n```\n\n## Streaming Responses\n\nFor a responsive UX, stream tokens as they are generated instead of waiting for the full response.\n\n```python\nstream = client.chat.completions.create(\n    model=\"gpt-4o-mini\",\n    messages=[{\"role\": \"user\", \"content\": \"Write a haiku about code.\"}],\n    stream=True,\n)\n\nfor chunk in stream:\n    delta = chunk.choices[0].delta.content\n    if delta:\n        print(delta, end=\"\", flush=True)\n```\n\nEach chunk carries a small `delta`. You concatenate deltas to build the full message.\n\n## Handling Errors and Rate Limits\n\nNetwork calls fail. Providers enforce rate limits (requests/tokens per minute) and return `429 Too Many Requests`. Use retries with exponential backoff.\n\n```python\nimport time\nfrom openai import RateLimitError, APIError\n\ndef call_with_retry(client, **kwargs):\n    for attempt in range(5):\n        try:\n            return client.chat.completions.create(**kwargs)\n        except RateLimitError:\n            wait = 2 ** attempt\n            time.sleep(wait)\n        except APIError as e:\n            if attempt == 4:\n                raise\n            time.sleep(2 ** attempt)\n    raise RuntimeError(\"Max retries exceeded\")\n```\n\nThe SDK also has built-in retries (`max_retries` on the client). Add timeouts to avoid hanging requests.\n\n## Cost and Safety Tips\n\n- Set `max_tokens` to control runaway costs.\n- Log `usage` to monitor spend.\n- Validate and sanitize user input before sending.\n- Use the cheapest model that meets quality needs.\n- Rotate keys if they are ever exposed.\n\n## Summary\n\nYou now know how to authenticate securely, send a chat request, parse responses, stream output, and handle rate limits. These primitives underpin every LLM-powered feature you'll build.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Calling Your First LLM API",
+      "sub": "Python and LLM Foundations",
+      "narration": "Welcome. In this lesson we'll make our very first programmatic call to a large language model API. We'll cover authentication, sending requests, reading responses, streaming output, and handling rate limits safely. These are the foundational skills behind every LLM-powered application you'll build."
+    },
+    {
+      "type": "content",
+      "title": "What Happens in an API Call",
+      "bullets": [
+        "You send a prompt plus parameters over HTTPS",
+        "The provider runs the model and returns generated text",
+        "Concepts apply across OpenAI, Anthropic, Google, and others",
+        "Response includes the text and token usage for cost tracking"
+      ],
+      "narration": "At its core, calling an LLM API means sending a structured request over HTTPS containing your prompt and some parameters. The provider runs the model and returns generated text along with metadata like token usage. While we'll use the OpenAI SDK, these same concepts transfer to almost any provider."
+    },
+    {
+      "type": "content",
+      "title": "Setting Up Securely",
+      "bullets": [
+        "Install: pip install openai python-dotenv",
+        "Store keys in a .env file, never in code",
+        "Add .env to .gitignore",
+        "Use a secrets manager in production"
+      ],
+      "code": "from dotenv import load_dotenv\nimport os\nload_dotenv()\n# OPENAI_API_KEY now in environment",
+      "narration": "First, install the SDK and a dotenv helper. The single most important security rule: never hard-code your API key. Store it in a .env file, load it with python-dotenv, and make sure .env is git-ignored so secrets never reach version control. In production, use a proper secrets manager."
+    },
+    {
+      "type": "content",
+      "title": "Your First Request",
+      "bullets": [
+        "Create a client that reads the key from env",
+        "Pass model, messages, and parameters",
+        "Messages have roles: system, user, assistant",
+        "Read text from response.choices[0].message.content"
+      ],
+      "code": "client = OpenAI()\nr = client.chat.completions.create(\n  model=\"gpt-4o-mini\",\n  messages=[{\"role\":\"user\",\n             \"content\":\"What is an API?\"}],\n)\nprint(r.choices[0].message.content)",
+      "narration": "Here's a complete first call. We create a client, which automatically reads the key from the environment. We pass a model name and a list of messages, each with a role. The response comes back in a choices list, and we read the generated text from the first choice's message content."
+    },
+    {
+      "type": "content",
+      "title": "Key Parameters",
+      "bullets": [
+        "model: balances cost, speed, and quality",
+        "temperature: 0 deterministic, higher more creative",
+        "max_tokens: caps response length and cost",
+        "messages: the full conversation history"
+      ],
+      "narration": "A few parameters matter most. The model controls cost and quality. Temperature controls randomness — use zero for deterministic output, higher for creativity. Max tokens caps the response length, which directly controls cost. And messages carry the conversation history, so you can build multi-turn chats."
+    },
+    {
+      "type": "content",
+      "title": "Streaming Responses",
+      "bullets": [
+        "Set stream=True for incremental output",
+        "Each chunk carries a small delta",
+        "Concatenate deltas to build the full message",
+        "Greatly improves perceived responsiveness"
+      ],
+      "code": "stream = client.chat.completions.create(\n  model=\"gpt-4o-mini\", stream=True,\n  messages=[{\"role\":\"user\",\"content\":\"Hi\"}])\nfor c in stream:\n  d = c.choices[0].delta.content\n  if d: print(d, end=\"\", flush=True)",
+      "narration": "For a responsive user experience, stream the response. Set stream to True and iterate over the returned chunks. Each chunk carries a small delta — a piece of the message. You print or concatenate these as they arrive, so users see text appear immediately instead of waiting for the whole response."
+    },
+    {
+      "type": "content",
+      "title": "Errors and Rate Limits",
+      "bullets": [
+        "Providers limit requests and tokens per minute",
+        "A 429 means too many requests — back off",
+        "Retry with exponential backoff",
+        "Set timeouts and use built-in max_retries"
+      ],
+      "code": "for attempt in range(5):\n  try:\n    return client.chat.completions.create(**kw)\n  except RateLimitError:\n    time.sleep(2 ** attempt)",
+      "narration": "Network calls fail and providers enforce rate limits. A 429 error means you've sent too many requests. The fix is exponential backoff: wait longer after each failure before retrying. The SDK also offers built-in retries and timeouts. Always handle these cases so your app degrades gracefully instead of crashing."
+    },
+    {
+      "type": "content",
+      "title": "Cost and Safety Tips",
+      "bullets": [
+        "Set max_tokens to prevent runaway costs",
+        "Log usage to monitor spend",
+        "Pick the cheapest model that meets quality needs",
+        "Rotate keys immediately if exposed"
+      ],
+      "narration": "Finally, manage cost and safety. Always set max_tokens to avoid surprise bills, and log the usage field to track spending. Choose the cheapest model that meets your quality bar. Sanitize user input, and if a key is ever exposed, rotate it immediately. With these habits, you're ready to build real LLM features."
+    }
+  ]
+}

@@ -1,0 +1,193 @@
+{
+  "slug": "apm-m4-l02-defining-ai-product-metrics-quality-engagement-a",
+  "title": "Defining AI Product Metrics: Quality, Engagement, and Business Impact",
+  "month": 4,
+  "monthTitle": "Stakeholders, Metrics, and Launch Capstone",
+  "lesson": 2,
+  "video": "apm-m4-l02-defining-ai-product-metrics-quality-engagement-a.mp4",
+  "summary": "AI Product Managers must measure more than accuracy. This lesson teaches you how to build a layered measurement framework that connects model-quality metrics, user-engagement signals, and business impact, while instrumenting guardrails to catch harm and drift. You'll learn to distinguish leading from lagging indicators and assemble a practical metrics tree you can defend to stakeholders.",
+  "objectives": [
+    "Distinguish leading vs. lagging metrics and explain why AI products need both",
+    "Define model-quality metrics (offline and online) appropriate to a product's task type",
+    "Select engagement and business-impact metrics that tie AI behavior to user and company outcomes",
+    "Instrument guardrail and counter-metrics to detect harm, drift, and gaming",
+    "Assemble a coherent metrics tree (a 'metrics framework') for a real AI feature",
+    "Choose a North Star metric and align supporting metrics to it"
+  ],
+  "quiz": [
+    {
+      "q": "Which best describes a leading metric for an AI feature?",
+      "options": [
+        "90-day user retention",
+        "Suggestion acceptance rate",
+        "Quarterly revenue",
+        "Annual churn"
+      ],
+      "answer": 1,
+      "why": "Leading metrics move early and are actionable; suggestion acceptance rate can be measured immediately and predicts downstream value, unlike the slow lagging metrics listed."
+    },
+    {
+      "q": "A fraud-detection model should usually prioritize which metric, given that missing fraud is very costly?",
+      "options": [
+        "Precision",
+        "Raw accuracy",
+        "Recall",
+        "Latency"
+      ],
+      "answer": 2,
+      "why": "When false negatives (missed fraud) are the costly error, you optimize recall to catch as many true positives as possible, even at the cost of more false positives."
+    },
+    {
+      "q": "What is the purpose of a counter-metric?",
+      "options": [
+        "To replace the North Star metric",
+        "To detect when the primary metric is being gamed or improved at the expense of real value",
+        "To measure infrastructure cost only",
+        "To speed up model training"
+      ],
+      "answer": 1,
+      "why": "Counter-metrics guard against optimizing a proxy that harms users — e.g., acceptance rate rising while task completion falls."
+    },
+    {
+      "q": "Why is cost-to-serve treated as a first-class metric for AI products specifically?",
+      "options": [
+        "It never changes after launch",
+        "Inference/GPU costs can be high and make AI margins thin",
+        "It is only relevant to marketing",
+        "It is the same as model accuracy"
+      ],
+      "answer": 1,
+      "why": "AI inference costs (GPU, tokens) can be substantial per request, so per-request and per-user cost directly affect product viability and margins."
+    },
+    {
+      "q": "Name one guardrail metric an AI PM should monitor and alert on (short answer).",
+      "answer": "Examples: hallucination/policy-violation rate, PII leakage, p95 latency, toxicity rate, or fairness gap across segments.",
+      "why": "Guardrails are limits you must not breach while optimizing; safety, reliability, fairness, and drift metrics are all valid answers."
+    },
+    {
+      "q": "In a metrics tree, what role does the North Star metric play (short answer)?",
+      "answer": "It is the single top-level metric capturing the core value delivered, to which leading drivers and guardrails are aligned.",
+      "why": "The North Star anchors the framework so all supporting leading/lagging metrics and guardrails ladder up to one clear measure of value."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Google's People + AI Guidebook (PAIR) — measuring AI UX",
+      "url": "https://pair.withgoogle.com/guidebook/"
+    },
+    {
+      "label": "Amplitude / North Star Framework playbook",
+      "url": "https://amplitude.com/north-star"
+    },
+    {
+      "label": "Google ML Crash Course — Classification metrics",
+      "url": "https://developers.google.com/machine-learning/crash-course/classification/accuracy-precision-recall"
+    },
+    {
+      "label": "Hugging Face Evaluate — model evaluation metrics library",
+      "url": "https://huggingface.co/docs/evaluate"
+    }
+  ],
+  "body_markdown": "## Why AI Metrics Are Different\n\nTraditional product metrics (DAU, conversion, retention) still matter, but AI products add a probabilistic layer: the system can be confidently wrong, degrade silently as data drifts, or optimize a proxy that harms users. A good AI PM measures across three connected layers — **quality**, **engagement**, and **business impact** — and protects all of them with **guardrails**.\n\nThe core mistake teams make is shipping an offline accuracy number (\"94% F1!\") and assuming product success follows. It rarely does. Model quality is necessary but not sufficient; you need a chain of evidence linking model behavior to user value and revenue.\n\n## Leading vs. Lagging Metrics\n\n- **Leading metrics** move early and predict outcomes. They are fast to measure and actionable (e.g., suggestion acceptance rate, latency, thumbs-up rate). You can iterate on them weekly.\n- **Lagging metrics** confirm impact but move slowly and are influenced by many factors (e.g., 90-day retention, revenue, churn). They are the truth, but you can't steer with them daily.\n\nA strong framework uses leading metrics to drive iteration and lagging metrics to validate that the leading ones actually correlate with value. Always pressure-test the assumption that your leading metric *causes* the lagging outcome.\n\n## Layer 1: Model-Quality Metrics\n\nSplit into **offline** (pre-launch, on held-out data) and **online** (in production with real traffic).\n\n- **Classification/ranking tasks:** precision, recall, F1, AUC, precision@k, calibration.\n- **Generative tasks:** groundedness/faithfulness, relevance, helpfulness, hallucination rate, format adherence — often measured by human eval, LLM-as-judge, or reference comparisons.\n- **Online quality:** edit/correction rate, acceptance rate, escalation-to-human rate, regeneration rate.\n\nKey principle: choose the metric that matches the **cost of each error type**. For a fraud model, a false negative may cost far more than a false positive — so optimize recall, not raw accuracy.\n\n## Layer 2: Engagement Metrics\n\nEngagement tells you whether users actually adopt and trust the AI:\n\n- **Adoption:** % of eligible users who try the feature.\n- **Acceptance/usage:** acceptance rate of suggestions, queries per user, task completion rate.\n- **Trust signals:** thumbs up/down, manual override rate, repeat usage.\n\nWatch for **vanity engagement**: more usage isn't always good if it means users are fighting the model. Pair engagement with quality.\n\n## Layer 3: Business-Impact Metrics\n\nThese connect the feature to money and strategy:\n\n- **Efficiency:** time saved per task, deflection rate (support tickets resolved without a human), cost per resolution.\n- **Growth/revenue:** conversion lift, expansion, retention, ARPU.\n- **Cost-to-serve:** inference cost per request, GPU spend per active user — critical because AI margins can be thin.\n\n## Guardrail and Counter-Metrics\n\nGuardrails are limits you must not breach while optimizing the primary metric:\n\n- **Safety/harm:** toxicity rate, policy-violation rate, PII leakage.\n- **Fairness:** performance gaps across user segments.\n- **Reliability:** latency p95, error rate, uptime.\n- **Drift:** input distribution shift, quality decay over time.\n- **Counter-metrics:** detect gaming (e.g., if acceptance rate rises but task-completion falls, users may be accepting bad output to get unstuck).\n\n## Building a Metrics Tree\n\n1. Pick **one North Star** that captures core value delivered (e.g., \"successful tasks completed with AI assistance\").\n2. Break it into **input drivers** (quality + engagement leading metrics).\n3. Attach **guardrails** the team agrees not to violate.\n4. Map each metric to an **instrumentation source** (event log, eval pipeline, human review).\n5. Define **targets, owners, and review cadence**.\n\nExample tree for an AI support assistant:\n- North Star: Auto-resolved tickets with CSAT ≥ 4\n- Leading: groundedness score, suggested-reply acceptance, response latency\n- Lagging: deflection rate, cost per ticket, 30-day retention\n- Guardrails: hallucination rate < 2%, no PII leakage, p95 latency < 3s, CSAT not below human baseline\n\n## Instrumentation Notes\n\n- Log the **model version, prompt version, and confidence** with every event so you can slice metrics by release.\n- Maintain a **golden eval set** that runs every deploy to catch regressions before users do.\n- Sample production traffic for ongoing human/LLM evaluation; offline numbers drift from reality.\n- Set up **alerts on guardrails**, not just dashboards.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Defining AI Product Metrics",
+      "sub": "Quality, Engagement, and Business Impact",
+      "narration": "Welcome. In this lesson we'll learn how AI Product Managers measure success. Accuracy alone never tells the full story, so we'll build a layered framework that links model quality to user engagement and to real business impact, all protected by guardrails."
+    },
+    {
+      "type": "content",
+      "title": "Why AI Metrics Are Different",
+      "bullets": [
+        "AI systems can be confidently wrong and degrade silently",
+        "Offline accuracy rarely equals product success",
+        "Need a chain: model behavior to user value to revenue",
+        "Measure across quality, engagement, and impact"
+      ],
+      "narration": "Traditional product metrics still apply, but AI adds a probabilistic layer. Models can be confidently wrong, drift as data changes, or optimize a proxy that hurts users. The classic mistake is shipping a high F1 score and assuming success follows. Instead you need a connected chain of evidence from model behavior all the way to business value, measured across three layers plus guardrails."
+    },
+    {
+      "type": "content",
+      "title": "Leading vs. Lagging Metrics",
+      "bullets": [
+        "Leading: fast, actionable, predictive (acceptance rate, latency)",
+        "Lagging: slow, confirming, noisy (retention, revenue)",
+        "Iterate on leading, validate with lagging",
+        "Always test that leading actually causes lagging"
+      ],
+      "narration": "Leading metrics move early and let you iterate weekly — things like suggestion acceptance or latency. Lagging metrics like 90-day retention and revenue are the truth but move slowly and are influenced by many factors. Use leading metrics to steer and lagging metrics to confirm. Critically, keep checking that your leading metric genuinely drives the lagging outcome rather than just correlating."
+    },
+    {
+      "type": "content",
+      "title": "Layer 1: Model-Quality Metrics",
+      "bullets": [
+        "Offline (held-out) vs. online (production) quality",
+        "Classification: precision, recall, F1, calibration",
+        "Generative: groundedness, hallucination rate, format adherence",
+        "Online: edit rate, acceptance, escalation, regeneration",
+        "Match the metric to the cost of each error type"
+      ],
+      "code": "# Choosing by error cost\n# Fraud model: a false negative is costly\n# -> optimize recall over raw accuracy",
+      "narration": "Model quality splits into offline, measured on held-out data before launch, and online, measured on live traffic. For classification use precision, recall, F1 and calibration. For generative tasks measure groundedness, hallucination rate, and format adherence, often via human or LLM-as-judge evals. Online, watch edit rates and escalation to humans. The key principle: pick the metric that reflects the real cost of each error type — for fraud, optimize recall, not accuracy."
+    },
+    {
+      "type": "content",
+      "title": "Layer 2: Engagement Metrics",
+      "bullets": [
+        "Adoption: % of eligible users who try it",
+        "Usage: acceptance rate, task completion, queries per user",
+        "Trust: thumbs up/down, override rate, repeat use",
+        "Beware vanity engagement — pair with quality"
+      ],
+      "narration": "Engagement reveals whether users adopt and trust the AI. Track adoption among eligible users, acceptance and completion rates, and trust signals like thumbs up, overrides, and repeat usage. Be careful with vanity engagement: more usage isn't good if users are fighting the model. Always pair engagement metrics with quality so you know the activity is healthy."
+    },
+    {
+      "type": "content",
+      "title": "Layer 3: Business Impact",
+      "bullets": [
+        "Efficiency: time saved, deflection rate, cost per resolution",
+        "Growth: conversion lift, retention, ARPU",
+        "Cost-to-serve: inference cost per request and per user",
+        "AI margins can be thin — track cost as a first-class metric"
+      ],
+      "narration": "Business impact connects the feature to money and strategy. Measure efficiency gains like time saved and ticket deflection, growth metrics like conversion and retention, and crucially cost-to-serve. Inference and GPU spend can make AI margins thin, so treat cost per request and per active user as a first-class business metric, not an afterthought."
+    },
+    {
+      "type": "content",
+      "title": "Guardrails and Counter-Metrics",
+      "bullets": [
+        "Safety: toxicity, policy violations, PII leakage",
+        "Fairness: performance gaps across segments",
+        "Reliability: p95 latency, error rate, uptime",
+        "Drift: input shift and quality decay over time",
+        "Counter-metrics catch gaming of the primary metric"
+      ],
+      "narration": "Guardrails are limits you must not breach while chasing your primary metric. They cover safety like toxicity and PII leakage, fairness across user segments, reliability like latency and uptime, and drift over time. Counter-metrics catch gaming — for example, if acceptance rate rises but task completion falls, users may be accepting bad answers just to move on. Alert on guardrails; don't just chart them."
+    },
+    {
+      "type": "content",
+      "title": "Building Your Metrics Tree",
+      "bullets": [
+        "Pick one North Star that captures delivered value",
+        "Break into leading drivers: quality + engagement",
+        "Attach agreed guardrails",
+        "Map each metric to an instrumentation source",
+        "Set targets, owners, and review cadence"
+      ],
+      "code": "North Star: auto-resolved tickets w/ CSAT>=4\nLeading: groundedness, reply acceptance, latency\nLagging: deflection rate, cost/ticket, retention\nGuardrails: hallucination<2%, no PII, p95<3s",
+      "narration": "Bring it together in a metrics tree. Choose one North Star that captures core value, then break it into leading drivers from quality and engagement, attach the guardrails the team won't violate, and map each metric to a real data source. Finally assign targets, owners, and a review cadence. The example shows an AI support assistant whose North Star is auto-resolved tickets with high CSAT, supported by leading drivers and protected by hard guardrails."
+    },
+    {
+      "type": "content",
+      "title": "Instrumentation Notes",
+      "bullets": [
+        "Log model, prompt version, and confidence per event",
+        "Run a golden eval set on every deploy",
+        "Sample production traffic for ongoing evaluation",
+        "Alert on guardrails, not just dashboards"
+      ],
+      "narration": "A few practical instrumentation tips. Log model version, prompt version, and confidence with every event so you can slice metrics by release. Maintain a golden eval set that runs on every deploy to catch regressions before users do. Sample live traffic for ongoing human or LLM evaluation since offline numbers drift from reality. And set automated alerts on your guardrails rather than relying on someone watching a dashboard."
+    }
+  ]
+}

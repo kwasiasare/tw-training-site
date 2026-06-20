@@ -1,0 +1,190 @@
+{
+  "slug": "dsc-m4-l04-capstone-full-data-science-project-and-portfolio",
+  "title": "Capstone: Full Data Science Project and Portfolio",
+  "month": 4,
+  "monthTitle": "Experimentation, Visualization, and Capstone",
+  "lesson": 4,
+  "video": "dsc-m4-l04-capstone-full-data-science-project-and-portfolio.mp4",
+  "summary": "A practical capstone lesson guiding you through delivering an end-to-end data science project—from problem framing and data wrangling to modeling, experimentation, and a polished stakeholder presentation—packaged for your portfolio.",
+  "objectives": [
+    "Frame a business problem into a measurable data science question with clear success metrics",
+    "Execute an end-to-end workflow: data wrangling, EDA, modeling, and validation",
+    "Design and interpret an experiment (A/B test or offline evaluation) to validate impact",
+    "Communicate results through a stakeholder-ready presentation and reproducible repository",
+    "Assemble the project into a portfolio artifact that demonstrates hiring-relevant skills"
+  ],
+  "quiz": [
+    {
+      "q": "Why should you define your primary and guardrail metrics before exploring the data?",
+      "options": [
+        "To make the dataset smaller",
+        "To prevent metric-shopping and keep evaluation honest",
+        "Because it is required by scikit-learn",
+        "To avoid writing a README"
+      ],
+      "answer": 1,
+      "why": "Defining metrics up front anchors success criteria to the business goal and prevents choosing whichever metric happens to look best after the fact."
+    },
+    {
+      "q": "What is the main purpose of establishing a baseline model?",
+      "options": [
+        "To deploy it directly to production",
+        "To set a performance floor that more complex models must beat",
+        "To replace cross-validation",
+        "To avoid doing EDA"
+      ],
+      "answer": 1,
+      "why": "A baseline provides a reference point; complex models are only justified if they outperform it on validation data."
+    },
+    {
+      "q": "Which practice helps prevent data leakage?",
+      "options": [
+        "Splitting into train/validation/test before leakage-prone transformations",
+        "Imputing missing values using the full dataset including test",
+        "Using the target variable to create features",
+        "Tuning on the test set"
+      ],
+      "answer": 0,
+      "why": "Splitting before transformations ensures information from validation/test sets does not influence training, preventing leakage."
+    },
+    {
+      "q": "When presenting to stakeholders, what should you lead with?",
+      "options": [
+        "The detailed model architecture",
+        "The recommendation and expected impact",
+        "A list of hyperparameters",
+        "The raw confusion matrix"
+      ],
+      "answer": 1,
+      "why": "Stakeholders care about decisions and impact first; methodology details come later and only as needed."
+    },
+    {
+      "q": "In one short phrase, name the structure recommended for a stakeholder presentation narrative.",
+      "answer": "Context, Approach, Findings, Recommendation, Next Steps",
+      "why": "This flow moves the audience from situation to action, leading with what matters and ending with concrete next steps."
+    },
+    {
+      "q": "What single quality makes a portfolio repository trustworthy to a reviewer?",
+      "answer": "Reproducibility",
+      "why": "If a reviewer can clone the repo and run it end to end, it demonstrates rigor and credibility beyond just the results shown."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Cookiecutter Data Science: standardized project structure",
+      "url": "https://drivendata.github.io/cookiecutter-data-science/"
+    },
+    {
+      "label": "Google: Rules of Machine Learning (best practices)",
+      "url": "https://developers.google.com/machine-learning/guides/rules-of-ml"
+    },
+    {
+      "label": "Trustworthy Online Controlled Experiments (A/B testing guide)",
+      "url": "https://experimentguide.com/"
+    },
+    {
+      "label": "How to Write a Good Data Science README",
+      "url": "https://github.com/banesullivan/README"
+    }
+  ],
+  "body_markdown": "## Why a Capstone Matters\n\nA capstone is the single most persuasive artifact in a data scientist's portfolio. It proves you can take an ambiguous problem all the way to a decision-ready insight. Unlike coursework, a capstone is judged on completeness, clarity, and impact—not just model accuracy.\n\n## Step 1: Frame the Problem\n\nStart with the stakeholder, not the data. Write a one-paragraph problem statement that answers:\n\n- **Who** is the decision-maker and what decision do they need to make?\n- **What** is the measurable outcome (e.g., reduce churn by 5%, improve forecast MAPE)?\n- **What** does success look like, and what is the baseline?\n\nDefine a primary metric and one or two guardrail metrics before touching the data. This prevents metric-shopping later.\n\n## Step 2: Data Wrangling\n\nReal data is messy. Document every cleaning decision in code and comments so the pipeline is reproducible.\n\n- Profile the data: shapes, types, missingness, duplicates, ranges.\n- Handle missing values deliberately (impute, drop, or flag) and justify the choice.\n- Engineer features tied to domain logic, not just statistical convenience.\n- Create a clean train/validation/test split **before** any leakage-prone transformations.\n\n## Step 3: Exploratory Data Analysis\n\nEDA builds intuition and surfaces risks. Use visualizations to communicate, not decorate.\n\n- Univariate distributions and outlier checks.\n- Relationships between candidate features and the target.\n- Document 3-5 concrete insights that shape your modeling choices.\n\n## Step 4: Modeling\n\n- Establish a **baseline** (mean prediction, logistic regression, or a simple heuristic).\n- Iterate to more complex models only if they beat the baseline on validation.\n- Tune hyperparameters with cross-validation; avoid touching the test set until the end.\n- Evaluate with metrics aligned to the business goal (e.g., precision/recall, AUC, RMSE) and inspect errors.\n\n## Step 5: Experimentation\n\nValidate that your model or intervention actually moves the metric.\n\n- For online settings, design an **A/B test**: define hypothesis, randomization unit, sample size, and significance level.\n- For offline settings, use a held-out test set or backtesting and report confidence intervals.\n- Be explicit about assumptions and threats to validity (selection bias, leakage, seasonality).\n\n## Step 6: Communicate to Stakeholders\n\nTranslate technical work into a decision narrative:\n\n- Lead with the recommendation and expected impact, not the methodology.\n- Use a structure: Context → Approach → Findings → Recommendation → Next Steps.\n- Quantify uncertainty honestly; stakeholders trust calibrated confidence.\n\n## Step 7: Package for Portfolio\n\n- A clean GitHub repo with a clear README, requirements file, and runnable notebooks/scripts.\n- A short write-up or blog post summarizing the problem and impact.\n- A slide deck or recorded walkthrough for non-technical audiences.\n- Reproducibility: anyone should be able to clone and run your project.\n\n## Common Pitfalls\n\n- Skipping the baseline and over-engineering models.\n- Data leakage from improper splitting or target-derived features.\n- Presenting accuracy without business context.\n- A repo that no one can reproduce.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Capstone: Full Data Science Project and Portfolio",
+      "sub": "From ambiguous problem to decision-ready insight",
+      "narration": "Welcome to the capstone lesson. This is where everything you've learned comes together. Your goal is to deliver a complete, end-to-end data science project that proves to employers you can move from an ambiguous business problem all the way to a decision-ready insight—and package it as a portfolio artifact."
+    },
+    {
+      "type": "content",
+      "title": "Frame the Problem First",
+      "bullets": [
+        "Identify the decision-maker and the decision",
+        "Define a measurable outcome and baseline",
+        "Choose one primary metric plus guardrails",
+        "Write a one-paragraph problem statement"
+      ],
+      "narration": "Before you touch any data, frame the problem. Identify who the stakeholder is and what decision they need to make. Define a measurable outcome with a clear baseline. Pick a single primary metric and one or two guardrail metrics up front—this keeps you honest and prevents metric-shopping later. Capture it all in a concise problem statement."
+    },
+    {
+      "type": "content",
+      "title": "Data Wrangling",
+      "bullets": [
+        "Profile shapes, types, missingness, duplicates",
+        "Handle missing values deliberately and justify",
+        "Engineer features grounded in domain logic",
+        "Split data before leakage-prone transforms"
+      ],
+      "narration": "Real data is messy. Start by profiling it: shapes, types, missing values, duplicates, and ranges. Make deliberate, documented choices about missing data. Engineer features that reflect domain knowledge rather than statistical convenience. Critically, create your train, validation, and test splits before applying any transformation that could leak information."
+    },
+    {
+      "type": "content",
+      "title": "Exploratory Data Analysis",
+      "bullets": [
+        "Examine distributions and outliers",
+        "Explore feature-target relationships",
+        "Visualize to communicate, not decorate",
+        "Document 3-5 concrete insights"
+      ],
+      "narration": "EDA builds intuition and surfaces risks. Look at distributions and outliers, then explore how candidate features relate to your target. Use visualizations that communicate a point rather than just look pretty. By the end, write down three to five concrete insights that will directly shape your modeling decisions."
+    },
+    {
+      "type": "content",
+      "title": "Modeling",
+      "bullets": [
+        "Always start with a simple baseline",
+        "Add complexity only if it beats the baseline",
+        "Tune with cross-validation",
+        "Evaluate with business-aligned metrics",
+        "code",
+        "# Baseline first\nfrom sklearn.linear_model import LogisticRegression\nbase = LogisticRegression().fit(X_tr, y_tr)\nprint(base.score(X_val, y_val))"
+      ],
+      "code": "from sklearn.linear_model import LogisticRegression\nbase = LogisticRegression().fit(X_tr, y_tr)\nprint('baseline acc:', base.score(X_val, y_val))",
+      "narration": "Modeling starts with a baseline—a simple model or heuristic that sets a floor. Only add complexity if it measurably beats that baseline on validation data. Tune hyperparameters with cross-validation, and keep your test set untouched until the very end. Choose evaluation metrics that map to the business goal, and always inspect your errors."
+    },
+    {
+      "type": "content",
+      "title": "Experimentation",
+      "bullets": [
+        "Online: design an A/B test with a clear hypothesis",
+        "Set randomization unit, sample size, significance",
+        "Offline: backtest or held-out set with CIs",
+        "State assumptions and threats to validity"
+      ],
+      "narration": "Experimentation validates that your work actually moves the metric. In online settings, design an A/B test: state your hypothesis, choose the randomization unit, compute sample size, and set a significance level. Offline, use a held-out test set or backtesting and report confidence intervals. Always name your assumptions and threats to validity like leakage or seasonality."
+    },
+    {
+      "type": "content",
+      "title": "Communicate to Stakeholders",
+      "bullets": [
+        "Lead with the recommendation and impact",
+        "Structure: Context, Approach, Findings, Next Steps",
+        "Quantify uncertainty honestly",
+        "Tailor depth to the audience"
+      ],
+      "narration": "Now translate the technical work into a decision narrative. Lead with your recommendation and its expected impact—not your methodology. Follow a clear structure: context, approach, findings, recommendation, and next steps. Quantify uncertainty honestly; calibrated confidence builds trust. Adjust technical depth to match your audience."
+    },
+    {
+      "type": "content",
+      "title": "Package for Your Portfolio",
+      "bullets": [
+        "Clean GitHub repo with README and requirements",
+        "Short write-up summarizing problem and impact",
+        "Slide deck or recorded walkthrough",
+        "Ensure full reproducibility"
+      ],
+      "narration": "Finally, package everything. Build a clean GitHub repo with a clear README, a requirements file, and runnable code. Add a short write-up summarizing the problem and impact, plus a slide deck or recorded walkthrough for non-technical viewers. Above all, make it reproducible—anyone should be able to clone your project and run it end to end."
+    },
+    {
+      "type": "content",
+      "title": "Avoid Common Pitfalls",
+      "bullets": [
+        "Don't skip the baseline or over-engineer",
+        "Prevent data leakage in splits and features",
+        "Never present accuracy without context",
+        "Make sure the repo actually runs"
+      ],
+      "narration": "Watch out for the classic pitfalls. Don't skip the baseline or over-engineer your model. Guard against data leakage in your splits and engineered features. Never present accuracy numbers without business context. And test that your repository actually runs for someone else. Avoiding these mistakes is what separates a hireable capstone from a forgettable one."
+    }
+  ]
+}

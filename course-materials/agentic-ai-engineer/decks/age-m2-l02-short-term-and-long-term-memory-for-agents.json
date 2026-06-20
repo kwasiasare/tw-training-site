@@ -1,0 +1,189 @@
+{
+  "slug": "age-m2-l02-short-term-and-long-term-memory-for-agents",
+  "title": "Short-Term and Long-Term Memory for Agents",
+  "month": 2,
+  "monthTitle": "Reasoning, Memory, and Retrieval",
+  "lesson": 2,
+  "video": "age-m2-l02-short-term-and-long-term-memory-for-agents.mp4",
+  "summary": "Agents need memory to be useful beyond a single turn. This lesson teaches you to build short-term conversational buffers that keep dialogue coherent within a session, and long-term, vector-backed memory that lets an agent recall facts across sessions. You'll learn windowing and summarization strategies to control context-window cost, how to embed and retrieve relevant memories, and how to combine both layers in a production agent.",
+  "objectives": [
+    "Distinguish short-term (working) memory from long-term (persistent) memory and explain when each is needed",
+    "Implement a conversational buffer with windowing and summarization to manage token budgets",
+    "Build vector-backed long-term memory using embeddings and a vector store for semantic recall",
+    "Design a write/read policy that decides what to persist and how to retrieve it at query time",
+    "Combine short-term and long-term memory into a single agent loop with relevance and recency filtering",
+    "Identify production concerns: cost, privacy, staleness, and memory eviction"
+  ],
+  "quiz": [
+    {
+      "q": "What is the main reason an LLM agent needs explicit memory management?",
+      "options": [
+        "LLMs forget their training data over time",
+        "Each API call is stateless and only sees what's in the prompt",
+        "Vector databases require it",
+        "Embeddings expire after each session"
+      ],
+      "answer": 1,
+      "why": "LLM calls are stateless; the model only knows what's in the current prompt, so the agent must feed prior context back in explicitly."
+    },
+    {
+      "q": "Which short-term memory strategy best balances bounded token cost with preserving older context?",
+      "options": [
+        "Replaying the full history every turn",
+        "Buffer window only (last N turns)",
+        "Hybrid summary plus window",
+        "Storing everything in a vector database"
+      ],
+      "answer": 2,
+      "why": "The summary-plus-window hybrid compresses old turns into a running summary while keeping recent turns verbatim, bounding cost without fully losing older context."
+    },
+    {
+      "q": "In the embed-and-retrieve pattern for long-term memory, what happens at read time?",
+      "options": [
+        "Every stored memory is added to the prompt",
+        "The query is embedded and a similarity search returns top-k memories",
+        "The summary is regenerated from scratch",
+        "The model fine-tunes on stored memories"
+      ],
+      "answer": 1,
+      "why": "At read time you embed the current query and run a similarity search, injecting only the top-k most relevant memories into the prompt."
+    },
+    {
+      "q": "Why should you avoid writing every conversation message into long-term memory?",
+      "options": [
+        "Vector stores cannot hold conversational text",
+        "It pollutes retrieval with low-value filler, hurting relevance",
+        "Embeddings only work on facts",
+        "It violates the context window limit"
+      ],
+      "answer": 1,
+      "why": "Storing filler degrades retrieval quality; a write policy that extracts only durable facts keeps long-term recall relevant."
+    },
+    {
+      "q": "Name two factors beyond raw semantic relevance that should influence which long-term memories are retrieved.",
+      "answer": "Recency and importance",
+      "why": "A combined score weights relevance, recency (prefer newer facts), and importance (salience), e.g. score = α·relevance + β·recency + γ·importance."
+    },
+    {
+      "q": "Give one production concern specific to storing user memories and a way to address it.",
+      "answer": "Privacy/PII—use per-user namespaces, support deletion, and encrypt sensitive data (other valid answers: cost capping, staleness via timestamps, eviction by age/importance).",
+      "why": "Memory often holds personal data, so namespacing, deletion support, and encryption address privacy and compliance; cost, staleness, and eviction are other valid concerns."
+    }
+  ],
+  "resources": [
+    {
+      "label": "LangChain Memory documentation",
+      "url": "https://python.langchain.com/docs/how_to/chatbots_memory/"
+    },
+    {
+      "label": "Generative Agents: Interactive Simulacra of Human Behavior (memory retrieval scoring)",
+      "url": "https://arxiv.org/abs/2304.03442"
+    },
+    {
+      "label": "Qdrant vector database documentation",
+      "url": "https://qdrant.tech/documentation/"
+    },
+    {
+      "label": "MemGPT: Towards LLMs as Operating Systems (long-term memory paging)",
+      "url": "https://arxiv.org/abs/2310.08560"
+    }
+  ],
+  "body_markdown": "## Why Agents Need Memory\n\nA raw LLM is stateless: each API call only knows what's in the prompt. To behave like an assistant that 'remembers,' an agent must explicitly feed prior context back into the model. We split this into two layers:\n\n- **Short-term memory (working memory):** the current conversation, held for the duration of a session. Cheap to access, lives in the context window.\n- **Long-term memory (persistent memory):** facts, preferences, and past interactions stored outside the model—typically in a vector database—and retrieved on demand across sessions.\n\n## Short-Term Memory\n\nThe simplest form is a **buffer**: append every user and assistant message to a list and replay it each turn. This breaks down because context windows and cost are finite. Three common strategies:\n\n1. **Buffer window** — keep only the last *N* turns. Simple, predictable token cost, but loses older context.\n2. **Token-budget buffer** — keep as many recent messages as fit under a token cap.\n3. **Summary memory** — periodically compress older turns into a running summary, then keep recent turns verbatim. Preserves gist while bounding tokens.\n\nA hybrid—**summary + window**—is the production default: a rolling summary of old turns plus the last few raw turns.\n\n```python\nclass SummaryWindowMemory:\n    def __init__(self, llm, window=6):\n        self.llm = llm\n        self.window = window\n        self.summary = \"\"\n        self.recent = []\n\n    def add(self, role, content):\n        self.recent.append({\"role\": role, \"content\": content})\n        if len(self.recent) > self.window:\n            old = self.recent[:-self.window]\n            self.recent = self.recent[-self.window:]\n            self.summary = self.llm.summarize(self.summary, old)\n\n    def context(self):\n        msgs = []\n        if self.summary:\n            msgs.append({\"role\": \"system\", \"content\": f\"Summary so far: {self.summary}\"})\n        return msgs + self.recent\n```\n\n## Long-Term Memory with Vectors\n\nLong-term memory persists beyond the session. The standard pattern is **embed-and-retrieve**:\n\n1. **Write:** when something worth remembering occurs (a stated preference, a fact, a resolved task), embed the text and store the vector plus metadata in a vector store.\n2. **Read:** at each turn, embed the current query, run a similarity search, and inject the top-k relevant memories into the prompt.\n\n```python\ndef remember(store, embed, text, meta):\n    vec = embed(text)\n    store.upsert(id=uuid(), vector=vec, payload={\"text\": text, **meta})\n\ndef recall(store, embed, query, k=4):\n    hits = store.search(embed(query), top_k=k)\n    return [h.payload[\"text\"] for h in hits]\n```\n\n### What to store\nDon't dump every message into long-term memory—it pollutes retrieval. Use a **write policy**: store distilled facts, user preferences, decisions, and entities, not filler. Often you run a small extraction step (\"Does this turn contain a durable fact? If so, summarize it.\").\n\n### Retrieval quality\n- **Relevance:** cosine similarity over embeddings.\n- **Recency:** bias toward newer memories with a time-decay score.\n- **Importance:** optionally score and weight salient memories (the approach used in generative-agent research).\n\nA common combined score: `score = α·relevance + β·recency + γ·importance`.\n\n## Combining Both Layers\n\nThe agent loop on each turn:\n\n1. Take the user input.\n2. **Recall** top-k long-term memories relevant to the input.\n3. Build the prompt: system instructions + retrieved memories + short-term context (summary + recent turns) + user input.\n4. Call the LLM, return the answer.\n5. **Write** new durable facts to long-term memory and append the turn to short-term memory.\n\n```python\ndef agent_turn(user_input):\n    memories = recall(store, embed, user_input, k=4)\n    prompt = build_prompt(system, memories, stm.context(), user_input)\n    answer = llm.chat(prompt)\n    stm.add(\"user\", user_input)\n    stm.add(\"assistant\", answer)\n    facts = extract_facts(user_input, answer)\n    for f in facts:\n        remember(store, embed, f, {\"ts\": now(), \"user\": user_id})\n    return answer\n```\n\n## Production Concerns\n\n- **Token/cost control:** retrieval and summarization both add tokens—measure and cap them.\n- **Privacy & compliance:** memory may hold PII. Support per-user namespaces, deletion (right-to-be-forgotten), and encryption.\n- **Staleness & conflicts:** preferences change. Store timestamps, prefer recent, and consider updating rather than appending.\n- **Eviction:** cap memory size; evict by age or low importance to keep retrieval sharp.\n- **Namespacing:** isolate memories per user/tenant to prevent leakage across users.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Short-Term and Long-Term Memory for Agents",
+      "sub": "Reasoning, Memory, and Retrieval",
+      "narration": "Welcome. In this lesson we'll give our agents memory. By the end you'll know how to keep a conversation coherent within a session using short-term memory, and how to remember facts across sessions using persistent, vector-backed long-term memory."
+    },
+    {
+      "type": "content",
+      "title": "Why Memory Matters",
+      "bullets": [
+        "LLM API calls are stateless—the model only knows what's in the prompt",
+        "Short-term memory: current conversation, held for the session",
+        "Long-term memory: facts and preferences stored across sessions",
+        "Both must be explicitly fed back into the prompt"
+      ],
+      "narration": "A raw language model has no memory between calls. Each request only sees what you put in the prompt. To make an agent feel like it remembers, we manage two layers ourselves. Short-term memory holds the ongoing conversation. Long-term memory persists knowledge across sessions, stored outside the model and retrieved when relevant."
+    },
+    {
+      "type": "content",
+      "title": "Short-Term Memory Strategies",
+      "bullets": [
+        "Buffer window: keep only the last N turns",
+        "Token-budget buffer: fit as many recent messages as the cap allows",
+        "Summary memory: compress old turns into a running summary",
+        "Hybrid summary + window is the production default"
+      ],
+      "narration": "The naive approach replays the entire history each turn, but that blows past context limits and cost. Instead we use a buffer window to keep the last few turns, a token-budget buffer to fit a fixed budget, or a summary that compresses old turns. The best of both: keep a rolling summary of old turns plus the last few raw turns verbatim."
+    },
+    {
+      "type": "content",
+      "title": "Summary + Window in Code",
+      "code": "class SummaryWindowMemory:\n    def add(self, role, content):\n        self.recent.append({'role': role, 'content': content})\n        if len(self.recent) > self.window:\n            old = self.recent[:-self.window]\n            self.recent = self.recent[-self.window:]\n            self.summary = self.llm.summarize(self.summary, old)",
+      "narration": "x"
+    },
+    {
+      "type": "content",
+      "title": "Summary + Window in Code (cont.)",
+      "bullets": [
+        "Append each turn; when over the window, summarize the overflow",
+        "context() returns the summary as a system message plus recent turns",
+        "Token cost stays bounded regardless of conversation length",
+        "Recent turns kept verbatim for precision"
+      ],
+      "narration": "Here's the pattern in practice. Each new message is appended to a recent list. Once we exceed the window size, the oldest overflow is folded into a running summary and dropped from the raw buffer. When we build context, we prepend the summary as a system message followed by the recent verbatim turns. This keeps token cost bounded no matter how long the chat runs."
+    },
+    {
+      "type": "content",
+      "title": "Long-Term Memory: Embed and Retrieve",
+      "bullets": [
+        "Write: embed durable text and store the vector plus metadata",
+        "Read: embed the query and run similarity search for top-k",
+        "Inject retrieved memories into the prompt at each turn",
+        "Backed by a vector store (Pinecone, Qdrant, Chroma, pgvector)"
+      ],
+      "narration": "Long-term memory uses the embed-and-retrieve pattern. When something worth remembering happens, we embed the text and store the vector with metadata in a vector database. At query time, we embed the current input, search for the most similar stored memories, and inject the top matches into the prompt. This is the same retrieval machinery as RAG, applied to the agent's own history."
+    },
+    {
+      "type": "content",
+      "title": "Write Policy and Retrieval Scoring",
+      "bullets": [
+        "Don't store everything—filler pollutes retrieval",
+        "Extract durable facts, preferences, decisions, entities",
+        "Score by relevance, recency, and importance",
+        "Combined: score = α·relevance + β·recency + γ·importance"
+      ],
+      "narration": "Quality matters more than quantity. Dumping every message into long-term memory makes retrieval noisy. Use a write policy that extracts only durable facts. On the read side, rank memories not just by semantic relevance but also recency—newer facts override stale ones—and optionally importance. The generative-agents research popularized combining all three into a weighted score."
+    },
+    {
+      "type": "content",
+      "title": "The Combined Agent Loop",
+      "code": "def agent_turn(user_input):\n    memories = recall(store, embed, user_input, k=4)\n    prompt = build_prompt(system, memories, stm.context(), user_input)\n    answer = llm.chat(prompt)\n    stm.add('user', user_input); stm.add('assistant', answer)\n    for f in extract_facts(user_input, answer):\n        remember(store, embed, f, {'ts': now(), 'user': user_id})\n    return answer",
+      "narration": "Putting it together: each turn we recall relevant long-term memories, build a prompt combining system instructions, those memories, the short-term context, and the user input. After the model responds, we append the turn to short-term memory and extract any durable facts to write to long-term memory. Recall, respond, remember—that's the cycle."
+    },
+    {
+      "type": "content",
+      "title": "Production Concerns",
+      "bullets": [
+        "Cost: retrieval and summaries add tokens—measure and cap",
+        "Privacy: namespace per user, support deletion, encrypt PII",
+        "Staleness: timestamp memories, prefer recent, update conflicts",
+        "Eviction: cap size, evict by age or low importance"
+      ],
+      "narration": "In production, watch the token cost of both summarization and retrieval. Memory often contains personal data, so isolate per-user namespaces, support deletion for compliance, and encrypt sensitive content. Preferences change—timestamp everything and prefer recent facts. Finally, cap memory size and evict old or unimportant entries so retrieval stays sharp."
+    },
+    {
+      "type": "content",
+      "title": "Summary",
+      "bullets": [
+        "Two layers: short-term working memory and long-term persistent memory",
+        "Bound short-term cost with summary + window",
+        "Use embed-and-retrieve with a write policy for long-term",
+        "Combine relevance, recency, importance; mind cost and privacy"
+      ],
+      "narration": "To recap: agents need two memory layers. Short-term memory keeps the conversation coherent—use a summary plus window to control cost. Long-term memory persists across sessions via embed-and-retrieve with a disciplined write policy. Rank by relevance, recency, and importance, and always account for cost, privacy, and staleness in production."
+    }
+  ]
+}

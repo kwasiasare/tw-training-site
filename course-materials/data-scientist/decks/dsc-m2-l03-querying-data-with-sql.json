@@ -1,0 +1,181 @@
+{
+  "slug": "dsc-m2-l03-querying-data-with-sql",
+  "title": "Querying Data with SQL",
+  "month": 2,
+  "monthTitle": "Statistics and SQL for Analysis",
+  "lesson": 3,
+  "video": "dsc-m2-l03-querying-data-with-sql.mp4",
+  "summary": "Learn to extract and analyze data from relational databases using SQL. This lesson covers filtering and aggregations, the major join types, subqueries and CTEs, and window functions for advanced analytics tasks data scientists face daily.",
+  "objectives": [
+    "Write SELECT queries that filter, group, and aggregate data to answer analytical questions",
+    "Combine tables correctly using INNER, LEFT, RIGHT, and FULL joins",
+    "Use subqueries and common table expressions (CTEs) to structure complex logic",
+    "Apply window functions for running totals, rankings, and period-over-period comparisons",
+    "Understand SQL logical execution order to debug queries and avoid common mistakes"
+  ],
+  "quiz": [
+    {
+      "q": "Which clause filters rows AFTER aggregation has occurred?",
+      "options": [
+        "WHERE",
+        "HAVING",
+        "GROUP BY",
+        "ORDER BY"
+      ],
+      "answer": 1,
+      "why": "WHERE filters rows before grouping, while HAVING filters the aggregated results after GROUP BY runs."
+    },
+    {
+      "q": "You want to keep all customers even those with no orders. Which join should you use (customers on the left)?",
+      "options": [
+        "INNER JOIN",
+        "LEFT JOIN",
+        "CROSS JOIN",
+        "Self join"
+      ],
+      "answer": 1,
+      "why": "A LEFT JOIN returns all rows from the left table (customers) and fills NULLs where there is no matching order."
+    },
+    {
+      "q": "What distinguishes a window function from a GROUP BY aggregation?",
+      "options": [
+        "Window functions are faster always",
+        "Window functions collapse rows into one",
+        "Window functions compute across rows without collapsing them",
+        "Window functions cannot use ORDER BY"
+      ],
+      "answer": 2,
+      "why": "Window functions perform calculations over a set of related rows while preserving each individual row, unlike GROUP BY which collapses rows into summaries."
+    },
+    {
+      "q": "In SQL's logical execution order, which clause is evaluated first?",
+      "options": [
+        "SELECT",
+        "FROM",
+        "WHERE",
+        "ORDER BY"
+      ],
+      "answer": 1,
+      "why": "SQL logically begins with FROM to identify the source data, then applies WHERE, GROUP BY, HAVING, SELECT, and finally ORDER BY."
+    },
+    {
+      "q": "Name the keyword used to define a Common Table Expression (CTE).",
+      "answer": "WITH",
+      "why": "CTEs are introduced with the WITH keyword, which names a reusable, readable result set used in the main query."
+    },
+    {
+      "q": "Which window function would you use to compare each row's value to the previous row within a partition?",
+      "answer": "LAG",
+      "why": "LAG accesses a value from a prior row in the ordered window, ideal for period-over-period comparisons. LEAD does the same for the next row."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Mode SQL Tutorial (Intermediate & Advanced)",
+      "url": "https://mode.com/sql-tutorial/"
+    },
+    {
+      "label": "PostgreSQL Window Functions Documentation",
+      "url": "https://www.postgresql.org/docs/current/tutorial-window.html"
+    },
+    {
+      "label": "SQLBolt Interactive SQL Lessons",
+      "url": "https://sqlbolt.com/"
+    },
+    {
+      "label": "Select Star SQL (free interactive book)",
+      "url": "https://selectstarsql.com/"
+    }
+  ],
+  "body_markdown": "## Why SQL for Data Scientists\n\nMost real-world data lives in relational databases. Before you can model or visualize anything in Python, you need to pull the right data. SQL (Structured Query Language) is the universal tool for querying relational data, and fluency in it separates productive data scientists from those who wait on engineering teams.\n\n## The Core Query Structure\n\nA basic query follows a familiar pattern:\n\n```sql\nSELECT column_a, column_b\nFROM table_name\nWHERE condition\nGROUP BY column_a\nHAVING aggregate_condition\nORDER BY column_b\nLIMIT 100;\n```\n\n**Logical execution order** differs from the written order. SQL evaluates clauses roughly as: `FROM` -> `WHERE` -> `GROUP BY` -> `HAVING` -> `SELECT` -> `ORDER BY` -> `LIMIT`. This is why you cannot reference a `SELECT` alias inside a `WHERE` clause, but you can in `ORDER BY`.\n\n## Aggregations\n\nAggregate functions collapse many rows into a summary value: `COUNT`, `SUM`, `AVG`, `MIN`, `MAX`. Pair them with `GROUP BY` to compute per-group summaries.\n\n```sql\nSELECT category, COUNT(*) AS num_orders, AVG(amount) AS avg_amount\nFROM orders\nGROUP BY category\nHAVING COUNT(*) > 10;\n```\n\nUse `WHERE` to filter rows *before* aggregation and `HAVING` to filter *after* aggregation.\n\n## Joins\n\nJoins combine rows from multiple tables based on a related key.\n\n- **INNER JOIN**: only rows with matches in both tables.\n- **LEFT JOIN**: all rows from the left table, NULLs where no match on the right.\n- **RIGHT JOIN**: all rows from the right table.\n- **FULL OUTER JOIN**: all rows from both, matched where possible.\n\n```sql\nSELECT c.customer_name, o.order_id, o.amount\nFROM customers c\nLEFT JOIN orders o ON c.customer_id = o.customer_id;\n```\n\nA LEFT JOIN is your friend when you want to keep all customers even those without orders (great for spotting churn or gaps).\n\n## Subqueries and CTEs\n\nA **subquery** is a query nested inside another. A **CTE** (Common Table Expression) using `WITH` makes complex logic readable and reusable.\n\n```sql\nWITH high_value AS (\n    SELECT customer_id, SUM(amount) AS total\n    FROM orders\n    GROUP BY customer_id\n    HAVING SUM(amount) > 1000\n)\nSELECT c.customer_name, h.total\nFROM high_value h\nJOIN customers c ON c.customer_id = h.customer_id;\n```\n\nPrefer CTEs over deeply nested subqueries for readability and easier debugging.\n\n## Window Functions\n\nWindow functions perform calculations across a set of rows related to the current row **without collapsing them** like `GROUP BY` does. The `OVER()` clause defines the window.\n\n```sql\nSELECT\n    order_date,\n    amount,\n    SUM(amount) OVER (ORDER BY order_date) AS running_total,\n    ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY order_date) AS order_seq,\n    LAG(amount) OVER (PARTITION BY customer_id ORDER BY order_date) AS prev_amount\nFROM orders;\n```\n\nCommon window functions: `ROW_NUMBER`, `RANK`, `DENSE_RANK`, `LAG`, `LEAD`, and aggregate functions with `OVER`. `PARTITION BY` resets the window per group; `ORDER BY` inside `OVER` defines ordering for running/ranking calculations.\n\n## Practical Tips\n\n- Always inspect a sample with `LIMIT` before running heavy aggregations.\n- Be explicit with table aliases when joining.\n- Watch for fan-out: joining one-to-many can inflate aggregate counts.\n- NULLs do not match in joins or equality; handle them deliberately.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Querying Data with SQL",
+      "sub": "Joins, Aggregations, Subqueries & Window Functions",
+      "narration": "Welcome. In this lesson we'll learn how to query relational databases with SQL, the everyday tool data scientists use to extract data before any analysis or modeling begins. We'll cover aggregations, joins, subqueries, CTEs, and window functions."
+    },
+    {
+      "type": "content",
+      "title": "Why SQL Matters",
+      "bullets": [
+        "Most production data lives in relational databases",
+        "SQL is the universal query language across systems",
+        "Pull the right data before modeling in Python",
+        "Fluency means independence from engineering teams"
+      ],
+      "narration": "Before you can train a model or build a dashboard, you need the right data, and most of that data sits in relational databases. SQL is the universal language for accessing it. Being fluent in SQL lets you answer questions on your own instead of waiting on others, which makes you far more productive as a data scientist."
+    },
+    {
+      "type": "content",
+      "title": "Query Structure & Execution Order",
+      "bullets": [
+        "Written: SELECT, FROM, WHERE, GROUP BY, HAVING, ORDER BY",
+        "Logical order: FROM then WHERE then GROUP BY then HAVING then SELECT then ORDER BY",
+        "Can't use SELECT aliases in WHERE",
+        "Can use them in ORDER BY"
+      ],
+      "code": "SELECT category, COUNT(*) AS n\nFROM orders\nWHERE amount > 0\nGROUP BY category\nORDER BY n DESC;",
+      "narration": "A query is written in one order but executed in another. SQL starts with FROM, then filters with WHERE, groups, applies HAVING, then evaluates SELECT, and finally orders and limits. This explains a common confusion: you can't reference a SELECT alias in WHERE because WHERE runs first, but you can in ORDER BY which runs later."
+    },
+    {
+      "type": "content",
+      "title": "Aggregations",
+      "bullets": [
+        "COUNT, SUM, AVG, MIN, MAX collapse rows",
+        "GROUP BY computes per-group summaries",
+        "WHERE filters before aggregation",
+        "HAVING filters after aggregation"
+      ],
+      "code": "SELECT category, AVG(amount) AS avg_amt\nFROM orders\nGROUP BY category\nHAVING COUNT(*) > 10;",
+      "narration": "Aggregate functions summarize many rows into a single value. Combine them with GROUP BY to get per-group results, like average order amount per category. Remember the key distinction: WHERE filters individual rows before grouping, while HAVING filters the grouped results after aggregation."
+    },
+    {
+      "type": "content",
+      "title": "Joins",
+      "bullets": [
+        "INNER: only matching rows in both tables",
+        "LEFT: all left rows, NULLs when no match",
+        "RIGHT: all right rows",
+        "FULL OUTER: everything, matched where possible"
+      ],
+      "code": "SELECT c.customer_name, o.amount\nFROM customers c\nLEFT JOIN orders o\n  ON c.customer_id = o.customer_id;",
+      "narration": "Joins combine rows from multiple tables on a shared key. INNER JOIN keeps only matches; LEFT JOIN keeps every row from the left table and fills NULLs where there's no match. Use a LEFT JOIN when you want to keep all customers, including those with no orders, which is perfect for finding gaps or churn."
+    },
+    {
+      "type": "content",
+      "title": "Subqueries & CTEs",
+      "bullets": [
+        "Subquery: a query nested inside another",
+        "CTE with WITH names a reusable result set",
+        "CTEs improve readability and debugging",
+        "Prefer CTEs over deeply nested subqueries"
+      ],
+      "code": "WITH high_value AS (\n  SELECT customer_id, SUM(amount) AS total\n  FROM orders GROUP BY customer_id\n  HAVING SUM(amount) > 1000\n)\nSELECT * FROM high_value;",
+      "narration": "When logic gets complex, subqueries let you nest one query inside another. Common Table Expressions, written with the WITH keyword, give that subquery a name and make your code read top to bottom. For anything beyond trivial nesting, prefer CTEs: they're easier to read, test, and debug."
+    },
+    {
+      "type": "content",
+      "title": "Window Functions",
+      "bullets": [
+        "Calculate across rows without collapsing them",
+        "OVER() defines the window",
+        "PARTITION BY groups; ORDER BY orders within window",
+        "ROW_NUMBER, RANK, LAG, LEAD, running SUM"
+      ],
+      "code": "SELECT order_date, amount,\n  SUM(amount) OVER (ORDER BY order_date) AS running_total,\n  LAG(amount) OVER (PARTITION BY customer_id\n                    ORDER BY order_date) AS prev\nFROM orders;",
+      "narration": "Window functions are the superpower for analytics. Unlike GROUP BY, they compute across related rows while keeping every row intact. The OVER clause defines the window: PARTITION BY resets per group, and ORDER BY sets the sequence for running totals or rankings. Functions like ROW_NUMBER, RANK, LAG, and LEAD enable rankings and period-over-period comparisons."
+    },
+    {
+      "type": "content",
+      "title": "Practical Tips",
+      "bullets": [
+        "Inspect samples with LIMIT before heavy queries",
+        "Use explicit table aliases when joining",
+        "Beware fan-out from one-to-many joins inflating counts",
+        "NULLs never match in equality or joins"
+      ],
+      "narration": "A few habits will save you pain. Always preview data with LIMIT first. Use clear table aliases in joins. Watch out for fan-out, where a one-to-many join multiplies rows and inflates your aggregates. And remember NULLs don't match anything in equality comparisons, so handle them deliberately. With these fundamentals you can confidently extract data for any analysis."
+    }
+  ]
+}

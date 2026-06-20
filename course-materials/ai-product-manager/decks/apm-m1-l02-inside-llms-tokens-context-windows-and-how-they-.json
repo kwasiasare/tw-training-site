@@ -1,0 +1,196 @@
+{
+  "slug": "apm-m1-l02-inside-llms-tokens-context-windows-and-how-they-",
+  "title": "Inside LLMs: Tokens, Context Windows, and How They Generate Text",
+  "month": 1,
+  "monthTitle": "AI Literacy and LLM Foundations for PMs",
+  "lesson": 2,
+  "video": "apm-m1-l02-inside-llms-tokens-context-windows-and-how-they-.mp4",
+  "summary": "A practical introduction to how large language models actually work—tokens, context windows, and next-token prediction—so PMs can make sound product decisions and explain LLMs clearly to non-technical teammates. You'll finish by drafting a one-page LLM explainer.",
+  "objectives": [
+    "Explain what tokens are and how they affect cost, latency, and product limits",
+    "Describe context windows and reason about what fits in a single prompt",
+    "Explain how LLMs generate text via next-token prediction and sampling parameters",
+    "Connect model mechanics (temperature, context limits, tokenization) to concrete product trade-offs",
+    "Produce a one-page LLM explainer that demystifies LLMs for non-technical stakeholders"
+  ],
+  "quiz": [
+    {
+      "q": "Approximately how many tokens does an English word average?",
+      "options": [
+        "About 0.1 tokens",
+        "About 0.75 tokens",
+        "About 4 tokens",
+        "About 10 tokens"
+      ],
+      "answer": 1,
+      "why": "An English word averages roughly 0.75 tokens (a token is ~4 characters), so token counts are usually a bit higher than word counts."
+    },
+    {
+      "q": "What does the context window represent?",
+      "options": [
+        "The total tokens a model was trained on",
+        "The maximum tokens the model can consider in one request, input plus output",
+        "The number of users who can chat at once",
+        "The model's long-term memory across all conversations"
+      ],
+      "answer": 1,
+      "why": "The context window is the maximum tokens (prompt + generated output) the model can attend to in a single request; it is not persistent memory across calls."
+    },
+    {
+      "q": "Why can the same prompt produce different answers?",
+      "options": [
+        "The model edits its training data each time",
+        "Text generation samples from a probability distribution over next tokens",
+        "Tokens change size between requests",
+        "The context window resets randomly"
+      ],
+      "answer": 1,
+      "why": "Generation is probabilistic—the model samples the next token from a distribution—so outputs can vary, especially at higher temperature."
+    },
+    {
+      "q": "A teammate wants to 'just paste our entire 200-page manual into every prompt' so the model always knows everything. What's the best PM response?",
+      "options": [
+        "Great idea, do it for every call",
+        "That likely exceeds the context window and raises cost/latency; use retrieval to include only relevant parts",
+        "Increase the temperature instead",
+        "Tokens don't apply to documents"
+      ],
+      "answer": 1,
+      "why": "Large documents often exceed the context window and inflate cost and latency; retrieval (RAG) pulls only relevant chunks, which is more efficient and effective."
+    },
+    {
+      "q": "In one sentence, explain why LLMs hallucinate.",
+      "answer": "Because they generate text by predicting statistically likely next tokens rather than looking up verified facts, they can produce plausible-sounding but false content.",
+      "why": "Hallucination stems from the next-token prediction mechanism: the model optimizes for plausibility, not truth, so confident errors occur."
+    },
+    {
+      "q": "Which temperature setting is most appropriate for a structured data-extraction task that must be consistent?",
+      "options": [
+        "A high temperature near 1.0+",
+        "A temperature near 0",
+        "Temperature has no effect on consistency",
+        "The maximum possible temperature"
+      ],
+      "answer": 1,
+      "why": "A low temperature (near 0) makes output more deterministic and repeatable, which is ideal for extraction and other tasks that require consistency."
+    }
+  ],
+  "resources": [
+    {
+      "label": "OpenAI Tokenizer (visualize how text splits into tokens)",
+      "url": "https://platform.openai.com/tokenizer"
+    },
+    {
+      "label": "OpenAI Guide: Prompt engineering and generation parameters",
+      "url": "https://platform.openai.com/docs/guides/prompt-engineering"
+    },
+    {
+      "label": "Anthropic: Introduction to context windows and prompting",
+      "url": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview"
+    },
+    {
+      "label": "What Is ChatGPT Doing... and Why Does It Work? (Stephen Wolfram)",
+      "url": "https://writings.stephenwolfram.com/2023/02/what-is-chatgpt-doing-and-why-does-it-work/"
+    }
+  ],
+  "body_markdown": "## Why PMs Need to Understand LLM Mechanics\n\nAs an AI PM you don't need to train models, but you do need a working mental model of how LLMs operate. The three concepts that drive most product decisions—cost, latency, quality, and reliability—are **tokens**, **context windows**, and **next-token generation**. Understanding these lets you scope features realistically, estimate costs, and translate engineering reality to business stakeholders.\n\n## Tokens: The Unit of Everything\n\nLLMs don't read words or characters—they read **tokens**. A token is a chunk of text, roughly 4 characters or about 0.75 words in English. \"Tokenization\" is the process of splitting input text into these chunks using a learned vocabulary.\n\n- Common words are often one token (`apple`). Rare words split into several (`tokenization` → `token` + `ization`).\n- Whitespace and punctuation count. Code, JSON, and non-English text often use more tokens per word.\n- **Both input and output are billed in tokens.** A 500-word prompt plus a 500-word answer is roughly 1,300 tokens.\n\n**Why it matters for product:** pricing is per-token, so prompt design directly affects unit economics. Latency also scales with output tokens—long responses feel slow because the model generates one token at a time.\n\n## Context Windows: The Model's Working Memory\n\nThe **context window** is the maximum number of tokens the model can consider at once—input prompt plus generated output combined. Models range from a few thousand tokens to hundreds of thousands or more.\n\n- Anything outside the window is invisible to the model. The model has **no memory** between separate API calls unless you re-send the relevant text.\n- \"Memory\" in chat apps is an illusion: the app re-sends prior conversation each turn until it no longer fits, then truncates or summarizes.\n- Bigger windows cost more and can be slower; relevant context beats maximum context.\n\n**Why it matters for product:** features like \"summarize this 100-page doc\" or \"remember my preferences\" require deliberate engineering—chunking, retrieval (RAG), or summarization—not just a bigger prompt.\n\n## How LLMs Generate Text: Next-Token Prediction\n\nAt its core, an LLM is a very sophisticated autocomplete. Given a sequence of tokens, it predicts a **probability distribution over the next token**, picks one, appends it, and repeats. That's it.\n\n- There is no database lookup and no guaranteed truth—just statistical prediction learned from training data. This is why models **hallucinate** plausible-sounding but false content.\n- **Temperature** controls randomness: low (≈0) is more deterministic and focused; high (≈1+) is more creative and varied.\n- **Top-p / top-k** limit which candidate tokens are considered, another lever on creativity vs. consistency.\n- Output is generated sequentially (streaming), which is why you see text appear word by word.\n\n**Why it matters for product:** because output is probabilistic, the same prompt can give different answers. Plan for variability with evaluations, guardrails, and human review where stakes are high.\n\n## Connecting Mechanics to Product Decisions\n\n| Concept | Product lever | Trade-off |\n|---|---|---|\n| Tokens | Prompt length, output length | Cost & latency vs. richness |\n| Context window | How much you can include | More context vs. cost/speed |\n| Temperature | Determinism | Consistency vs. creativity |\n| Next-token prediction | Reliability | Flexibility vs. hallucination risk |\n\n## Your Deliverable: The One-Page Explainer\n\nCreate a single page for non-technical teammates that covers: (1) what a token is and why it affects cost, (2) what the context window is and why the model 'forgets,' (3) that the model predicts text and can be confidently wrong, and (4) three implications for our product. Use plain language and one concrete analogy per concept. Keep it skimmable—headers, short bullets, no jargon without a definition.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Inside LLMs: Tokens, Context Windows & Text Generation",
+      "sub": "AI Literacy for Product Managers",
+      "narration": "Welcome. In this lesson we'll open up the black box of large language models just enough for a product manager to make good decisions. We'll cover three core ideas—tokens, context windows, and how text is actually generated—and then you'll build a one-page explainer to demystify LLMs for your non-technical teammates."
+    },
+    {
+      "type": "content",
+      "title": "Why This Matters for PMs",
+      "bullets": [
+        "You won't train models, but you'll scope, price, and explain features built on them",
+        "Cost, latency, and quality all trace back to a few mechanics",
+        "Understanding the basics prevents over-promising and bad estimates",
+        "Goal: a clear mental model you can teach to others"
+      ],
+      "narration": "You don't need to be an ML engineer, but you do need a working mental model. Nearly every product decision around AI features—how much it costs, how fast it feels, how reliable it is—comes back to a handful of mechanics. Knowing them keeps you from over-promising in a roadmap and helps you translate engineering reality to the business."
+    },
+    {
+      "type": "content",
+      "title": "Tokens: The Unit of Everything",
+      "bullets": [
+        "LLMs read tokens, not words—~4 characters or ~0.75 words each",
+        "Common words are one token; rare words and code split into many",
+        "Both input and output are billed in tokens",
+        "Latency scales with output length—text is generated one token at a time"
+      ],
+      "code": "\"tokenization\" -> [\"token\", \"ization\"]  (2 tokens)\n\"apple\"        -> [\"apple\"]              (1 token)",
+      "narration": "First, tokens. Models don't see words or letters—they see tokens, which are chunks of text averaging about four characters. Common words are usually a single token while rare words and code break into several pieces. This matters because you're billed per token on both the input and the output, and because the model produces one token at a time, longer answers literally take longer to generate."
+    },
+    {
+      "type": "content",
+      "title": "Context Windows: Working Memory",
+      "bullets": [
+        "Max tokens the model can consider at once—input plus output combined",
+        "Anything outside the window is invisible to the model",
+        "No memory between calls unless you re-send the text",
+        "Chat 'memory' is the app re-sending prior turns each time"
+      ],
+      "narration": "Next, the context window. This is the model's working memory—the maximum number of tokens it can hold at once, counting both your prompt and its response. Anything that doesn't fit is simply invisible. Critically, the model has no memory between separate calls. When a chatbot seems to remember your conversation, the app is quietly re-sending the history every turn until it no longer fits."
+    },
+    {
+      "type": "content",
+      "title": "Implications of the Context Limit",
+      "bullets": [
+        "'Summarize this 100-page doc' needs chunking or retrieval, not a bigger prompt",
+        "RAG: fetch only the relevant pieces and include those",
+        "Bigger windows cost more and can be slower",
+        "Relevant context beats maximum context"
+      ],
+      "narration": "The context limit shapes what's feasible. You can't just paste a hundred-page document and expect magic—you need techniques like chunking, summarization, or retrieval-augmented generation, where you fetch only the relevant passages. Bigger windows exist but they cost more and can be slower, so the goal is relevant context, not maximum context."
+    },
+    {
+      "type": "content",
+      "title": "How LLMs Generate Text",
+      "bullets": [
+        "Core loop: predict the next token, pick one, append, repeat",
+        "It's sophisticated autocomplete—statistical, not a fact lookup",
+        "This is why models hallucinate confident, plausible falsehoods",
+        "Output is probabilistic: same prompt can give different answers"
+      ],
+      "code": "prompt: \"The capital of France is\"\n-> P(\"Paris\")=0.91, P(\"a\")=0.02, ...\n-> pick \"Paris\" -> repeat",
+      "narration": "Now the heart of it: how text is generated. The model takes your tokens and predicts a probability distribution over the next token, picks one, appends it, and repeats. That's the entire loop—it's a very sophisticated autocomplete, not a database lookup. Because it's predicting what's statistically likely rather than retrieving truth, it can produce confident, plausible-sounding errors we call hallucinations. And because it's probabilistic, the same prompt may yield different answers."
+    },
+    {
+      "type": "content",
+      "title": "Tuning Generation: Temperature & Sampling",
+      "bullets": [
+        "Temperature ~0: focused, deterministic, repeatable",
+        "Temperature high: creative, varied, less predictable",
+        "Top-p / top-k narrow the candidate tokens considered",
+        "Match the setting to the task: extraction vs. brainstorming"
+      ],
+      "narration": "You can tune that generation. Temperature controls randomness—near zero gives focused, repeatable output, ideal for extraction or classification, while higher values give creativity and variety, useful for brainstorming or copywriting. Parameters like top-p and top-k similarly narrow which candidate tokens the model considers. As a PM, you should match these settings to the task rather than leaving them at default."
+    },
+    {
+      "type": "content",
+      "title": "Mechanics → Product Trade-offs",
+      "bullets": [
+        "Tokens → cost and latency vs. richness of prompt and output",
+        "Context window → more context vs. cost and speed",
+        "Temperature → consistency vs. creativity",
+        "Next-token prediction → flexibility vs. hallucination risk; plan evals and guardrails"
+      ],
+      "narration": "Let's tie it together. Tokens trade cost and latency against richness. The context window trades coverage against cost and speed. Temperature trades consistency against creativity. And the prediction mechanism trades flexibility against hallucination risk, which is why high-stakes features need evaluations, guardrails, and sometimes human review. Each mechanic maps to a lever you control."
+    },
+    {
+      "type": "content",
+      "title": "Your Deliverable: One-Page LLM Explainer",
+      "bullets": [
+        "Define a token and why it affects cost—use one analogy",
+        "Explain the context window and why the model 'forgets'",
+        "State that it predicts text and can be confidently wrong",
+        "List three implications for YOUR product",
+        "Keep it skimmable: headers, short bullets, plain language"
+      ],
+      "narration": "Your task is to write a one-page explainer for non-technical teammates. Cover four things: what a token is and why it drives cost, what the context window is and why the model forgets, the fact that it predicts text and can be confidently wrong, and three concrete implications for your product. Use one plain analogy per concept and keep it skimmable. Teaching it is the best test of whether you understand it."
+    }
+  ]
+}

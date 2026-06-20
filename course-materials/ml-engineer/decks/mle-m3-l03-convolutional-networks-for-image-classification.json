@@ -1,0 +1,171 @@
+{
+  "slug": "mle-m3-l03-convolutional-networks-for-image-classification",
+  "title": "Convolutional Networks for Image Classification",
+  "month": 3,
+  "monthTitle": "Deep Learning with PyTorch",
+  "lesson": 3,
+  "video": "mle-m3-l03-convolutional-networks-for-image-classification.mp4",
+  "summary": "Learn to design, train, and improve convolutional neural networks (CNNs) for image classification in PyTorch. This lesson covers the core building blocks of CNNs, a practical training loop, data augmentation, and transfer learning to boost accuracy with limited data.",
+  "objectives": [
+    "Explain the role of convolution, pooling, and fully connected layers in a CNN",
+    "Build and train a CNN image classifier in PyTorch using a standard training loop",
+    "Apply data augmentation with torchvision transforms to reduce overfitting",
+    "Use transfer learning by fine-tuning a pretrained model (e.g., ResNet) on a new dataset",
+    "Evaluate model performance and diagnose overfitting vs. underfitting"
+  ],
+  "quiz": [
+    {
+      "q": "What two key ideas allow CNNs to use far fewer parameters than fully connected networks on images?",
+      "options": [
+        "Dropout and batch normalization",
+        "Local connectivity and weight sharing",
+        "Softmax and cross-entropy",
+        "Pooling and padding"
+      ],
+      "answer": 1,
+      "why": "Local connectivity means each neuron only sees a small region, and weight sharing reuses the same filter across the image, drastically reducing parameters while giving translation invariance."
+    },
+    {
+      "q": "In PyTorch, what input does nn.CrossEntropyLoss expect from the model?",
+      "options": [
+        "Softmax probabilities",
+        "Raw logits (no softmax applied)",
+        "One-hot encoded predictions",
+        "Log-probabilities only"
+      ],
+      "answer": 1,
+      "why": "CrossEntropyLoss applies log-softmax internally, so you pass raw logits and integer class labels; applying softmax yourself would be incorrect."
+    },
+    {
+      "q": "Why should data augmentation be applied only to the training set?",
+      "options": [
+        "It is too slow for validation",
+        "Validation/test should measure performance on unaltered, representative data",
+        "Augmentation requires gradients",
+        "It changes the number of classes"
+      ],
+      "answer": 1,
+      "why": "Augmentation adds randomness to expand training variety, but validation and test sets must be deterministic to give a fair, reproducible measure of real-world performance."
+    },
+    {
+      "q": "When doing transfer learning as pure feature extraction, what do you do with the pretrained backbone?",
+      "options": [
+        "Reinitialize it randomly",
+        "Freeze it (requires_grad=False) and train only the new head",
+        "Train it with a large learning rate",
+        "Delete all but the first layer"
+      ],
+      "answer": 1,
+      "why": "In feature extraction you freeze the backbone so its learned features stay fixed, and only the newly added classification head is trained."
+    },
+    {
+      "q": "Your model shows 98% training accuracy but only 70% validation accuracy. Name the problem and one fix.",
+      "answer": "Overfitting; fix with more data augmentation, dropout, weight decay, or early stopping.",
+      "why": "A large gap between high train accuracy and lower validation accuracy indicates overfitting, addressed by stronger regularization or more/augmented data."
+    },
+    {
+      "q": "What does a MaxPool2d(2) layer do to a feature map?",
+      "answer": "It downsamples the spatial dimensions by a factor of 2, keeping the maximum value in each 2x2 region.",
+      "why": "Max pooling reduces spatial resolution and computation while retaining the strongest activations, adding robustness to small translations."
+    }
+  ],
+  "resources": [
+    {
+      "label": "PyTorch Transfer Learning Tutorial",
+      "url": "https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html"
+    },
+    {
+      "label": "torchvision.transforms documentation",
+      "url": "https://pytorch.org/vision/stable/transforms.html"
+    },
+    {
+      "label": "CS231n: Convolutional Neural Networks",
+      "url": "https://cs231n.github.io/convolutional-networks/"
+    },
+    {
+      "label": "torchvision.models (pretrained models)",
+      "url": "https://pytorch.org/vision/stable/models.html"
+    }
+  ],
+  "body_markdown": "## Why Convolutional Networks?\n\nFully connected networks treat each pixel independently and ignore spatial structure. Images have local patterns (edges, textures) that repeat across the image. **Convolutional Neural Networks (CNNs)** exploit this with two key ideas:\n\n- **Local connectivity**: each neuron looks at a small region (the receptive field).\n- **Weight sharing**: the same filter slides across the whole image, drastically reducing parameters and giving translation invariance.\n\n## Core Building Blocks\n\n- **Convolution layer (`nn.Conv2d`)**: learns a set of filters (kernels). Key args: `in_channels`, `out_channels`, `kernel_size`, `stride`, `padding`.\n- **Activation (`ReLU`)**: introduces non-linearity.\n- **Pooling (`nn.MaxPool2d`)**: downsamples spatially, reducing resolution and computation while adding robustness.\n- **Batch Normalization (`nn.BatchNorm2d`)**: stabilizes and speeds up training.\n- **Fully connected head (`nn.Linear`)**: maps extracted features to class scores.\n\nA typical block is: `Conv -> BatchNorm -> ReLU -> Pool`, stacked several times, then flattened into a classifier head.\n\n## A Simple CNN in PyTorch\n\n```python\nimport torch.nn as nn\n\nclass SimpleCNN(nn.Module):\n    def __init__(self, num_classes=10):\n        super().__init__()\n        self.features = nn.Sequential(\n            nn.Conv2d(3, 32, 3, padding=1), nn.BatchNorm2d(32), nn.ReLU(),\n            nn.MaxPool2d(2),                      # 32x16x16\n            nn.Conv2d(32, 64, 3, padding=1), nn.BatchNorm2d(64), nn.ReLU(),\n            nn.MaxPool2d(2),                      # 64x8x8\n        )\n        self.classifier = nn.Sequential(\n            nn.Flatten(),\n            nn.Linear(64*8*8, 128), nn.ReLU(), nn.Dropout(0.5),\n            nn.Linear(128, num_classes),\n        )\n    def forward(self, x):\n        return self.classifier(self.features(x))\n```\n\n## The Training Loop\n\n```python\nimport torch\nmodel = SimpleCNN().to(device)\ncriterion = nn.CrossEntropyLoss()\noptimizer = torch.optim.Adam(model.parameters(), lr=1e-3)\n\nfor epoch in range(epochs):\n    model.train()\n    for images, labels in train_loader:\n        images, labels = images.to(device), labels.to(device)\n        optimizer.zero_grad()\n        outputs = model(images)\n        loss = criterion(outputs, labels)\n        loss.backward()\n        optimizer.step()\n    # validation pass with model.eval() and torch.no_grad()\n```\n\nNote: `CrossEntropyLoss` expects raw logits (no softmax) and integer class labels.\n\n## Data Augmentation\n\nAugmentation creates new training examples by transforming images, which reduces overfitting and improves generalization. Apply augmentation **only to the training set**; keep validation/test deterministic.\n\n```python\nfrom torchvision import transforms\n\ntrain_tf = transforms.Compose([\n    transforms.RandomResizedCrop(224),\n    transforms.RandomHorizontalFlip(),\n    transforms.ColorJitter(0.2, 0.2, 0.2),\n    transforms.ToTensor(),\n    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),\n])\nval_tf = transforms.Compose([\n    transforms.Resize(256), transforms.CenterCrop(224),\n    transforms.ToTensor(),\n    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),\n])\n```\n\n## Transfer Learning\n\nTraining from scratch needs lots of data and compute. **Transfer learning** reuses a model pretrained on ImageNet and adapts it to your task.\n\n```python\nfrom torchvision import models\n\nmodel = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)\nfor p in model.parameters():\n    p.requires_grad = False          # freeze backbone (feature extraction)\nmodel.fc = nn.Linear(model.fc.in_features, num_classes)  # new head trains\n```\n\nTwo common strategies:\n\n- **Feature extraction**: freeze the backbone, train only the new head. Fast, great for small datasets.\n- **Fine-tuning**: unfreeze some or all layers and train with a small learning rate (e.g., `1e-4`) so pretrained weights aren't destroyed.\n\n## Evaluating and Diagnosing\n\n- Track **training vs. validation accuracy/loss** each epoch.\n- **Overfitting**: train accuracy high, val accuracy low — add augmentation, dropout, or weight decay.\n- **Underfitting**: both low — train longer, increase capacity, or reduce regularization.\n- Inspect a **confusion matrix** to find which classes are confused.\n\n## Practical Tips\n\n- Always normalize inputs with the same statistics the pretrained model used.\n- Use a GPU; move both model and tensors to `device`.\n- Save checkpoints with `torch.save(model.state_dict())`.\n- Use a learning rate scheduler (e.g., `StepLR`, `CosineAnnealingLR`) for better convergence.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Convolutional Networks for Image Classification",
+      "sub": "Deep Learning with PyTorch",
+      "narration": "Welcome. In this lesson we'll design and train convolutional neural networks to classify images using PyTorch. We'll start with the fundamentals of how CNNs work, build one from scratch, then learn two powerful techniques to boost accuracy: data augmentation and transfer learning."
+    },
+    {
+      "type": "content",
+      "title": "Why CNNs for Images?",
+      "bullets": [
+        "Fully connected nets ignore spatial structure",
+        "Local connectivity: neurons see small receptive fields",
+        "Weight sharing: same filter slides across the image",
+        "Fewer parameters and built-in translation invariance"
+      ],
+      "narration": "Images have local, repeating patterns like edges and textures. A fully connected network treats every pixel independently, which wastes parameters and ignores spatial structure. CNNs use two clever ideas: local connectivity, where each neuron only looks at a small region, and weight sharing, where the same filter slides across the whole image. This means far fewer parameters and a model that recognizes patterns regardless of where they appear."
+    },
+    {
+      "type": "content",
+      "title": "Core Building Blocks",
+      "bullets": [
+        "Conv2d: learnable filters with stride and padding",
+        "ReLU: non-linear activation",
+        "MaxPool2d: spatial downsampling",
+        "BatchNorm2d: stabilizes training",
+        "Linear head maps features to class scores"
+      ],
+      "narration": "A CNN stacks a few key layers. Convolution layers learn filters that detect features. ReLU adds non-linearity. Pooling downsamples the spatial dimensions, reducing computation and adding robustness. Batch normalization stabilizes and speeds up training. A typical block is convolution, batch norm, ReLU, then pooling, repeated several times. Finally, the features are flattened and passed to fully connected layers that produce class scores."
+    },
+    {
+      "type": "content",
+      "title": "Building a Simple CNN",
+      "code": "class SimpleCNN(nn.Module):\n    def __init__(self, num_classes=10):\n        super().__init__()\n        self.features = nn.Sequential(\n            nn.Conv2d(3,32,3,padding=1), nn.BatchNorm2d(32), nn.ReLU(),\n            nn.MaxPool2d(2),\n            nn.Conv2d(32,64,3,padding=1), nn.BatchNorm2d(64), nn.ReLU(),\n            nn.MaxPool2d(2))\n        self.classifier = nn.Sequential(\n            nn.Flatten(), nn.Linear(64*8*8,128), nn.ReLU(),\n            nn.Dropout(0.5), nn.Linear(128,num_classes))\n    def forward(self, x):\n        return self.classifier(self.features(x))",
+      "narration": "Here's a compact CNN in PyTorch. The feature extractor has two convolutional blocks, each halving the spatial size with max pooling. Notice padding equals one keeps the width and height before pooling. After two pools a 32 by 32 input becomes 8 by 8 with 64 channels. We flatten that, pass through a dense layer with dropout for regularization, and output one score per class."
+    },
+    {
+      "type": "content",
+      "title": "The Training Loop",
+      "code": "criterion = nn.CrossEntropyLoss()\noptimizer = torch.optim.Adam(model.parameters(), lr=1e-3)\nfor images, labels in train_loader:\n    images, labels = images.to(device), labels.to(device)\n    optimizer.zero_grad()\n    loss = criterion(model(images), labels)\n    loss.backward()\n    optimizer.step()",
+      "narration": "The training loop follows the standard PyTorch pattern. For each batch we zero the gradients, run a forward pass, compute the loss, backpropagate, and step the optimizer. We use CrossEntropyLoss, which expects raw logits — so don't apply softmax yourself — and integer class labels. Remember to move both the model and your tensors to the same device, and to run a validation pass in eval mode with no gradients."
+    },
+    {
+      "type": "content",
+      "title": "Data Augmentation",
+      "bullets": [
+        "Generates varied training examples on the fly",
+        "Reduces overfitting, improves generalization",
+        "RandomCrop, HorizontalFlip, ColorJitter",
+        "Apply ONLY to training data",
+        "Keep val/test transforms deterministic"
+      ],
+      "code": "train_tf = transforms.Compose([\n    transforms.RandomResizedCrop(224),\n    transforms.RandomHorizontalFlip(),\n    transforms.ToTensor(),\n    transforms.Normalize(mean, std)])",
+      "narration": "Data augmentation randomly transforms training images — cropping, flipping, adjusting color — so the model sees more variety and overfits less. Critically, you apply augmentation only to the training set. Validation and test transforms should be deterministic, typically a resize, center crop, conversion to tensor, and normalization. Always normalize using the same mean and standard deviation expected by your model."
+    },
+    {
+      "type": "content",
+      "title": "Transfer Learning",
+      "bullets": [
+        "Reuse a model pretrained on ImageNet",
+        "Feature extraction: freeze backbone, train new head",
+        "Fine-tuning: unfreeze layers, use small LR",
+        "Replace the final layer for your classes"
+      ],
+      "code": "model = models.resnet18(weights='DEFAULT')\nfor p in model.parameters():\n    p.requires_grad = False\nmodel.fc = nn.Linear(model.fc.in_features, num_classes)",
+      "narration": "Transfer learning is the fastest path to high accuracy with limited data. We take a model like ResNet-18 already trained on ImageNet, which has learned general visual features. For feature extraction, we freeze the backbone and only train a new final layer matching our number of classes. For fine-tuning, we unfreeze some or all layers and train with a small learning rate so we adapt without destroying the pretrained weights."
+    },
+    {
+      "type": "content",
+      "title": "Evaluate & Diagnose",
+      "bullets": [
+        "Track train vs. validation accuracy each epoch",
+        "Overfitting: high train, low val → more augmentation/dropout",
+        "Underfitting: both low → more capacity or epochs",
+        "Use a confusion matrix to find confused classes",
+        "Save checkpoints; use an LR scheduler"
+      ],
+      "narration": "Finally, always monitor training versus validation metrics. If training accuracy is high but validation lags, you're overfitting — add augmentation, dropout, or weight decay. If both are low, you're underfitting — train longer or increase capacity. A confusion matrix reveals which classes get mixed up. Save your best checkpoints and consider a learning rate scheduler for smoother convergence. With these tools you can build, train, and improve a solid image classifier."
+    }
+  ]
+}
