@@ -80,7 +80,7 @@ A trained model is useless in production if it only runs on the data scientist's
 
 Key benefits for MLOps:
 
-- **Reproducibility** 	huh — the exact same environment everywhere, eliminating "works on my machine".
+- **Reproducibility** — the exact same environment everywhere, eliminating "works on my machine".
 - **Portability** — the same image runs on a laptop, CI runner, or Kubernetes cluster.
 - **Isolation** — dependencies don't conflict with the host or other services.
 - **Scalability** — images are the unit of deployment for orchestrators like Kubernetes.
