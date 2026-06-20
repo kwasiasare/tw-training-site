@@ -1,0 +1,198 @@
+{
+  "slug": "dm-m3-l03-measuring-traffic-with-google-analytics-4",
+  "title": "Measuring Traffic with Google Analytics 4",
+  "month": 3,
+  "monthTitle": "SEO, Analytics & Performance Measurement",
+  "lesson": 3,
+  "video": "dm-m3-l03-measuring-traffic-with-google-analytics-4.mp4",
+  "summary": "Learn how to set up Google Analytics 4 (GA4) and navigate its core reports to measure website traffic, identify where visitors come from, track conversions, and understand user behavior so you can report on marketing performance.",
+  "objectives": [
+    "Explain what GA4 is and how its event-based data model differs from older Universal Analytics",
+    "Create a GA4 property and install the tracking tag on a website",
+    "Navigate the main GA4 report areas: Reports, Acquisition, Engagement, and Real-time",
+    "Identify traffic sources and channels using the Acquisition reports",
+    "Set up and read conversions (key events) to measure goal completions",
+    "Read and interpret key metrics like users, sessions, engagement rate, and bounce"
+  ],
+  "quiz": [
+    {
+      "q": "What is the fundamental unit of data in GA4?",
+      "options": [
+        "Sessions",
+        "Events",
+        "Pageviews",
+        "Goals"
+      ],
+      "answer": 1,
+      "why": "GA4 uses an event-based data model where every interaction — page views, scrolls, clicks, purchases — is recorded as an event."
+    },
+    {
+      "q": "Which GA4 report would you use to confirm tracking is working right after installing the tag?",
+      "options": [
+        "Acquisition",
+        "Real-time",
+        "Monetization",
+        "Engagement"
+      ],
+      "answer": 1,
+      "why": "The Real-time report shows activity on the site as it happens, so you can open the site in another tab and watch your own visit appear."
+    },
+    {
+      "q": "A visitor arrives by clicking an unpaid post on Instagram. Which channel will GA4 assign?",
+      "options": [
+        "Direct",
+        "Paid Social",
+        "Organic Social",
+        "Referral"
+      ],
+      "answer": 2,
+      "why": "Unpaid traffic from social media is categorized as Organic Social. Paid Social would only apply to ads."
+    },
+    {
+      "q": "In GA4, what do you do to turn an important event into a conversion?",
+      "options": [
+        "Create a Goal in Admin",
+        "Mark the event as a key event",
+        "Add a UTM parameter",
+        "Enable Enhanced Measurement"
+      ],
+      "answer": 1,
+      "why": "GA4 calls conversions 'key events.' You mark an event as a key event in the Events settings to start counting it as a conversion."
+    },
+    {
+      "q": "What does the engagement rate metric measure, and what older metric does it effectively replace?",
+      "answer": "Engagement rate is the percentage of sessions that were engaged (lasted 10+ seconds, had a conversion, or had 2+ page views). It replaces the old bounce rate.",
+      "why": "GA4 favors engagement rate as a more positive, accurate measure; bounce rate in GA4 is simply its inverse."
+    },
+    {
+      "q": "Name the three most common UTM parameters used to tag campaign links.",
+      "answer": "utm_source, utm_medium, and utm_campaign",
+      "why": "These three parameters tell GA4 where the traffic came from, the channel type, and the campaign name, feeding accurate data into the Acquisition reports."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Google Analytics 4 Official Help Center",
+      "url": "https://support.google.com/analytics/answer/10089681"
+    },
+    {
+      "label": "GA4 Skillshop Course (Google's free certification)",
+      "url": "https://skillshop.exceedlms.com/student/catalog/list?category_ids=6431-google-analytics-4"
+    },
+    {
+      "label": "Google Analytics Demo Account (practice with real data)",
+      "url": "https://support.google.com/analytics/answer/6367342"
+    },
+    {
+      "label": "Campaign URL Builder (create UTM links)",
+      "url": "https://ga-dev-tools.google/campaign-url-builder/"
+    }
+  ],
+  "body_markdown": "## Why Google Analytics 4 Matters\n\nAs a junior digital marketing assistant, one of your core jobs is answering the question: *\"Is our marketing actually working?\"* Google Analytics 4 (GA4) is the free tool most businesses use to answer that question. It tells you how many people visit a website, where they came from, what they do once they arrive, and whether they complete the actions that matter (buying, signing up, contacting).\n\nGA4 is the current version of Google Analytics, replacing the older Universal Analytics (UA), which stopped collecting data in July 2023. If you see tutorials mentioning \"bounce rate\" as the main metric or \"Goals,\" they may be outdated — GA4 works differently.\n\n## The Event-Based Data Model\n\nThe biggest change in GA4 is that **everything is an event**. In old Universal Analytics, data was organized around sessions and pageviews. In GA4, every interaction — a page view, a scroll, a click, a video play, a purchase — is recorded as an *event*.\n\n- **Event**: something a user does (e.g. `page_view`, `scroll`, `click`, `session_start`).\n- **Parameters**: extra detail attached to an event (e.g. which page, which link).\n- **Key events (conversions)**: events you mark as especially important because they represent business goals.\n\nThis model lets GA4 track users across both websites and apps, and it is built with privacy and cookieless tracking in mind.\n\n## Setting Up GA4\n\n1. **Create a Google Analytics account** at analytics.google.com.\n2. **Create a property** — a property holds the data for one website or app.\n3. **Create a data stream** — for a website, choose \"Web\" and enter the site URL. GA4 generates a **Measurement ID** (looks like `G-XXXXXXXXXX`).\n4. **Install the tag** on the website. Two common ways:\n   - Paste the **Google tag (gtag.js)** snippet into the `<head>` of every page.\n   - Use **Google Tag Manager (GTM)** to deploy the tag without editing code.\n5. **Verify** data is flowing using the **Real-time** report — open the site in another tab and watch your visit appear.\n\nGA4 automatically collects some events out of the box (called **Enhanced Measurement**): page views, scrolls, outbound clicks, site search, and file downloads.\n\n## Key Reports You'll Use Daily\n\n### Real-time\nShows who is on the site right now. Great for confirming a campaign launch or that tracking works.\n\n### Acquisition\nAnswers *\"Where did our traffic come from?\"* It groups visitors into **channels**:\n- **Organic Search** — from search engines like Google (unpaid).\n- **Direct** — typed the URL or used a bookmark.\n- **Organic Social** — from social media posts (unpaid).\n- **Paid Search / Paid Social** — from ads.\n- **Referral** — links from other websites.\n- **Email** — from email campaigns (when tagged correctly).\n\n### Engagement\nShows what people do: which pages they view, how long they stay, and which events fire.\n\n### Monetization / Conversions\nShows revenue and key events (conversions) like form submissions or purchases.\n\n## Key Metrics Explained\n\n- **Users**: the number of distinct people who visited.\n- **Sessions**: visits (one user can have several sessions).\n- **Engaged sessions**: sessions lasting 10+ seconds, with a conversion, or 2+ page views.\n- **Engagement rate**: % of sessions that were engaged. (GA4's healthier replacement for the old bounce rate.)\n- **Bounce rate** (in GA4): the opposite of engagement rate — % of sessions that were *not* engaged.\n- **Average engagement time**: how long users actively focused on the site.\n\n## Setting Up Conversions (Key Events)\n\nIn GA4, you turn an important event into a conversion by marking it as a **key event**:\n1. Go to **Admin → Events** (or **Data display → Events**).\n2. Find the event (e.g. `generate_lead`, `purchase`, or a custom event).\n3. Toggle **\"Mark as key event.\"**\n\nNow GA4 will count and report each time that action happens, so you can measure goal completions and conversion rates by channel.\n\n## Using UTM Parameters\n\nTo make sure GA4 correctly attributes traffic from your campaigns, add **UTM parameters** to your links. Example:\n\n`https://example.com/?utm_source=instagram&utm_medium=social&utm_campaign=spring_sale`\n\n- `utm_source` — where it came from (instagram).\n- `utm_medium` — the type of channel (social, email, cpc).\n- `utm_campaign` — the campaign name.\n\nThese feed straight into the Acquisition reports so you can credit the right channel.\n\n## Practical Tips\n\n- Always check the **date range** in the top corner before reading any report.\n- Compare periods (e.g. this month vs last month) to spot trends.\n- Don't panic over single-day spikes — look at patterns over time.\n- Use **Explore** for custom analysis once you're comfortable with standard reports.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Measuring Traffic with Google Analytics 4",
+      "sub": "SEO, Analytics & Performance Measurement",
+      "narration": "Welcome to this lesson on measuring website traffic with Google Analytics 4, or GA4. As a junior digital marketing assistant, you'll be asked again and again whether your marketing is working. GA4 is the free tool that lets you answer that question with real data. By the end of this lesson you'll know how to set GA4 up and read the reports that matter most."
+    },
+    {
+      "type": "content",
+      "title": "What GA4 Does",
+      "bullets": [
+        "Tracks how many people visit a website",
+        "Shows where visitors came from",
+        "Reveals what users do on the site",
+        "Measures conversions — the actions that matter",
+        "Free and used by most businesses"
+      ],
+      "narration": "At its heart, GA4 answers four questions: how many people came, where did they come from, what did they do, and did they complete the actions we care about, like a purchase or a sign-up. It replaced the older Universal Analytics in 2023, so any older tutorials you find may describe a different tool. GA4 is free and is the industry standard, so it's an essential skill for this role."
+    },
+    {
+      "type": "content",
+      "title": "The Event-Based Model",
+      "bullets": [
+        "In GA4, everything is an event",
+        "Event = a user action (page_view, scroll, click)",
+        "Parameters = extra detail about the event",
+        "Key events = events marked as conversions",
+        "Works across websites and apps"
+      ],
+      "narration": "The single most important concept in GA4 is that everything is an event. Old Universal Analytics was built around sessions and pageviews, but GA4 records every interaction — a page view, a scroll, a click, a purchase — as an event. Each event can carry parameters that add detail, like which page or which link. When an event is business-critical, you mark it as a key event, which is GA4's word for a conversion. This flexible model is why GA4 can track both websites and apps."
+    },
+    {
+      "type": "content",
+      "title": "Setting Up GA4",
+      "bullets": [
+        "Create an account at analytics.google.com",
+        "Create a property, then a web data stream",
+        "Get your Measurement ID (G-XXXXXXXXXX)",
+        "Install via gtag.js or Google Tag Manager",
+        "Verify with the Real-time report"
+      ],
+      "code": "<!-- Google tag (gtag.js) goes in the <head> -->\n<script async src=\"https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX\"></script>",
+      "narration": "Setting up GA4 follows a clear path. First create a Google Analytics account, then a property to hold your data, then a web data stream for your site. GA4 hands you a Measurement ID that starts with G dash. You install the tracking by pasting the Google tag into the head of every page, or more commonly by using Google Tag Manager so you don't have to edit code. Finally, confirm it works by opening the Real-time report and watching your own visit appear. GA4 also auto-collects events like scrolls and outbound clicks through Enhanced Measurement."
+    },
+    {
+      "type": "content",
+      "title": "Acquisition: Where Traffic Comes From",
+      "bullets": [
+        "Organic Search — unpaid search engine traffic",
+        "Direct — typed URL or bookmark",
+        "Organic Social — unpaid social posts",
+        "Paid Search / Paid Social — ads",
+        "Referral — links from other sites; Email — campaigns"
+      ],
+      "narration": "The Acquisition reports answer the where question by sorting visitors into channels. Organic Search is unpaid traffic from search engines. Direct is people who typed your address or used a bookmark. Organic Social comes from your unpaid social posts, while Paid Search and Paid Social come from ads. Referral is links from other websites, and Email is your email campaigns. Knowing which channels drive traffic tells you where your marketing effort is paying off."
+    },
+    {
+      "type": "content",
+      "title": "Key Metrics to Know",
+      "bullets": [
+        "Users — distinct people",
+        "Sessions — visits",
+        "Engaged sessions — 10s+, conversion, or 2+ views",
+        "Engagement rate — % engaged (replaces bounce rate)",
+        "Average engagement time"
+      ],
+      "narration": "Let's decode the metrics. Users are distinct people; sessions are visits, and one user can have several. An engaged session is one that lasted at least ten seconds, had a conversion, or included two or more page views. Engagement rate is the percentage of sessions that were engaged — this is GA4's healthier replacement for the old bounce rate, which in GA4 is simply the inverse. Average engagement time shows how long users actively focused on your content."
+    },
+    {
+      "type": "content",
+      "title": "Setting Up Conversions",
+      "bullets": [
+        "Conversions are called 'key events' in GA4",
+        "Admin → Events → find the event",
+        "Toggle 'Mark as key event'",
+        "Examples: generate_lead, purchase, sign_up",
+        "Now tracked and reported by channel"
+      ],
+      "narration": "To measure goals you set up conversions, which GA4 calls key events. Go to the Admin or Events area, find the event that represents a goal — like generate lead, purchase, or sign up — and toggle Mark as key event. From then on GA4 counts every time that action happens, and you can break it down by channel to see which traffic sources actually convert, not just which ones bring visitors."
+    },
+    {
+      "type": "content",
+      "title": "UTM Tags & Reporting Tips",
+      "bullets": [
+        "Add UTM parameters to campaign links",
+        "utm_source, utm_medium, utm_campaign",
+        "Feeds straight into Acquisition reports",
+        "Always check the date range first",
+        "Compare periods; look at trends, not spikes"
+      ],
+      "code": "https://example.com/?utm_source=instagram&utm_medium=social&utm_campaign=spring_sale",
+      "narration": "To make sure GA4 credits your campaigns correctly, add UTM parameters to your links. Source says where it came from, medium says the channel type, and campaign names the campaign. These flow directly into the Acquisition reports. Finally, two habits that save you from mistakes: always check the date range before reading any report, and judge performance by trends over time rather than reacting to a single day's spike."
+    },
+    {
+      "type": "content",
+      "title": "Recap",
+      "bullets": [
+        "GA4 = event-based traffic measurement",
+        "Set up property, stream, tag, verify",
+        "Acquisition shows traffic sources",
+        "Key events measure conversions",
+        "UTMs + date ranges keep data accurate"
+      ],
+      "narration": "To recap: GA4 is an event-based tool for measuring website traffic. You set it up by creating a property, a data stream, and installing the tag, then verifying in Real-time. The Acquisition reports tell you where traffic comes from, key events measure the conversions that matter, and UTM tags plus careful date ranges keep your reporting accurate. Practice navigating these reports in a real GA4 account and you'll be ready to report on marketing performance with confidence."
+    }
+  ]
+}

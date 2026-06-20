@@ -79,6 +79,31 @@
     }
   },
   {
+    "slug": "junior-digital-marketing",
+    "title": "Junior Digital Marketing & Social Media Assistant Bootcamp",
+    "summary": "A hands-on, project-based course that builds the practical skills needed to launch a career as a digital marketing and social media assistant. Learners will run real ad campaigns, create engaging content, analyze performance data, and assemble a job-ready portfolio across paid ads, SEO, social media",
+    "targetProfile": {
+      "role": "Junior Digital Marketing / Social Media Assistant",
+      "level": "mid",
+      "skills": [
+        "Meta Ads",
+        "Google Ads",
+        "SEO",
+        "keyword research",
+        "Google Analytics",
+        "social media analytics",
+        "copywriting",
+        "Canva",
+        "short-form video",
+        "email marketing",
+        "Mailchimp",
+        "campaign planning",
+        "performance measurement",
+        "portfolio building"
+      ]
+    }
+  },
+  {
     "slug": "ml-engineer",
     "title": "Machine Learning Engineer Bootcamp: From Fundamentals to Production",
     "summary": "A project-based course that builds the practical skills needed to land a Machine Learning Engineer role, covering Python, math foundations, ML algorithms, PyTorch, feature engineering, model training and evaluation, and production-ready data pipelines. Learners build a portfolio of hands-on projects",

@@ -1,0 +1,199 @@
+{
+  "slug": "dm-m4-l02-building-automated-campaigns-in-mailchimp",
+  "title": "Building Automated Campaigns in Mailchimp",
+  "month": 4,
+  "monthTitle": "Email Marketing & Capstone Portfolio",
+  "lesson": 2,
+  "video": "dm-m4-l02-building-automated-campaigns-in-mailchimp.mp4",
+  "summary": "Learn to design, segment, and automate an email sequence in Mailchimp, then measure performance using open and click-through rates to optimise your campaigns.",
+  "objectives": [
+    "Set up a Mailchimp audience and import or collect subscriber contacts correctly",
+    "Create audience segments and tags to target the right people with relevant messages",
+    "Build a multi-email automated welcome sequence using Mailchimp's Customer Journey builder",
+    "Write effective subject lines and email content that improve open and click rates",
+    "Measure and interpret open rate, click-through rate (CTR), and other key metrics",
+    "Apply A/B testing and list-hygiene best practices to improve campaign results"
+  ],
+  "quiz": [
+    {
+      "q": "What is the formula for click-through rate (CTR)?",
+      "options": [
+        "Unique opens ÷ delivered × 100",
+        "Unique clicks ÷ delivered × 100",
+        "Total sends ÷ unsubscribes × 100",
+        "Bounces ÷ delivered × 100"
+      ],
+      "answer": 1,
+      "why": "CTR measures engagement: unique clicks divided by emails delivered, multiplied by 100."
+    },
+    {
+      "q": "In Mailchimp, which feature is the visual builder used to create automated email sequences?",
+      "options": [
+        "Merge tags",
+        "Customer Journey",
+        "Audience dashboard",
+        "Content Studio"
+      ],
+      "answer": 1,
+      "why": "The Customer Journey builder lets you set a trigger and add steps like emails, delays, and branches."
+    },
+    {
+      "q": "Why are clicks often considered more reliable than opens for measuring engagement?",
+      "options": [
+        "Clicks are easier to fake",
+        "Apple Mail Privacy Protection inflates open rates",
+        "Opens are not tracked in Mailchimp",
+        "Clicks count every email sent"
+      ],
+      "answer": 1,
+      "why": "Apple Mail Privacy Protection auto-loads tracking pixels, inflating reported opens, so clicks better reflect real engagement."
+    },
+    {
+      "q": "Which practice is both legally required and good for deliverability?",
+      "options": [
+        "Buying targeted email lists",
+        "Including an unsubscribe link in every email",
+        "Sending to everyone with no segmentation",
+        "Hiding the sender name"
+      ],
+      "answer": 1,
+      "why": "An unsubscribe link is legally required under GDPR/CAN-SPAM and helps protect your sender reputation."
+    },
+    {
+      "q": "What is a 'segment' in Mailchimp? Answer in one short sentence.",
+      "answer": "A saved filter that groups contacts based on conditions such as activity or location.",
+      "why": "Segments let you target relevant subsets of your audience, improving open and click rates."
+    },
+    {
+      "q": "When running an A/B test, how many variables should you change at once?",
+      "options": [
+        "As many as possible",
+        "One",
+        "Three",
+        "Zero"
+      ],
+      "answer": 1,
+      "why": "Testing one variable at a time ensures you know which change caused any difference in results."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Mailchimp Help: Getting Started with Customer Journeys",
+      "url": "https://mailchimp.com/help/about-customer-journeys/"
+    },
+    {
+      "label": "Mailchimp Help: About Email Marketing Reports",
+      "url": "https://mailchimp.com/help/about-open-and-click-tracking/"
+    },
+    {
+      "label": "Mailchimp Email Marketing Benchmarks by Industry",
+      "url": "https://mailchimp.com/resources/email-marketing-benchmarks/"
+    },
+    {
+      "label": "ICO Guide to GDPR for Direct Marketing",
+      "url": "https://ico.org.uk/for-organisations/direct-marketing-and-privacy-and-electronic-communications/"
+    }
+  ],
+  "body_markdown": "## Why Email Automation Matters\n\nEmail remains one of the highest-ROI channels in digital marketing, often returning far more per pound spent than paid social. Automation lets you send the right message to the right person at the right time *without* manually pressing send. As a Junior Social Media Assistant, you'll often own the welcome series, newsletters, and promotional sends.\n\n**Automation** = pre-built email sequences triggered by a subscriber action (e.g. signing up, clicking a link, abandoning a cart).\n\n## Key Mailchimp Concepts\n\n- **Audience (List):** Your central database of contacts. Most small brands use a single audience and organise people inside it.\n- **Tags:** Manual or automated labels you attach to contacts (e.g. `webinar-signup`, `VIP`).\n- **Segments:** Saved filters based on conditions (e.g. \"opened last 3 emails\" or \"located in London\").\n- **Customer Journey:** Mailchimp's visual automation builder where you set a *starting point* (trigger) and add *steps* (emails, delays, conditions).\n- **Merge tags:** Personalisation placeholders like `*|FNAME|*` that insert a subscriber's first name.\n\n## Step 1 — Set Up Your Audience\n\n1. Go to **Audience > All contacts**.\n2. Add a signup form or import contacts (CSV). Only import people who **opted in** — this is a legal requirement under GDPR/CAN-SPAM.\n3. Collect at minimum: email address, first name, and signup source.\n\n## Step 2 — Segment Your Audience\n\nDon't blast everyone the same message. Create segments such as:\n\n- **New subscribers** (joined in last 7 days)\n- **Engaged** (opened or clicked recently)\n- **Inactive** (no opens in 90 days — candidates for a re-engagement email)\n\nSegments make emails more relevant, which lifts open and click rates and reduces unsubscribes.\n\n## Step 3 — Build an Automated Welcome Sequence\n\nUse **Automations > Customer Journey > Build from scratch**.\n\nA simple 3-email welcome journey:\n\n1. **Trigger:** Contact joins audience / signup form submitted.\n2. **Email 1 (immediately):** Warm welcome + what to expect.\n3. **Delay:** Wait 2 days.\n4. **Email 2:** Share your best content or a brand story.\n5. **Delay:** Wait 3 days.\n6. **Email 3:** Offer or call-to-action (discount code, free resource).\n\nAdd **if/else branches** to send different content based on whether someone opened Email 1.\n\n## Step 4 — Write Emails That Convert\n\n- **Subject line:** Short (under ~50 characters), curiosity or value-driven. This drives open rate.\n- **Preview text:** The snippet after the subject — reinforce the subject.\n- **Personalisation:** Use `*|FNAME|*` to greet by name.\n- **One clear CTA:** A single, obvious button drives click-through rate.\n- **Mobile-friendly:** Over half of emails are opened on phones — keep it scannable.\n\n## Step 5 — Measure Performance\n\nKey metrics in the campaign report:\n\n- **Open Rate** = (unique opens ÷ emails delivered) × 100. Typical benchmark ~20–35%.\n- **Click-Through Rate (CTR)** = (unique clicks ÷ emails delivered) × 100. Typical benchmark ~2–5%.\n- **Bounce rate:** Undeliverable emails — high bounces hurt your sender reputation.\n- **Unsubscribe rate:** If high, your content or frequency may be off.\n\n> Note: Apple Mail Privacy Protection inflates open rates, so treat clicks as the more reliable engagement signal.\n\n## Step 6 — Optimise with A/B Testing\n\nMailchimp lets you test variables like subject line, send time, or content. Send each version to a sample, and the winner (by opens or clicks) goes to the rest of the list. Test **one variable at a time**.\n\n## List Hygiene Best Practices\n\n- Remove or re-engage inactive contacts regularly.\n- Always include an unsubscribe link (legally required).\n- Never buy email lists — it damages deliverability and breaks the law.\n\n## Capstone Tie-In\n\nFor your portfolio, document a complete automated welcome journey: include a screenshot of the Customer Journey map, your three email drafts, the segment you targeted, and a short report explaining the open/click results and what you'd improve.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Building Automated Campaigns in Mailchimp",
+      "sub": "Design, segment, automate, and measure your email sequences",
+      "narration": "Welcome to this lesson on building automated email campaigns in Mailchimp. By the end, you'll be able to set up an audience, segment it, build an automated welcome sequence, and measure how it performs. This is a core skill for any junior digital marketing or social media assistant, and it'll form part of your capstone portfolio."
+    },
+    {
+      "type": "content",
+      "title": "Why Email Automation?",
+      "bullets": [
+        "Email delivers one of the highest returns of any channel",
+        "Automation sends the right message at the right time, hands-free",
+        "Triggered by subscriber actions like signups or clicks",
+        "Juniors often own welcome series and newsletters"
+      ],
+      "narration": "Let's start with why this matters. Email consistently delivers one of the highest returns on investment of any marketing channel. Automation means you build a sequence once, and Mailchimp sends it automatically when someone takes an action, such as signing up. As a junior, you'll often be the person responsible for these welcome emails and newsletters, so this is a practical, employable skill."
+    },
+    {
+      "type": "content",
+      "title": "Key Mailchimp Concepts",
+      "bullets": [
+        "Audience: your central contact database",
+        "Tags: labels you attach to contacts",
+        "Segments: saved filters based on conditions",
+        "Customer Journey: the visual automation builder",
+        "Merge tags: personalisation like *|FNAME|*"
+      ],
+      "narration": "Before we build anything, learn the vocabulary. Your Audience is your central database of contacts. Tags are labels you stick on individual contacts. Segments are saved filters, for example everyone who opened your last email. The Customer Journey is Mailchimp's visual automation builder where you'll create your sequence. And merge tags, like FNAME in pipes, automatically insert personal details such as a first name."
+    },
+    {
+      "type": "content",
+      "title": "Step 1: Set Up Your Audience",
+      "bullets": [
+        "Add a signup form or import a CSV",
+        "Only import contacts who opted in (GDPR/CAN-SPAM)",
+        "Collect email, first name, and signup source",
+        "Never buy email lists"
+      ],
+      "narration": "First, set up your audience. You can add a signup form on your website or import contacts from a CSV file. Crucially, only import people who actually opted in, because data protection laws like GDPR and CAN-SPAM require consent. Collect at least an email, a first name for personalisation, and the signup source. And never, ever buy an email list, it's illegal and it wrecks your deliverability."
+    },
+    {
+      "type": "content",
+      "title": "Step 2: Segment Your Audience",
+      "bullets": [
+        "New subscribers (joined last 7 days)",
+        "Engaged (recently opened or clicked)",
+        "Inactive (no opens in 90 days)",
+        "Relevance lifts opens and lowers unsubscribes"
+      ],
+      "narration": "Next, segment. Don't send everyone the same message. Create segments such as new subscribers from the past week, engaged contacts who recently opened or clicked, and inactive contacts with no opens in ninety days who you might try to win back. Sending relevant messages to the right segment lifts your open and click rates and reduces unsubscribes."
+    },
+    {
+      "type": "content",
+      "title": "Step 3: Build a Welcome Journey",
+      "bullets": [
+        "Trigger: contact joins your audience",
+        "Email 1 immediately: welcome + what to expect",
+        "Wait 2 days, then Email 2: best content",
+        "Wait 3 days, then Email 3: offer or CTA",
+        "Add if/else branches based on opens"
+      ],
+      "code": "Trigger: Signup form submitted\n -> Email 1 (now)\n -> Wait 2 days\n -> Email 2\n -> Wait 3 days\n -> Email 3 (CTA)",
+      "narration": "Now the fun part: building the automation. In the Customer Journey builder, start with a trigger, such as a contact joining your audience. Send Email one immediately with a warm welcome and what to expect. Add a two-day delay, then Email two sharing your best content. Add another delay, then Email three with a clear call to action like a discount. You can even add if-else branches to send different content depending on whether someone opened the first email."
+    },
+    {
+      "type": "content",
+      "title": "Step 4: Write Emails That Convert",
+      "bullets": [
+        "Subject line under ~50 characters drives opens",
+        "Preview text reinforces the subject",
+        "Personalise with *|FNAME|*",
+        "One clear call-to-action button",
+        "Keep it mobile-friendly and scannable"
+      ],
+      "narration": "Great automation still needs great content. Your subject line should be short, ideally under fifty characters, and either spark curiosity or promise value, because it drives your open rate. Use the preview text to reinforce it. Personalise with the first-name merge tag. Include one clear call-to-action button to drive clicks, and remember most people read on their phones, so keep it short and scannable."
+    },
+    {
+      "type": "content",
+      "title": "Step 5: Measure Performance",
+      "bullets": [
+        "Open Rate = unique opens ÷ delivered × 100",
+        "CTR = unique clicks ÷ delivered × 100",
+        "Watch bounce and unsubscribe rates",
+        "Apple Mail inflates opens — trust clicks more"
+      ],
+      "code": "Open Rate = (Unique Opens / Delivered) x 100\nCTR = (Unique Clicks / Delivered) x 100",
+      "narration": "Once emails are sending, measure. Open rate is unique opens divided by delivered emails, times one hundred, with typical benchmarks around twenty to thirty-five percent. Click-through rate is unique clicks over delivered, usually two to five percent. Keep an eye on bounces and unsubscribes too. One important note: Apple's Mail Privacy Protection inflates open rates, so treat clicks as your most reliable measure of real engagement."
+    },
+    {
+      "type": "content",
+      "title": "Step 6: Optimise & Capstone",
+      "bullets": [
+        "A/B test one variable at a time",
+        "Re-engage or remove inactive contacts",
+        "Always include an unsubscribe link",
+        "Capstone: document journey + emails + results report"
+      ],
+      "narration": "Finally, optimise. Use A/B testing to compare subject lines or send times, but only change one variable at a time so you know what made the difference. Keep your list clean by re-engaging or removing inactive contacts, and always include an unsubscribe link. For your capstone, document the whole journey: a screenshot of your Customer Journey map, your three email drafts, the segment you targeted, and a short report on the results and what you'd improve."
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "slug": "junior-digital-marketing",
+  "title": "Junior Digital Marketing & Social Media Assistant Bootcamp",
+  "description": "A hands-on, project-based course that builds the practical skills needed to launch a career as a digital marketing and social media assistant. Learners will run real ad campaigns, create engaging content, analyze performance data, and assemble a job-ready portfolio across paid ads, SEO, social media, and email marketing.",
+  "audience": "Aspiring marketers, career changers, and recent graduates with little to no professional experience who want an entry-level digital marketing or social media role.",
+  "modules": 4,
+  "lessons": 16,
+  "layout": {
+    "decks": "decks",
+    "lessons": "lessons",
+    "videos": "videos",
+    "studyPacks": "study-packs"
+  },
+  "moduleTitles": {
+    "1": "Digital Marketing Foundations & Content Creation",
+    "2": "Paid Advertising with Meta & Google Ads",
+    "3": "SEO, Analytics & Performance Measurement",
+    "4": "Email Marketing & Capstone Portfolio"
+  },
+  "generated": true,
+  "targetRole": "Junior Digital Marketing / Social Media Assistant",
+  "targetSkills": [
+    "Meta Ads",
+    "Google Ads",
+    "SEO",
+    "keyword research",
+    "Google Analytics",
+    "social media analytics",
+    "copywriting",
+    "Canva",
+    "short-form video",
+    "email marketing",
+    "Mailchimp",
+    "campaign planning",
+    "performance measurement",
+    "portfolio building"
+  ]
+}

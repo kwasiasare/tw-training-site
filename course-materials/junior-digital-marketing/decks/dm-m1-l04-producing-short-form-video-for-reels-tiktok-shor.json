@@ -1,0 +1,203 @@
+{
+  "slug": "dm-m1-l04-producing-short-form-video-for-reels-tiktok-shor",
+  "title": "Producing Short-Form Video for Reels, TikTok & Shorts",
+  "month": 1,
+  "monthTitle": "Digital Marketing Foundations & Content Creation",
+  "lesson": 4,
+  "video": "dm-m1-l04-producing-short-form-video-for-reels-tiktok-shor.mp4",
+  "summary": "Learn to plan, film, and edit engaging short-form videos for Instagram Reels, TikTok, and YouTube Shorts using hooks, trending formats, and free mobile editing tools to maximize watch time and engagement.",
+  "objectives": [
+    "Explain why short-form vertical video drives reach and engagement across Reels, TikTok, and Shorts",
+    "Write a scroll-stopping hook that captures attention in the first 3 seconds",
+    "Plan a short-form video using a simple shot list and trending format",
+    "Film clean vertical footage on a phone using basic lighting, framing, and audio best practices",
+    "Edit a finished video in a mobile app with captions, trending audio, and on-screen text",
+    "Apply platform-specific best practices for posting, hashtags, and captions"
+  ],
+  "quiz": [
+    {
+      "q": "What is the single most important metric the short-form algorithm rewards?",
+      "options": [
+        "Number of hashtags used",
+        "Watch time / completion rate",
+        "Video file size",
+        "Length of the caption"
+      ],
+      "answer": 1,
+      "why": "Platforms prioritise how long people watch a video. High completion rates, re-watches, and shares signal quality and lead to wider distribution."
+    },
+    {
+      "q": "How long do you roughly have to hook a viewer before they scroll away?",
+      "options": [
+        "About 3 seconds",
+        "About 30 seconds",
+        "About 1 minute",
+        "As long as you like"
+      ],
+      "answer": 0,
+      "why": "Viewers decide almost instantly. The first ~3 seconds — your hook — determine whether they keep watching."
+    },
+    {
+      "q": "Why should you add captions to short-form videos?",
+      "options": [
+        "They increase file size",
+        "Most viewers watch on mute, so captions keep them engaged",
+        "Captions are required by law",
+        "They replace the need for a hook"
+      ],
+      "answer": 1,
+      "why": "A large share of viewers watch without sound, so on-screen captions ensure your message lands even on mute."
+    },
+    {
+      "q": "Why is it best to add trending audio inside the native app (TikTok/Instagram)?",
+      "options": [
+        "It's the only way to add sound",
+        "So the platform recognises the trending sound and boosts reach",
+        "To avoid copyright entirely",
+        "Because external apps add better music"
+      ],
+      "answer": 1,
+      "why": "Adding trending audio natively means the platform links your video to that sound, which can increase discoverability and reach."
+    },
+    {
+      "q": "List three things you should include in a simple short-form video plan before filming.",
+      "answer": "Goal, hook, shot list, script/talking points, and a call to action (any three).",
+      "why": "Planning the goal, hook, shot list, talking points, and CTA keeps your video tight and focused, saving editing time."
+    },
+    {
+      "q": "Name one reason you should avoid posting a Reel that still has a visible TikTok watermark.",
+      "answer": "Visible watermarks from other apps can reduce a video's reach because the platform deprioritises recycled content.",
+      "why": "Platforms favour native, watermark-free content; another app's logo signals reposted content and can limit distribution."
+    }
+  ],
+  "resources": [
+    {
+      "label": "CapCut — free mobile video editor",
+      "url": "https://www.capcut.com/"
+    },
+    {
+      "label": "TikTok Creative Center (trends & trending sounds)",
+      "url": "https://ads.tiktok.com/business/creativecenter"
+    },
+    {
+      "label": "Instagram Reels best practices (Meta)",
+      "url": "https://creators.instagram.com/grow/reels"
+    },
+    {
+      "label": "YouTube Shorts creator basics",
+      "url": "https://support.google.com/youtube/answer/10059070"
+    }
+  ],
+  "body_markdown": "## Why Short-Form Video Matters\n\nShort-form vertical video (typically 9:16, 15-90 seconds) is the highest-reach content format on social media today. Platforms like TikTok, Instagram Reels, and YouTube Shorts actively push this format because it keeps users on the app longer. For a junior social media assistant, knowing how to produce these videos quickly and consistently is one of the most valuable skills you can offer.\n\nKey reasons short-form works:\n\n- **Algorithmic reach**: Platforms show Reels/TikToks/Shorts to non-followers, so even small accounts can go viral.\n- **Low production cost**: A phone is enough — no expensive gear required.\n- **High engagement**: Quick, entertaining content drives comments, shares, and saves.\n\n## The Most Important Metric: Watch Time & Retention\n\nThe algorithm rewards videos that keep people watching. Two metrics matter most:\n\n- **Average watch time / completion rate** — how much of the video people watch.\n- **Re-watches and shares** — strong signals of quality.\n\nEverything in your video should serve one goal: keep the viewer watching to the end.\n\n## The Hook (First 3 Seconds)\n\nThe hook is the single most important part of any short-form video. If you don't grab attention immediately, viewers swipe away.\n\nTypes of strong hooks:\n\n- **Question hook**: \"Why is no one talking about this?\"\n- **Bold statement**: \"You're using this app wrong.\"\n- **Visual hook**: Show the most surprising/satisfying moment first.\n- **Curiosity gap**: \"Wait until you see what happens at the end.\"\n- **Relatable callout**: \"If you're a small business owner, stop scrolling.\"\n\nPair a verbal hook with an on-screen text hook so it works even with the sound off.\n\n## Trending Formats\n\nYou rarely need to invent something new. Adapt proven formats to your brand:\n\n- **Trending audio**: Use sounds that are currently rising. On TikTok and Reels, trending audio boosts reach.\n- **Listicles**: \"3 tools every marketer needs.\"\n- **Before/after**: Transformation reveals.\n- **POV / storytelling**: Put the viewer in a scenario.\n- **Tutorials / how-to**: Quick value-packed steps.\n- **Talking head**: You or a presenter speaking directly to camera with captions.\n\n## Planning Your Video\n\nBefore filming, write a simple plan:\n\n1. **Goal**: What action or feeling do you want? (Follow, save, visit link)\n2. **Hook**: Your first line and first frame.\n3. **Shot list**: Bullet each clip you need.\n4. **Script / talking points**: Keep it tight — short-form has no room for waffle.\n5. **Call to action (CTA)**: \"Follow for more,\" \"Comment your question.\"\n\nExample shot list:\n\n```\nHook: close-up, \"Stop wasting money on ads\"\nShot 1: screen recording of analytics\nShot 2: talking head explaining tip\nShot 3: result / before-after\nCTA: \"Follow for daily tips\"\n```\n\n## Filming on a Phone\n\nYou don't need a studio. Follow these basics:\n\n- **Orientation**: Always film vertical (9:16).\n- **Lighting**: Face a window or use a ring light. Avoid backlighting.\n- **Framing**: Keep your subject centred, leave room for captions top and bottom.\n- **Stability**: Use a tripod or prop your phone up.\n- **Audio**: Film in a quiet room; a cheap clip-on mic improves clarity hugely.\n- **Shoot extra**: Capture a few takes and some b-roll for editing flexibility.\n\n## Editing with Mobile Tools\n\nFree apps make editing fast: **CapCut**, **InShot**, or the native in-app editors in TikTok and Instagram.\n\nEditing checklist:\n\n- **Cut tight**: Remove pauses and dead air to keep pace fast.\n- **Add captions**: Use auto-captions — most viewers watch on mute. Always check for errors.\n- **On-screen text**: Reinforce key points and the hook.\n- **Trending audio**: Add it inside the native app so the platform recognises it.\n- **Pacing**: Change shots/visuals every few seconds to hold attention.\n- **Keep it short**: Trim anything that doesn't add value.\n\n## Posting Best Practices\n\n- **Caption**: Short, with a hook or question to drive comments.\n- **Hashtags**: Mix a few relevant niche and broad tags (3-5 is plenty).\n- **Cover/thumbnail**: Choose a clear frame with text for the grid.\n- **Timing**: Post when your audience is active; check insights.\n- **Native upload**: Post directly in-app; avoid visible watermarks from other apps (e.g. TikTok logo on Reels can reduce reach).\n\n## Workflow Summary\n\nPlan → Hook → Film vertical → Edit tight with captions → Add trending audio → Post natively with a strong caption and CTA → Review analytics → Repeat what works.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Producing Short-Form Video for Reels, TikTok & Shorts",
+      "sub": "Plan, film, and edit videos that stop the scroll",
+      "narration": "Welcome! In this lesson we'll learn how to produce short-form vertical video for Instagram Reels, TikTok, and YouTube Shorts. By the end you'll be able to plan, film, and edit an engaging video using just your phone, with hooks and trending formats that maximise engagement."
+    },
+    {
+      "type": "content",
+      "title": "Why Short-Form Video Wins",
+      "bullets": [
+        "Platforms push vertical video to non-followers — huge reach",
+        "Low cost: a phone is all you need",
+        "Drives high engagement: shares, saves, comments",
+        "Essential skill for any social media assistant"
+      ],
+      "narration": "Short-form video is the highest-reach format on social media today. Platforms actively promote Reels, TikToks, and Shorts to people who don't even follow you, so small accounts can reach big audiences. It's cheap to produce — just a phone — and it drives strong engagement. That's why this is a must-have skill for the role."
+    },
+    {
+      "type": "content",
+      "title": "The Goal: Watch Time",
+      "bullets": [
+        "Algorithm rewards how long people watch",
+        "Completion rate and re-watches are key signals",
+        "Shares and saves boost reach further",
+        "Every second should earn the next second"
+      ],
+      "narration": "The single thing the algorithm cares about most is watch time. If people watch your video to the end, re-watch it, or share it, the platform shows it to more people. So your job as an editor is to make every second compelling enough that the viewer keeps watching. Keep this goal in mind through every decision."
+    },
+    {
+      "type": "content",
+      "title": "The Hook: First 3 Seconds",
+      "bullets": [
+        "Grab attention instantly or viewers swipe away",
+        "Question, bold claim, visual surprise, or curiosity gap",
+        "Pair spoken hook with on-screen text",
+        "Show your most interesting moment first"
+      ],
+      "narration": "The hook is the most important part of your video. You have about three seconds before someone decides to keep watching or scroll on. Use a strong question, a bold statement, a surprising visual, or a curiosity gap. Always pair your spoken hook with on-screen text, because many people watch on mute. Lead with your most interesting moment — don't save it for the end."
+    },
+    {
+      "type": "content",
+      "title": "Trending Formats to Borrow",
+      "bullets": [
+        "Trending audio boosts reach — use rising sounds",
+        "Listicles: '3 tools every marketer needs'",
+        "Before/after transformations",
+        "Talking head, POV, and quick tutorials"
+      ],
+      "narration": "You don't need to reinvent the wheel. Adapt proven formats: use trending audio that's currently rising, which gives the algorithm a boost. Try listicles, before-and-after transformations, point-of-view storytelling, and quick how-to tutorials. Talking-head videos with captions are simple and effective. Watch what's trending in your niche and put your own brand spin on it."
+    },
+    {
+      "type": "content",
+      "title": "Plan Before You Film",
+      "bullets": [
+        "Define the goal: follow, save, or click",
+        "Write your hook — first line and first frame",
+        "Make a simple shot list",
+        "End with a clear call to action"
+      ],
+      "code": "Hook: \"Stop wasting money on ads\"\nShot 1: screen recording of analytics\nShot 2: talking head tip\nShot 3: before/after result\nCTA: \"Follow for daily tips\"",
+      "narration": "A little planning saves a lot of editing time. Decide what you want the viewer to do, write your hook as the first line and first frame, and jot down a simple shot list like this example. Keep your script tight — short-form has no room for waffle. Always finish with a clear call to action, like 'follow for more' or 'comment your question'."
+    },
+    {
+      "type": "content",
+      "title": "Filming on Your Phone",
+      "bullets": [
+        "Always shoot vertical, 9:16",
+        "Face a window or ring light — avoid backlighting",
+        "Centre subject, leave room for captions",
+        "Use a tripod and quiet room or clip mic",
+        "Shoot extra takes and b-roll"
+      ],
+      "narration": "You don't need fancy gear. Always film vertically in nine-by-sixteen. Light your subject by facing a window or ring light, and avoid having a bright light behind you. Keep your subject centred and leave space top and bottom for captions. Steady the phone on a tripod, film in a quiet room, and a cheap clip-on mic makes a big difference. Shoot a few takes and some extra b-roll for editing flexibility."
+    },
+    {
+      "type": "content",
+      "title": "Editing with Mobile Apps",
+      "bullets": [
+        "Use CapCut, InShot, or native editors",
+        "Cut tight — remove pauses and dead air",
+        "Add and proofread auto-captions",
+        "Use on-screen text and trending audio",
+        "Change visuals every few seconds"
+      ],
+      "narration": "Free apps like CapCut and InShot, or the built-in TikTok and Instagram editors, make editing fast. Cut tightly to remove dead air and keep the pace quick. Add auto-captions since most people watch on mute — but always proofread them. Reinforce key points with on-screen text, add trending audio inside the native app, and switch up your visuals every few seconds to hold attention."
+    },
+    {
+      "type": "content",
+      "title": "Posting Best Practices",
+      "bullets": [
+        "Short caption with a question to spark comments",
+        "3-5 relevant niche and broad hashtags",
+        "Pick a clear cover frame with text",
+        "Post natively — avoid other apps' watermarks",
+        "Check insights and repeat what works"
+      ],
+      "narration": "When you post, write a short caption with a question to encourage comments. Use three to five relevant hashtags mixing niche and broad. Choose a clean cover frame with text for your grid. Upload natively in each app and avoid visible watermarks from other apps, which can hurt reach. Finally, review your analytics and double down on whatever performs best."
+    },
+    {
+      "type": "content",
+      "title": "Your Workflow Recap",
+      "bullets": [
+        "Plan → Hook → Film vertical → Edit tight",
+        "Captions + trending audio + on-screen text",
+        "Post natively with caption and CTA",
+        "Review analytics, then repeat what works"
+      ],
+      "narration": "Let's recap the workflow. Plan your video, lead with a strong hook, film vertically, then edit tightly with captions, trending audio, and on-screen text. Post natively with a strong caption and call to action, review your analytics, and repeat what works. Follow this loop consistently and you'll steadily grow engagement. Now go and create your first short-form video!"
+    }
+  ]
+}

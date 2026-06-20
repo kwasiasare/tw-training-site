@@ -1,0 +1,189 @@
+{
+  "slug": "dm-m1-l02-copywriting-that-converts-for-social-and-ads",
+  "title": "Copywriting That Converts for Social and Ads",
+  "month": 1,
+  "monthTitle": "Digital Marketing Foundations & Content Creation",
+  "lesson": 2,
+  "video": "dm-m1-l02-copywriting-that-converts-for-social-and-ads.mp4",
+  "summary": "Learn to write persuasive copy for social media and ads using proven frameworks like AIDA and PAS. This lesson covers attention-grabbing headlines, scroll-stopping captions, and strong calls-to-action that drive clicks and conversions.",
+  "objectives": [
+    "Apply the AIDA and PAS copywriting frameworks to social posts and ads",
+    "Write scroll-stopping headlines and opening lines (hooks) that capture attention",
+    "Craft clear, benefit-driven calls-to-action (CTAs) that prompt action",
+    "Adapt tone and length for different platforms (Instagram, LinkedIn, Facebook ads)",
+    "Edit and tighten copy to remove fluff and boost clarity"
+  ],
+  "quiz": [
+    {
+      "q": "What does the 'A' in AIDA stand for at the start of the framework?",
+      "options": [
+        "Action",
+        "Attention",
+        "Agitate",
+        "Awareness"
+      ],
+      "answer": 1,
+      "why": "AIDA stands for Attention, Interest, Desire, Action — it begins by grabbing the reader's Attention with a hook."
+    },
+    {
+      "q": "Which CTA is strongest for converting?",
+      "options": [
+        "Click here",
+        "Learn more about us",
+        "Start your free trial — no card needed",
+        "We hope you'll consider our product"
+      ],
+      "answer": 2,
+      "why": "It's action-led, specific, and lowers friction with 'no card needed' — all marks of a strong CTA."
+    },
+    {
+      "q": "In the PAS framework, what comes immediately after naming the Problem?",
+      "options": [
+        "Solution",
+        "Action",
+        "Agitate",
+        "Attention"
+      ],
+      "answer": 2,
+      "why": "PAS is Problem, Agitate, Solution — after naming the problem you agitate it to make the reader feel the pain before offering relief."
+    },
+    {
+      "q": "Which of these is a benefit rather than a feature?",
+      "options": [
+        "500ml insulated stainless steel bottle",
+        "Double-walled vacuum design",
+        "Cold drinks all day, even at the beach",
+        "BPA-free materials"
+      ],
+      "answer": 2,
+      "why": "A benefit describes what the customer gains ('cold drinks all day'); the others describe specs, which are features."
+    },
+    {
+      "q": "In one short sentence, what trick helps you turn a feature into a benefit?",
+      "answer": "Ask 'so what?' after the feature to reveal what the customer actually gains.",
+      "why": "Asking 'so what?' repeatedly forces you past the spec to the real outcome the customer cares about."
+    },
+    {
+      "q": "Why should a social post or ad generally have only one CTA?",
+      "answer": "Too many choices reduce action; one clear next step makes it easy for the reader to respond.",
+      "why": "A single, focused CTA reduces decision friction and increases the chance the reader acts."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Copyblogger — Copywriting 101 (free guide)",
+      "url": "https://copyblogger.com/copywriting-101/"
+    },
+    {
+      "label": "HubSpot — How to Write a Call-to-Action That Converts",
+      "url": "https://blog.hubspot.com/marketing/call-to-action-examples"
+    },
+    {
+      "label": "Meta Business — Ad copy best practices",
+      "url": "https://www.facebook.com/business/help"
+    },
+    {
+      "label": "Hemingway Editor (free tool to tighten copy)",
+      "url": "https://hemingwayapp.com/"
+    }
+  ],
+  "body_markdown": "## Why Copywriting Matters\n\nGreat design gets noticed, but words make people *act*. Copywriting is writing with a goal: getting the reader to click, sign up, buy, or share. On social media and ads you have seconds to earn attention, so every word counts.\n\nGood marketing copy is **clear before clever**. It speaks to one person, focuses on benefits (what the reader gains), and ends with a single obvious next step.\n\n## The AIDA Framework\n\nAIDA maps the journey from stranger to customer:\n\n- **Attention** — a hook that stops the scroll (bold claim, question, surprising stat).\n- **Interest** — build relevance: why should they keep reading?\n- **Desire** — show the benefit and outcome; make them *want* it.\n- **Action** — tell them exactly what to do next.\n\n*Example (skincare ad):*\n> **Attention:** Tired of breakouts that won't quit?\n> **Interest:** Our serum targets the root cause, not just the surface.\n> **Desire:** Clearer skin in 14 days — backed by 2,000+ five-star reviews.\n> **Action:** Tap to get 20% off your first bottle.\n\n## The PAS Framework\n\nPAS is fast and emotional — great for ads and short captions:\n\n- **Problem** — name the pain the reader feels.\n- **Agitate** — stir it up; remind them why it's frustrating.\n- **Solution** — present your product as the relief.\n\n*Example (productivity app):*\n> **Problem:** Your to-do list never seems to shrink.\n> **Agitate:** You end each day exhausted but still behind.\n> **Solution:** TaskFlow plans your day automatically — finish by 5pm.\n\n## Writing Scroll-Stopping Hooks\n\nThe first line decides if anyone reads the rest. Strong hooks:\n\n- Ask a question your audience says \"yes\" to.\n- Lead with a number or surprising stat.\n- Make a bold, specific promise.\n- Call out the audience directly (\"Small business owners:\").\n- Tease a result or transformation.\n\nAvoid weak openers like \"We are excited to announce...\" — nobody scrolls for that.\n\n## Benefits vs. Features\n\nFeatures describe the product; benefits describe what the customer *gets*.\n\n- Feature: \"500ml insulated bottle.\"\n- Benefit: \"Cold drinks all day, even at the beach.\"\n\nRule of thumb: after every feature, ask **\"so what?\"** to find the benefit.\n\n## Calls-to-Action (CTAs)\n\nA CTA tells the reader exactly what to do. Strong CTAs are:\n\n- **Action-led:** start with a verb (Shop, Download, Book, Try).\n- **Specific:** \"Get your free trial\" beats \"Click here.\"\n- **Low-friction:** reduce risk (\"No card needed\").\n- **Singular:** one CTA per post or ad.\n\n## Adapting to Each Platform\n\n- **Instagram:** strong first line (only ~125 chars show before \"more\"); friendly tone; emojis okay.\n- **LinkedIn:** professional, value-driven, more credibility/data.\n- **Facebook/Meta Ads:** short headline + benefit + clear CTA; match the visual.\n- **X/Twitter:** punchy, one idea per post.\n\n## Editing Checklist\n\nBefore you publish, tighten your copy:\n\n1. Cut filler words (just, really, very, in order to).\n2. Read the first line alone — does it hook?\n3. One benefit clearly stated?\n4. One clear CTA?\n5. Read it aloud — does it sound human?",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Copywriting That Converts for Social and Ads",
+      "sub": "Frameworks, hooks, and CTAs that drive action",
+      "narration": "Welcome! In this lesson we'll learn how to write copy that actually converts on social media and in ads. We'll cover proven frameworks like AIDA and PAS, how to write scroll-stopping hooks, and how to craft calls-to-action that get people to click. By the end you'll be able to write posts and ads with real persuasive power."
+    },
+    {
+      "type": "content",
+      "title": "Why Copywriting Matters",
+      "bullets": [
+        "Words make people act — click, sign up, buy, share",
+        "You have seconds to earn attention on social",
+        "Be clear before clever",
+        "Speak to one person, focus on benefits"
+      ],
+      "narration": "Design might get noticed, but it's the words that make people take action. On social and in ads you have just a few seconds to earn attention, so every word has a job. The golden rule is to be clear before you try to be clever. Write to one person, focus on what they gain, and always point them toward a single next step."
+    },
+    {
+      "type": "content",
+      "title": "The AIDA Framework",
+      "bullets": [
+        "Attention — hook that stops the scroll",
+        "Interest — build relevance fast",
+        "Desire — show the benefit and outcome",
+        "Action — tell them exactly what to do"
+      ],
+      "narration": "AIDA is a classic framework that maps the journey from stranger to customer. First grab Attention with a hook. Then build Interest by showing why it's relevant to them. Next, create Desire by painting the outcome and benefit they want. And finally, drive Action with a clear instruction on what to do next. Walk through these four steps and your copy has structure and momentum."
+    },
+    {
+      "type": "content",
+      "title": "AIDA in Action",
+      "bullets": [
+        "Attention: Tired of breakouts that won't quit?",
+        "Interest: Targets the root cause, not the surface",
+        "Desire: Clearer skin in 14 days, 2,000+ reviews",
+        "Action: Tap to get 20% off your first bottle"
+      ],
+      "code": "Hook  -> Relevance -> Benefit -> CTA",
+      "narration": "Here's AIDA applied to a skincare ad. We open with a question that names the reader's frustration to grab attention. We build interest by explaining how the product works differently. We create desire with a specific result and social proof — clearer skin in fourteen days, plus thousands of reviews. And we close with a clear, low-friction action: tap to get twenty percent off. Notice how each line moves the reader forward."
+    },
+    {
+      "type": "content",
+      "title": "The PAS Framework",
+      "bullets": [
+        "Problem — name the pain",
+        "Agitate — stir up why it's frustrating",
+        "Solution — present your product as relief",
+        "Fast and emotional — great for short ads"
+      ],
+      "narration": "PAS is shorter and more emotional, perfect for ads and quick captions. First, name the Problem your reader feels. Then Agitate it — remind them why it's frustrating or what it's costing them. Finally, present your Solution as the relief. For example: your to-do list never shrinks, you end each day exhausted and behind — but TaskFlow plans your day so you finish by five. Problem, agitate, solution."
+    },
+    {
+      "type": "content",
+      "title": "Scroll-Stopping Hooks",
+      "bullets": [
+        "Ask a question they'd say yes to",
+        "Lead with a number or surprising stat",
+        "Make a bold, specific promise",
+        "Call out your audience directly",
+        "Avoid 'We're excited to announce...'"
+      ],
+      "narration": "The first line decides whether anyone reads the rest. Strong hooks ask a question your audience would agree with, lead with a surprising number, make a bold specific promise, or call out the audience by name. What doesn't work? Boring corporate openers like 'we are excited to announce.' Nobody stops scrolling for that. Spend extra time on that very first line."
+    },
+    {
+      "type": "content",
+      "title": "Benefits Beat Features",
+      "bullets": [
+        "Feature = what it is; Benefit = what they get",
+        "'500ml insulated bottle' vs 'cold drinks all day'",
+        "After each feature, ask 'so what?'",
+        "Customers buy outcomes, not specs"
+      ],
+      "narration": "People don't buy features, they buy outcomes. A feature describes the product — a five hundred millilitre insulated bottle. A benefit describes what the customer gets — cold drinks all day, even at the beach. The simple trick is to ask 'so what?' after every feature until you reach the real benefit. Lead your copy with that benefit."
+    },
+    {
+      "type": "content",
+      "title": "Calls-to-Action That Convert",
+      "bullets": [
+        "Start with a verb: Shop, Download, Book, Try",
+        "Be specific: 'Get your free trial' > 'Click here'",
+        "Lower friction: 'No card needed'",
+        "One CTA per post or ad"
+      ],
+      "narration": "Your CTA tells the reader exactly what to do. Make it action-led by starting with a verb. Make it specific — 'get your free trial' beats a vague 'click here.' Reduce risk with reassurance like 'no card needed.' And keep it to a single CTA per post, because too many choices kill action. One clear next step every time."
+    },
+    {
+      "type": "content",
+      "title": "Adapt & Edit",
+      "bullets": [
+        "Instagram: strong first ~125 chars, friendly",
+        "LinkedIn: professional, value and data driven",
+        "Meta Ads: short headline + benefit + CTA",
+        "Edit: cut filler, read aloud, one benefit, one CTA"
+      ],
+      "narration": "Finally, adapt to each platform. On Instagram, the first line matters most since only about 125 characters show. LinkedIn rewards a professional, value-driven tone. Meta ads need a punchy headline, a benefit, and a clear CTA matched to the visual. Before publishing, run the edit checklist: cut filler words, check your hook works alone, confirm one clear benefit and one CTA, and read it aloud to make sure it sounds human."
+    }
+  ]
+}
