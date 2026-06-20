@@ -1,0 +1,192 @@
+{
+  "slug": "mlo-m3-l04-provisioning-infrastructure-as-code-with-terrafo",
+  "title": "Provisioning Infrastructure as Code with Terraform",
+  "month": 3,
+  "monthTitle": "Orchestration, CI/CD & Infrastructure as Code",
+  "lesson": 4,
+  "video": "mlo-m3-l04-provisioning-infrastructure-as-code-with-terrafo.mp4",
+  "summary": "Learn to provision reproducible cloud infrastructure for an ML platform using Terraform. This lesson covers the declarative workflow, state management, reusable modules, and practical patterns for building infrastructure as code that supports MLOps pipelines.",
+  "objectives": [
+    "Explain the benefits of Infrastructure as Code (IaC) and Terraform's declarative model for ML platforms",
+    "Describe the core Terraform workflow: init, plan, apply, and destroy",
+    "Manage Terraform state safely using remote backends and state locking",
+    "Build reusable Terraform modules to provision common ML infrastructure components",
+    "Apply best practices for variables, outputs, and environment separation in production",
+    "Integrate Terraform into a CI/CD pipeline for automated infrastructure delivery"
+  ],
+  "quiz": [
+    {
+      "q": "What does the `terraform plan` command do?",
+      "options": [
+        "Permanently deletes all resources",
+        "Previews the changes Terraform will make without applying them",
+        "Downloads the required providers",
+        "Edits the state file directly"
+      ],
+      "answer": 1,
+      "why": "plan is a dry run that shows what will be added, changed, or destroyed, letting you review before applying."
+    },
+    {
+      "q": "Why should you use a remote backend with state locking for team projects?",
+      "options": [
+        "It makes Terraform run faster locally",
+        "It shares state and prevents concurrent applies from corrupting it",
+        "It removes the need to write HCL",
+        "It automatically writes your modules"
+      ],
+      "answer": 1,
+      "why": "A remote backend lets the team share state, and locking (e.g., via DynamoDB) prevents simultaneous applies that could corrupt the state file."
+    },
+    {
+      "q": "Which statement about the Terraform state file is correct?",
+      "options": [
+        "It should be committed to Git for version history",
+        "It can be safely edited by hand for quick fixes",
+        "It can contain secrets and should never be committed to Git",
+        "It is only needed for the destroy command"
+      ],
+      "answer": 2,
+      "why": "State can contain sensitive data, so it must never be committed to version control and should not be hand-edited."
+    },
+    {
+      "q": "What is the main purpose of a Terraform module?",
+      "options": [
+        "To store credentials securely",
+        "To package reusable infrastructure that can be instantiated across environments",
+        "To replace the plan command",
+        "To encrypt the state file"
+      ],
+      "answer": 1,
+      "why": "Modules are reusable, self-contained packages of configuration that you build once and reuse with different inputs across environments."
+    },
+    {
+      "q": "Name one CI step that should run on a pull request before applying Terraform changes.",
+      "answer": "terraform plan (or fmt/validate, or a security scan like tfsec)",
+      "why": "Running plan, format checks, validate, and security scanners in CI lets reviewers see and approve infrastructure changes before they are applied."
+    },
+    {
+      "q": "Is Terraform declarative or imperative, and what does that mean in one sentence?",
+      "answer": "Declarative — you describe the desired end state and Terraform determines the API calls needed to reach it.",
+      "why": "Terraform reconciles real infrastructure against your declared desired state rather than executing step-by-step commands."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Terraform Official Documentation",
+      "url": "https://developer.hashicorp.com/terraform/docs"
+    },
+    {
+      "label": "Terraform: Up & Running (book by Yevgeniy Brikman)",
+      "url": "https://www.terraformupandrunning.com/"
+    },
+    {
+      "label": "HashiCorp Terraform Best Practices",
+      "url": "https://developer.hashicorp.com/terraform/cloud-docs/recommended-practices"
+    },
+    {
+      "label": "tfsec — security scanner for Terraform",
+      "url": "https://github.com/aquasecurity/tfsec"
+    }
+  ],
+  "body_markdown": "## Why Infrastructure as Code?\n\nManually clicking through a cloud console to set up GPU instances, buckets, networks, and IAM roles is error-prone and impossible to reproduce. **Infrastructure as Code (IaC)** lets you define your entire ML platform in version-controlled files, so environments are reproducible, auditable, and reviewable like any other code.\n\nKey benefits for MLOps:\n\n- **Reproducibility** – spin up identical dev, staging, and prod environments.\n- **Version control** – track every infrastructure change in Git, with PR reviews.\n- **Disaster recovery** – rebuild the platform from code if something breaks.\n- **Collaboration** – teams share modules instead of tribal knowledge.\n\n## Why Terraform?\n\nTerraform by HashiCorp is a **cloud-agnostic, declarative** IaC tool. You describe the *desired end state* and Terraform figures out the API calls needed to reach it. It supports AWS, GCP, Azure, Kubernetes, and hundreds of providers through a single workflow.\n\nDeclarative vs. imperative: you write *what* you want (an S3 bucket, a GKE cluster), not the step-by-step commands. Terraform builds a dependency graph and reconciles reality against your configuration.\n\n## The Core Workflow\n\nTerraform's lifecycle is four commands:\n\n```bash\nterraform init     # download providers, configure backend\nterraform plan     # preview changes (dry run)\nterraform apply    # create/update resources\nterraform destroy  # tear down resources\n```\n\nAlways read the `plan` output before applying — it shows what will be **added, changed, or destroyed**. In production, `plan` runs in CI and a human approves the `apply`.\n\nA minimal configuration:\n\n```hcl\nterraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n}\n\nprovider \"aws\" {\n  region = \"us-east-1\"\n}\n\nresource \"aws_s3_bucket\" \"model_artifacts\" {\n  bucket = \"my-ml-model-artifacts\"\n}\n```\n\n## State Management\n\nTerraform records what it created in a **state file** (`terraform.tfstate`). State maps your config to real-world resources and stores metadata. **Never edit it by hand**, and **never commit it to Git** — it can contain secrets.\n\nFor teams, use a **remote backend** so state is shared and locked:\n\n```hcl\nterraform {\n  backend \"s3\" {\n    bucket         = \"my-tf-state\"\n    key            = \"ml-platform/prod/terraform.tfstate\"\n    region         = \"us-east-1\"\n    dynamodb_table = \"tf-locks\"   # state locking\n    encrypt        = true\n  }\n}\n```\n\n**State locking** (via DynamoDB here) prevents two engineers from applying at the same time and corrupting state. Always enable encryption for state at rest.\n\n## Variables, Outputs, and Modules\n\n**Variables** parameterize configurations; **outputs** expose values to other systems or modules.\n\n```hcl\nvariable \"instance_type\" {\n  type    = string\n  default = \"ml.m5.large\"\n}\n\noutput \"bucket_name\" {\n  value = aws_s3_bucket.model_artifacts.bucket\n}\n```\n\n**Modules** are reusable, self-contained packages of Terraform configuration. Build a module once (e.g., a training cluster, a feature store bucket) and reuse it across environments:\n\n```hcl\nmodule \"training_cluster\" {\n  source        = \"./modules/training-cluster\"\n  instance_type = \"ml.p3.2xlarge\"\n  node_count    = 3\n  environment   = \"prod\"\n}\n```\n\n## Environment Separation\n\nKeep dev, staging, and prod isolated. Common patterns:\n\n- **Directory per environment** with shared modules — explicit and easy to reason about.\n- **Terraform workspaces** — one config, multiple state files (use cautiously; less explicit).\n\nUse separate state files and ideally separate cloud accounts/projects for blast-radius isolation.\n\n## Terraform in CI/CD\n\nAutomate infrastructure delivery just like application code:\n\n1. Engineer opens a PR changing `.tf` files.\n2. CI runs `terraform fmt -check`, `terraform validate`, and `terraform plan`.\n3. The plan is posted to the PR for review.\n4. On merge to main, CI runs `terraform apply` (often with manual approval for prod).\n\nUse tools like **tflint**, **checkov**, or **tfsec** to scan for misconfigurations and security issues before apply. Store cloud credentials as CI secrets or use OIDC federation — never hardcode them.\n\n## Best Practices Recap\n\n- Pin provider and module versions.\n- Remote, encrypted, locked state.\n- Small, composable modules.\n- Never commit state or secrets.\n- Always review `plan` before `apply`.\n- Run static analysis in CI.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Provisioning Infrastructure as Code with Terraform",
+      "sub": "MLOps Engineering: Orchestration, CI/CD & IaC",
+      "narration": "Welcome. In this lesson we'll learn how to define and deploy reproducible cloud infrastructure for an ML platform using Terraform. By the end you'll understand the Terraform workflow, state management, reusable modules, and how to fit it all into a CI/CD pipeline."
+    },
+    {
+      "type": "content",
+      "title": "Why Infrastructure as Code?",
+      "bullets": [
+        "Manual console clicks are error-prone and unrepeatable",
+        "IaC makes environments reproducible and auditable",
+        "Version-controlled infra enables PR reviews",
+        "Rebuild your whole platform from code for disaster recovery"
+      ],
+      "narration": "Setting up GPU instances, buckets, networks, and IAM roles by hand in a cloud console doesn't scale and can't be reliably reproduced. Infrastructure as Code lets us define the entire ML platform in version-controlled files. We get reproducibility across dev, staging, and prod, an auditable history in Git, easy disaster recovery, and team collaboration through shared code instead of tribal knowledge."
+    },
+    {
+      "type": "content",
+      "title": "Why Terraform?",
+      "bullets": [
+        "Cloud-agnostic: AWS, GCP, Azure, Kubernetes, and more",
+        "Declarative — describe the desired end state",
+        "Builds a dependency graph and reconciles to reality",
+        "Single consistent workflow across providers"
+      ],
+      "narration": "Terraform is a cloud-agnostic, declarative IaC tool. Instead of writing step-by-step imperative commands, you describe what you want — an S3 bucket, a Kubernetes cluster — and Terraform figures out the API calls to get there. It builds a dependency graph, understands what already exists, and reconciles the real world against your configuration. The same workflow works across hundreds of providers."
+    },
+    {
+      "type": "content",
+      "title": "The Core Workflow",
+      "bullets": [
+        "init: download providers, configure backend",
+        "plan: preview additions, changes, deletions",
+        "apply: make the changes",
+        "destroy: tear everything down"
+      ],
+      "code": "terraform init\nterraform plan\nterraform apply\nterraform destroy",
+      "narration": "Terraform's lifecycle is four commands. Init downloads providers and sets up your backend. Plan is a dry run that shows exactly what will be added, changed, or destroyed — always read it carefully. Apply executes those changes. Destroy tears resources down. In production, plan typically runs in CI and a human approves the apply step."
+    },
+    {
+      "type": "content",
+      "title": "A Minimal Configuration",
+      "bullets": [
+        "Declare required providers and pin versions",
+        "Configure the provider (region, credentials)",
+        "Define resources with type and local name",
+        "HCL is Terraform's configuration language"
+      ],
+      "code": "resource \"aws_s3_bucket\" \"model_artifacts\" {\n  bucket = \"my-ml-model-artifacts\"\n}",
+      "narration": "Here's a minimal config in HCL, Terraform's language. We declare the AWS provider and pin its version, configure the region, then define an S3 bucket resource for storing model artifacts. The resource has a type, aws_s3_bucket, and a local name, model_artifacts, that we use to reference it elsewhere. Pinning versions keeps builds reproducible over time."
+    },
+    {
+      "type": "content",
+      "title": "State Management",
+      "bullets": [
+        "State maps config to real resources",
+        "Never edit by hand; never commit to Git",
+        "Use a remote backend for team sharing",
+        "Enable locking and encryption"
+      ],
+      "code": "terraform {\n  backend \"s3\" {\n    bucket         = \"my-tf-state\"\n    key            = \"ml-platform/prod/terraform.tfstate\"\n    dynamodb_table = \"tf-locks\"\n    encrypt        = true\n  }\n}",
+      "narration": "Terraform tracks what it created in a state file. This file maps your configuration to real resources and can contain secrets, so never commit it to Git or edit it by hand. For teams, use a remote backend like S3 so state is shared. State locking — here via DynamoDB — prevents two engineers from applying at once and corrupting state. Always encrypt state at rest."
+    },
+    {
+      "type": "content",
+      "title": "Variables, Outputs & Modules",
+      "bullets": [
+        "Variables parameterize configurations",
+        "Outputs expose values to other systems",
+        "Modules package reusable infrastructure",
+        "Build once, reuse across environments"
+      ],
+      "code": "module \"training_cluster\" {\n  source        = \"./modules/training-cluster\"\n  instance_type = \"ml.p3.2xlarge\"\n  node_count    = 3\n  environment   = \"prod\"\n}",
+      "narration": "Variables let you parameterize configs, and outputs expose values like a bucket name to other systems or modules. Modules are the real power: self-contained, reusable packages of Terraform. Build a training cluster module once, then instantiate it for dev, staging, and prod by just changing inputs. This keeps your code DRY and your infrastructure consistent."
+    },
+    {
+      "type": "content",
+      "title": "Environments & CI/CD",
+      "bullets": [
+        "Separate state per environment; isolate blast radius",
+        "PR triggers fmt, validate, and plan",
+        "Plan posted for review; apply on merge",
+        "Scan with tflint, tfsec, or checkov"
+      ],
+      "narration": "Keep dev, staging, and prod isolated with separate state files and ideally separate accounts. Integrate Terraform into CI/CD just like app code: a pull request runs format checks, validation, and a plan that gets posted for review. On merge, CI applies the change, often with manual approval for prod. Add security scanners like tfsec or checkov, and never hardcode credentials — use CI secrets or OIDC."
+    },
+    {
+      "type": "content",
+      "title": "Best Practices Recap",
+      "bullets": [
+        "Pin provider and module versions",
+        "Remote, encrypted, locked state",
+        "Small, composable modules",
+        "Always review plan before apply"
+      ],
+      "narration": "To wrap up: pin your provider and module versions for reproducibility, always use remote encrypted and locked state, build small composable modules, never commit state or secrets, always review the plan before applying, and run static analysis in your pipeline. Follow these and your ML platform infrastructure will be reliable, auditable, and easy to evolve."
+    }
+  ]
+}

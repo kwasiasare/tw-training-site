@@ -1,0 +1,187 @@
+{
+  "slug": "mlo-m1-l03-building-a-model-inference-api-with-fastapi-in-d",
+  "title": "Building a Model Inference API with FastAPI in Docker",
+  "month": 1,
+  "monthTitle": "Containerization & Foundations for ML Workloads",
+  "lesson": 3,
+  "video": "mlo-m1-l03-building-a-model-inference-api-with-fastapi-in-d.mp4",
+  "summary": "Learn to wrap a trained ML model in a production-ready REST API using FastAPI, validate requests with Pydantic, and package the whole service in a Docker container for reproducible, portable deployment.",
+  "objectives": [
+    "Build a FastAPI inference service that loads a model at startup and serves predictions over HTTP",
+    "Define request and response schemas with Pydantic for input validation and clear contracts",
+    "Implement health and readiness endpoints for production monitoring",
+    "Write an efficient, layer-cached Dockerfile to package the API and its dependencies",
+    "Run, test, and debug the containerized service locally with proper port mapping and environment configuration"
+  ],
+  "quiz": [
+    {
+      "q": "Where should you load the serialized model in a FastAPI inference service?",
+      "options": [
+        "Inside the /predict request handler on every call",
+        "Once at application startup using lifespan or a startup event",
+        "In a background thread after the first request",
+        "In the Dockerfile during image build"
+      ],
+      "answer": 1,
+      "why": "Loading once at startup keeps the model in memory and avoids the heavy deserialization cost on every request, drastically reducing latency."
+    },
+    {
+      "q": "What happens when a client sends a payload that fails Pydantic validation?",
+      "options": [
+        "The server crashes with a 500 error",
+        "Inference runs on default values",
+        "FastAPI returns a 422 response before the handler runs",
+        "The request is silently ignored"
+      ],
+      "answer": 2,
+      "why": "Pydantic validation runs before your route logic; invalid input automatically yields a 422 Unprocessable Entity response, protecting the model from bad data."
+    },
+    {
+      "q": "Why copy requirements.txt and install dependencies before copying the source code in a Dockerfile?",
+      "options": [
+        "It is required by the Docker syntax",
+        "To leverage layer caching so code changes don't reinstall dependencies",
+        "To reduce the number of EXPOSE statements",
+        "Because pip cannot find the file otherwise"
+      ],
+      "answer": 1,
+      "why": "Docker caches layers; installing dependencies in an earlier layer means changing only source code reuses the cached dependency layer, speeding up rebuilds."
+    },
+    {
+      "q": "Why must the Uvicorn server bind to 0.0.0.0 instead of 127.0.0.1 inside a container?",
+      "options": [
+        "0.0.0.0 is faster than 127.0.0.1",
+        "127.0.0.1 only accepts connections from inside the container, making it unreachable from the host",
+        "0.0.0.0 encrypts traffic automatically",
+        "It is required for Pydantic to work"
+      ],
+      "answer": 1,
+      "why": "Binding to 127.0.0.1 limits the listener to the container's own loopback; 0.0.0.0 listens on all interfaces so the mapped host port can reach the service."
+    },
+    {
+      "q": "In one sentence, explain the difference between a /health (liveness) and a /ready (readiness) endpoint.",
+      "answer": "Health/liveness reports that the process is alive and running, while readiness reports that the service is fully initialized (e.g. model loaded) and able to accept traffic.",
+      "why": "Orchestrators restart containers that fail liveness but only remove from load balancing those that fail readiness, so the two probes serve distinct purposes."
+    }
+  ],
+  "resources": [
+    {
+      "label": "FastAPI Official Documentation",
+      "url": "https://fastapi.tiangolo.com/"
+    },
+    {
+      "label": "Docker Best Practices for Building Images",
+      "url": "https://docs.docker.com/develop/develop-images/dockerfile_best-practices/"
+    },
+    {
+      "label": "Uvicorn Deployment Guide",
+      "url": "https://www.uvicorn.org/deployment/"
+    },
+    {
+      "label": "Pydantic Models and Validation",
+      "url": "https://docs.pydantic.dev/latest/concepts/models/"
+    }
+  ],
+  "body_markdown": "## Why Serve Models Behind an API?\n\nA trained model file (e.g. `model.pkl`) is useless on its own in production. Consumers need a stable, language-agnostic way to send features and get predictions back. A **REST API** provides that contract, and a **Docker container** makes the runtime reproducible across laptops, CI, and clusters.\n\nFastAPI is the de-facto choice for ML inference services because it is fast (ASGI/Starlette), gives you automatic OpenAPI docs, and uses **Pydantic** for type-checked request validation with almost no boilerplate.\n\n## Project Structure\n\n```\ninference-api/\n  app/\n    main.py        # FastAPI app + routes\n    schemas.py     # Pydantic request/response models\n    model.py       # model loading + predict logic\n  model.pkl        # serialized artifact\n  requirements.txt\n  Dockerfile\n```\n\n## Loading the Model Once\n\nLoad the model **at application startup**, not per request. Deserializing on every call destroys latency. Use FastAPI's `lifespan` (or `@app.on_event(\"startup\")`) to load once into module/global state.\n\n```python\n# model.py\nimport joblib\n\nclass ModelService:\n    def __init__(self):\n        self.model = None\n    def load(self, path: str):\n        self.model = joblib.load(path)\n    def predict(self, features):\n        return self.model.predict([features])[0]\n\nservice = ModelService()\n```\n\n## Defining the Contract with Pydantic\n\n```python\n# schemas.py\nfrom pydantic import BaseModel, Field\n\nclass PredictRequest(BaseModel):\n    sepal_length: float = Field(..., gt=0)\n    sepal_width: float = Field(..., gt=0)\n    petal_length: float = Field(..., gt=0)\n    petal_width: float = Field(..., gt=0)\n\nclass PredictResponse(BaseModel):\n    prediction: int\n    model_version: str\n```\n\nPydantic rejects malformed payloads automatically with a `422` response, so you never run inference on garbage input.\n\n## The FastAPI App\n\n```python\n# main.py\nfrom contextlib import asynccontextmanager\nfrom fastapi import FastAPI\nfrom .model import service\nfrom .schemas import PredictRequest, PredictResponse\nimport os\n\n@asynccontextmanager\nasync def lifespan(app: FastAPI):\n    service.load(os.getenv(\"MODEL_PATH\", \"model.pkl\"))\n    yield\n\napp = FastAPI(lifespan=lifespan)\n\n@app.get(\"/health\")\ndef health():\n    return {\"status\": \"ok\"}\n\n@app.get(\"/ready\")\ndef ready():\n    return {\"ready\": service.model is not None}\n\n@app.post(\"/predict\", response_model=PredictResponse)\ndef predict(req: PredictRequest):\n    features = [req.sepal_length, req.sepal_width, req.petal_length, req.petal_width]\n    pred = service.predict(features)\n    return PredictResponse(prediction=int(pred), model_version=\"1.0.0\")\n```\n\n**Health vs Ready:** `/health` (liveness) says the process is alive; `/ready` (readiness) says the model is loaded and the service can accept traffic. Orchestrators like Kubernetes use these distinctly.\n\n## Writing an Efficient Dockerfile\n\n```dockerfile\nFROM python:3.11-slim\n\nWORKDIR /app\n\n# Copy deps first so this layer caches when only code changes\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\n\nCOPY app/ ./app/\nCOPY model.pkl .\n\nEXPOSE 8000\n\nCMD [\"uvicorn\", \"app.main:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"]\n```\n\nKey practices:\n- Use a **slim** base image to reduce size and attack surface.\n- Copy `requirements.txt` and install **before** copying source, so dependency layers stay cached.\n- `--no-cache-dir` keeps the image lean.\n- Bind to `0.0.0.0` (not `127.0.0.1`) so the container accepts external connections.\n\n## Build, Run, and Test\n\n```bash\ndocker build -t inference-api:1.0.0 .\ndocker run -p 8000:8000 inference-api:1.0.0\n\n# test\ncurl -X POST http://localhost:8000/predict \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"sepal_length\":5.1,\"sepal_width\":3.5,\"petal_length\":1.4,\"petal_width\":0.2}'\n```\n\nVisit `http://localhost:8000/docs` for interactive Swagger UI generated automatically.\n\n## Production Notes\n\n- Run multiple workers via Gunicorn + Uvicorn workers for CPU-bound inference, or scale horizontally with more container replicas.\n- Keep the model artifact out of source control; pull it from object storage or a model registry at build/startup.\n- Log request IDs and latency; expose metrics (e.g. Prometheus) for monitoring.\n- Pin dependency versions in `requirements.txt` for reproducible builds.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Building a Model Inference API with FastAPI in Docker",
+      "narration": "Welcome. In this lesson we'll take a trained machine learning model and turn it into a production-ready inference service. We'll wrap it in a REST API using FastAPI, validate incoming requests, and package everything into a Docker container so it runs the same way everywhere."
+    },
+    {
+      "type": "content",
+      "title": "Why an API + Container?",
+      "bullets": [
+        "A model file alone can't serve traffic",
+        "REST gives a stable, language-agnostic contract",
+        "Docker makes the runtime reproducible everywhere",
+        "FastAPI: fast, auto docs, Pydantic validation"
+      ],
+      "narration": "A serialized model on disk is useless to consumers. They need a stable way to send features and get predictions. A REST API provides that contract, and Docker guarantees the same runtime on a laptop, in CI, or on a cluster. FastAPI is our framework of choice because it's fast, generates OpenAPI docs automatically, and validates requests with Pydantic out of the box."
+    },
+    {
+      "type": "content",
+      "title": "Project Structure",
+      "bullets": [
+        "app/main.py — FastAPI app and routes",
+        "app/schemas.py — Pydantic request/response models",
+        "app/model.py — load and predict logic",
+        "model.pkl, requirements.txt, Dockerfile"
+      ],
+      "code": "inference-api/\n  app/\n    main.py\n    schemas.py\n    model.py\n  model.pkl\n  requirements.txt\n  Dockerfile",
+      "narration": "Here's a clean layout. We separate concerns: schemas define the data contract, model.py handles loading and prediction, and main.py wires up the routes. Keeping these apart makes testing and maintenance much easier as the service grows."
+    },
+    {
+      "type": "content",
+      "title": "Load the Model Once",
+      "bullets": [
+        "Deserialize at startup, never per request",
+        "Use lifespan or startup event",
+        "Hold model in module/global state",
+        "Cuts latency dramatically"
+      ],
+      "code": "@asynccontextmanager\nasync def lifespan(app: FastAPI):\n    service.load(os.getenv(\"MODEL_PATH\", \"model.pkl\"))\n    yield",
+      "narration": "A common beginner mistake is loading the model inside the request handler. Deserializing on every call adds huge latency. Instead, use FastAPI's lifespan context to load the model once when the app starts, and keep it in memory for the life of the process."
+    },
+    {
+      "type": "content",
+      "title": "Define the Contract with Pydantic",
+      "bullets": [
+        "Typed fields with validation constraints",
+        "Invalid payloads auto-rejected with 422",
+        "Self-documenting in Swagger UI",
+        "Response model enforces output shape"
+      ],
+      "code": "class PredictRequest(BaseModel):\n    sepal_length: float = Field(..., gt=0)\n    sepal_width: float = Field(..., gt=0)\n    petal_length: float = Field(..., gt=0)\n    petal_width: float = Field(..., gt=0)",
+      "narration": "Pydantic models declare exactly what fields you expect and their constraints. If a client sends missing or malformed data, FastAPI automatically returns a 422 error before your code ever runs inference. This protects your model from garbage input and documents your API for free."
+    },
+    {
+      "type": "content",
+      "title": "Routes: Predict, Health, Ready",
+      "bullets": [
+        "/predict — runs inference, returns typed response",
+        "/health — liveness: process is alive",
+        "/ready — readiness: model is loaded",
+        "Orchestrators use these differently"
+      ],
+      "code": "@app.get(\"/ready\")\ndef ready():\n    return {\"ready\": service.model is not None}\n\n@app.post(\"/predict\", response_model=PredictResponse)\ndef predict(req: PredictRequest):\n    ...",
+      "narration": "Beyond predict, expose two probe endpoints. Health, or liveness, simply says the process is running. Ready, or readiness, confirms the model is actually loaded and the service can handle traffic. Kubernetes uses these distinctly: a failing liveness probe restarts the pod, while a failing readiness probe removes it from the load balancer until it's ready."
+    },
+    {
+      "type": "content",
+      "title": "An Efficient Dockerfile",
+      "bullets": [
+        "Slim base image: smaller, safer",
+        "Copy requirements first to cache deps",
+        "--no-cache-dir keeps image lean",
+        "Bind 0.0.0.0 so container accepts traffic"
+      ],
+      "code": "FROM python:3.11-slim\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY app/ ./app/\nCOPY model.pkl .\nEXPOSE 8000\nCMD [\"uvicorn\",\"app.main:app\",\"--host\",\"0.0.0.0\",\"--port\",\"8000\"]",
+      "narration": "Notice the layer ordering. We copy requirements and install dependencies before copying source code. Because Docker caches layers, this means changing your code doesn't trigger a full reinstall of dependencies. We use a slim base for a smaller footprint, and crucially bind to 0.0.0.0 — binding to localhost inside a container would make it unreachable from outside."
+    },
+    {
+      "type": "content",
+      "title": "Build, Run, Test",
+      "bullets": [
+        "docker build -t inference-api:1.0.0 .",
+        "docker run -p 8000:8000 inference-api:1.0.0",
+        "curl the /predict endpoint with JSON",
+        "Visit /docs for interactive Swagger UI"
+      ],
+      "code": "curl -X POST http://localhost:8000/predict \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"sepal_length\":5.1,\"sepal_width\":3.5,\"petal_length\":1.4,\"petal_width\":0.2}'",
+      "narration": "Build the image with a version tag, then run it mapping host port 8000 to the container's 8000. Test with curl, and open the docs endpoint for an interactive UI. The port mapping flag is essential — without -p the container's port stays isolated from your host."
+    },
+    {
+      "type": "content",
+      "title": "Production Considerations",
+      "bullets": [
+        "Scale with multiple workers or replicas",
+        "Pull model from registry, not source control",
+        "Log latency and request IDs; export metrics",
+        "Pin dependency versions for reproducibility"
+      ],
+      "narration": "To go further: scale CPU-bound inference with Gunicorn-managed Uvicorn workers or more container replicas. Keep large model artifacts out of git — pull them from object storage or a registry. Add structured logging and metrics for observability. And always pin your dependency versions so builds are reproducible. These habits separate a demo from a real production service."
+    }
+  ]
+}

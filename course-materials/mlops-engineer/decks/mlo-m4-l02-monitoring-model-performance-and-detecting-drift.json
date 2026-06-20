@@ -1,0 +1,182 @@
+{
+  "slug": "mlo-m4-l02-monitoring-model-performance-and-detecting-drift",
+  "title": "Monitoring Model Performance and Detecting Drift",
+  "month": 4,
+  "monthTitle": "Cloud Deployment, Monitoring & Capstone",
+  "lesson": 2,
+  "video": "mlo-m4-l02-monitoring-model-performance-and-detecting-drift.mp4",
+  "summary": "This lesson teaches MLOps engineers how to instrument a deployed model with Prometheus and Grafana to track operational health (latency, errors, throughput) and model-specific signals like data and concept drift. You'll learn what metrics to expose, how to scrape and visualize them, how to detect drift statistically, and how to wire alerts that trigger retraining or rollback.",
+  "objectives": [
+    "Distinguish operational metrics (latency, errors, throughput) from model-quality and drift metrics",
+    "Instrument a model service to expose Prometheus metrics using a client library",
+    "Configure Prometheus scraping and build Grafana dashboards for real-time monitoring",
+    "Detect data drift and concept drift using statistical tests like PSI and KS",
+    "Define alerting rules and an action plan (retrain, rollback, page) when thresholds are breached"
+  ],
+  "quiz": [
+    {
+      "q": "Which Prometheus metric type would you use to expose a continuously updated PSI drift score that can rise and fall?",
+      "options": [
+        "Counter",
+        "Gauge",
+        "Histogram",
+        "Summary"
+      ],
+      "answer": 1,
+      "why": "A Gauge represents a value that can go up and down, which fits a drift score. Counters only increase; histograms bucket distributions of observations."
+    },
+    {
+      "q": "What does a PSI value of 0.30 typically indicate?",
+      "options": [
+        "The distribution is stable",
+        "Moderate drift, monitor only",
+        "Significant drift worth acting on",
+        "Insufficient data to compute"
+      ],
+      "answer": 2,
+      "why": "By common rule of thumb, PSI above 0.25 signals significant population shift that warrants investigation or retraining."
+    },
+    {
+      "q": "Why is concept drift harder to detect in real time than data drift?",
+      "options": [
+        "It requires ground-truth labels, which are often delayed",
+        "Prometheus cannot store the metric",
+        "It only affects categorical features",
+        "It is the same as latency drift"
+      ],
+      "answer": 0,
+      "why": "Concept drift is a change in the input-to-output relationship, which can only be measured once true labels arrive — and labels often lag predictions by hours or days."
+    },
+    {
+      "q": "Which PromQL function computes p95 latency from a histogram metric?",
+      "options": [
+        "rate()",
+        "avg_over_time()",
+        "histogram_quantile()",
+        "increase()"
+      ],
+      "answer": 2,
+      "why": "histogram_quantile() computes a quantile (e.g. 0.95) from histogram bucket data, typically combined with rate() over the _bucket series."
+    },
+    {
+      "q": "Short answer: Name the metric label you should always attach to prediction metrics so you can compare deployments.",
+      "answer": "model_version",
+      "why": "Labeling metrics with the model version lets you compare latency, errors, and drift across different deployed model versions."
+    },
+    {
+      "q": "Short answer: What is the term for monitoring the shift in a model's output score distribution before labels are available?",
+      "answer": "prediction drift",
+      "why": "Prediction drift tracks changes in the output distribution and serves as an early warning that doesn't require ground-truth labels."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Prometheus Documentation",
+      "url": "https://prometheus.io/docs/introduction/overview/"
+    },
+    {
+      "label": "Grafana Dashboards & Alerting Docs",
+      "url": "https://grafana.com/docs/grafana/latest/"
+    },
+    {
+      "label": "Evidently AI: Open-source ML monitoring & drift detection",
+      "url": "https://docs.evidentlyai.com/"
+    },
+    {
+      "label": "prometheus_client Python library",
+      "url": "https://github.com/prometheus/client_python"
+    }
+  ],
+  "body_markdown": "## Why Monitor a Deployed Model?\n\nA model that scored 0.92 AUC in training can silently degrade in production. The world changes (data drift), relationships shift (concept drift), and infrastructure fails (latency spikes, errors). Monitoring closes the loop between deployment and the next training cycle.\n\nThink of monitoring in two layers:\n\n- **Operational / service health**: latency, error rate, request throughput, resource usage. These tell you if the *service* is healthy.\n- **Model / data health**: prediction distribution, input feature distributions, and (when labels arrive) accuracy. These tell you if the *model* is still correct.\n\n## The Prometheus + Grafana Stack\n\n- **Prometheus** is a pull-based time-series database. Your service exposes a `/metrics` HTTP endpoint; Prometheus *scrapes* it on an interval (e.g. every 15s).\n- **Grafana** queries Prometheus (using PromQL) and renders dashboards and alerts.\n- **Alertmanager** routes Prometheus alerts to Slack, PagerDuty, email, etc.\n\nMetric types you'll use:\n\n- **Counter**: monotonically increasing (e.g. `predictions_total`, `errors_total`).\n- **Gauge**: value that goes up and down (e.g. `drift_psi_score`, `inflight_requests`).\n- **Histogram**: distribution buckets (e.g. `request_latency_seconds`), enables percentiles via `histogram_quantile`.\n\n## Instrumenting the Service\n\nUse the `prometheus_client` library in Python to expose metrics:\n\n```python\nfrom prometheus_client import Counter, Histogram, Gauge, start_http_server\nimport time\n\nPRED_COUNT = Counter('predictions_total', 'Total predictions', ['model_version'])\nERROR_COUNT = Counter('prediction_errors_total', 'Failed predictions')\nLATENCY = Histogram('prediction_latency_seconds', 'Inference latency',\n                    buckets=[.01, .05, .1, .25, .5, 1, 2.5])\nDRIFT_PSI = Gauge('feature_drift_psi', 'PSI score', ['feature'])\n\ndef predict(features):\n    PRED_COUNT.labels(model_version='v3').inc()\n    with LATENCY.time():\n        try:\n            return model.predict(features)\n        except Exception:\n            ERROR_COUNT.inc()\n            raise\n\nstart_http_server(8000)  # exposes /metrics on :8000\n```\n\n## Prometheus Scrape Config\n\n```yaml\nscrape_configs:\n  - job_name: 'model-service'\n    scrape_interval: 15s\n    static_configs:\n      - targets: ['model-service:8000']\n```\n\n## Useful PromQL Queries\n\n```promql\n# p95 latency over 5m\nhistogram_quantile(0.95, sum(rate(prediction_latency_seconds_bucket[5m])) by (le))\n\n# error rate\nsum(rate(prediction_errors_total[5m])) / sum(rate(predictions_total[5m]))\n\n# request throughput\nsum(rate(predictions_total[1m]))\n```\n\n## Detecting Drift\n\nDrift detection compares a **reference** distribution (training or a known-good window) against the **current** production window.\n\n- **Data / covariate drift**: input feature distributions change. Common tests:\n  - **PSI (Population Stability Index)**: bin both distributions, sum `(curr% - ref%) * ln(curr%/ref%)`. Rule of thumb: `<0.1` stable, `0.1–0.25` moderate, `>0.25` significant drift.\n  - **KS test** for continuous features, **Chi-square** for categorical.\n- **Prediction drift**: the output score distribution shifts even before labels arrive — an early warning.\n- **Concept drift**: the input→output relationship changes. Requires ground-truth labels, so you can only measure it once labels land (sometimes days later). Track rolling accuracy/AUC as labels arrive.\n\nCompute drift in a batch job or sidecar, then publish the score as a Gauge so Prometheus can scrape and alert on it.\n\n```python\nimport numpy as np\ndef psi(ref, cur, bins=10):\n    edges = np.quantile(ref, np.linspace(0, 1, bins + 1))\n    edges[0], edges[-1] = -np.inf, np.inf\n    r = np.histogram(ref, edges)[0] / len(ref) + 1e-6\n    c = np.histogram(cur, edges)[0] / len(cur) + 1e-6\n    return np.sum((c - r) * np.log(c / r))\n```\n\n## Alerting and Acting on Signals\n\nDefine alert rules in Prometheus:\n\n```yaml\ngroups:\n  - name: model-alerts\n    rules:\n      - alert: HighLatencyP95\n        expr: histogram_quantile(0.95, sum(rate(prediction_latency_seconds_bucket[5m])) by (le)) > 0.5\n        for: 5m\n        labels: { severity: warning }\n      - alert: FeatureDriftHigh\n        expr: feature_drift_psi > 0.25\n        for: 10m\n        labels: { severity: critical }\n```\n\nMap each alert to an action: high latency → scale up / investigate infra; high error rate → rollback to previous model version; high drift → trigger a retraining pipeline and notify the team. Avoid alert fatigue by using `for:` durations and sensible thresholds.\n\n## Best Practices\n\n- Always log the **model version** as a label so you can compare deployments.\n- Keep a **reference dataset** versioned alongside the model for drift baselines.\n- Monitor **prediction drift** for early warning since labels are often delayed.\n- Dashboards should show service health and model health side by side.\n- Test your alerts — a silent alerting pipeline is worse than none.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Monitoring Model Performance & Detecting Drift",
+      "sub": "Prometheus, Grafana, and closing the MLOps feedback loop",
+      "narration": "Welcome. In this lesson we'll instrument a deployed model so we can see, in real time, whether it's healthy. We'll track latency and errors with Prometheus and Grafana, and we'll detect when the data or the world changes underneath our model — what we call drift."
+    },
+    {
+      "type": "content",
+      "title": "Two Layers of Monitoring",
+      "bullets": [
+        "Operational health: latency, error rate, throughput, resources",
+        "Model health: prediction distribution, feature distributions, accuracy",
+        "Service can be 'up' while the model is silently wrong",
+        "Both layers belong on one dashboard"
+      ],
+      "narration": "There are two distinct things to watch. The first is operational health — is the service responding quickly and without errors? The second is model health — is the model still making correct predictions? A model service can be perfectly available yet producing garbage because the input data has shifted. We monitor both because a green uptime light tells you nothing about prediction quality."
+    },
+    {
+      "type": "content",
+      "title": "The Prometheus + Grafana Stack",
+      "bullets": [
+        "Prometheus: pull-based time-series DB, scrapes /metrics",
+        "Grafana: dashboards and visualization via PromQL",
+        "Alertmanager: routes alerts to Slack, PagerDuty, email",
+        "Metric types: Counter, Gauge, Histogram"
+      ],
+      "narration": "Our toolkit is Prometheus, Grafana, and Alertmanager. Prometheus periodically pulls metrics from a slash-metrics endpoint your service exposes. Grafana queries Prometheus to build dashboards. Alertmanager routes firing alerts to your team. You'll work with three metric types: counters that only increase like total predictions, gauges that move up and down like a drift score, and histograms that bucket values so you can compute percentiles like p95 latency."
+    },
+    {
+      "type": "content",
+      "title": "Instrumenting Your Service",
+      "bullets": [
+        "Use prometheus_client in Python",
+        "Counter for predictions and errors",
+        "Histogram to time inference latency",
+        "Gauge to publish drift scores",
+        "Always label with model_version"
+      ],
+      "code": "PRED_COUNT = Counter('predictions_total', 'preds', ['model_version'])\nLATENCY = Histogram('prediction_latency_seconds', 'latency')\n\nwith LATENCY.time():\n    result = model.predict(features)\nPRED_COUNT.labels(model_version='v3').inc()",
+      "narration": "Instrumentation is straightforward with the prometheus_client library. Define a counter for total predictions, another for errors, a histogram wrapped around your inference call to time it, and a gauge to publish drift scores later. Crucially, attach a model_version label to your metrics so you can compare the performance of different deployments side by side. Then start an HTTP server that exposes the metrics endpoint."
+    },
+    {
+      "type": "content",
+      "title": "Scraping and Querying",
+      "bullets": [
+        "Configure scrape_interval and targets in prometheus.yml",
+        "PromQL: rate() for per-second rates over a window",
+        "histogram_quantile() for p95/p99 latency",
+        "Compute error rate as errors / total"
+      ],
+      "code": "# p95 latency\nhistogram_quantile(0.95,\n  sum(rate(prediction_latency_seconds_bucket[5m])) by (le))\n\n# error rate\nsum(rate(prediction_errors_total[5m]))\n  / sum(rate(predictions_total[5m]))",
+      "narration": "Point Prometheus at your service in the scrape config with an interval, say fifteen seconds. Then you query with PromQL. The rate function gives you per-second rates over a time window. Wrap a histogram in histogram_quantile to get p95 or p99 latency. Error rate is simply the rate of errors divided by the rate of total requests. These few queries cover most operational dashboards."
+    },
+    {
+      "type": "content",
+      "title": "Understanding Drift",
+      "bullets": [
+        "Data/covariate drift: input feature distributions shift",
+        "Prediction drift: output score distribution shifts (early warning)",
+        "Concept drift: input→output relationship changes (needs labels)",
+        "Compare a reference window vs current window"
+      ],
+      "narration": "Drift comes in flavors. Data or covariate drift means your input features now look different from training. Prediction drift means your output scores have shifted — a useful early warning because it needs no labels. Concept drift is the deepest: the actual relationship between inputs and outputs has changed, and detecting it requires ground-truth labels, which often arrive late. In every case you compare a trusted reference distribution against a recent production window."
+    },
+    {
+      "type": "content",
+      "title": "Measuring Drift: PSI & KS",
+      "bullets": [
+        "PSI: <0.1 stable, 0.1–0.25 moderate, >0.25 significant",
+        "KS test for continuous, Chi-square for categorical",
+        "Compute in a batch/sidecar job, publish as a Gauge",
+        "Version your reference dataset with the model"
+      ],
+      "code": "def psi(ref, cur, bins=10):\n    edges = np.quantile(ref, np.linspace(0,1,bins+1))\n    edges[0], edges[-1] = -np.inf, np.inf\n    r = np.histogram(ref, edges)[0]/len(ref) + 1e-6\n    c = np.histogram(cur, edges)[0]/len(cur) + 1e-6\n    return np.sum((c-r)*np.log(c/r))",
+      "narration": "The Population Stability Index, or PSI, is a workhorse metric. Bin both distributions, then sum the weighted log-ratio of the proportions. A score under point-one means stable, point-one to point-two-five is moderate drift, and above point-two-five signals significant drift worth acting on. Use the KS test for continuous features and Chi-square for categorical. Compute these in a batch job, then publish the result as a Prometheus gauge so it lands on your dashboard alongside everything else."
+    },
+    {
+      "type": "content",
+      "title": "Alerting and Taking Action",
+      "bullets": [
+        "Define Prometheus alert rules with thresholds and 'for' durations",
+        "High latency → scale/investigate; high errors → rollback",
+        "High drift → trigger retraining pipeline + notify",
+        "Test your alerts to avoid silent failures",
+        "Use 'for:' to reduce alert fatigue"
+      ],
+      "code": "- alert: FeatureDriftHigh\n  expr: feature_drift_psi > 0.25\n  for: 10m\n  labels: { severity: critical }",
+      "narration": "A metric is only useful if it drives action. Define alert rules with thresholds and a 'for' duration so a brief blip doesn't page anyone. Map each alert to a concrete response: high latency means scale up or investigate infrastructure, a spike in errors means roll back to the previous model version, and sustained drift means kick off a retraining pipeline and notify the team. Finally, always test your alerting path — an alert that never fires when it should is worse than no alert at all."
+    }
+  ]
+}

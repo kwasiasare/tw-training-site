@@ -1,0 +1,202 @@
+{
+  "slug": "mlo-m3-l01-deploying-models-to-kubernetes",
+  "title": "Deploying Models to Kubernetes",
+  "month": 3,
+  "monthTitle": "Orchestration, CI/CD & Infrastructure as Code",
+  "lesson": 1,
+  "video": "mlo-m3-l01-deploying-models-to-kubernetes.mp4",
+  "summary": "Learn how to deploy a containerized model API to a Kubernetes cluster using core objects: Pods, Deployments, and Services. This lesson covers writing manifests, exposing your API, applying probes and resource limits, and verifying rollouts with kubectl.",
+  "objectives": [
+    "Explain the role of Pods, Deployments, and Services in running a model API on Kubernetes",
+    "Write and apply YAML manifests to deploy a containerized model API",
+    "Expose the model API internally and externally using Service types",
+    "Configure liveness/readiness probes and resource requests/limits for reliability",
+    "Verify, scale, and roll out updates to a deployment using kubectl"
+  ],
+  "quiz": [
+    {
+      "q": "Which Kubernetes object should you create to run a stateless model API with self-healing and rolling updates?",
+      "options": [
+        "A bare Pod",
+        "A Deployment",
+        "A Service",
+        "A ConfigMap"
+      ],
+      "answer": 1,
+      "why": "A Deployment manages a ReplicaSet of identical Pods and provides scaling, self-healing, and rolling updates. You rarely create bare Pods directly."
+    },
+    {
+      "q": "What is the primary purpose of a Service in Kubernetes?",
+      "options": [
+        "To store configuration values",
+        "To provide a stable network endpoint that load-balances across matching Pods",
+        "To build container images",
+        "To schedule Pods onto nodes"
+      ],
+      "answer": 1,
+      "why": "Pods are ephemeral and get new IPs; a Service provides a stable virtual IP/DNS name and load-balances traffic to Pods matched by its label selector."
+    },
+    {
+      "q": "Which probe prevents traffic from reaching a Pod whose model weights are still loading?",
+      "options": [
+        "Liveness probe",
+        "Startup probe only",
+        "Readiness probe",
+        "Resource limit"
+      ],
+      "answer": 2,
+      "why": "The readiness probe signals when a Pod is ready to receive traffic. Until it passes, the Service won't route requests to that Pod."
+    },
+    {
+      "q": "Why should you avoid using the 'latest' image tag in production deployments?",
+      "options": [
+        "It is slower to pull",
+        "It makes rollouts and rollbacks unpredictable",
+        "Kubernetes rejects it",
+        "It uses more memory"
+      ],
+      "answer": 1,
+      "why": "With 'latest' you can't reliably know which version is running, and rollbacks become unpredictable. Pin specific, immutable tags instead."
+    },
+    {
+      "q": "In a Service manifest, what do 'port' and 'targetPort' refer to respectively?",
+      "answer": "port is the port clients use to reach the Service; targetPort is the port the container is listening on.",
+      "why": "Clients connect to the Service on 'port', which forwards traffic to the Pod's 'targetPort' (the containerPort)."
+    },
+    {
+      "q": "Which kubectl command reverts a Deployment to its previous version after a bad release?",
+      "options": [
+        "kubectl scale deployment model-api --replicas=0",
+        "kubectl rollout undo deployment/model-api",
+        "kubectl delete deployment model-api",
+        "kubectl apply -f old.yaml"
+      ],
+      "answer": 1,
+      "why": "kubectl rollout undo reverts the Deployment to the prior ReplicaSet revision, enabling a quick rollback without manually editing manifests."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Kubernetes Deployments (official docs)",
+      "url": "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/"
+    },
+    {
+      "label": "Kubernetes Services (official docs)",
+      "url": "https://kubernetes.io/docs/concepts/services-networking/service/"
+    },
+    {
+      "label": "Configure Liveness, Readiness and Startup Probes",
+      "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/"
+    },
+    {
+      "label": "kubectl Cheat Sheet",
+      "url": "https://kubernetes.io/docs/reference/kubectl/cheatsheet/"
+    }
+  ],
+  "body_markdown": "## Why Kubernetes for Model Serving\n\nOnce your model API is containerized, you need a way to run it reliably, scale it, and recover from failures. Kubernetes (k8s) is the de-facto orchestrator for this. It schedules containers across a cluster, restarts crashed processes, balances traffic, and enables zero-downtime updates.\n\nFor an MLOps engineer, the key insight is that you describe the **desired state** in declarative manifests, and Kubernetes continuously reconciles the cluster to match that state.\n\n## Core Objects\n\n- **Pod**: the smallest deployable unit — one (or a few tightly-coupled) containers sharing network and storage. You rarely create Pods directly.\n- **Deployment**: manages a set of identical Pods via a ReplicaSet. Handles scaling, rolling updates, and self-healing. This is what you use for a stateless model API.\n- **Service**: a stable network endpoint (virtual IP + DNS name) that load-balances traffic across the Pods matched by a label selector. Pods are ephemeral and get new IPs; a Service gives you a fixed address.\n\n## A Deployment Manifest\n\nA Deployment wraps a Pod template. The `selector` must match the Pod `labels`. Always pin a specific image tag (avoid `latest` in production).\n\n```yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: model-api\n  labels:\n    app: model-api\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: model-api\n  template:\n    metadata:\n      labels:\n        app: model-api\n    spec:\n      containers:\n        - name: model-api\n          image: registry.example.com/model-api:1.2.0\n          ports:\n            - containerPort: 8080\n          resources:\n            requests:\n              cpu: \"250m\"\n              memory: \"512Mi\"\n            limits:\n              cpu: \"1\"\n              memory: \"1Gi\"\n          readinessProbe:\n            httpGet:\n              path: /healthz\n              port: 8080\n            initialDelaySeconds: 10\n            periodSeconds: 5\n          livenessProbe:\n            httpGet:\n              path: /healthz\n              port: 8080\n            initialDelaySeconds: 20\n            periodSeconds: 10\n```\n\n## Exposing the API with a Service\n\nA Service selects Pods by label and routes traffic to them. Common types:\n\n- **ClusterIP** (default): reachable only inside the cluster — good for internal microservices.\n- **NodePort**: opens a port on every node — useful for quick testing.\n- **LoadBalancer**: provisions an external load balancer (on cloud providers) — typical for public endpoints.\n\n```yaml\napiVersion: v1\nkind: Service\nmetadata:\n  name: model-api\nspec:\n  type: ClusterIP\n  selector:\n    app: model-api\n  ports:\n    - port: 80\n      targetPort: 8080\n```\n\nHere `port` is the Service port clients hit, and `targetPort` is the container port. For external HTTP traffic you typically front a ClusterIP Service with an **Ingress** controller.\n\n## Probes and Resources Matter\n\n- **Readiness probe**: tells Kubernetes when a Pod can receive traffic. Model APIs often need time to load weights — a readiness probe prevents requests hitting a not-yet-ready Pod.\n- **Liveness probe**: restarts a Pod that has hung or deadlocked.\n- **Resource requests** drive scheduling; **limits** cap usage. Models can be memory-hungry, so set realistic values to avoid OOM kills and noisy-neighbor problems.\n\n## Applying and Verifying\n\n```bash\nkubectl apply -f deployment.yaml\nkubectl apply -f service.yaml\n\nkubectl get pods -l app=model-api\nkubectl get deployment model-api\nkubectl describe pod <pod-name>\nkubectl logs <pod-name>\n\n# Test locally without external exposure\nkubectl port-forward svc/model-api 8080:80\n```\n\n## Scaling and Rolling Updates\n\n```bash\n# Scale\nkubectl scale deployment model-api --replicas=5\n\n# Update image (triggers a rolling update)\nkubectl set image deployment/model-api model-api=registry.example.com/model-api:1.3.0\nkubectl rollout status deployment/model-api\n\n# Roll back if something breaks\nkubectl rollout undo deployment/model-api\n```\n\nDeployments perform rolling updates by default, spinning up new Pods before terminating old ones, giving you zero-downtime releases when probes are configured correctly.\n\n## Common Pitfalls\n\n- Selector labels not matching Pod template labels → Deployment manages nothing.\n- Using `latest` tag → unpredictable rollouts and broken rollbacks.\n- No readiness probe → traffic sent to Pods still loading models.\n- No resource requests → poor scheduling and OOM kills.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Deploying Models to Kubernetes",
+      "sub": "Pods, Deployments & Services for your model API",
+      "narration": "Welcome. In this lesson we'll take a containerized model API and deploy it to a Kubernetes cluster. We'll cover the three core building blocks — Pods, Deployments, and Services — and walk through the manifests and commands you'll use day to day as an MLOps engineer."
+    },
+    {
+      "type": "content",
+      "title": "Why Kubernetes",
+      "bullets": [
+        "Schedules containers across a cluster automatically",
+        "Self-heals by restarting failed Pods",
+        "Scales replicas up and down on demand",
+        "Enables zero-downtime rolling updates",
+        "You declare desired state; k8s reconciles it"
+      ],
+      "narration": "Once your model is in a container, you need something to run it reliably in production. Kubernetes is the standard orchestrator. The mental model to hold onto is declarative: you describe the desired state in YAML, and Kubernetes continuously works to make the cluster match that state — restarting crashes, balancing traffic, and rolling out updates."
+    },
+    {
+      "type": "content",
+      "title": "The Three Core Objects",
+      "bullets": [
+        "Pod: smallest unit, runs your container(s)",
+        "Deployment: manages identical Pods, handles scaling & updates",
+        "Service: stable network endpoint that load-balances to Pods",
+        "You manage Deployments, not Pods directly",
+        "Services connect to Pods via label selectors"
+      ],
+      "narration": "Three objects matter most here. A Pod is the smallest deployable unit and runs your container. A Deployment manages a set of identical Pods, handling scaling, self-healing, and rolling updates — this is what you create for a stateless model API. A Service gives you a stable address that load-balances across those Pods, since Pods are ephemeral and get new IPs."
+    },
+    {
+      "type": "content",
+      "title": "The Deployment Manifest",
+      "bullets": [
+        "replicas sets how many Pods run",
+        "selector must match Pod template labels",
+        "Pin a specific image tag, never latest",
+        "containerPort exposes the app port"
+      ],
+      "code": "kind: Deployment\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: model-api\n  template:\n    metadata:\n      labels:\n        app: model-api\n    spec:\n      containers:\n        - name: model-api\n          image: registry/model-api:1.2.0\n          ports:\n            - containerPort: 8080",
+      "narration": "Here's a Deployment. Replicas declares how many Pods you want. The selector tells the Deployment which Pods it owns, and it must match the labels in the Pod template — a very common bug is a mismatch here. Notice we pin a specific image tag, version one-point-two-point-zero, never latest, so rollouts and rollbacks are predictable."
+    },
+    {
+      "type": "content",
+      "title": "Exposing with a Service",
+      "bullets": [
+        "ClusterIP: internal only (default)",
+        "NodePort: opens a port on each node, good for testing",
+        "LoadBalancer: external endpoint on cloud",
+        "port is the Service port; targetPort is the container port"
+      ],
+      "code": "kind: Service\nspec:\n  type: ClusterIP\n  selector:\n    app: model-api\n  ports:\n    - port: 80\n      targetPort: 8080",
+      "narration": "A Service selects Pods by label and routes traffic to them. ClusterIP, the default, is reachable only inside the cluster. NodePort opens a port on every node for quick testing. LoadBalancer provisions an external load balancer on cloud providers. Note that port is what clients hit on the Service, while targetPort is the port your container listens on."
+    },
+    {
+      "type": "content",
+      "title": "Probes & Resources",
+      "bullets": [
+        "Readiness probe: only send traffic when model is loaded",
+        "Liveness probe: restart hung or deadlocked Pods",
+        "requests drive scheduling decisions",
+        "limits cap CPU and memory to prevent OOM",
+        "Critical for model APIs that load large weights"
+      ],
+      "code": "readinessProbe:\n  httpGet:\n    path: /healthz\n    port: 8080\n  initialDelaySeconds: 10\nresources:\n  requests: { cpu: \"250m\", memory: \"512Mi\" }\n  limits:   { cpu: \"1\",   memory: \"1Gi\" }",
+      "narration": "Probes and resources are what make a deployment production-ready. A readiness probe stops traffic from hitting a Pod that's still loading model weights. A liveness probe restarts a Pod that has hung. Resource requests influence scheduling, while limits cap usage to avoid out-of-memory kills and noisy neighbors. For memory-hungry models, getting these right is essential."
+    },
+    {
+      "type": "content",
+      "title": "Apply & Verify",
+      "bullets": [
+        "kubectl apply -f to create/update objects",
+        "kubectl get pods / get deployment to check status",
+        "kubectl logs and describe for debugging",
+        "port-forward to test without external exposure"
+      ],
+      "code": "kubectl apply -f deployment.yaml\nkubectl apply -f service.yaml\nkubectl get pods -l app=model-api\nkubectl logs <pod-name>\nkubectl port-forward svc/model-api 8080:80",
+      "narration": "You apply manifests with kubectl apply. Then verify with get pods and get deployment to confirm everything is running and ready. When things go wrong, logs and describe are your first stops. And port-forward lets you hit the Service locally for a quick smoke test without exposing it to the internet."
+    },
+    {
+      "type": "content",
+      "title": "Scaling & Rolling Updates",
+      "bullets": [
+        "kubectl scale to change replica count",
+        "kubectl set image triggers a rolling update",
+        "rollout status to watch progress",
+        "rollout undo to revert a bad release",
+        "Zero-downtime when probes are configured"
+      ],
+      "code": "kubectl scale deployment model-api --replicas=5\nkubectl set image deployment/model-api \\\n  model-api=registry/model-api:1.3.0\nkubectl rollout status deployment/model-api\nkubectl rollout undo deployment/model-api",
+      "narration": "Finally, operations. Scale up or down with kubectl scale. Updating the image triggers a rolling update — new Pods come up before old ones are removed, giving zero-downtime releases when your probes are correct. Watch progress with rollout status, and if a release misbehaves, rollout undo reverts to the previous version. These commands are your everyday toolkit."
+    },
+    {
+      "type": "content",
+      "title": "Common Pitfalls",
+      "bullets": [
+        "Selector labels not matching template labels",
+        "Using the latest tag breaks rollbacks",
+        "Missing readiness probe sends traffic too early",
+        "No resource requests causes scheduling and OOM issues"
+      ],
+      "narration": "Before we close, watch for these recurring mistakes: selector labels that don't match the Pod template, using the latest tag which makes rollbacks unpredictable, missing readiness probes that route traffic to Pods still loading, and missing resource requests that lead to poor scheduling and out-of-memory kills. Avoid these and your deployments will be far more stable."
+    }
+  ]
+}
