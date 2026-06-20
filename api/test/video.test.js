@@ -4,7 +4,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { loadHandler, makeRequest, makeContext, authUser } = require('./harness');
 
-const FREE_SLUG = 'm1-l01-how-python-runs';
+const FREE_SLUG = 'aad-m1-l01-python-essentials-for-ai-developers';
 const GATED_SLUG = 'm3-l07-some-gated-lesson';
 
 function videoHandler(signedUrl = 'https://signed.example/video.mp4?sig=abc') {
