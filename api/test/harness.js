@@ -88,6 +88,7 @@ function loadFunction(name, { cosmosContainer, r2, advisor, resumes, notify, tut
           { q: 'MCQ?', options: ['a', 'b'], answer: 0, why: '' },
         ],
       })),
+    countLessons: (lessons && lessons.countLessons) || (() => 3),
   });
   setCache(graderId, {
     gradeAnswer: grader || (async () => ({ verdict: 'correct', score: 90, feedback: 'Nice.' })),

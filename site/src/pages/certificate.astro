@@ -1,0 +1,125 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// Certificate of completion (TW-69). Reads ?course=<slug>, fetches /api/certificate,
+// and renders a printable certificate when the signed-in learner has finished every
+// lesson. The eligibility + identity all come from the server; this page only renders.
+---
+
+<BaseLayout title="Certificate of completion" description="Your course completion certificate.">
+  <section class="lesson">
+    <div class="container">
+      <div id="cert-slot"><p class="summary">Loading your certificate…</p></div>
+    </div>
+  </section>
+
+  <script is:inline>
+    (function () {
+      var slot = document.getElementById('cert-slot');
+      if (!slot) return;
+
+      function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+        });
+      }
+      var params = new URLSearchParams(location.search);
+      var course = (params.get('course') || '').trim();
+      if (!course) {
+        slot.innerHTML = '<p class="summary">No course specified. <a href="/account/">Go to your account</a> to find your courses.</p>';
+        return;
+      }
+
+      function fmtDate(iso) {
+        try { return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }); }
+        catch (e) { return iso; }
+      }
+
+      fetch('/api/certificate?course=' + encodeURIComponent(course), { headers: { accept: 'application/json' } })
+        .then(function (r) {
+          if (r.status === 401 || r.status === 403) {
+            var back = encodeURIComponent(location.pathname + location.search);
+            slot.innerHTML = '<p class="summary">Please sign in to view your certificate.</p>' +
+              '<p><a class="btn" href="/.auth/login/entraExternalId?post_login_redirect_uri=' + back + '">Sign in</a></p>';
+            return null;
+          }
+          return r.ok ? r.json() : null;
+        })
+        .then(function (d) {
+          if (!d) {
+            if (slot.querySelector('.summary') && slot.textContent.indexOf('sign in') === -1) {
+              slot.innerHTML = '<p class="summary">Could not load your certificate. Please try again.</p>';
+            }
+            return;
+          }
+          if (!d.eligible) {
+            var pct = d.totalLessons ? Math.round((d.completedLessons / d.totalLessons) * 100) : 0;
+            slot.innerHTML =
+              '<h1>Almost there!</h1>' +
+              '<p class="summary">You’ve completed <strong>' + d.completedLessons + ' of ' + d.totalLessons +
+              '</strong> lessons (' + pct + '%). Finish the course to unlock your certificate.</p>' +
+              '<p><a class="btn" href="/courses/' + esc(course) + '/">Continue the course</a></p>';
+            return;
+          }
+          slot.innerHTML =
+            '<div class="cert-actions no-print">' +
+              '<button class="btn" id="cert-print" type="button">Print / Save as PDF</button> ' +
+              '<a class="btn secondary" href="/account/">Back to account</a>' +
+            '</div>' +
+            '<div class="cert" role="img" aria-label="Certificate of completion for ' + esc(d.courseTitle) + '">' +
+              '<div class="cert-inner">' +
+                '<p class="cert-kicker">Certificate of Completion</p>' +
+                '<p class="cert-presented">This certifies that</p>' +
+                '<p class="cert-name">' + esc(d.learner) + '</p>' +
+                '<p class="cert-presented">has successfully completed all ' + d.totalLessons + ' lessons of</p>' +
+                '<p class="cert-course">' + esc(d.courseTitle) + '</p>' +
+                '<div class="cert-foot">' +
+                  '<div><span class="cert-label">Date</span><br>' + esc(fmtDate(d.issuedAt)) + '</div>' +
+                  '<div><span class="cert-label">Certificate ID</span><br>' + esc(d.serial) + '</div>' +
+                '</div>' +
+                '<p class="cert-brand">Spreadcom Training</p>' +
+              '</div>' +
+            '</div>';
+          var btn = document.getElementById('cert-print');
+          if (btn) btn.addEventListener('click', function () { window.print(); });
+        })
+        .catch(function () { slot.innerHTML = '<p class="summary">Could not load your certificate. Please try again.</p>'; });
+    })();
+  </script>
+
+  <style>
+    .cert-actions { margin-bottom: 1.25rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .cert {
+      background: linear-gradient(135deg, #14141b, #1d1b2e);
+      border: 2px solid #7c3aed;
+      border-radius: 16px;
+      padding: 6px;
+      max-width: 820px;
+      margin: 0 auto;
+    }
+    .cert-inner {
+      border: 1px solid rgba(124, 58, 237, 0.5);
+      border-radius: 12px;
+      padding: 3rem 2.5rem;
+      text-align: center;
+    }
+    .cert-kicker { letter-spacing: 0.25em; text-transform: uppercase; font-size: 0.85rem; color: #a78bfa; margin: 0 0 1.5rem; }
+    .cert-presented { color: var(--theme, #9aa); margin: 0.5rem 0; }
+    .cert-name { font-size: 2.2rem; font-weight: 700; margin: 0.25rem 0; }
+    .cert-course { font-size: 1.5rem; font-weight: 600; color: #c4b5fd; margin: 0.25rem 0 2rem; }
+    .cert-foot { display: flex; justify-content: space-between; gap: 2rem; margin-top: 2rem; text-align: left; font-size: 0.95rem; }
+    .cert-label { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: #a78bfa; }
+    .cert-brand { margin-top: 2rem; font-weight: 600; letter-spacing: 0.05em; }
+
+    @media print {
+      :global(header), :global(footer), :global(nav), .no-print { display: none !important; }
+      :global(body), :global(main) { background: #fff !important; }
+      .cert { border-color: #7c3aed; background: #fff; }
+      .cert-inner { color: #111; }
+      .cert-name, .cert-course, .cert-brand { color: #111; }
+      .cert-presented { color: #444; }
+      .cert-kicker, .cert-label { color: #6d28d9; }
+      .cert-course { color: #6d28d9; }
+    }
+  </style>
+</BaseLayout>

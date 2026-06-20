@@ -95,7 +95,8 @@ const courseMeta = COURSES.map((c) => ({ slug: c.slug, title: c.title }));
             if (enrolled.length) {
               html += '<ul class="topic-list">' + enrolled.map(function (e) {
                 return '<li class="has-video"><a href="/courses/' + esc(e.course) + '/">' + esc(title(e.course)) +
-                  '</a> <span class="lz">' + e.completed + ' completed</span></li>';
+                  '</a> <span class="lz">' + e.completed + ' completed</span> · ' +
+                  '<a href="/certificate?course=' + esc(e.course) + '">🎓 Certificate</a></li>';
               }).join('') + '</ul>';
             } else {
               html += '<p class="theme">You haven’t started a course yet. <a href="/#courses">Browse courses</a>.</p>';

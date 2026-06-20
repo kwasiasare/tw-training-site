@@ -11,11 +11,26 @@ function load() {
   return index;
 }
 
-// Return { course, title, objectives, body } for a lesson id, or null if unknown.
+// Return { course, title, objectives, body, quiz } for a lesson id, or null if unknown.
 function getLesson(lessonId) {
   if (!lessonId) return null;
   const data = load()[lessonId];
   return data || null;
 }
 
-module.exports = { getLesson };
+// Count how many lessons belong to a course slug (used for completion certificates).
+let counts;
+function countLessons(courseSlug) {
+  if (!courseSlug) return 0;
+  if (!counts) {
+    counts = {};
+    const idx = load();
+    for (const id of Object.keys(idx)) {
+      const c = idx[id].course;
+      if (c) counts[c] = (counts[c] || 0) + 1;
+    }
+  }
+  return counts[courseSlug] || 0;
+}
+
+module.exports = { getLesson, countLessons };
