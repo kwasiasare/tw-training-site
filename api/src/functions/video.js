@@ -15,8 +15,8 @@ const { app } = require('@azure/functions');
 // First two lessons of each course — mirrors the free-preview route rules in
 // staticwebapp.config.json. Keep these two lists in sync.
 const FREE_PREVIEW = new Set([
-  'm1-l01-how-python-runs',
-  'm1-l02-variables-types-strings',
+  'aad-m1-l01-python-essentials-for-ai-developers',
+  'aad-m1-l02-calling-your-first-llm-api',
   'g1-l01-how-llms-behave',
   'g1-l02-where-llms-fail',
   'hd1-l01-how-a-computer-works',
