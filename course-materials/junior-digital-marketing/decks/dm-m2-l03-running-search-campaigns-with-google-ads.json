@@ -1,0 +1,188 @@
+{
+  "slug": "dm-m2-l03-running-search-campaigns-with-google-ads",
+  "title": "Running Search Campaigns with Google Ads",
+  "month": 2,
+  "monthTitle": "Paid Advertising with Meta & Google Ads",
+  "lesson": 3,
+  "video": "dm-m2-l03-running-search-campaigns-with-google-ads.mp4",
+  "summary": "Learn to build a Google Ads search campaign from the ground up: setting goals, structuring ad groups around tight keyword themes, choosing keyword match types, writing high-performing responsive search ads, and adding extensions and negatives to keep spend efficient.",
+  "objectives": [
+    "Explain how Google Search ads work and the role of the ad auction and Quality Score",
+    "Structure a campaign into themed ad groups with relevant keywords",
+    "Select appropriate keyword match types and add negative keywords",
+    "Write compelling responsive search ads with strong headlines, descriptions, and assets",
+    "Set budgets, bidding strategies, and conversion tracking to measure results"
+  ],
+  "quiz": [
+    {
+      "q": "What three components mainly determine your Ad Rank in the Google Search auction?",
+      "options": [
+        "Bid, Quality Score, and ad asset impact",
+        "Budget, brand name, and website age",
+        "Number of keywords, account age, and bid",
+        "Click-through rate only"
+      ],
+      "answer": 0,
+      "why": "Ad Rank combines your maximum bid, your Quality Score (expected CTR, ad relevance, landing page experience), and the expected impact of assets and formats."
+    },
+    {
+      "q": "Which match type gives you the tightest control over which searches trigger your ad?",
+      "options": [
+        "Broad match",
+        "Phrase match",
+        "Exact match",
+        "Negative match"
+      ],
+      "answer": 2,
+      "why": "Exact match [keyword] only shows your ad for searches with the same meaning as the keyword, giving the most control over targeting."
+    },
+    {
+      "q": "What is the main purpose of negative keywords?",
+      "options": [
+        "To increase your maximum bid automatically",
+        "To stop ads showing for irrelevant searches and save budget",
+        "To improve landing page speed",
+        "To create new ad groups"
+      ],
+      "answer": 1,
+      "why": "Negative keywords prevent your ads from appearing on searches you don't want, reducing wasted spend and improving relevance."
+    },
+    {
+      "q": "Why should you avoid pinning every headline in a responsive search ad?",
+      "options": [
+        "Pinning is not allowed by Google",
+        "Pinning increases cost per click directly",
+        "Pinning limits Google's ability to test combinations and can lower Ad Strength",
+        "Pinning deletes other headlines"
+      ],
+      "answer": 2,
+      "why": "Pinning locks headlines to fixed positions, reducing the combinations Google can test, which often lowers Ad Strength and performance. Pin only when necessary."
+    },
+    {
+      "q": "In one sentence, why must conversion tracking be set up before using smart bidding like Target CPA?",
+      "answer": "Because smart bidding relies on conversion data to optimise; without tracking it has no signal to bid toward and you can't measure results.",
+      "why": "Smart bidding strategies use conversion data to make decisions, so tracking must be in place first to provide the signal and to prove ROI."
+    },
+    {
+      "q": "What is the recommended rule of thumb when organising keywords into ad groups?",
+      "answer": "Keep one tight theme per ad group so keywords and ads match closely, improving relevance and Quality Score.",
+      "why": "Tightly themed ad groups ensure ads are highly relevant to the keywords, which raises Quality Score and lowers costs."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Google Ads Help: About responsive search ads",
+      "url": "https://support.google.com/google-ads/answer/7684791"
+    },
+    {
+      "label": "Google Ads Help: About keyword matching options",
+      "url": "https://support.google.com/google-ads/answer/7478529"
+    },
+    {
+      "label": "Google Skillshop: Google Ads Search Certification",
+      "url": "https://skillshop.exceedlms.com/student/path/18103-google-ads-search-certification"
+    },
+    {
+      "label": "Google Ads Help: About Quality Score",
+      "url": "https://support.google.com/google-ads/answer/6167118"
+    }
+  ],
+  "body_markdown": "## Why Search Campaigns Matter\n\nGoogle Search campaigns show text ads to people who are *actively searching* for what you offer. Because the user has high intent (they typed the query), search ads often deliver strong return on ad spend. Your job as a junior assistant is to make sure the right ad shows for the right query at the right cost.\n\n## How the Search Auction Works\n\nEvery time someone searches, Google runs an instant auction. Your ad position and cost depend on **Ad Rank**, which combines:\n\n- **Your bid** – the maximum you'll pay for a click\n- **Quality Score** – Google's 1-10 rating based on expected click-through rate, ad relevance, and landing page experience\n- **Ad assets and formats** – extensions and other enhancements\n\nA higher Quality Score means you can rank higher while paying *less* per click. So relevance is not just good practice — it saves money.\n\n## Account Structure\n\nGood structure keeps ads relevant and easy to manage:\n\n```\nAccount\n └── Campaign (budget, location, bidding)\n      └── Ad Group (one theme / keyword set)\n           ├── Keywords\n           └── Responsive Search Ads\n```\n\n**Rule of thumb:** one tight theme per ad group. For a shoe shop, don't mix \"running shoes\" and \"hiking boots\" in one ad group. Split them so each ad group's ads and keywords match.\n\n## Keywords and Match Types\n\nMatch types control how closely a search must match your keyword:\n\n- **Broad match** `running shoes` – widest reach, can trigger loosely related searches. Use with smart bidding and watch closely.\n- **Phrase match** `\"running shoes\"` – searches that include the meaning of the phrase.\n- **Exact match** `[running shoes]` – searches with the same meaning as the keyword. Tightest control.\n\n**Negative keywords** stop your ads showing for irrelevant terms (e.g. add `free`, `jobs`, `repair` if you don't want those). Review the **Search Terms report** regularly to find new negatives and new keyword ideas.\n\n## Writing Responsive Search Ads (RSAs)\n\nRSAs let you supply up to **15 headlines** and **4 descriptions**; Google mixes them to find top combinations.\n\nBest practices:\n\n- Include your main keyword in at least 2-3 headlines for relevance\n- Add benefits, offers, and a clear **call to action** (\"Shop Now\", \"Get a Free Quote\")\n- Make headlines distinct so combinations don't repeat\n- Pin sparingly — pinning a headline to position 1 limits Google's testing\n- Aim for an **Ad Strength** of \"Good\" or \"Excellent\"\n\n## Ad Assets (Extensions)\n\nAdd assets to take up more space and give users more reasons to click:\n\n- **Sitelinks** – links to specific pages\n- **Callouts** – short phrases like \"Free Delivery\"\n- **Structured snippets** – lists (e.g. Brands, Services)\n- **Call asset** – phone number\n\n## Budgets, Bidding & Conversions\n\n- Set a realistic **daily budget**; Google may spend up to 2x on a given day but balances over the month.\n- Start with **Maximise Clicks** to gather data, then move to **Maximise Conversions** or **Target CPA/ROAS** once conversion tracking has data.\n- **Conversion tracking is essential** — without it, smart bidding is blind and you can't prove results.\n\n## A Simple Build Checklist\n\n1. Define the goal (sales, leads, calls).\n2. Set campaign settings: networks (Search only to start), locations, languages, budget, bidding.\n3. Create ad groups by theme.\n4. Add 5-15 keywords per ad group with chosen match types.\n5. Write 2-3 RSAs per ad group; aim for good Ad Strength.\n6. Add assets/extensions.\n7. Add negative keywords.\n8. Confirm conversion tracking is live, then launch and monitor.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Running Search Campaigns with Google Ads",
+      "sub": "Structure, keywords, and high-performing responsive search ads",
+      "narration": "Welcome! In this lesson we'll build a Google Search campaign from scratch. You'll learn how the auction works, how to structure ad groups and keywords, and how to write responsive search ads that win clicks without wasting budget."
+    },
+    {
+      "type": "content",
+      "title": "How Search Ads Work",
+      "bullets": [
+        "Ads appear when users actively search a query — high intent",
+        "Every search triggers an instant auction",
+        "Ad Rank = bid × Quality Score + asset impact",
+        "Higher Quality Score = better position for less money"
+      ],
+      "narration": "Search ads are powerful because the user is already looking for what you offer. Each time someone searches, Google runs an auction. Your position depends on Ad Rank, which blends your bid with Quality Score and your ad assets. Quality Score rewards relevance — so a well-targeted ad can outrank a higher bidder while costing less per click."
+    },
+    {
+      "type": "content",
+      "title": "Account Structure",
+      "bullets": [
+        "Account → Campaign → Ad Group → Keywords & Ads",
+        "Campaign holds budget, location, and bidding settings",
+        "One tight theme per ad group",
+        "Tight themes keep ads relevant and Quality Score high"
+      ],
+      "code": "Campaign: Footwear Sale\n ├── Ad Group: Running Shoes\n └── Ad Group: Hiking Boots",
+      "narration": "Structure matters. A campaign controls budget, location, and bidding, while ad groups each focus on a single theme. Keep themes tight — don't mix running shoes and hiking boots in one ad group. When keywords and ads in a group all match, your relevance and Quality Score improve."
+    },
+    {
+      "type": "content",
+      "title": "Keyword Match Types",
+      "bullets": [
+        "Broad: running shoes — widest reach, least control",
+        "Phrase: \"running shoes\" — matches the phrase meaning",
+        "Exact: [running shoes] — tightest control",
+        "Start focused, expand as you learn"
+      ],
+      "narration": "Match types decide how closely a search must match your keyword. Broad match reaches the most people but needs close monitoring. Phrase match captures the meaning of your phrase. Exact match gives the tightest control. A common approach is to start with phrase and exact, then test broad with smart bidding once you have data."
+    },
+    {
+      "type": "content",
+      "title": "Negative Keywords & Search Terms",
+      "bullets": [
+        "Negatives stop ads on irrelevant searches",
+        "Common negatives: free, jobs, cheap, repair",
+        "Check the Search Terms report weekly",
+        "Find new negatives AND new keyword ideas there"
+      ],
+      "narration": "Negative keywords protect your budget by blocking searches you don't want, like 'free' or 'jobs'. The Search Terms report shows the actual queries that triggered your ads — review it regularly to add negatives and discover profitable new keywords you hadn't thought of."
+    },
+    {
+      "type": "content",
+      "title": "Writing Responsive Search Ads",
+      "bullets": [
+        "Up to 15 headlines and 4 descriptions",
+        "Include your keyword in 2-3 headlines",
+        "Add benefits, offers, and a clear call to action",
+        "Pin sparingly; aim for Good or Excellent Ad Strength"
+      ],
+      "narration": "Responsive search ads let you add up to fifteen headlines and four descriptions, and Google tests combinations automatically. Put your main keyword in a few headlines for relevance, highlight benefits and offers, and always include a clear call to action. Avoid over-pinning, which limits testing, and aim for an Ad Strength of Good or Excellent."
+    },
+    {
+      "type": "content",
+      "title": "Ad Assets (Extensions)",
+      "bullets": [
+        "Sitelinks — link to key pages",
+        "Callouts — short selling points like Free Delivery",
+        "Structured snippets — lists of brands or services",
+        "Call assets — phone number for direct calls"
+      ],
+      "narration": "Assets, formerly called extensions, make your ad bigger and more useful. Sitelinks send users to specific pages, callouts add short selling points, structured snippets list things like brands or services, and call assets show a phone number. They're free to add and usually improve click-through rate."
+    },
+    {
+      "type": "content",
+      "title": "Budgets, Bidding & Conversions",
+      "bullets": [
+        "Set a realistic daily budget",
+        "Start with Maximise Clicks to gather data",
+        "Move to Maximise Conversions / Target CPA later",
+        "Conversion tracking is essential before smart bidding"
+      ],
+      "narration": "Set a daily budget you're comfortable with. When starting out with little data, Maximise Clicks helps gather information. Once conversion tracking is collecting data, switch to conversion-based bidding like Maximise Conversions or Target CPA. Without conversion tracking, smart bidding is blind and you can't prove your results — so set it up first."
+    },
+    {
+      "type": "content",
+      "title": "Build Checklist & Recap",
+      "bullets": [
+        "Goal → settings → ad groups → keywords → ads",
+        "2-3 RSAs per ad group, aim for high Ad Strength",
+        "Add assets and negative keywords",
+        "Confirm conversion tracking, launch, then monitor"
+      ],
+      "narration": "To recap, follow the build checklist: define your goal, configure campaign settings, create themed ad groups, add keywords, write two or three strong RSAs per group, add assets and negatives, and confirm conversion tracking before you launch. Then monitor performance and optimise based on the data you collect."
+    }
+  ]
+}

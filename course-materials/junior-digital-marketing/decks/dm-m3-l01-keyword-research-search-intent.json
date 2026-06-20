@@ -1,0 +1,195 @@
+{
+  "slug": "dm-m3-l01-keyword-research-search-intent",
+  "title": "Keyword Research & Search Intent",
+  "month": 3,
+  "monthTitle": "SEO, Analytics & Performance Measurement",
+  "lesson": 1,
+  "video": "dm-m3-l01-keyword-research-search-intent.mp4",
+  "summary": "Learn how to find high-value keywords using free and freemium tools, understand the four types of search intent, and group keywords into intent-based clusters that power both SEO content and paid ads.",
+  "objectives": [
+    "Define keywords, search volume, keyword difficulty, and long-tail keywords",
+    "Identify the four types of search intent (informational, navigational, commercial, transactional)",
+    "Use free and freemium tools (Google autocomplete, Keyword Planner, AnswerThePublic, Google Trends) to generate keyword ideas",
+    "Group keywords into intent-based clusters for content and ad campaigns",
+    "Prioritise keywords using a simple value vs. effort framework"
+  ],
+  "quiz": [
+    {
+      "q": "Which search intent does the query 'buy wireless headphones' represent?",
+      "options": [
+        "Informational",
+        "Navigational",
+        "Commercial",
+        "Transactional"
+      ],
+      "answer": 3,
+      "why": "The word 'buy' signals the user is ready to make a purchase, which is transactional intent."
+    },
+    {
+      "q": "What is a long-tail keyword?",
+      "options": [
+        "A short, very high-volume term",
+        "A longer, specific phrase with lower volume and higher intent",
+        "A keyword used only in paid ads",
+        "A keyword with no search volume"
+      ],
+      "answer": 1,
+      "why": "Long-tail keywords are longer, more specific phrases that get fewer searches but usually convert better and are easier to rank for."
+    },
+    {
+      "q": "What is the fastest way to confirm a keyword's search intent?",
+      "options": [
+        "Check its search volume",
+        "Search the keyword and look at what ranks on the SERP",
+        "Count the number of words",
+        "Look at the keyword difficulty score"
+      ],
+      "answer": 1,
+      "why": "The results Google already ranks reveal what intent it associates with the query — guides mean informational, product pages mean transactional, and so on."
+    },
+    {
+      "q": "Which of these is a FREE tool for keyword ideas built directly into search?",
+      "options": [
+        "Google autocomplete",
+        "Adobe Photoshop",
+        "Mailchimp",
+        "Canva"
+      ],
+      "answer": 0,
+      "why": "Google autocomplete (and 'People also ask') suggests real keyword ideas for free as you type a search."
+    },
+    {
+      "q": "In one sentence, explain why you should target low-difficulty, high-relevance keywords first.",
+      "answer": "They are easier to rank for and still drive relevant traffic, giving quick wins while you build authority for harder, higher-volume terms.",
+      "why": "Early wins build momentum and traffic without competing immediately against established sites for difficult head terms."
+    },
+    {
+      "q": "Which intent type best fits the query 'best budget laptops 2024'?",
+      "options": [
+        "Transactional",
+        "Commercial",
+        "Navigational",
+        "Informational"
+      ],
+      "answer": 1,
+      "why": "The user is comparing options and researching before buying, which is commercial investigation intent."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Google Keyword Planner",
+      "url": "https://ads.google.com/home/tools/keyword-planner/"
+    },
+    {
+      "label": "Google Trends",
+      "url": "https://trends.google.com/"
+    },
+    {
+      "label": "AnswerThePublic",
+      "url": "https://answerthepublic.com/"
+    },
+    {
+      "label": "Google Search Central: Search Intent & SEO Basics",
+      "url": "https://developers.google.com/search/docs/fundamentals/seo-starter-guide"
+    }
+  ],
+  "body_markdown": "## What Is a Keyword?\n\nA **keyword** is the word or phrase a person types (or speaks) into a search engine. In digital marketing we use keywords to understand what audiences want and to make sure our content and ads appear when they search.\n\nKey terms you must know:\n\n- **Search volume** — roughly how many times a keyword is searched per month.\n- **Keyword difficulty (KD)** — how hard it is to rank on page one (higher = more competition).\n- **Long-tail keyword** — a longer, more specific phrase (e.g. *\"vegan running shoes for flat feet\"*). Lower volume but easier to rank and higher intent.\n- **Head term** — a short, broad keyword (e.g. *\"shoes\"*). High volume, very competitive, vague intent.\n\n## Search Intent: The Heart of Modern SEO\n\nGoogle rewards content that matches **why** someone is searching, not just the words they use. There are four core intent types:\n\n| Intent | What the user wants | Example query |\n|---|---|---|\n| **Informational** | To learn something | \"how to tie a tie\" |\n| **Navigational** | To reach a specific site/brand | \"netflix login\" |\n| **Commercial** | To research before buying | \"best budget laptops 2024\" |\n| **Transactional** | To take action / buy now | \"buy iphone 15 case\" |\n\n**Why it matters:** If you write a blog post for a transactional keyword, you'll lose to product pages. Match the content *type* to the intent.\n\n## A Simple Keyword Research Workflow\n\n1. **Seed keywords** — brainstorm 5–10 core topics for the business.\n2. **Expand** — feed seeds into tools to get hundreds of related ideas.\n3. **Pull data** — note volume and difficulty for each.\n4. **Classify intent** — label every keyword I/N/C/T.\n5. **Cluster** — group keywords by topic + intent.\n6. **Prioritise** — pick targets using value vs. effort.\n\n## Free & Freemium Tools\n\n- **Google autocomplete & \"People also ask\"** — free idea generators built into search.\n- **Google Keyword Planner** — free with a Google Ads account; gives volume ranges and ad competition.\n- **Google Trends** — free; shows seasonality and rising terms.\n- **AnswerThePublic** — freemium; surfaces question-based keywords (great for informational intent).\n- **Ubersuggest / Keyword Surfer / Semrush (free tier)** — freemium; volume, difficulty, and related terms.\n\n## Reading Intent From the SERP\n\nThe fastest way to confirm intent: **search the keyword yourself** and look at what ranks.\n\n- Lots of blog posts/guides → informational\n- Product or category pages, shopping ads → transactional/commercial\n- A brand's homepage → navigational\n\nIf the top results are all product pages, don't try to rank a blog post there.\n\n## Prioritising Keywords (Value vs. Effort)\n\nScore each keyword on:\n\n- **Value** — relevance to the business + intent (transactional often = higher value).\n- **Effort** — keyword difficulty + how much content you'd need.\n\nTarget **low-difficulty, high-relevance** keywords first (quick wins), especially long-tail terms. Save high-volume head terms for long-term campaigns.\n\n## Using Clusters for SEO and Ads\n\n- **SEO:** Build one page per cluster (a \"topic\"), targeting the main keyword plus supporting long-tails.\n- **Ads:** Group keywords into tight ad groups by intent so your ad copy matches the search — improving Quality Score and lowering cost.\n\n## Key Takeaways\n\n- Keywords reveal demand; intent reveals *how to serve it*.\n- Always match content type to intent.\n- Use free tools first — you can do excellent research for £0.\n- Long-tail + low difficulty = best early wins.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Keyword Research & Search Intent",
+      "sub": "Finding high-value keywords and grouping them by intent",
+      "narration": "Welcome to this lesson on keyword research and search intent. As a junior digital marketing assistant, this is one of the most practical skills you'll use every week. By the end, you'll be able to find valuable keywords with free tools and organise them by what searchers actually want."
+    },
+    {
+      "type": "content",
+      "title": "What Is a Keyword?",
+      "bullets": [
+        "A word or phrase people type into search engines",
+        "Search volume = monthly searches",
+        "Keyword difficulty = how competitive it is",
+        "Long-tail = specific, lower volume, higher intent"
+      ],
+      "narration": "A keyword is simply what someone types into Google. We measure keywords by search volume — how often they're searched — and difficulty — how hard they are to rank for. Short head terms like 'shoes' are huge but vague. Long-tail keywords, like 'vegan running shoes for flat feet', get fewer searches but the person knows exactly what they want, which makes them easier to win and more valuable."
+    },
+    {
+      "type": "content",
+      "title": "The Four Types of Search Intent",
+      "bullets": [
+        "Informational: 'how to tie a tie'",
+        "Navigational: 'netflix login'",
+        "Commercial: 'best budget laptops'",
+        "Transactional: 'buy iphone 15 case'"
+      ],
+      "narration": "Modern SEO is all about intent — the reason behind a search. There are four types. Informational searches want to learn. Navigational searches want a specific site. Commercial searches are researching before buying. Transactional searches are ready to act or purchase. Recognising these lets you serve the right content to the right person."
+    },
+    {
+      "type": "content",
+      "title": "Why Intent Matters",
+      "bullets": [
+        "Google ranks content that matches intent",
+        "Match content TYPE to intent",
+        "Blog post won't beat product pages for 'buy' terms",
+        "Wrong intent = wasted effort"
+      ],
+      "narration": "Here's the key insight: Google rewards content that matches why people search, not just the words. If you write a blog article targeting a transactional keyword like 'buy running shoes', you'll lose to actual product pages every time. Always match your content type — blog, product page, comparison — to the searcher's intent."
+    },
+    {
+      "type": "content",
+      "title": "The Research Workflow",
+      "bullets": [
+        "1. Brainstorm seed keywords",
+        "2. Expand with tools",
+        "3. Pull volume & difficulty",
+        "4. Classify intent (I/N/C/T)",
+        "5. Cluster, then prioritise"
+      ],
+      "narration": "Follow this simple six-step workflow. Start with five to ten seed keywords for the business. Expand them using tools to get hundreds of ideas. Pull the volume and difficulty data. Then classify each keyword by intent. Finally, group similar keywords into clusters and prioritise the best ones. This repeatable process keeps your research organised."
+    },
+    {
+      "type": "content",
+      "title": "Free & Freemium Tools",
+      "bullets": [
+        "Google autocomplete & 'People also ask'",
+        "Google Keyword Planner (free with Ads)",
+        "Google Trends — seasonality",
+        "AnswerThePublic — question keywords",
+        "Ubersuggest / Keyword Surfer — freemium"
+      ],
+      "narration": "You don't need expensive software to start. Google's own autocomplete and 'People also ask' boxes are goldmines. Keyword Planner gives volume ranges for free with a Google Ads account. Google Trends shows seasonality and rising terms. AnswerThePublic surfaces question-based keywords, perfect for informational content. And freemium tools like Ubersuggest add difficulty scores."
+    },
+    {
+      "type": "content",
+      "title": "Reading Intent From the SERP",
+      "bullets": [
+        "Search the keyword yourself",
+        "Blogs/guides ranking = informational",
+        "Product pages/shopping ads = transactional",
+        "Brand homepage = navigational"
+      ],
+      "narration": "The fastest way to confirm intent is to search the keyword yourself and study the results page. If the top results are mostly how-to articles and guides, it's informational. If they're product or category pages with shopping ads, it's transactional. If it's a brand's homepage, it's navigational. Let Google show you what it thinks the intent is."
+    },
+    {
+      "type": "content",
+      "title": "Prioritise: Value vs. Effort",
+      "bullets": [
+        "Value = relevance + intent strength",
+        "Effort = difficulty + content needed",
+        "Target low-difficulty, high-relevance first",
+        "Long-tail terms = quick wins"
+      ],
+      "narration": "With hundreds of keywords, you need to prioritise. Score each on value — its relevance to the business and intent strength — and on effort — its difficulty and the content required. Go after low-difficulty, highly relevant keywords first. These are often long-tail terms and give you quick wins while you build authority for bigger targets."
+    },
+    {
+      "type": "content",
+      "title": "Clusters for SEO and Ads",
+      "bullets": [
+        "SEO: one page per topic cluster",
+        "Cover main keyword + supporting long-tails",
+        "Ads: tight ad groups by intent",
+        "Better intent match = lower cost"
+      ],
+      "narration": "Finally, put your clusters to work. For SEO, build one strong page per topic cluster, targeting a main keyword plus supporting long-tails. For paid ads, group keywords into tight ad groups by intent so your ad copy matches the search exactly. This improves Quality Score and lowers your cost per click. Clusters connect research to real results."
+    }
+  ]
+}

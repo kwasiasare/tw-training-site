@@ -114,6 +114,14 @@ export const COURSES: Course[] = [
     sample: 'mlo-m1-l01-setting-up-your-mlops-toolchain-and-workflow',
     accent: '#7c3aed',
   },
+  {
+    slug: 'junior-digital-marketing',
+    title: 'Junior Digital Marketing & Social Media Assistant Bootcamp',
+    tagline: 'Aspiring marketers, career changers, and recent graduates with little to no professional experience who want an entry-level digital marketing or social media role.',
+    blurb: 'A hands-on, project-based course that builds the practical skills needed to launch a career as a digital marketing and social media assistant. Learners will run real ad campaigns, create engaging content, analyze performance data, and assemble a job-ready portfolio across paid ads, SEO, social media, and email marketing.',
+    sample: 'dm-m1-l01-the-digital-marketing-landscape-the-assistant-ro',
+    accent: '#7c3aed',
+  },
 ];
 
 export function getCourse(slug: string): Course | undefined {

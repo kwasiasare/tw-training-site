@@ -1,0 +1,194 @@
+{
+  "slug": "dm-m2-l02-launching-your-first-meta-ads-campaign",
+  "title": "Launching Your First Meta Ads Campaign",
+  "month": 2,
+  "monthTitle": "Paid Advertising with Meta & Google Ads",
+  "lesson": 2,
+  "video": "dm-m2-l02-launching-your-first-meta-ads-campaign.mp4",
+  "summary": "A practical, step-by-step lesson on launching your first paid campaign in Meta Ads Manager. You'll learn the account structure, how to pick the right objective, build audiences, set budgets, design ad creative, and publish a compliant Facebook/Instagram ad.",
+  "objectives": [
+    "Navigate Meta Ads Manager and explain the campaign, ad set, and ad hierarchy",
+    "Select the correct campaign objective based on a business goal",
+    "Build saved, custom, and lookalike audiences with appropriate targeting",
+    "Set daily vs lifetime budgets and choose placements",
+    "Create compliant ad creative and publish a Facebook/Instagram campaign",
+    "Identify key metrics to monitor after launch"
+  ],
+  "quiz": [
+    {
+      "q": "At which level of the Meta campaign structure do you set the audience, budget, and placements?",
+      "options": [
+        "Campaign",
+        "Ad Set",
+        "Ad",
+        "Business Manager"
+      ],
+      "answer": 1,
+      "why": "The ad set level controls targeting (audience), budget, schedule, and placements. The campaign sets the objective, and the ad holds the creative."
+    },
+    {
+      "q": "A client wants to drive online purchases. Which objective best signals this to Meta's algorithm?",
+      "options": [
+        "Awareness",
+        "Engagement",
+        "Sales",
+        "Traffic"
+      ],
+      "answer": 2,
+      "why": "The Sales objective optimises delivery toward people likely to convert/purchase (and typically uses the Pixel), rather than just clicks or reach."
+    },
+    {
+      "q": "What does a Lookalike audience do?",
+      "options": [
+        "Targets your existing website visitors",
+        "Finds new people similar to a source custom audience",
+        "Targets only people who liked your page",
+        "Retargets people who abandoned a cart"
+      ],
+      "answer": 1,
+      "why": "A lookalike uses a source custom audience and asks Meta to find new, similar users to expand reach to fresh prospects."
+    },
+    {
+      "q": "Which budget type lets you use ad scheduling (dayparting) and is best for a fixed-length promotion?",
+      "options": [
+        "Daily budget",
+        "Lifetime budget",
+        "Bid cap",
+        "Cost cap"
+      ],
+      "answer": 1,
+      "why": "A lifetime budget spreads a total amount across the run and enables ad scheduling, making it suitable for fixed-duration promotions."
+    },
+    {
+      "q": "For beginners, which placement setting does Meta recommend?",
+      "options": [
+        "Manual placements, Instagram only",
+        "Advantage+ (automatic) placements",
+        "Audience Network only",
+        "Stories only"
+      ],
+      "answer": 1,
+      "why": "Advantage Plus automatic placements let Meta optimise distribution across all placements, which is recommended for those starting out."
+    },
+    {
+      "q": "Name one metric you should monitor after launching a campaign to assess efficiency.",
+      "answer": "Cost per Result (also acceptable: CTR, CPC, or CPM)",
+      "why": "Cost per Result shows how efficiently the campaign hits your objective; CTR, CPC and CPM are also valid efficiency/engagement indicators."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Meta Ads Manager — official tool",
+      "url": "https://www.facebook.com/adsmanager"
+    },
+    {
+      "label": "Meta Blueprint free courses",
+      "url": "https://www.facebook.com/business/learn"
+    },
+    {
+      "label": "Meta Advertising Policies",
+      "url": "https://transparency.fb.com/policies/ad-standards/"
+    },
+    {
+      "label": "Meta Business Help Center",
+      "url": "https://www.facebook.com/business/help"
+    }
+  ],
+  "body_markdown": "## Why Meta Ads?\n\nMeta (Facebook + Instagram) reaches billions of users daily and offers granular targeting at low entry cost. As a junior assistant, you'll often be asked to launch and monitor simple campaigns, so mastering Ads Manager is essential.\n\n## The Three-Level Structure\n\nEvery Meta campaign uses a strict hierarchy:\n\n1. **Campaign** — where you set the *objective* (what you want to achieve).\n2. **Ad Set** — where you define *audience, budget, schedule, and placements*.\n3. **Ad** — the actual *creative* (image/video, copy, headline, link, call-to-action).\n\nA single campaign can hold multiple ad sets, and each ad set can hold multiple ads. This lets you test audiences and creatives systematically.\n\n## Step 1 — Set Up Ads Manager\n\n- You need a **Facebook Business Page** and a **Meta Business Suite / Business Manager** account.\n- Add a **payment method** under Billing.\n- Confirm your Page and ad account permissions before building.\n\n## Step 2 — Choose the Right Objective\n\nMeta groups objectives by funnel stage:\n\n| Objective | Use when you want… |\n|---|---|\n| Awareness | Maximum reach / brand visibility |\n| Traffic | Clicks to a website or app |\n| Engagement | Likes, comments, messages, video views |\n| Leads | Form fills, sign-ups |\n| App promotion | App installs |\n| Sales | Conversions / purchases (needs the Meta Pixel) |\n\n**Rule of thumb:** match the objective to the *business goal*, not to vanity metrics. Choosing 'Sales' tells Meta's algorithm to find buyers, not just clickers.\n\n## Step 3 — Define Your Audience\n\nThree audience types you'll use most:\n\n- **Saved (Core) audiences** — built from location, age, gender, interests, and behaviours.\n- **Custom audiences** — people who already know you: website visitors (via Pixel), customer email lists, video viewers, page engagers.\n- **Lookalike audiences** — Meta finds new people similar to a custom audience (e.g., 1% lookalike of your best customers).\n\nKeep audiences broad enough to deliver (avoid over-narrowing) but relevant. Watch the **audience size estimate** indicator.\n\n## Step 4 — Budget & Schedule\n\n- **Daily budget**: average amount spent per day — good for ongoing campaigns.\n- **Lifetime budget**: total spend across the whole run — good for fixed promotions; allows ad scheduling (dayparting).\n- Start small (e.g., £5–£10/day) to gather data before scaling.\n- Meta uses an **auction**; you usually let it bid automatically (Highest Volume) when starting out.\n\n## Step 5 — Placements\n\n- **Advantage+ placements (automatic)** is recommended for beginners — Meta distributes across Feeds, Stories, Reels, etc.\n- Use **Manual placements** only when you have a specific reason (e.g., Instagram-only creative).\n\n## Step 6 — Build the Ad Creative\n\n- Choose a format: single image, video, or carousel.\n- Write clear **primary text**, a punchy **headline**, and a relevant **call-to-action** button.\n- Use a strong destination URL and add **UTM parameters** for tracking.\n- Follow image specs (e.g., 1080×1080 square or 1080×1350 vertical for feeds/Reels).\n\n## Step 7 — Review, Publish, Monitor\n\n- Check Ads Manager warnings, then click **Publish**. Ads enter **review** (usually within 24 hours).\n- After launch, watch: **Reach, Impressions, CPM, CTR, CPC, Results, and Cost per Result**.\n- Let campaigns exit the **learning phase** (~50 conversions/week) before judging performance; avoid editing too soon.\n\n## Policy & Compliance Notes\n\n- Avoid prohibited content and respect ad policies (no misleading claims, restricted categories).\n- Sensitive categories (housing, employment, credit) require **Special Ad Categories** with limited targeting.\n\n## Quick Launch Checklist\n\n1. Objective matches goal\n2. Audience defined and sized\n3. Budget set (start small)\n4. Placements chosen\n5. Creative + copy + CTA + URL ready\n6. Tracking (Pixel/UTMs) in place\n7. Review warnings → Publish",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Launching Your First Meta Ads Campaign",
+      "sub": "Paid Advertising with Meta & Google Ads",
+      "narration": "Welcome. In this lesson we'll launch a real Facebook and Instagram ad from scratch using Meta Ads Manager. By the end you'll understand the account structure, how to pick an objective, build audiences, set a budget, and publish your first campaign confidently."
+    },
+    {
+      "type": "content",
+      "title": "The Three-Level Structure",
+      "bullets": [
+        "Campaign = your objective (the goal)",
+        "Ad Set = audience, budget, schedule, placements",
+        "Ad = the creative (image/video, copy, CTA)",
+        "One campaign can hold many ad sets and ads"
+      ],
+      "narration": "Meta campaigns always follow a strict three-level hierarchy. At the top, the campaign is where you set your objective. Below that, the ad set controls who sees the ad, how much you spend, when it runs, and where it appears. At the bottom, the ad is the actual creative people see. This structure lets you test different audiences and creatives in an organised way."
+    },
+    {
+      "type": "content",
+      "title": "Step 1: Set Up Ads Manager",
+      "bullets": [
+        "Need a Facebook Business Page",
+        "Set up Meta Business Suite / Business Manager",
+        "Add a payment method under Billing",
+        "Confirm Page and ad account permissions"
+      ],
+      "narration": "Before building anything, make sure the foundations are in place. You need a Facebook Business Page, a Business Manager account, and a valid payment method added under billing. Double-check that you have permission to manage the page and ad account, because missing access is the most common thing that blocks a launch."
+    },
+    {
+      "type": "content",
+      "title": "Step 2: Choose the Right Objective",
+      "bullets": [
+        "Awareness, Traffic, Engagement",
+        "Leads, App promotion, Sales",
+        "Match objective to the business goal",
+        "Sales objective finds buyers, not just clickers"
+      ],
+      "narration": "Your objective tells Meta's algorithm what success looks like. Choose Awareness for visibility, Traffic for website clicks, Engagement for interactions, Leads for sign-ups, and Sales for purchases. The golden rule is to match the objective to the actual business goal, not a vanity metric. If you want sales, pick Sales so the algorithm optimises for people likely to buy."
+    },
+    {
+      "type": "content",
+      "title": "Step 3: Define Your Audience",
+      "bullets": [
+        "Saved/Core: location, age, interests, behaviours",
+        "Custom: site visitors, email lists, engagers",
+        "Lookalike: new people similar to your best customers",
+        "Don't over-narrow — watch the size estimate"
+      ],
+      "narration": "There are three audience types you'll use most. Saved or core audiences are built from demographics and interests. Custom audiences are people who already know you, like website visitors or email subscribers. Lookalike audiences let Meta find new people similar to your best customers. Keep audiences relevant but broad enough to deliver, and watch the audience size indicator."
+    },
+    {
+      "type": "content",
+      "title": "Step 4: Budget & Schedule",
+      "bullets": [
+        "Daily budget: average spend per day",
+        "Lifetime budget: total spend over the run",
+        "Start small (£5–£10/day) to gather data",
+        "Let the auction bid automatically at first"
+      ],
+      "narration": "You can set a daily budget, which is the average amount spent each day, ideal for ongoing campaigns, or a lifetime budget covering the full run, which also enables ad scheduling. When starting, keep budgets small to gather data before scaling, and let Meta bid automatically using Highest Volume rather than manual bidding."
+    },
+    {
+      "type": "content",
+      "title": "Step 5 & 6: Placements and Creative",
+      "bullets": [
+        "Beginners: use Advantage+ automatic placements",
+        "Manual placements only for a specific reason",
+        "Formats: single image, video, carousel",
+        "Write clear text, headline, CTA + add UTMs"
+      ],
+      "narration": "For placements, beginners should use Advantage Plus automatic placements so Meta distributes your ad across feeds, stories and reels efficiently. Only go manual when you have a clear reason. Then build your creative: pick a format, write clear primary text and a punchy headline, choose a relevant call-to-action button, and add UTM parameters to your link for tracking."
+    },
+    {
+      "type": "content",
+      "title": "Step 7: Review, Publish, Monitor",
+      "bullets": [
+        "Fix warnings, then Publish → ad enters review",
+        "Track: Reach, CPM, CTR, CPC, Cost per Result",
+        "Respect the learning phase — don't edit too soon",
+        "Mind ad policies & Special Ad Categories"
+      ],
+      "narration": "Once everything's ready, resolve any warnings and click Publish. Your ad goes into review, usually cleared within 24 hours. After launch, monitor reach, CPM, click-through rate, cost per click and cost per result. Give the campaign time to exit the learning phase before judging it. Finally, always follow ad policies, and remember sensitive categories like housing or jobs require Special Ad Categories with limited targeting."
+    },
+    {
+      "type": "content",
+      "title": "Quick Launch Checklist",
+      "bullets": [
+        "Objective matches goal; audience sized",
+        "Budget set small; placements chosen",
+        "Creative, copy, CTA and URL ready",
+        "Tracking in place; warnings cleared → Publish"
+      ],
+      "narration": "Let's recap with a checklist you can reuse every time. Confirm the objective matches your goal, your audience is defined and sized, your budget starts small, placements are chosen, your creative and link are ready, tracking is in place, and all warnings are cleared. Tick these off and you're ready to publish a solid first campaign."
+    }
+  ]
+}

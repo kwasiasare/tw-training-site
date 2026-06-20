@@ -1,0 +1,190 @@
+{
+  "slug": "dm-m2-l04-optimizing-ad-performance-a-b-testing",
+  "title": "Optimizing Ad Performance & A/B Testing",
+  "month": 2,
+  "monthTitle": "Paid Advertising with Meta & Google Ads",
+  "lesson": 4,
+  "video": "dm-m2-l04-optimizing-ad-performance-a-b-testing.mp4",
+  "summary": "Learn to monitor the key metrics that signal ad health and use structured A/B testing on creative and targeting to steadily improve results and lower your cost-per-result on Meta and Google Ads.",
+  "objectives": [
+    "Identify and interpret the core paid ad metrics (CTR, CPC, CPM, CPR, ROAS, conversion rate) on Meta and Google Ads",
+    "Diagnose underperforming ads by linking symptoms to likely causes",
+    "Design a valid A/B test with one variable, a clear hypothesis, and a single success metric",
+    "Run and read A/B tests using Meta's built-in tools and Google Ads experiments",
+    "Make optimization decisions (scale, pause, iterate) based on statistical confidence and budget",
+    "Apply a repeatable weekly optimization routine to lower cost-per-result"
+  ],
+  "quiz": [
+    {
+      "q": "What is the most important rule when setting up an A/B test?",
+      "options": [
+        "Test as many variables as possible at once",
+        "Change only ONE variable between versions",
+        "Always test creative, never audiences",
+        "End the test within 24 hours"
+      ],
+      "answer": 1,
+      "why": "Changing only one variable is what makes the result trustworthy — you can attribute any difference in performance to that single change."
+    },
+    {
+      "q": "An ad has a high CTR but very few conversions. What is the most likely problem?",
+      "options": [
+        "The image is unappealing",
+        "The landing page or offer doesn't match the ad",
+        "The budget is too high",
+        "The audience is too broad"
+      ],
+      "answer": 1,
+      "why": "People are clicking (good creative/hook) but not converting, which points to a mismatch or weakness in the landing page or offer."
+    },
+    {
+      "q": "Which metric best measures the bottom-line efficiency of a campaign?",
+      "options": [
+        "Impressions",
+        "CPM",
+        "Cost-per-result (CPR/CPA)",
+        "Reach"
+      ],
+      "answer": 2,
+      "why": "CPR/CPA tells you how much each actual result costs, which is the core measure of efficiency you're trying to lower."
+    },
+    {
+      "q": "Why should you avoid judging an A/B test after just a few hours?",
+      "options": [
+        "The platform charges more early on",
+        "Early data is noisy and the sample is too small",
+        "CTR is always higher in the morning",
+        "Ads cannot be paused once started"
+      ],
+      "answer": 1,
+      "why": "Early results are based on small, noisy samples; you need enough data and to exit the learning phase before conclusions are reliable."
+    },
+    {
+      "q": "On Meta, roughly how many conversions per ad set are typically needed to exit the learning phase?",
+      "answer": "About 50 conversions",
+      "why": "Meta's learning phase generally stabilizes after roughly 50 optimization-event conversions per ad set within about a week."
+    },
+    {
+      "q": "Name one variable you could isolate in an A/B test.",
+      "answer": "Creative (or headline, audience, CTA, or placement)",
+      "why": "Valid A/B test variables include creative, headline, audience, call-to-action, or placement — tested one at a time."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Meta Blueprint: A/B Testing courses",
+      "url": "https://www.facebookblueprint.com/"
+    },
+    {
+      "label": "Meta Ads Manager — About A/B testing",
+      "url": "https://www.facebook.com/business/help/1738164643098669"
+    },
+    {
+      "label": "Google Ads Help — Experiments",
+      "url": "https://support.google.com/google-ads/answer/6318732"
+    },
+    {
+      "label": "Google Skillshop — Google Ads certifications",
+      "url": "https://skillshop.withgoogle.com/"
+    }
+  ],
+  "body_markdown": "## Why optimization matters\n\nLaunching an ad is only the start. The real job of a Social Media Assistant is to **monitor, test, and improve** so the same budget delivers more results. Optimization is about lowering your **cost-per-result** (CPR) — the cost of each click, lead, or sale — while keeping quality high.\n\n## The metrics that matter\n\nDon't drown in numbers. Focus on metrics tied to your objective.\n\n- **Impressions** — how many times the ad was shown.\n- **CTR (Click-Through Rate)** — clicks ÷ impressions. Signals whether the creative/offer grabs attention. Benchmark: ~1%+ on Meta, ~2%+ on Google Search.\n- **CPC (Cost Per Click)** — what you pay per click. Lower is better if click quality holds.\n- **CPM (Cost Per Mille)** — cost per 1,000 impressions. Reflects audience competition and ad quality.\n- **Conversion Rate** — conversions ÷ clicks. Signals whether the landing page/offer delivers.\n- **CPR / CPA (Cost Per Result / Acquisition)** — the bottom-line efficiency metric.\n- **ROAS (Return on Ad Spend)** — revenue ÷ spend. Key for e-commerce.\n\n### Reading the signals\n\n| Symptom | Likely cause | First fix |\n|---|---|---|\n| Low CTR | Weak creative or wrong audience | Test new hook/image |\n| High CTR but low conversions | Landing page or offer mismatch | Improve page/offer |\n| Rising CPM | Audience too narrow or ad fatigue | Refresh creative, widen audience |\n| High CPR overall | Inefficient targeting or bidding | Restructure or A/B test |\n\n## What is A/B testing?\n\nA/B testing (split testing) compares **two versions that differ by ONE variable** to see which performs better. Changing one thing at a time is what makes the result trustworthy — if you change the image *and* the audience, you won't know which drove the change.\n\n### The A/B testing process\n\n1. **Form a hypothesis** — e.g., \"A video ad will get a lower cost-per-lead than a static image.\"\n2. **Choose ONE variable** — creative, headline, audience, placement, or CTA.\n3. **Define the success metric** — usually CPR or conversion rate, not just CTR.\n4. **Split the audience evenly** so each version gets fair, non-overlapping exposure.\n5. **Run long enough** — let it gather data (often 4–7 days) and reach enough conversions before judging.\n6. **Pick a winner with confidence**, then scale it and test the next variable.\n\n## Running tests on the platforms\n\n- **Meta Ads**: Use the **A/B Test tool** (Experiments) in Ads Manager. It splits audiences so they don't overlap and declares a winner with a confidence level. You can test creative, audience, placement, or delivery optimization.\n- **Google Ads**: Use **Experiments** (Drafts & Experiments) for Search/Display, or test ad variations within an ad group. Responsive Search Ads also auto-test asset combinations.\n\n## Avoiding common mistakes\n\n- **Don't judge too early.** Early data is noisy; wait for volume and exit the learning phase.\n- **Don't change multiple variables at once.**\n- **Don't optimize for vanity metrics.** A high CTR that doesn't convert wastes money.\n- **Beware tiny sample sizes** — a 'winner' from 8 clicks isn't real.\n- **Account for the learning phase** on Meta (roughly 50 conversions per ad set).\n\n## A weekly optimization routine\n\n1. Check spend pacing and CPR vs. target.\n2. Pause clearly losing ads (enough data, far worse CPR).\n3. Scale winners gradually (raise budget ~20% at a time).\n4. Launch the next A/B test from your backlog of ideas.\n5. Log learnings so you build a library of what works.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Optimizing Ad Performance & A/B Testing",
+      "sub": "Paid Advertising with Meta & Google Ads",
+      "narration": "Welcome. In this lesson we move beyond launching ads to the most important ongoing skill in paid advertising: optimizing performance. You'll learn which metrics to watch and how to run A/B tests that genuinely lower your cost-per-result on Meta and Google Ads."
+    },
+    {
+      "type": "content",
+      "title": "Why optimization matters",
+      "bullets": [
+        "Launching is the start, not the finish",
+        "Goal: more results from the same budget",
+        "Cost-per-result (CPR) is your north star",
+        "Small, steady improvements compound"
+      ],
+      "narration": "Once an ad is live, the real work begins. Your job is to monitor, test, and improve so the same budget delivers more. The single metric that captures this is cost-per-result — the price of each click, lead, or sale. Lowering it while keeping quality high is the whole game, and small weekly improvements add up fast."
+    },
+    {
+      "type": "content",
+      "title": "The metrics that matter",
+      "bullets": [
+        "CTR — does the creative grab attention?",
+        "CPC & CPM — what you pay to reach people",
+        "Conversion rate — does the page/offer deliver?",
+        "CPR / CPA & ROAS — bottom-line efficiency"
+      ],
+      "narration": "Don't drown in data. Tie metrics to your objective. CTR tells you if the creative and offer grab attention. CPC and CPM show what you pay to reach people. Conversion rate reveals whether your landing page and offer deliver after the click. And CPR, CPA, and ROAS are the bottom-line efficiency numbers that decide whether the campaign is working."
+    },
+    {
+      "type": "content",
+      "title": "Reading the signals",
+      "bullets": [
+        "Low CTR → weak creative or wrong audience",
+        "High CTR, low conversions → fix landing page/offer",
+        "Rising CPM → ad fatigue or narrow audience",
+        "High CPR → restructure targeting or bidding"
+      ],
+      "narration": "Metrics become useful when you diagnose with them. Low CTR usually means weak creative or the wrong audience. High CTR but low conversions points to a landing page or offer mismatch. Rising CPM signals ad fatigue or an audience that's too narrow. And a high overall cost-per-result tells you to rethink targeting or bidding — often with an A/B test."
+    },
+    {
+      "type": "content",
+      "title": "What is A/B testing?",
+      "bullets": [
+        "Compare two versions, ONE variable different",
+        "One change = trustworthy result",
+        "Variables: creative, headline, audience, CTA, placement",
+        "Judge by CPR or conversion rate, not vanity metrics"
+      ],
+      "narration": "A/B testing, or split testing, compares two versions that differ by exactly one variable. Changing only one thing is what makes the result trustworthy — if you swap the image and the audience at once, you'll never know which caused the change. Test things like creative, headline, audience, call-to-action, or placement, and judge the winner by cost-per-result, not by clicks alone."
+    },
+    {
+      "type": "content",
+      "title": "The A/B testing process",
+      "bullets": [
+        "1. Form a clear hypothesis",
+        "2. Pick ONE variable to test",
+        "3. Define the success metric (CPR)",
+        "4. Split audience evenly, run 4–7 days",
+        "5. Pick a winner with confidence, then scale"
+      ],
+      "narration": "Follow a repeatable process. Start with a hypothesis, such as 'a video ad will beat a static image on cost-per-lead.' Choose one variable. Define your success metric up front. Split the audience evenly so versions don't overlap, and run long enough to gather real data — usually four to seven days and enough conversions. Then pick the winner with confidence, scale it, and move to your next test."
+    },
+    {
+      "type": "content",
+      "title": "Running tests on the platforms",
+      "bullets": [
+        "Meta: A/B Test tool in Experiments",
+        "Meta splits audiences & declares a winner",
+        "Google: Drafts & Experiments for Search/Display",
+        "Responsive Search Ads auto-test assets"
+      ],
+      "code": "Meta: Ads Manager → Experiments → A/B Test\nGoogle: Campaigns → Experiments → New experiment",
+      "narration": "Both platforms have built-in tools. In Meta Ads Manager, use the A/B Test tool under Experiments — it splits audiences so they don't overlap and tells you the winner with a confidence level. In Google Ads, use Drafts and Experiments for Search and Display campaigns, and remember Responsive Search Ads automatically test combinations of your headlines and descriptions."
+    },
+    {
+      "type": "content",
+      "title": "Common mistakes to avoid",
+      "bullets": [
+        "Judging too early on noisy data",
+        "Changing several variables at once",
+        "Chasing vanity metrics like CTR alone",
+        "Tiny sample sizes & ignoring the learning phase"
+      ],
+      "narration": "Avoid the classic traps. Don't judge a test in the first day — early data is noisy. Never change multiple variables at once. Don't be seduced by a high CTR that doesn't convert. And watch your sample size: a winner from eight clicks isn't real. On Meta, respect the learning phase, which needs roughly fifty conversions per ad set before results stabilize."
+    },
+    {
+      "type": "content",
+      "title": "Your weekly optimization routine",
+      "bullets": [
+        "Check pacing and CPR vs. target",
+        "Pause clear losers (with enough data)",
+        "Scale winners ~20% at a time",
+        "Launch the next test & log learnings"
+      ],
+      "narration": "Turn this into a habit. Each week, check spend pacing and cost-per-result against target. Pause ads that are clearly losing once they have enough data. Scale your winners gradually — raising budgets about twenty percent at a time avoids resetting the learning phase. Then launch the next test from your idea backlog and log what you learned, so you build a growing library of what works."
+    }
+  ]
+}

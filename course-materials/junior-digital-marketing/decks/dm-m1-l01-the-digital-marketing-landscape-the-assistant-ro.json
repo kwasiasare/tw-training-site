@@ -1,0 +1,180 @@
+{
+  "slug": "dm-m1-l01-the-digital-marketing-landscape-the-assistant-ro",
+  "title": "The Digital Marketing Landscape & the Assistant Role",
+  "month": 1,
+  "monthTitle": "Digital Marketing Foundations & Content Creation",
+  "lesson": 1,
+  "video": "dm-m1-l01-the-digital-marketing-landscape-the-assistant-ro.mp4",
+  "summary": "This lesson maps the digital marketing landscape and clarifies where a junior marketing assistant fits within it. You'll learn the core channels (owned, earned, paid), the everyday tools you'll touch, and the concrete daily responsibilities that turn campaign strategy into published work.",
+  "objectives": [
+    "Identify the core digital marketing channels and classify them as owned, earned, or paid",
+    "Describe how a campaign flows from strategy to execution and where the assistant contributes",
+    "List the daily responsibilities and deliverables of a junior marketing/social media assistant",
+    "Recognise the common tools used for scheduling, design, analytics, and collaboration",
+    "Explain key entry-level metrics (reach, engagement, CTR, conversions) in plain language"
+  ],
+  "quiz": [
+    {
+      "q": "Which of these is an example of OWNED media?",
+      "options": [
+        "A customer review on Google",
+        "A paid Instagram ad",
+        "Your company's email newsletter",
+        "An influencer's sponsored post"
+      ],
+      "answer": 2,
+      "why": "Owned media is any channel you control, such as your email list, website, and social profiles. Reviews are earned, while ads and sponsored posts are paid."
+    },
+    {
+      "q": "In the campaign flow, which stage is most typically OWNED by a manager rather than the junior assistant?",
+      "options": [
+        "Scheduling posts",
+        "Strategy (goals, audience, budget)",
+        "Replying to comments",
+        "Pulling the weekly report"
+      ],
+      "answer": 1,
+      "why": "Strategy — setting goals, audience, and budget — is usually defined by a manager. The assistant focuses on executing the plan: planning details, creating, scheduling, engaging, and measuring."
+    },
+    {
+      "q": "Which metric tells you the percentage of viewers who clicked a link?",
+      "options": [
+        "Reach",
+        "Engagement",
+        "CTR (click-through rate)",
+        "Impressions"
+      ],
+      "answer": 2,
+      "why": "CTR, or click-through rate, is the percentage of people who saw the content and then clicked the link."
+    },
+    {
+      "q": "Which tool would you most likely use to design a simple social graphic?",
+      "options": [
+        "Google Analytics",
+        "Canva",
+        "Hootsuite",
+        "Slack"
+      ],
+      "answer": 1,
+      "why": "Canva is the standard go-to for creating and resizing simple graphics. The others are for analytics, scheduling, and team communication respectively."
+    },
+    {
+      "q": "Name one daily responsibility of a junior social media assistant.",
+      "answer": "Any of: drafting/scheduling posts, designing graphics, writing captions, replying to comments and DMs, updating the content calendar, or pulling performance reports.",
+      "why": "The assistant role centres on executing the plan day to day — creating and scheduling content, managing the community, and reporting numbers."
+    },
+    {
+      "q": "What does the 'earned media' category refer to?",
+      "answer": "Exposure you didn't pay for, such as shares, reviews, press mentions, word of mouth, or user-generated content.",
+      "why": "Earned media is publicity gained organically through others rather than through channels you own or ads you pay for."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Google Digital Garage — Fundamentals of Digital Marketing (free course)",
+      "url": "https://learndigital.withgoogle.com/digitalgarage/course/digital-marketing"
+    },
+    {
+      "label": "HubSpot Blog — Digital Marketing Guide",
+      "url": "https://blog.hubspot.com/marketing/what-is-digital-marketing"
+    },
+    {
+      "label": "Canva Design School — Social Media tutorials",
+      "url": "https://www.canva.com/designschool/"
+    },
+    {
+      "label": "Meta Blueprint — Free social media marketing courses",
+      "url": "https://www.facebook.com/business/learn"
+    }
+  ],
+  "body_markdown": "## Why this lesson matters\n\nBefore you publish a single post, you need a mental map of the field you're entering. Digital marketing can feel like an alphabet soup of channels, tools, and acronyms. This lesson gives you the big picture so that when a manager says \"schedule the organic posts and pull the engagement report,\" you know exactly what they mean and where it fits.\n\n## The digital marketing landscape\n\nDigital marketing is simply promoting products, services, or a brand using digital channels. The easiest way to organise these channels is the **owned / earned / paid** framework:\n\n- **Owned media** — channels you control: your website, blog, email list, and social media profiles. Free to use, but you do the work.\n- **Earned media** — exposure you didn't pay for: shares, reviews, press mentions, word of mouth, user-generated content.\n- **Paid media** — anything you pay to place: Google Ads, paid social ads, influencer partnerships, sponsored content.\n\nMost campaigns blend all three. A typical mix of **core channels** includes:\n\n- **Social media** (Instagram, TikTok, LinkedIn, Facebook, X) — community, brand awareness, engagement\n- **Search engine optimisation (SEO)** — getting found organically on Google\n- **Search/display advertising (SEM/PPC)** — paid visibility on search and websites\n- **Email marketing** — direct, owned communication with subscribers\n- **Content marketing** — blogs, videos, guides that attract and educate\n\n## How a campaign flows\n\nWork moves through predictable stages, and the assistant touches almost every one:\n\n1. **Strategy** — goals, audience, budget, key messages (usually set by a manager)\n2. **Planning** — content calendar, channel choices, deadlines\n3. **Creation** — copy, graphics, short videos\n4. **Scheduling & publishing** — getting content live at the right time\n5. **Engagement** — replying to comments and messages (community management)\n6. **Measurement** — tracking metrics and reporting results\n7. **Optimisation** — using what you learned to improve the next round\n\nThe assistant is the engine room for stages 2–6: you keep the calendar moving, produce and schedule content, manage the community, and gather the numbers.\n\n## The assistant role: daily responsibilities\n\nA realistic day might include:\n\n- Drafting and scheduling social posts across platforms\n- Designing simple graphics in Canva and resizing for each platform\n- Writing short captions with relevant hashtags\n- Responding to comments and DMs in a friendly, on-brand voice\n- Monitoring mentions and flagging anything that needs a manager\n- Updating the content calendar and chasing approvals\n- Pulling weekly performance numbers into a simple report\n\nYou are not usually setting the strategy yet — you are executing it reliably and feeding insights back up.\n\n## Tools you'll actually use\n\n- **Scheduling:** Meta Business Suite, Buffer, Hootsuite, Later\n- **Design:** Canva, CapCut (for short video)\n- **Analytics:** native platform insights, Google Analytics, simple spreadsheets\n- **Collaboration:** Google Workspace / Microsoft 365, Trello or Asana, Slack\n\n## Metrics in plain language\n\n- **Reach / Impressions** — how many people saw it / how many times it was shown\n- **Engagement** — likes, comments, shares, saves (interaction)\n- **CTR (click-through rate)** — % of viewers who clicked a link\n- **Conversions** — people who completed a goal (sign-up, purchase)\n\nKnowing these four lets you read most beginner reports confidently.\n\n## Key takeaway\n\nYou are the reliable executor who turns strategy into live, on-brand content and brings back the numbers. Master the map, the tools, and the daily rhythm, and you become indispensable on any marketing team.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "The Digital Marketing Landscape & the Assistant Role",
+      "sub": "Digital Marketing Foundations & Content Creation",
+      "narration": "Welcome. In this lesson we'll map out the digital marketing landscape and pinpoint exactly where you, as a junior marketing or social media assistant, fit within it. By the end you'll understand the core channels, the tools you'll use daily, and the responsibilities that make you valuable to a team."
+    },
+    {
+      "type": "content",
+      "title": "What is digital marketing?",
+      "bullets": [
+        "Promoting a brand, product or service through digital channels",
+        "Organised into three buckets: owned, earned, paid",
+        "Owned: website, email, social profiles you control",
+        "Earned: shares, reviews, press, word of mouth",
+        "Paid: ads, sponsored posts, influencer deals"
+      ],
+      "narration": "Digital marketing is simply promoting something using digital channels. The cleanest way to make sense of it is the owned, earned, and paid framework. Owned media is what you control, like your website and social profiles. Earned media is exposure you didn't pay for, like shares and reviews. Paid media is anything you pay to place, such as ads. Most campaigns blend all three."
+    },
+    {
+      "type": "content",
+      "title": "The core channels",
+      "bullets": [
+        "Social media — awareness and community",
+        "SEO — getting found organically on Google",
+        "SEM / PPC — paid search and display ads",
+        "Email marketing — direct owned communication",
+        "Content marketing — blogs, videos, guides"
+      ],
+      "narration": "There are five core channels you'll hear about constantly. Social media drives awareness and community. SEO helps you get found organically on search engines. Paid search and display advertising buy visibility. Email marketing is your direct line to subscribers. And content marketing creates the blogs and videos that attract and educate your audience. As an assistant you'll touch social and content most often."
+    },
+    {
+      "type": "content",
+      "title": "How a campaign flows",
+      "bullets": [
+        "Strategy → Planning → Creation",
+        "Scheduling → Engagement → Measurement",
+        "Optimisation feeds the next cycle",
+        "Managers usually own strategy",
+        "You own execution: stages 2 to 6"
+      ],
+      "narration": "Campaigns move through predictable stages: strategy, planning, creation, scheduling, engagement, measurement, and optimisation. Managers usually set the strategy. You, the assistant, are the engine room for everything in between — keeping the calendar moving, creating and scheduling content, managing the community, and gathering the numbers that feed the next cycle."
+    },
+    {
+      "type": "content",
+      "title": "Your daily responsibilities",
+      "bullets": [
+        "Draft and schedule posts across platforms",
+        "Design simple graphics and resize per platform",
+        "Write captions with relevant hashtags",
+        "Reply to comments and DMs on brand",
+        "Update the calendar and pull weekly numbers"
+      ],
+      "narration": "A typical day means drafting and scheduling posts, designing simple graphics in tools like Canva, writing captions with the right hashtags, and responding to comments and direct messages in the brand's voice. You'll also keep the content calendar updated, chase approvals, monitor mentions, and pull weekly performance numbers. You're executing the plan reliably and flagging anything important upward."
+    },
+    {
+      "type": "content",
+      "title": "The tools you'll use",
+      "bullets": [
+        "Scheduling: Meta Business Suite, Buffer, Hootsuite, Later",
+        "Design: Canva, CapCut for short video",
+        "Analytics: native insights, Google Analytics, spreadsheets",
+        "Collaboration: Trello/Asana, Slack, Google Workspace"
+      ],
+      "narration": "Let's talk tools. For scheduling you'll likely use Meta Business Suite, Buffer, Hootsuite, or Later. For design, Canva is the standard, with CapCut for short video. For analytics you'll rely on the platforms' own insights, Google Analytics, and good old spreadsheets. And for teamwork, expect Trello or Asana, Slack, and a shared Google or Microsoft workspace. Don't worry about mastering all of them at once."
+    },
+    {
+      "type": "content",
+      "title": "Metrics in plain language",
+      "bullets": [
+        "Reach / Impressions — who saw it / how often shown",
+        "Engagement — likes, comments, shares, saves",
+        "CTR — % of viewers who clicked",
+        "Conversions — completed a goal (sign-up, sale)"
+      ],
+      "narration": "Finally, four metrics will get you through most beginner reports. Reach and impressions tell you how many people saw your content and how often. Engagement counts the interactions like likes, comments, shares, and saves. Click-through rate is the percentage who clicked your link. And conversions are the people who completed a goal, like signing up or buying. Learn these four and you can read almost any entry-level report."
+    },
+    {
+      "type": "content",
+      "title": "Key takeaway",
+      "bullets": [
+        "You turn strategy into live, on-brand content",
+        "You manage the community day to day",
+        "You bring the numbers back to the team",
+        "Master the map, the tools, and the rhythm"
+      ],
+      "narration": "To sum up: you are the reliable executor who turns strategy into live, on-brand content, manages the community, and brings the numbers back to the team. Master the landscape map, get comfortable with the core tools, and learn the daily rhythm. Do that, and you'll quickly become indispensable on any marketing team. See you in the next lesson."
+    }
+  ]
+}

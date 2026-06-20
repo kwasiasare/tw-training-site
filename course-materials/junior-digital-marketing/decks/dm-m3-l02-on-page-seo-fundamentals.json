@@ -1,0 +1,194 @@
+{
+  "slug": "dm-m3-l02-on-page-seo-fundamentals",
+  "title": "On-Page SEO Fundamentals",
+  "month": 3,
+  "monthTitle": "SEO, Analytics & Performance Measurement",
+  "lesson": 2,
+  "video": "dm-m3-l02-on-page-seo-fundamentals.mp4",
+  "summary": "Learn how to optimize the on-page elements of a web page—title tags, meta descriptions, headings, URLs, and content—so search engines understand your page and users want to click. This practical lesson gives you a repeatable checklist for improving any page's search visibility.",
+  "objectives": [
+    "Explain what on-page SEO is and how it differs from off-page and technical SEO",
+    "Write keyword-optimized title tags and meta descriptions that improve rankings and click-through rate",
+    "Structure page content using a logical heading hierarchy (H1–H3) and SEO-friendly URLs",
+    "Apply keyword research basics and place keywords naturally to match search intent",
+    "Optimize images with descriptive file names and alt text, and use internal links effectively",
+    "Run a simple on-page SEO audit using a repeatable checklist"
+  ],
+  "quiz": [
+    {
+      "q": "What is the recommended length range for a title tag so it doesn't get cut off in search results?",
+      "options": [
+        "10–20 characters",
+        "50–60 characters",
+        "100–120 characters",
+        "200+ characters"
+      ],
+      "answer": 1,
+      "why": "Title tags should be roughly 50–60 characters so search engines display them fully without truncating."
+    },
+    {
+      "q": "Which statement about meta descriptions is correct?",
+      "options": [
+        "They are a direct, major ranking factor",
+        "They should be at least 300 characters long",
+        "They aren't a direct ranking factor but influence click-through rate",
+        "They should be identical across all pages"
+      ],
+      "answer": 2,
+      "why": "Meta descriptions don't directly affect rankings, but a compelling one improves click-through rate from the SERP."
+    },
+    {
+      "q": "How many H1 tags should a single page typically have?",
+      "options": [
+        "Exactly one",
+        "At least three",
+        "One per paragraph",
+        "As many as needed for styling"
+      ],
+      "answer": 0,
+      "why": "A page should have one H1 representing its main topic, with H2s and H3s used for sections and sub-points."
+    },
+    {
+      "q": "Which URL is the most SEO-friendly?",
+      "options": [
+        "/blog/p?id=4821&cat=12",
+        "/blog/On_Page_SEO_GUIDE_2024_final",
+        "/blog/on-page-seo-guide",
+        "/blog/page1"
+      ],
+      "answer": 2,
+      "why": "It's short, lowercase, readable, hyphen-separated, and contains the keyword—ideal for SEO."
+    },
+    {
+      "q": "In one short phrase, what is the term for cramming a keyword unnaturally into content, which you should avoid?",
+      "answer": "keyword stuffing",
+      "why": "Keyword stuffing harms readability and can hurt rankings; always write naturally for humans first."
+    },
+    {
+      "q": "Name one purpose of adding alt text to an image.",
+      "answer": "Accessibility for screen readers and helping the image appear in image search (either is acceptable)",
+      "why": "Alt text describes images for visually impaired users and gives search engines context, aiding image search visibility."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Google Search Essentials (formerly Webmaster Guidelines)",
+      "url": "https://developers.google.com/search/docs/essentials"
+    },
+    {
+      "label": "Moz: On-Page SEO Beginner's Guide",
+      "url": "https://moz.com/learn/seo/on-page-factors"
+    },
+    {
+      "label": "Google Search Central SEO Starter Guide",
+      "url": "https://developers.google.com/search/docs/fundamentals/seo-starter-guide"
+    },
+    {
+      "label": "Ahrefs: On-Page SEO Guide",
+      "url": "https://ahrefs.com/blog/on-page-seo/"
+    }
+  ],
+  "body_markdown": "## What Is On-Page SEO?\n\n**On-page SEO** is the practice of optimizing individual web pages—both the content and the HTML source code—so they rank higher in search engines and earn more relevant traffic. It's different from:\n\n- **Off-page SEO** — actions taken *outside* your site (backlinks, mentions, social signals).\n- **Technical SEO** — site speed, crawlability, mobile-friendliness, structured data.\n\nAs a Junior Social Media / Digital Marketing Assistant, on-page SEO is the part you can most directly influence when you create or edit content.\n\n## Why It Matters\n\nSearch engines need to understand *what your page is about* and *who it's for*. On-page signals help them do that. Good on-page SEO also improves the **user experience** and **click-through rate (CTR)** from the search results page (SERP).\n\n## The Core On-Page Elements\n\n### 1. Title Tag\nThe clickable headline shown in search results and browser tabs.\n\n- Keep it roughly **50–60 characters** so it doesn't get cut off.\n- Put the **primary keyword near the front**.\n- Make it compelling and unique for every page.\n- Add your brand at the end when there's room.\n\n```html\n<title>Beginner's Guide to On-Page SEO | Acme Marketing</title>\n```\n\n### 2. Meta Description\nA short summary (not a direct ranking factor, but it drives clicks).\n\n- Aim for **120–155 characters**.\n- Include the keyword and a clear benefit or call-to-action.\n- Write it like an ad: make people want to click.\n\n```html\n<meta name=\"description\" content=\"Learn on-page SEO basics: optimize titles, meta descriptions, headings, and content to rank higher. A practical checklist for beginners.\">\n```\n\n### 3. Headings (H1–H6)\nHeadings structure content for readers and search engines.\n\n- Use **one H1** per page (usually the main page heading/topic).\n- Use **H2s** for main sections and **H3s** for sub-points.\n- Include keywords naturally—don't force them.\n\n### 4. URL Slug\n- Keep URLs short, lowercase, and readable.\n- Separate words with hyphens.\n- Include the keyword; avoid dates, IDs, and stop words where possible.\n- Good: `/blog/on-page-seo-guide` — Bad: `/blog/p?id=4821&cat=12`\n\n### 5. Content & Keywords\n- Start with **keyword research**: find terms your audience searches for (use Google autocomplete, 'People also ask', or a keyword tool).\n- Match **search intent** — is the searcher looking to learn, compare, or buy?\n- Use the primary keyword in the title, H1, first 100 words, and naturally throughout.\n- Add related/secondary keywords and synonyms.\n- **Avoid keyword stuffing** — write for humans first.\n\n### 6. Images\n- Use descriptive **file names** (`on-page-seo-checklist.jpg`, not `IMG_2931.jpg`).\n- Add **alt text** describing the image (helps accessibility and image search).\n- Compress images so they load fast.\n\n### 7. Internal Links\n- Link to other relevant pages on your site using **descriptive anchor text**.\n- Helps users navigate and spreads ranking value across pages.\n\n## A Simple On-Page SEO Workflow\n\n1. Pick **one primary keyword** per page.\n2. Write a unique **title tag** (~55 chars, keyword near front).\n3. Write a click-worthy **meta description** (~150 chars).\n4. Set a clear **H1** and logical H2/H3 structure.\n5. Create a clean **URL slug**.\n6. Write helpful content that satisfies search intent.\n7. Optimize **images** (file names + alt text).\n8. Add **internal links** with descriptive anchors.\n9. Review on mobile and proofread.\n\n## Common Mistakes to Avoid\n\n- Duplicate or missing title tags.\n- Stuffing keywords unnaturally.\n- Multiple H1s or skipping heading levels for styling.\n- Thin content that doesn't answer the query.\n- Generic alt text like 'image1'.\n\n## Key Takeaway\n\nOn-page SEO is about clearly communicating your page's topic to both **search engines and people**. Master the checklist and apply it every time you publish or edit a page.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "On-Page SEO Fundamentals",
+      "sub": "SEO, Analytics & Performance Measurement",
+      "narration": "Welcome! In this lesson we'll cover on-page SEO fundamentals. By the end, you'll be able to optimize a web page's titles, meta descriptions, headings, and content so it ranks better in search results and earns more clicks. This is one of the most practical skills you'll use daily as a digital marketing assistant."
+    },
+    {
+      "type": "content",
+      "title": "What Is On-Page SEO?",
+      "bullets": [
+        "Optimizing individual pages—content and HTML—to rank higher",
+        "On-page: titles, headings, content, URLs (things you control on the page)",
+        "Off-page: backlinks, mentions, social signals",
+        "Technical: speed, crawlability, mobile-friendliness"
+      ],
+      "narration": "On-page SEO means optimizing the things on the page itself: the content and the HTML source code. It's different from off-page SEO, which covers backlinks and mentions from other sites, and technical SEO, which covers things like site speed and crawlability. On-page is the area you can most directly influence when you create or edit content, so it's where we'll focus."
+    },
+    {
+      "type": "content",
+      "title": "Title Tags",
+      "bullets": [
+        "The clickable headline in search results and browser tabs",
+        "Keep it ~50–60 characters so it isn't cut off",
+        "Put the primary keyword near the front",
+        "Make every title unique; add brand at the end if room"
+      ],
+      "code": "<title>Beginner's Guide to On-Page SEO | Acme Marketing</title>",
+      "narration": "The title tag is the clickable headline you see in search results. Keep it around fifty to sixty characters so it doesn't get truncated. Place your primary keyword near the front, make each page's title unique, and add your brand name at the end if there's space. A strong title both helps rankings and tempts people to click."
+    },
+    {
+      "type": "content",
+      "title": "Meta Descriptions",
+      "bullets": [
+        "A short summary shown under the title in the SERP",
+        "Not a direct ranking factor—but drives click-through rate",
+        "Aim for 120–155 characters",
+        "Include the keyword and a clear benefit or call-to-action"
+      ],
+      "code": "<meta name=\"description\" content=\"Learn on-page SEO basics: optimize titles, headings, and content to rank higher. A practical checklist for beginners.\">",
+      "narration": "The meta description is the short summary under your title in search results. It isn't a direct ranking factor, but a well-written one boosts your click-through rate. Aim for roughly one hundred twenty to one hundred fifty-five characters, include your keyword, and write it like an ad with a clear benefit or call to action."
+    },
+    {
+      "type": "content",
+      "title": "Headings & URL Structure",
+      "bullets": [
+        "Use exactly one H1 per page for the main topic",
+        "H2s for sections, H3s for sub-points—keep it logical",
+        "Include keywords in headings naturally",
+        "URLs: short, lowercase, hyphen-separated, keyword-rich"
+      ],
+      "code": "Good: /blog/on-page-seo-guide\nBad:  /blog/p?id=4821&cat=12",
+      "narration": "Headings give your page structure for both readers and search engines. Use one H1 for the main topic, then H2s for sections and H3s for sub-points, keeping the hierarchy logical. Work keywords in naturally. For URLs, keep them short, lowercase, and readable, separate words with hyphens, and include your keyword. Avoid messy URLs full of IDs and parameters."
+    },
+    {
+      "type": "content",
+      "title": "Content, Keywords & Search Intent",
+      "bullets": [
+        "Start with keyword research: autocomplete, 'People also ask'",
+        "Pick ONE primary keyword per page",
+        "Match search intent: learn, compare, or buy?",
+        "Use keyword in title, H1, first 100 words, naturally throughout",
+        "Avoid keyword stuffing—write for humans first"
+      ],
+      "narration": "Great content starts with keyword research. Find the terms your audience searches for using Google autocomplete or the 'People also ask' box. Choose one primary keyword per page and, crucially, match the search intent—are people trying to learn, compare, or buy? Use the keyword in your title, H1, and first hundred words, and sprinkle it naturally throughout. Never stuff keywords; always write for humans first."
+    },
+    {
+      "type": "content",
+      "title": "Images & Internal Links",
+      "bullets": [
+        "Use descriptive file names: on-page-seo-checklist.jpg",
+        "Add alt text describing the image (accessibility + image search)",
+        "Compress images so pages load fast",
+        "Link to relevant pages with descriptive anchor text"
+      ],
+      "narration": "Don't forget images and links. Give images descriptive file names instead of camera defaults, and add alt text that describes them—this helps accessibility and image search. Compress them so your page loads quickly. Finally, add internal links to other relevant pages using descriptive anchor text. This helps users navigate and spreads ranking value across your site."
+    },
+    {
+      "type": "content",
+      "title": "Your On-Page SEO Checklist",
+      "bullets": [
+        "1 keyword → title (~55 chars) → meta (~150 chars)",
+        "Clear H1 + logical H2/H3 structure",
+        "Clean URL slug, helpful content matching intent",
+        "Optimized images + internal links",
+        "Check mobile, proofread, then publish"
+      ],
+      "narration": "Let's pull it together into a repeatable workflow. Pick one primary keyword. Write a unique title and a click-worthy meta description. Set a clear H1 and logical heading structure. Create a clean URL. Write content that satisfies search intent. Optimize your images and add internal links. Then check it on mobile, proofread, and publish. Run through this checklist every time and your pages will be in great shape."
+    },
+    {
+      "type": "content",
+      "title": "Common Mistakes to Avoid",
+      "bullets": [
+        "Duplicate or missing title tags",
+        "Keyword stuffing that reads unnaturally",
+        "Multiple H1s or skipping heading levels for styling",
+        "Thin content that doesn't answer the query",
+        "Generic alt text like 'image1'"
+      ],
+      "narration": "Before we wrap up, watch out for these common mistakes: duplicate or missing title tags, stuffing keywords so text reads awkwardly, using multiple H1s or skipping heading levels just for styling, publishing thin content that doesn't actually answer the query, and lazy alt text. Avoid these and you're ahead of most beginners. Remember: communicate clearly to both search engines and people."
+    }
+  ]
+}
