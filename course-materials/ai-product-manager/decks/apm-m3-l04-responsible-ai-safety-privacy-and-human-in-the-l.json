@@ -1,0 +1,187 @@
+{
+  "slug": "apm-m3-l04-responsible-ai-safety-privacy-and-human-in-the-l",
+  "title": "Responsible AI: Safety, Privacy, and Human-in-the-Loop Design",
+  "month": 3,
+  "monthTitle": "Building, Evaluating, and Prompting AI Features",
+  "lesson": 4,
+  "video": "apm-m3-l04-responsible-ai-safety-privacy-and-human-in-the-l.mp4",
+  "summary": "This lesson teaches AI Product Managers how to embed safety reviews, privacy protections, and human oversight directly into AI feature design. You'll learn to identify risks, classify harms, apply privacy-by-design principles, choose the right human-in-the-loop pattern, and ship a reusable responsible-AI checklist.",
+  "objectives": [
+    "Identify and classify the safety risks and potential harms of an AI feature before launch",
+    "Apply privacy-by-design principles (data minimization, consent, retention) to AI feature specs",
+    "Select the appropriate human-in-the-loop pattern based on risk and reversibility",
+    "Design monitoring, escalation, and feedback loops to catch harms post-launch",
+    "Produce and apply a practical responsible-AI checklist as a launch gate"
+  ],
+  "quiz": [
+    {
+      "q": "What is the recommended way to prioritize which AI harms to mitigate first?",
+      "options": [
+        "Alphabetically by harm name",
+        "By severity multiplied by likelihood",
+        "By how easy each is to fix",
+        "By the order they were discovered"
+      ],
+      "answer": 1,
+      "why": "Scoring each harm by severity times likelihood lets you focus hard guardrails on the most damaging and probable harms, while lower-risk issues get lighter handling like monitoring."
+    },
+    {
+      "q": "A feature makes irreversible, high-stakes decisions like loan denials. Which oversight pattern fits best?",
+      "options": [
+        "Human-out-of-the-loop (full automation)",
+        "Human-on-the-loop (monitor and intervene)",
+        "Human-in-the-loop (AI proposes, human approves)",
+        "No oversight needed if accuracy is high"
+      ],
+      "answer": 2,
+      "why": "High-stakes, irreversible decisions require human-in-the-loop, where a person approves before any action is taken, because mistakes can't be undone."
+    },
+    {
+      "q": "Which of these is a privacy-by-design principle for AI features?",
+      "options": [
+        "Collect as much data as possible for future use",
+        "Data minimization—send only what the feature needs",
+        "Always store prompts indefinitely for debugging",
+        "Skip consent to reduce friction"
+      ],
+      "answer": 1,
+      "why": "Data minimization means only collecting and sending the data a feature truly requires, which reduces privacy risk and regulatory exposure."
+    },
+    {
+      "q": "What is 'rubber-stamping' in a human-in-the-loop system?",
+      "options": [
+        "Automatically rejecting all AI outputs",
+        "Reviewers approving outputs without genuinely evaluating them",
+        "Using a physical stamp to log approvals",
+        "Routing only high-confidence outputs to humans"
+      ],
+      "answer": 1,
+      "why": "Rubber-stamping is when reviewers approve everything without real scrutiny, making the human oversight theater rather than a genuine safeguard. Tracking override rates helps detect it."
+    },
+    {
+      "q": "Name two questions a PM should ask a model vendor to assess privacy risk.",
+      "answer": "Whether the provider trains on your data, and whether you can disable data retention (also acceptable: where data is processed / data residency, and whether a DPA exists).",
+      "why": "These questions determine whether your users' data is reused, retained, or processed in unacceptable jurisdictions—each can disqualify a vendor for sensitive use cases."
+    },
+    {
+      "q": "Why should responsible-AI work happen during design rather than after launch?",
+      "answer": "Because the cheapest place to fix safety, privacy, and bias issues is in design; fixing them after an incident is far more costly in user harm, regulatory exposure, and brand damage.",
+      "why": "Early, gated decisions prevent harms before they reach users, whereas post-incident fixes carry real damage and higher cost."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Microsoft Responsible AI Standard & Impact Assessment Template",
+      "url": "https://www.microsoft.com/en-us/ai/responsible-ai"
+    },
+    {
+      "label": "NIST AI Risk Management Framework (AI RMF 1.0)",
+      "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "label": "Google People + AI Guidebook (PAIR)",
+      "url": "https://pair.withgoogle.com/guidebook/"
+    },
+    {
+      "label": "OWASP Top 10 for LLM Applications",
+      "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+    }
+  ],
+  "body_markdown": "## Why Responsible AI Is a PM Problem\n\nResponsible AI isn't a legal team's job to bolt on at the end. As the PM, you own the trade-offs between speed, capability, and risk. A model that hallucinates, leaks personal data, or amplifies bias creates user harm, regulatory exposure, and brand damage. The cheapest place to fix these issues is in the design phase, not after an incident.\n\nThe practical goal: make responsible-AI decisions explicit, documented, and gated—so nothing ships without passing a known bar.\n\n## Step 1: Safety — Map the Harms\n\nBefore building, run a lightweight **harms analysis**. Ask: what's the worst thing this feature could do, to whom, and how likely is it?\n\nCommon harm categories:\n- **Misinformation / hallucination** — confident wrong answers (medical, legal, financial advice).\n- **Toxic or unsafe content** — hate speech, self-harm guidance, harassment.\n- **Bias & fairness** — worse outcomes for protected groups.\n- **Security / misuse** — prompt injection, jailbreaks, generating malware or scams.\n- **Over-reliance / automation bias** — users trusting outputs they shouldn't.\n\nScore each harm by **severity × likelihood** to prioritize mitigations. High-severity harms (physical safety, financial loss, discrimination) get hard guardrails; low-severity ones get monitoring.\n\nMitigation tactics: input/output filters, refusal policies, grounding/RAG with citations, confidence thresholds, scope limits (\"this is not medical advice\"), and red-teaming before launch.\n\n## Step 2: Privacy — Design for Data Minimization\n\nAI features are data-hungry, which makes privacy a first-class design constraint.\n\nCore privacy-by-design principles:\n- **Data minimization** — only collect/send what the feature truly needs. Don't pipe full user records into a prompt if a summary works.\n- **Purpose limitation** — use data only for the stated purpose; don't quietly reuse prompts for training.\n- **Consent & transparency** — tell users what's collected, why, and get consent where required (GDPR, CCPA).\n- **Retention limits** — define how long prompts, outputs, and logs are kept, then delete.\n- **PII handling** — redact or tokenize sensitive data before it hits a third-party model; know your vendor's data terms.\n\nKey questions for vendor/model choices: Does the provider train on your data? Where is data processed (residency)? Can you turn off retention? Is there a DPA (Data Processing Agreement)?\n\n## Step 3: Human-in-the-Loop (HITL) Design\n\nHITL means a person reviews, approves, or can override AI decisions. The right pattern depends on **risk** and **reversibility**.\n\nCommon patterns:\n- **Human-in-the-loop** — AI proposes, human approves before action (high-stakes, irreversible: loan denials, medical triage).\n- **Human-on-the-loop** — AI acts autonomously, human monitors and can intervene (moderate stakes: content moderation queues).\n- **Human-out-of-the-loop** — fully automated (low stakes, reversible: autocomplete, recommendations).\n\nDesign levers: confidence-based routing (low-confidence outputs go to a human), easy override and undo, clear UI signals that content is AI-generated, and feedback capture (thumbs up/down, edits) that feeds evaluation.\n\nAvoid **rubber-stamping**: if reviewers approve everything without reading, your HITL is theater. Track override rates and review quality.\n\n## Step 4: Monitor, Escalate, Improve\n\nResponsible AI continues after launch. Set up:\n- **Monitoring** — track hallucination/error rates, refusal rates, complaint volume, latency, and drift.\n- **Incident response** — a clear path to disable or roll back a feature fast; an owner on call.\n- **Feedback loops** — route user reports and reviewer overrides into your eval set to improve prompts/models.\n- **Audit trail** — log inputs, outputs, and decisions enough to investigate incidents (balanced against retention limits).\n\n## The Responsible-AI Checklist (Ship Gate)\n\nUse this as a launch gate. A feature ships only when each item has an owner and an answer.\n\n1. **Harms identified** and scored by severity × likelihood.\n2. **Guardrails** in place for high-severity harms (filters, refusals, grounding).\n3. **Red-team / adversarial testing** done (jailbreaks, prompt injection, edge cases).\n4. **Privacy review**: data minimized, retention set, consent handled, vendor terms checked.\n5. **PII protection**: redaction/tokenization where needed.\n6. **HITL pattern chosen** and justified by risk/reversibility.\n7. **Transparency**: users know it's AI; limitations disclosed.\n8. **Monitoring & alerts** defined with thresholds.\n9. **Rollback / kill switch** ready, owner assigned.\n10. **Feedback loop** wired into evaluation.\n\nKeep it lightweight and reusable—proportional to risk. A low-risk autocomplete needs a quick pass; a healthcare advice feature needs the full treatment.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Responsible AI: Safety, Privacy, and Human-in-the-Loop Design",
+      "sub": "Building, Evaluating, and Prompting AI Features",
+      "narration": "Welcome. In this lesson we'll make responsible AI practical for product managers. Responsible AI isn't a compliance afterthought—it's a set of design decisions you own. By the end you'll be able to map harms, protect privacy, choose the right human oversight, and ship a reusable responsible-AI checklist."
+    },
+    {
+      "type": "content",
+      "title": "Why This Is a PM Problem",
+      "bullets": [
+        "You own the trade-off between speed, capability, and risk",
+        "Harms create user damage, regulatory exposure, and brand risk",
+        "The cheapest fix is in design, not after an incident",
+        "Goal: make responsible-AI decisions explicit, documented, and gated"
+      ],
+      "narration": "Responsible AI lands on your desk because you own the trade-offs. A model that hallucinates, leaks data, or shows bias creates real harm and real liability. Fixing these problems after launch is expensive and damaging. The practical aim is to make every responsible-AI decision explicit and gated, so nothing ships without passing a known bar."
+    },
+    {
+      "type": "content",
+      "title": "Step 1: Map the Harms",
+      "bullets": [
+        "Ask: worst thing this could do, to whom, how likely?",
+        "Categories: hallucination, toxic content, bias, security/misuse, over-reliance",
+        "Score each by severity × likelihood",
+        "High-severity = hard guardrails; low = monitoring"
+      ],
+      "narration": "Start with a lightweight harms analysis. For each feature, ask what the worst outcome is, who it affects, and how likely it is. Group harms into categories like misinformation, toxic content, bias, security misuse, and over-reliance. Score each by severity times likelihood. High-severity harms—physical safety, financial loss, discrimination—get hard guardrails. Lower-severity ones can be handled with monitoring."
+    },
+    {
+      "type": "content",
+      "title": "Safety Mitigations Toolkit",
+      "bullets": [
+        "Input/output filters and refusal policies",
+        "Grounding/RAG with citations to reduce hallucination",
+        "Confidence thresholds and scope limits ('not medical advice')",
+        "Red-team for jailbreaks and prompt injection before launch"
+      ],
+      "narration": "Once you know your harms, pick mitigations. Filters and refusal policies block unsafe inputs and outputs. Grounding answers in retrieved sources with citations cuts hallucination. Confidence thresholds and explicit scope limits set expectations. And critically, red-team the feature before launch—try to jailbreak it, inject malicious prompts, and probe edge cases while it's still cheap to fix."
+    },
+    {
+      "type": "content",
+      "title": "Step 2: Privacy by Design",
+      "bullets": [
+        "Data minimization: send only what's needed",
+        "Purpose limitation: don't quietly reuse prompts for training",
+        "Consent, transparency, and retention limits",
+        "Redact/tokenize PII before it hits a third-party model"
+      ],
+      "narration": "AI features are data-hungry, so treat privacy as a design constraint. Minimize the data you collect and send—don't pipe full records into a prompt when a summary works. Use data only for its stated purpose. Be transparent, get consent where laws like GDPR or CCPA require it, and set retention limits. Redact or tokenize personal data before it reaches a third-party model."
+    },
+    {
+      "type": "content",
+      "title": "Vendor & Model Privacy Questions",
+      "bullets": [
+        "Does the provider train on your data?",
+        "Where is data processed (residency)?",
+        "Can you disable retention?",
+        "Is there a Data Processing Agreement (DPA)?"
+      ],
+      "narration": "Your model and vendor choices carry privacy consequences. Before committing, ask four questions: Does the provider train on your data? Where is data processed geographically? Can you turn off retention? And is there a Data Processing Agreement in place? The answers can rule out a vendor for regulated or sensitive use cases."
+    },
+    {
+      "type": "content",
+      "title": "Step 3: Human-in-the-Loop Patterns",
+      "bullets": [
+        "In-the-loop: AI proposes, human approves (high-stakes, irreversible)",
+        "On-the-loop: AI acts, human monitors and intervenes (moderate)",
+        "Out-of-the-loop: fully automated (low-stakes, reversible)",
+        "Match pattern to risk × reversibility; avoid rubber-stamping"
+      ],
+      "narration": "Human oversight comes in three flavors. Human-in-the-loop means the AI proposes and a person approves before anything happens—use it for high-stakes, irreversible decisions like loan denials. Human-on-the-loop means the AI acts but a person monitors and can intervene—good for moderate stakes like moderation queues. Human-out-of-the-loop is full automation for low-stakes, reversible features. Match the pattern to risk and reversibility, and watch out for rubber-stamping, where reviewers approve everything without reading."
+    },
+    {
+      "type": "content",
+      "title": "Step 4: Monitor, Escalate, Improve",
+      "bullets": [
+        "Track error/hallucination rates, refusals, complaints, drift",
+        "Kill switch and rollback with an assigned owner",
+        "Route user reports and overrides into your eval set",
+        "Keep an audit trail balanced against retention limits"
+      ],
+      "narration": "Responsible AI continues after launch. Monitor error rates, refusals, complaint volume, and model drift. Have a kill switch and rollback path with a named owner who can act fast. Feed user reports and reviewer overrides back into your evaluation set to keep improving. And keep enough of an audit trail to investigate incidents, balanced against your retention commitments."
+    },
+    {
+      "type": "content",
+      "title": "The Responsible-AI Checklist (Ship Gate)",
+      "bullets": [
+        "Harms scored; guardrails for high-severity; red-team done",
+        "Privacy review, retention set, PII protected",
+        "HITL pattern chosen and justified; transparency to users",
+        "Monitoring, alerts, rollback owner, feedback loop wired"
+      ],
+      "narration": "Pull it together into a ship gate. A feature launches only when each item has an owner and an answer: harms identified and scored, guardrails for high-severity risks, red-teaming complete, privacy and PII handled, a justified human-in-the-loop pattern, user transparency, monitoring with thresholds, a rollback owner, and a feedback loop. Keep the checklist proportional to risk—light for autocomplete, full treatment for healthcare advice."
+    }
+  ]
+}

@@ -1,0 +1,178 @@
+{
+  "slug": "apm-m2-l03-roadmapping-ai-products-under-uncertainty",
+  "title": "Roadmapping AI Products Under Uncertainty",
+  "month": 2,
+  "monthTitle": "AI Product Strategy and Roadmapping",
+  "lesson": 3,
+  "video": "apm-m2-l03-roadmapping-ai-products-under-uncertainty.mp4",
+  "summary": "Learn to build phased, hypothesis-driven roadmaps for AI products where outcomes are uncertain. This lesson shows how to balance research spikes, data acquisition, and shippable milestones using staged gates and clear success metrics.",
+  "objectives": [
+    "Explain why traditional feature roadmaps fail for AI products and how uncertainty changes planning",
+    "Structure an AI roadmap into discovery, validation, and scaling phases with explicit hypotheses",
+    "Define entry and exit criteria (gates) that tie experiments to go/no-go decisions",
+    "Sequence data acquisition, model experimentation, and shipping milestones to reduce risk early",
+    "Communicate uncertainty and confidence levels to stakeholders without overcommitting on dates",
+    "Apply metrics and kill criteria to keep an AI roadmap honest and adaptive"
+  ],
+  "quiz": [
+    {
+      "q": "Why is a traditional feature roadmap risky for AI products?",
+      "options": [
+        "AI features are always cheaper to build",
+        "Feasibility is uncertain until you experiment with data and models",
+        "Stakeholders never want dates",
+        "AI products don't need metrics"
+      ],
+      "answer": 1,
+      "why": "Unlike conventional software, you cannot assume an AI capability will reach its quality bar; feasibility must be validated through experimentation before you can promise outcomes."
+    },
+    {
+      "q": "What is the primary output of the Discovery/Feasibility phase?",
+      "options": [
+        "A production-ready product",
+        "A confidence signal about whether the capability is achievable",
+        "A finalized pricing model",
+        "A complete UI design"
+      ],
+      "answer": 1,
+      "why": "Discovery uses time-boxed spikes to produce evidence about feasibility—a confidence signal—not a shippable product."
+    },
+    {
+      "q": "Which sequencing principle best reduces risk early in an AI roadmap?",
+      "options": [
+        "Polish the UX before testing the model",
+        "Tackle the riskiest assumption first",
+        "Skip baselines and go straight to complex models",
+        "Delay data work until after launch"
+      ],
+      "answer": 1,
+      "why": "De-risking means addressing the biggest uncertainty first—usually data and feasibility—before investing in downstream work like UX."
+    },
+    {
+      "q": "Why should kill criteria be defined in advance?",
+      "options": [
+        "To guarantee the project never stops",
+        "To prevent sunk-cost momentum from sustaining a failing bet",
+        "Because investors require it legally",
+        "To avoid measuring anything"
+      ],
+      "answer": 1,
+      "why": "Pre-committed kill criteria give an objective basis to stop investing, countering the sunk-cost bias that keeps doomed projects alive."
+    },
+    {
+      "q": "In one sentence, write a hypothesis-style roadmap item for an AI feature, including a measurable signal.",
+      "answer": "We believe an email-classification model will correctly route support tickets for SMB customers, and we'll know we're right when auto-routing accuracy exceeds 85% with under 5% misroute escalations.",
+      "why": "A good answer states the capability, the target outcome, the user segment, and a measurable signal that would confirm or falsify the bet."
+    },
+    {
+      "q": "What is the benefit of presenting unproven AI work in 'Now / Next / Later' horizons?",
+      "answer": "It communicates direction and priority while honestly reflecting uncertainty, instead of committing to precise dates for work that hasn't been validated.",
+      "why": "Horizons avoid false precision on uncertain work and let the roadmap update as evidence arrives, keeping stakeholder expectations realistic."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Marty Cagan, INSPIRED — product discovery and risk",
+      "url": "https://www.svpg.com/inspired-how-to-create-products-customers-love/"
+    },
+    {
+      "label": "Google People + AI Guidebook (PAIR)",
+      "url": "https://pair.withgoogle.com/guidebook/"
+    },
+    {
+      "label": "Now/Next/Later roadmap format (ProdPad)",
+      "url": "https://www.prodpad.com/blog/the-anatomy-of-the-perfect-product-roadmap/"
+    },
+    {
+      "label": "Emmanuel Ameisen, Building Machine Learning Powered Applications",
+      "url": "https://www.oreilly.com/library/view/building-machine-learning/9781492045106/"
+    }
+  ],
+  "body_markdown": "## Why AI Roadmaps Are Different\n\nTraditional product roadmaps assume that if you build a feature correctly, it will work. AI products break that assumption: feasibility itself is uncertain until you experiment with data and models. You cannot promise an outcome (e.g., \"95% accurate fraud detection\") before you've validated it. Roadmapping under uncertainty means planning to *learn*, not just to *build*.\n\nKey sources of uncertainty:\n- **Feasibility**: Can a model actually reach the quality bar?\n- **Data**: Do we have enough representative, labeled data?\n- **Value**: Will users trust and adopt the AI output?\n- **Cost/latency**: Is it economical and fast enough in production?\n\n## Hypothesis-Driven Roadmapping\n\nFrame each roadmap item as a testable hypothesis instead of a fixed deliverable:\n\n> \"We believe that [model/feature] will achieve [outcome] for [user segment]. We'll know we're right when [measurable signal].\"\n\nThis reframes the roadmap from a list of promises into a sequence of bets, each with a way to be proven wrong cheaply.\n\n## The Three-Phase Structure\n\n1. **Discovery / Feasibility (spikes)** — Time-boxed experiments to test whether the core ML capability is achievable. Output: a confidence signal, not a product. Example: offline model evaluation on a sample dataset.\n2. **Validation (thin slice)** — Ship a narrow, real version to a small audience. Test value and trust with real users (often with a human-in-the-loop fallback). Output: evidence of adoption and acceptable quality.\n3. **Scaling / Hardening** — Improve reliability, reduce cost/latency, expand coverage, add monitoring and guardrails. Output: a production-grade product.\n\nEach phase has **gates**: explicit entry and exit criteria. You only advance when evidence clears the gate; otherwise you iterate, pivot, or kill.\n\n## Sequencing: Data and Experiments First\n\nReduce the biggest uncertainty earliest. Usually that means front-loading **data assessment** and **feasibility spikes** before committing UI or launch dates. A common anti-pattern is designing polished UX before knowing the model can perform.\n\nUseful sequencing principles:\n- Tackle the riskiest assumption first (\"de-risking\").\n- Run a baseline (heuristic or simple model) before complex models.\n- Treat data collection/labeling as a first-class roadmap item with its own timeline.\n- Keep a manual or rules-based fallback so you can ship value while the model matures.\n\n## Gates and Kill Criteria\n\nDefine in advance what success and failure look like. A gate might read: \"Proceed to validation only if offline F1 ≥ 0.80 on the holdout set and labeling cost per item < $0.50.\" Equally important are **kill criteria** — the conditions under which you stop investing. Pre-committing to kill criteria prevents sunk-cost momentum.\n\n## Communicating Uncertainty to Stakeholders\n\n- Present the roadmap in **horizons** (Now / Next / Later) rather than precise quarterly dates for unproven work.\n- Attach **confidence levels** to items (e.g., high/medium/low).\n- Separate **committed** deliverables (low-uncertainty engineering) from **exploratory bets** (research spikes).\n- Update the roadmap as evidence arrives; treat it as a living artifact tied to learning milestones.\n\n## Putting It Together\n\nA strong AI roadmap reads as a chain of de-risking decisions: identify the riskiest assumption, design the cheapest test, set a gate, and only then commit further resources. This keeps the team adaptive while still giving the business a credible path to shipping.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Roadmapping AI Products Under Uncertainty",
+      "sub": "Phased, hypothesis-driven planning for AI PMs",
+      "narration": "Welcome. In this lesson we'll learn how to build AI product roadmaps when you can't be sure things will work. Unlike traditional software, AI feasibility is uncertain until you experiment. We'll cover a phased, hypothesis-driven approach that balances experimentation, data needs, and real shipping milestones."
+    },
+    {
+      "type": "content",
+      "title": "Why AI Roadmaps Are Different",
+      "bullets": [
+        "Feasibility is unknown until you test with data and models",
+        "You can't promise an accuracy outcome upfront",
+        "Four uncertainties: feasibility, data, value, cost/latency",
+        "Plan to learn, not just to build"
+      ],
+      "narration": "Traditional roadmaps assume that if you build a feature correctly it works. AI breaks that assumption. You don't know if a model can hit the quality bar until you experiment. There are four big uncertainties: feasibility, data availability, user value, and production cost or latency. So an AI roadmap should be designed to learn, not merely to ship a predefined feature list."
+    },
+    {
+      "type": "content",
+      "title": "Frame Items as Hypotheses",
+      "bullets": [
+        "Replace fixed deliverables with testable bets",
+        "'We believe X will achieve Y for segment Z'",
+        "'We'll know when [measurable signal]'",
+        "Each bet must be cheaply falsifiable"
+      ],
+      "narration": "Instead of listing promises, frame each roadmap item as a hypothesis. We believe a given model or feature will achieve a specific outcome for a specific user segment, and we'll know we're right when we see a measurable signal. This turns the roadmap into a sequence of bets, each of which can be proven wrong cheaply before you over-invest."
+    },
+    {
+      "type": "content",
+      "title": "The Three-Phase Structure",
+      "bullets": [
+        "1. Discovery / Feasibility — time-boxed spikes",
+        "2. Validation — thin slice to real users",
+        "3. Scaling / Hardening — reliability, cost, guardrails",
+        "Each phase ends in a decision gate"
+      ],
+      "narration": "Structure the roadmap into three phases. Discovery uses time-boxed spikes to test whether the core capability is even achievable. Validation ships a narrow real version to a small audience to test value and trust, often with a human in the loop. Scaling hardens reliability, reduces cost and latency, and adds monitoring. Between each phase sits a gate where you decide to advance, iterate, or stop."
+    },
+    {
+      "type": "content",
+      "title": "Sequence to De-Risk Early",
+      "bullets": [
+        "Tackle the riskiest assumption first",
+        "Run a simple baseline before complex models",
+        "Treat data collection/labeling as a roadmap item",
+        "Keep a manual or rules-based fallback"
+      ],
+      "narration": "Sequencing matters. Front-load the biggest uncertainty—usually data assessment and feasibility. Don't polish UX before you know the model performs. Always run a simple baseline first; sometimes a heuristic is good enough. Give data collection and labeling their own timeline, and keep a manual fallback so you can deliver value while the model matures."
+    },
+    {
+      "type": "content",
+      "title": "Gates and Kill Criteria",
+      "bullets": [
+        "Define entry and exit criteria in advance",
+        "Example: proceed if F1 ≥ 0.80 and label cost < $0.50/item",
+        "Pre-commit kill criteria to avoid sunk-cost traps",
+        "Gates connect experiments to go/no-go decisions"
+      ],
+      "code": "GATE: Discovery -> Validation\n  PASS IF offline_F1 >= 0.80\n      AND label_cost_per_item < 0.50\n  KILL IF F1 < 0.60 after 3 iterations",
+      "narration": "Define what success and failure look like before you start. A gate might say: proceed to validation only if offline F1 is at least 0.80 and labeling cost per item is under fifty cents. Equally important are kill criteria—the conditions that tell you to stop investing. Pre-committing to these prevents sunk-cost momentum from keeping a doomed bet alive."
+    },
+    {
+      "type": "content",
+      "title": "Communicating Uncertainty",
+      "bullets": [
+        "Use Now / Next / Later horizons, not hard dates",
+        "Attach confidence levels: high / medium / low",
+        "Separate committed work from exploratory bets",
+        "Update the roadmap as evidence arrives"
+      ],
+      "narration": "Stakeholders need honesty without panic. Present unproven work in Now, Next, and Later horizons rather than precise quarterly dates. Attach confidence levels to items. Clearly separate committed, low-uncertainty engineering from exploratory research bets. And treat the roadmap as a living artifact that updates as learning milestones produce evidence."
+    },
+    {
+      "type": "content",
+      "title": "Putting It Together",
+      "bullets": [
+        "Identify riskiest assumption",
+        "Design the cheapest test",
+        "Set a gate with success and kill criteria",
+        "Commit further only after evidence clears the gate"
+      ],
+      "narration": "To summarize, a strong AI roadmap is a chain of de-risking decisions. Identify the riskiest assumption, design the cheapest test to validate it, set a gate with clear success and kill criteria, and commit more resources only when evidence clears the gate. This keeps your team adaptive while still giving the business a credible path to shipping."
+    }
+  ]
+}

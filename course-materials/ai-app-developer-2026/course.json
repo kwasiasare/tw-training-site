@@ -1,0 +1,32 @@
+{
+  "slug": "ai-app-developer-2026",
+  "title": "AI Application Developer: Build and Ship LLM-Powered Apps",
+  "description": "A hands-on, project-based course that takes you from Python foundations to deploying production-ready AI applications using LLMs, RAG pipelines, autonomous agents, and vector databases. You'll build a portfolio of real apps culminating in a deployed capstone project.",
+  "audience": "Aspiring AI Application Developers with basic programming exposure who want to build and deploy real LLM-powered applications and land a job in the field.",
+  "modules": 4,
+  "lessons": 16,
+  "layout": {
+    "decks": "decks",
+    "lessons": "lessons",
+    "videos": "videos",
+    "studyPacks": "study-packs"
+  },
+  "moduleTitles": {
+    "1": "Python and LLM Foundations",
+    "2": "Building RAG Applications with Vector Databases",
+    "3": "Agents, Tools, and APIs",
+    "4": "Deployment and Capstone Project"
+  },
+  "generated": true,
+  "targetRole": "AI Application Developer",
+  "targetSkills": [
+    "python",
+    "llm apps",
+    "rag",
+    "agents",
+    "apis",
+    "deployment",
+    "prompt engineering",
+    "vector databases"
+  ]
+}

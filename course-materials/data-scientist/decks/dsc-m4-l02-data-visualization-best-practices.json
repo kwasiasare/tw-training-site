@@ -1,0 +1,180 @@
+{
+  "slug": "dsc-m4-l02-data-visualization-best-practices",
+  "title": "Data Visualization Best Practices",
+  "month": 4,
+  "monthTitle": "Experimentation, Visualization, and Capstone",
+  "lesson": 2,
+  "video": "dsc-m4-l02-data-visualization-best-practices.mp4",
+  "summary": "Learn to create clear, honest, and compelling data visualizations using matplotlib and seaborn, choosing the right chart for the question while avoiding common pitfalls that mislead viewers.",
+  "objectives": [
+    "Select the appropriate chart type for a given data structure and analytical question",
+    "Apply core design principles—clarity, honesty, and minimal clutter—to every chart",
+    "Build effective visualizations using matplotlib and seaborn with proper labels, scales, and color",
+    "Identify and correct common misleading practices like truncated axes and overplotting",
+    "Design accessible visuals using colorblind-safe palettes and clear annotation"
+  ],
+  "quiz": [
+    {
+      "q": "Why should bar charts generally start their y-axis at zero?",
+      "options": [
+        "To save space on the page",
+        "Because seaborn requires it",
+        "Because a truncated axis exaggerates differences between bars",
+        "Because zero is always the data minimum"
+      ],
+      "answer": 2,
+      "why": "Truncating the baseline visually inflates small differences between bars, misleading the viewer about the magnitude of the comparison."
+    },
+    {
+      "q": "Which chart type is most appropriate for showing the relationship between two continuous variables?",
+      "options": [
+        "Pie chart",
+        "Scatter plot",
+        "Stacked bar chart",
+        "Box plot"
+      ],
+      "answer": 1,
+      "why": "A scatter plot maps two continuous variables onto x and y axes, making relationships and correlations visible."
+    },
+    {
+      "q": "What is a good technique for dealing with overplotting in a dense scatter plot?",
+      "options": [
+        "Add more gridlines",
+        "Use transparency (alpha), sampling, or a hexbin plot",
+        "Switch to a pie chart",
+        "Remove the axis labels"
+      ],
+      "answer": 1,
+      "why": "Transparency, sampling, or density-based plots like hexbin reveal underlying structure that solid overlapping points would hide."
+    },
+    {
+      "q": "Roughly what fraction of men have red-green color vision deficiency, motivating colorblind-safe palettes?",
+      "options": [
+        "About 8%",
+        "About 50%",
+        "Less than 0.1%",
+        "About 25%"
+      ],
+      "answer": 0,
+      "why": "Around 8% of men have red-green color deficiency, so using colorblind-safe palettes and not relying on color alone improves accessibility."
+    },
+    {
+      "q": "In one sentence, explain the relationship between matplotlib and seaborn.",
+      "answer": "Seaborn is a higher-level library built on top of matplotlib that provides attractive statistical chart defaults, while matplotlib gives low-level control for fine-tuning.",
+      "why": "Seaborn wraps matplotlib to simplify common statistical plots, but you can still access matplotlib objects to customize details."
+    },
+    {
+      "q": "Name one thing a chart title should do beyond labeling the variables.",
+      "answer": "State the key insight or takeaway from the chart.",
+      "why": "An effective title communicates the message (e.g., 'Average bill is highest on weekends') rather than a generic description, guiding the viewer to the conclusion."
+    }
+  ],
+  "resources": [
+    {
+      "label": "seaborn official tutorial",
+      "url": "https://seaborn.pydata.org/tutorial.html"
+    },
+    {
+      "label": "matplotlib Pyplot tutorial",
+      "url": "https://matplotlib.org/stable/tutorials/pyplot.html"
+    },
+    {
+      "label": "Fundamentals of Data Visualization (Claus Wilke, free online)",
+      "url": "https://clauswilke.com/dataviz/"
+    },
+    {
+      "label": "Choosing color palettes in seaborn",
+      "url": "https://seaborn.pydata.org/tutorial/color_palettes.html"
+    }
+  ],
+  "body_markdown": "## Why Visualization Matters\n\nA chart is an argument made visible. As a data scientist, your analysis is only as valuable as your ability to communicate it. A good visualization reveals patterns instantly; a bad one hides them or—worse—misleads stakeholders into wrong decisions.\n\nThe goal is always **clarity and honesty**. Every design choice should help the viewer understand the data faithfully, not impress them with decoration.\n\n## Choosing the Right Chart\n\nMatch the chart to the question and data type:\n\n- **Comparison across categories** → bar chart\n- **Trend over time** → line chart\n- **Distribution of one variable** → histogram, KDE, box plot\n- **Relationship between two variables** → scatter plot\n- **Part-to-whole** → stacked bar (avoid pie charts for more than 2-3 slices)\n- **Correlation matrix** → heatmap\n\nAsk: *What single message should the viewer take away?* Then pick the form that delivers it most directly.\n\n## Core Design Principles\n\n1. **Maximize the data-ink ratio** (Tufte): remove gridlines, borders, and 3D effects that carry no information.\n2. **Label everything**: title, axis labels with units, and a legend when needed.\n3. **Start bar charts at zero**: truncated y-axes exaggerate differences. Line charts can use non-zero baselines when showing relative change, but disclose it.\n4. **Order intentionally**: sort categorical bars by value, not alphabetically, unless order is meaningful.\n5. **Use color purposefully**: color should encode data or highlight, not decorate.\n\n## matplotlib vs seaborn\n\n- **matplotlib** is the low-level foundation—full control over every element.\n- **seaborn** is built on matplotlib and provides attractive statistical defaults with less code.\n\nA common workflow: use seaborn to draw the chart quickly, then drop to matplotlib to fine-tune labels, limits, and annotations.\n\n```python\nimport seaborn as sns\nimport matplotlib.pyplot as plt\n\nsns.set_theme(style=\"whitegrid\")\ntips = sns.load_dataset(\"tips\")\n\nfig, ax = plt.subplots(figsize=(7,4))\nsns.barplot(data=tips, x=\"day\", y=\"total_bill\", ax=ax, errorbar=\"sd\")\nax.set_ylabel(\"Average total bill ($)\")\nax.set_xlabel(\"Day of week\")\nax.set_title(\"Average bill is highest on weekends\")\nplt.tight_layout()\n```\n\nNotice the title states the *insight*, not just \"Bill by Day\".\n\n## Avoiding Misleading Charts\n\n- **Truncated axes**: starting a bar chart's y-axis above zero inflates small differences.\n- **Dual y-axes**: easily imply false correlation; use with caution.\n- **Overplotting**: dense scatter plots hide structure—use transparency (`alpha`), sampling, or hexbin/2D density.\n- **Misleading aggregation**: a single average can hide bimodal distributions; show the spread.\n- **Wrong scale**: skewed data may need a log scale—label it clearly.\n\n## Color and Accessibility\n\n- Use **colorblind-safe palettes** (`sns.color_palette(\"colorblind\")`); ~8% of men have red-green color deficiency.\n- Sequential palettes for ordered/continuous data, diverging for data with a meaningful midpoint, qualitative for categories.\n- Don't rely on color alone—add labels, patterns, or direct annotation.\n- Ensure sufficient contrast and readable font sizes for the final medium.\n\n## A Practical Checklist\n\nBefore sharing any chart, ask:\n1. Does the title state the takeaway?\n2. Are axes labeled with units?\n3. Is the baseline honest (zero for bars)?\n4. Is the chart type right for the question?\n5. Is it readable in grayscale / for colorblind viewers?\n6. Have I removed all non-informative clutter?",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Data Visualization Best Practices",
+      "sub": "Clear, compelling, honest charts with matplotlib & seaborn",
+      "narration": "Welcome. In this lesson we'll learn how to turn data into visualizations that reveal patterns clearly and honestly. As a data scientist, communicating your findings is just as important as the analysis itself, and a well-designed chart can be the difference between a decision made and a decision missed."
+    },
+    {
+      "type": "content",
+      "title": "A Chart Is an Argument",
+      "bullets": [
+        "Visualization communicates insight, not decoration",
+        "Good charts reveal patterns instantly",
+        "Bad charts hide or mislead",
+        "Goal: clarity and honesty above all"
+      ],
+      "narration": "Think of every chart as an argument made visible. Your job is to make the viewer understand the data faithfully and quickly. The two guiding values throughout this lesson are clarity and honesty. Every design choice you make should serve those goals, not just make the chart look fancy."
+    },
+    {
+      "type": "content",
+      "title": "Choosing the Right Chart",
+      "bullets": [
+        "Comparison → bar chart",
+        "Trend over time → line chart",
+        "Distribution → histogram, box, KDE",
+        "Relationship → scatter plot",
+        "Correlation → heatmap"
+      ],
+      "narration": "Start by matching the chart to the question. Comparing categories calls for a bar chart. Showing a trend over time means a line chart. To understand a single variable's distribution, use a histogram or box plot. For the relationship between two variables, reach for a scatter plot. Always ask: what single message should the viewer take away, then pick the form that delivers it most directly."
+    },
+    {
+      "type": "content",
+      "title": "Core Design Principles",
+      "bullets": [
+        "Maximize data-ink ratio—cut clutter",
+        "Label title, axes, and units",
+        "Start bars at zero",
+        "Order categories by value",
+        "Use color with purpose"
+      ],
+      "narration": "Follow a few core principles. Maximize the data-ink ratio by removing gridlines, borders, and 3D effects that add no information. Label everything clearly. Start bar charts at zero so you don't exaggerate differences. Sort categorical bars by value when order isn't otherwise meaningful. And use color to encode data or highlight, never just to decorate."
+    },
+    {
+      "type": "content",
+      "title": "matplotlib vs seaborn",
+      "bullets": [
+        "matplotlib: low-level, full control",
+        "seaborn: statistical defaults, less code",
+        "Common flow: draw in seaborn, polish in matplotlib",
+        "Make titles state the insight"
+      ],
+      "code": "sns.set_theme(style=\"whitegrid\")\nax = sns.barplot(data=tips, x=\"day\", y=\"total_bill\")\nax.set_title(\"Average bill is highest on weekends\")\nax.set_ylabel(\"Average total bill ($)\")",
+      "narration": "matplotlib is the low-level foundation giving you control over every element, while seaborn sits on top with attractive statistical defaults and far less code. A practical workflow is to draw quickly in seaborn, then drop into matplotlib to fine-tune labels and limits. Notice the title states the insight—'Average bill is highest on weekends'—rather than a generic 'Bill by Day'."
+    },
+    {
+      "type": "content",
+      "title": "Avoiding Misleading Charts",
+      "bullets": [
+        "Truncated y-axes inflate differences",
+        "Dual axes imply false correlation",
+        "Overplotting hides structure—use alpha or hexbin",
+        "Single averages hide distributions"
+      ],
+      "narration": "Now the pitfalls. Truncating a bar chart's y-axis above zero exaggerates small differences. Dual y-axes can imply correlations that aren't real. Dense scatter plots suffer from overplotting—use transparency, sampling, or a hexbin plot to reveal density. And remember a single average can hide a bimodal distribution, so show the spread when it matters."
+    },
+    {
+      "type": "content",
+      "title": "Color and Accessibility",
+      "bullets": [
+        "Use colorblind-safe palettes",
+        "Sequential, diverging, qualitative—match to data",
+        "Don't rely on color alone",
+        "Ensure contrast and readable fonts"
+      ],
+      "narration": "Color deserves special care. Around eight percent of men have red-green color deficiency, so use colorblind-safe palettes like seaborn's 'colorblind'. Choose sequential palettes for ordered data, diverging for data with a meaningful midpoint, and qualitative for categories. Never rely on color alone—add labels or annotations—and make sure your contrast and font sizes work in the final medium."
+    },
+    {
+      "type": "content",
+      "title": "Pre-Share Checklist",
+      "bullets": [
+        "Does the title state the takeaway?",
+        "Are axes labeled with units?",
+        "Is the baseline honest?",
+        "Right chart for the question?",
+        "Readable in grayscale?"
+      ],
+      "narration": "Before you share any chart, run through this checklist. Does the title state the takeaway? Are the axes labeled with units? Is the baseline honest, meaning zero for bars? Is the chart type right for the question? And is it readable in grayscale and for colorblind viewers? If you can answer yes to all of these, your visualization is ready to inform a real decision."
+    }
+  ]
+}

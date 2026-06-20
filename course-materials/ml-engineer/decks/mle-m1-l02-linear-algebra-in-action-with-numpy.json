@@ -1,0 +1,195 @@
+{
+  "slug": "mle-m1-l02-linear-algebra-in-action-with-numpy",
+  "title": "Linear Algebra in Action with NumPy",
+  "month": 1,
+  "monthTitle": "Foundations: Python and Math for ML",
+  "lesson": 2,
+  "video": "mle-m1-l02-linear-algebra-in-action-with-numpy.mp4",
+  "summary": "Learn how to represent and manipulate vectors and matrices with NumPy, compute dot products and norms, perform matrix multiplication, and apply decompositions like eigendecomposition and SVD that underpin core ML algorithms.",
+  "objectives": [
+    "Create and manipulate vectors and matrices using NumPy arrays",
+    "Compute dot products, norms, and cosine similarity to measure vector relationships",
+    "Perform matrix multiplication, transposition, and inversion correctly",
+    "Apply broadcasting to write efficient, vectorized linear algebra code",
+    "Use eigendecomposition and SVD to understand dimensionality reduction techniques like PCA",
+    "Connect linear algebra operations to real ML tasks such as linear regression"
+  ],
+  "quiz": [
+    {
+      "q": "Which operator performs matrix multiplication in NumPy?",
+      "options": [
+        "*",
+        "@",
+        "+",
+        "%"
+      ],
+      "answer": 1,
+      "why": "The @ operator performs matrix multiplication, while * does element-wise multiplication."
+    },
+    {
+      "q": "What does np.linalg.norm(v) compute for a vector v?",
+      "options": [
+        "The sum of its elements",
+        "Its length (magnitude)",
+        "Its transpose",
+        "Its inverse"
+      ],
+      "answer": 1,
+      "why": "The norm computes the magnitude or length of a vector, e.g., the Euclidean norm sqrt(sum of squares)."
+    },
+    {
+      "q": "For A @ B with A of shape (m, n), what shape must B have?",
+      "options": [
+        "(m, n)",
+        "(n, p)",
+        "(p, n)",
+        "(m, m)"
+      ],
+      "answer": 1,
+      "why": "The inner dimensions must match: A is (m, n), so B must be (n, p), giving a result of shape (m, p)."
+    },
+    {
+      "q": "Why prefer np.linalg.solve(A, b) over computing np.linalg.inv(A) @ b?",
+      "options": [
+        "It returns a different answer",
+        "It is more numerically stable and efficient",
+        "It works only on square matrices",
+        "It computes eigenvalues too"
+      ],
+      "answer": 1,
+      "why": "Solving the system directly is more numerically stable and faster than explicitly forming the inverse."
+    },
+    {
+      "q": "Which decomposition factors any matrix into U S Vᵀ and underpins PCA and recommender systems?",
+      "answer": "SVD (Singular Value Decomposition)",
+      "why": "SVD factors any matrix A into U, S, and Vᵀ; its top singular values capture the most variance, enabling dimensionality reduction."
+    },
+    {
+      "q": "In one short phrase, what does broadcasting let you do in NumPy?",
+      "answer": "Operate on arrays of different shapes without explicit loops",
+      "why": "Broadcasting automatically stretches smaller arrays to compatible shapes, enabling efficient vectorized operations like subtracting a mean vector from every row."
+    }
+  ],
+  "resources": [
+    {
+      "label": "NumPy Linear Algebra documentation (numpy.linalg)",
+      "url": "https://numpy.org/doc/stable/reference/routines.linalg.html"
+    },
+    {
+      "label": "3Blue1Brown: Essence of Linear Algebra (video series)",
+      "url": "https://www.3blue1brown.com/topics/linear-algebra"
+    },
+    {
+      "label": "NumPy Broadcasting guide",
+      "url": "https://numpy.org/doc/stable/user/basics.broadcasting.html"
+    },
+    {
+      "label": "Mathematics for Machine Learning (free book)",
+      "url": "https://mml-book.github.io/"
+    }
+  ],
+  "body_markdown": "## Why Linear Algebra Matters for ML\n\nNearly every machine learning model is built on linear algebra. Data is stored as vectors and matrices, model parameters are vectors, and training involves matrix operations. NumPy gives us fast, vectorized tools to do this math efficiently in Python.\n\n## Vectors and Matrices\n\nA **vector** is a 1-D array of numbers; a **matrix** is a 2-D array. In NumPy both are `ndarray` objects.\n\n```python\nimport numpy as np\nv = np.array([1, 2, 3])          # shape (3,)\nM = np.array([[1, 2], [3, 4]])    # shape (2, 2)\nprint(v.shape, M.shape)\n```\n\nThe `.shape` attribute is your best friend—most bugs are shape mismatches.\n\n## Dot Products and Norms\n\nThe **dot product** sums element-wise products and measures alignment between vectors:\n\n```python\na = np.array([1, 2, 3])\nb = np.array([4, 5, 6])\nprint(np.dot(a, b))   # 32\nprint(a @ b)          # 32 (preferred operator)\n```\n\nThe **norm** (length/magnitude) of a vector:\n\n```python\nnp.linalg.norm(a)     # sqrt(1+4+9) = 3.742\n```\n\n**Cosine similarity** measures the angle between vectors (used in recommendations and NLP):\n\n```python\ncos = (a @ b) / (np.linalg.norm(a) * np.linalg.norm(b))\n```\n\n## Matrix Multiplication\n\nMatrix multiplication combines rows and columns. For `A @ B`, the inner dimensions must match: `(m, n) @ (n, p) -> (m, p)`.\n\n```python\nA = np.array([[1, 2], [3, 4]])\nB = np.array([[5, 6], [7, 8]])\nprint(A @ B)          # matrix product\nprint(A * B)          # element-wise (NOT the same!)\nprint(A.T)            # transpose\n```\n\nThis is exactly how a neural network layer computes `outputs = inputs @ weights + bias`.\n\n## Broadcasting\n\nBroadcasting lets NumPy operate on arrays of different shapes without explicit loops, by stretching smaller arrays.\n\n```python\nX = np.array([[1, 2, 3], [4, 5, 6]])\nmean = X.mean(axis=0)        # shape (3,)\nX_centered = X - mean        # broadcasts row-wise\n```\n\nThis is the foundation of feature normalization.\n\n## Solving Linear Systems\n\nLinear regression's closed-form solution uses matrix inversion. Prefer `np.linalg.solve` over computing the inverse directly for stability.\n\n```python\n# Solve Ax = b\nA = np.array([[3, 1], [1, 2]])\nb = np.array([9, 8])\nx = np.linalg.solve(A, b)    # [2., 3.]\n```\n\n## Matrix Decompositions\n\nDecompositions break a matrix into useful factors.\n\n**Eigendecomposition** finds vectors that only get scaled (not rotated) by a matrix. It powers PCA on covariance matrices.\n\n```python\nvalues, vectors = np.linalg.eig(A)\n```\n\n**Singular Value Decomposition (SVD)** factors any matrix `A = U S Vᵀ`. It underpins PCA, recommender systems, and data compression.\n\n```python\nU, S, Vt = np.linalg.svd(X)\n```\n\nThe largest singular values capture the most variance—keeping only the top ones gives dimensionality reduction.\n\n## Putting It Together: Linear Regression\n\n```python\n# Normal equation: w = (XᵀX)^-1 Xᵀ y\nXt = X.T\nw = np.linalg.solve(Xt @ X, Xt @ y)\n```\n\nThis single line trains a linear regression model—pure linear algebra.\n\n## Key Takeaways\n\n- Always check shapes; use `@` for matrix multiply, `*` for element-wise.\n- Use `np.linalg.solve` instead of explicit inverses.\n- SVD and eigendecomposition are the math behind PCA and many ML methods.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Linear Algebra in Action with NumPy",
+      "sub": "The math engine behind machine learning",
+      "narration": "Welcome! In this lesson we'll bring linear algebra to life using NumPy. Almost every machine learning model relies on vectors, matrices, and their operations, so mastering these tools is essential for any ML engineer."
+    },
+    {
+      "type": "content",
+      "title": "Vectors and Matrices",
+      "bullets": [
+        "Vector = 1-D array, Matrix = 2-D array",
+        "Both are NumPy ndarray objects",
+        "Always check .shape to avoid bugs",
+        "Data, weights, and features all live as arrays"
+      ],
+      "code": "v = np.array([1, 2, 3])        # (3,)\nM = np.array([[1, 2],[3, 4]])  # (2, 2)",
+      "narration": "In NumPy, a vector is simply a one-dimensional array and a matrix is a two-dimensional array. Both are ndarray objects. The shape attribute tells you the dimensions, and most errors you'll encounter come from shape mismatches, so check it often."
+    },
+    {
+      "type": "content",
+      "title": "Dot Products and Norms",
+      "bullets": [
+        "Dot product measures alignment between vectors",
+        "Use the @ operator for clarity",
+        "Norm gives a vector's length or magnitude",
+        "Cosine similarity = dot product over norms"
+      ],
+      "code": "a @ b                # dot product\nnp.linalg.norm(a)    # magnitude\ncos = (a @ b)/(np.linalg.norm(a)*np.linalg.norm(b))",
+      "narration": "The dot product multiplies corresponding elements and sums them, telling us how aligned two vectors are. The norm gives a vector's length. Combining them, cosine similarity measures the angle between vectors, which is widely used in recommendation systems and natural language processing."
+    },
+    {
+      "type": "content",
+      "title": "Matrix Multiplication",
+      "bullets": [
+        "A @ B: inner dimensions must match",
+        "(m,n) @ (n,p) -> (m,p)",
+        "A * B is element-wise, not matrix product",
+        "Transpose with A.T"
+      ],
+      "code": "A @ B    # matrix product\nA * B    # element-wise\nA.T      # transpose",
+      "narration": "Matrix multiplication combines rows and columns, and the inner dimensions must match. Be careful: the asterisk does element-wise multiplication, not the matrix product. This operation is exactly how a neural network layer computes inputs times weights."
+    },
+    {
+      "type": "content",
+      "title": "Broadcasting",
+      "bullets": [
+        "Operate on different-shaped arrays without loops",
+        "Smaller arrays are stretched automatically",
+        "Foundation of feature normalization",
+        "Fast and memory efficient"
+      ],
+      "code": "mean = X.mean(axis=0)\nX_centered = X - mean   # broadcasts row-wise",
+      "narration": "Broadcasting lets NumPy combine arrays of different shapes by automatically stretching the smaller one. This avoids slow Python loops and is the basis for operations like centering and normalizing features—subtracting the mean from every row in one clean line."
+    },
+    {
+      "type": "content",
+      "title": "Solving Linear Systems",
+      "bullets": [
+        "Solve Ax = b efficiently",
+        "Prefer np.linalg.solve over inverses",
+        "More numerically stable",
+        "Used in linear regression's normal equation"
+      ],
+      "code": "x = np.linalg.solve(A, b)",
+      "narration": "To solve systems of equations like A x equals b, use np.linalg.solve rather than explicitly computing the matrix inverse. It's faster and more numerically stable. This is the same math behind the closed-form solution to linear regression."
+    },
+    {
+      "type": "content",
+      "title": "Matrix Decompositions",
+      "bullets": [
+        "Eigendecomposition: vectors only scaled, not rotated",
+        "SVD: A = U S Vᵀ works on any matrix",
+        "Largest singular values capture most variance",
+        "Powers PCA, recommenders, compression"
+      ],
+      "code": "vals, vecs = np.linalg.eig(A)\nU, S, Vt = np.linalg.svd(X)",
+      "narration": "Decompositions factor a matrix into useful parts. Eigendecomposition finds directions that only get scaled, which drives PCA on covariance matrices. SVD factors any matrix into three pieces, and keeping the top singular values gives dimensionality reduction used across machine learning."
+    },
+    {
+      "type": "content",
+      "title": "Putting It Together: Linear Regression",
+      "bullets": [
+        "Normal equation: w = (XᵀX)⁻¹ Xᵀ y",
+        "One line of linear algebra trains the model",
+        "Use solve, not inverse, for stability",
+        "Same building blocks scale to deep learning"
+      ],
+      "code": "w = np.linalg.solve(X.T @ X, X.T @ y)",
+      "narration": "Let's tie it all together. Using transposes, matrix multiplication, and a linear solve, we can train a linear regression model in a single line. These same building blocks—dot products, matmul, and decompositions—scale all the way up to deep learning."
+    },
+    {
+      "type": "content",
+      "title": "Key Takeaways",
+      "bullets": [
+        "Check shapes constantly",
+        "@ for matrix multiply, * for element-wise",
+        "Prefer np.linalg.solve over inverses",
+        "SVD and eig underpin PCA and many ML methods"
+      ],
+      "narration": "To wrap up: always check your shapes, remember the difference between the at operator and the asterisk, prefer solve over explicit inverses, and know that SVD and eigendecomposition are the engines behind techniques like PCA. Practice these and the math behind ML will feel natural."
+    }
+  ]
+}

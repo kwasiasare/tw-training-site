@@ -1,0 +1,192 @@
+{
+  "slug": "aad-m2-l04-project-document-q-a-chatbot",
+  "title": "Project: Document Q&A Chatbot",
+  "month": 2,
+  "monthTitle": "Building RAG Applications with Vector Databases",
+  "lesson": 4,
+  "video": "aad-m2-l04-project-document-q-a-chatbot.mp4",
+  "summary": "A hands-on project lesson where you build a complete RAG-powered Document Q&A chatbot that ingests PDFs, retrieves relevant chunks from a vector database, and answers questions with cited sources.",
+  "objectives": [
+    "Build an end-to-end ingestion pipeline that loads, chunks, and embeds PDF documents into a vector database",
+    "Implement a retrieval function that returns the most relevant chunks for a user query",
+    "Construct a grounded prompt that instructs the LLM to answer only from retrieved context and cite sources",
+    "Assemble a chat loop that maintains context and returns answers with inline source citations",
+    "Evaluate and debug common RAG failure modes like hallucination, poor retrieval, and chunking issues"
+  ],
+  "quiz": [
+    {
+      "q": "Why do we store metadata like filename and page number with each chunk?",
+      "options": [
+        "To make embeddings more accurate",
+        "To enable source citations in the final answer",
+        "To reduce the size of the vector database",
+        "To speed up similarity search"
+      ],
+      "answer": 1,
+      "why": "Metadata travels with the chunk through retrieval so the answer can cite exactly which file and page it came from."
+    },
+    {
+      "q": "What is the single most effective prompt technique to reduce hallucination in RAG?",
+      "options": [
+        "Increasing temperature",
+        "Instructing the model to answer only from the provided context and admit when it doesn't know",
+        "Using a larger model",
+        "Retrieving more chunks"
+      ],
+      "answer": 1,
+      "why": "Grounding the model with an explicit instruction to use only the supplied context — and to say 'I don't know' otherwise — is the primary defense against hallucination."
+    },
+    {
+      "q": "Why should you persist the vector database to disk after ingestion?",
+      "options": [
+        "To improve answer quality",
+        "Because embedding is slow and costly, so you avoid re-doing it on every run",
+        "Because the LLM requires it",
+        "To enable multi-turn chat memory"
+      ],
+      "answer": 1,
+      "why": "Embedding all chunks is the expensive, time-consuming step; persisting lets you reuse the vectors without re-embedding."
+    },
+    {
+      "q": "What problem does chunk overlap solve?",
+      "options": [
+        "It reduces token costs",
+        "It prevents losing context that spans a chunk boundary",
+        "It improves embedding model accuracy globally",
+        "It removes duplicate documents"
+      ],
+      "answer": 1,
+      "why": "Overlap ensures information that straddles two chunks isn't cut off and lost, preserving context for retrieval."
+    },
+    {
+      "q": "In one sentence, why must the same embedding model be used during ingestion and at query time?",
+      "answer": "Because query and document vectors must live in the same vector space for similarity search to be meaningful; different models produce incomparable embeddings.",
+      "why": "Similarity is only meaningful when both the stored chunk vectors and the query vector are produced by the same model in the same vector space."
+    },
+    {
+      "q": "What is a good strategy for handling vague follow-up questions like 'What about its price?' in a chat loop?",
+      "answer": "Rewrite the follow-up into a standalone question using conversation history before performing retrieval.",
+      "why": "Vector search needs an explicit query; rewriting resolves pronouns and references so retrieval finds the right chunks."
+    }
+  ],
+  "resources": [
+    {
+      "label": "LangChain RAG Tutorial (official docs)",
+      "url": "https://python.langchain.com/docs/tutorials/rag/"
+    },
+    {
+      "label": "Chroma Vector Database Documentation",
+      "url": "https://docs.trychroma.com/"
+    },
+    {
+      "label": "OpenAI Embeddings Guide",
+      "url": "https://platform.openai.com/docs/guides/embeddings"
+    },
+    {
+      "label": "Streamlit – Build a chat UI",
+      "url": "https://docs.streamlit.io/develop/tutorials/llms/build-conversational-apps"
+    }
+  ],
+  "body_markdown": "## Project Overview\n\nIn this project you build a **Document Q&A chatbot** using Retrieval-Augmented Generation (RAG). The bot answers questions over a custom set of PDFs and shows the **source** for every answer, so users can verify claims. This ties together everything from the module: embeddings, vector search, prompt construction, and the LLM call.\n\nThe architecture has two phases:\n\n1. **Ingestion (offline):** Load PDFs → split into chunks → embed each chunk → store vectors + metadata in a vector DB.\n2. **Query (online):** Embed the user question → search the vector DB for top-k chunks → build a grounded prompt → call the LLM → return the answer with citations.\n\n## Step 1: Ingest and Chunk PDFs\n\nUse a loader (e.g. `pypdf` or LangChain's `PyPDFLoader`) to extract text page by page. Keep page numbers and file names as **metadata** — you need these for citations later.\n\nSplit text into overlapping chunks. A `RecursiveCharacterTextSplitter` with `chunk_size=1000` and `chunk_overlap=150` is a sane default. Overlap prevents losing context that straddles a chunk boundary.\n\n```python\nfrom langchain_text_splitters import RecursiveCharacterTextSplitter\nsplitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)\nchunks = splitter.split_documents(pages)\n```\n\n## Step 2: Embed and Store\n\nEach chunk is converted to a vector with an embedding model (e.g. `text-embedding-3-small`). Store the vector along with the original text and metadata in a vector store such as **Chroma**, **FAISS**, or **Pinecone**.\n\n```python\nfrom langchain_community.vectorstores import Chroma\nfrom langchain_openai import OpenAIEmbeddings\nvectordb = Chroma.from_documents(chunks, OpenAIEmbeddings(model=\"text-embedding-3-small\"), persist_directory=\"./db\")\n```\n\nPersist the DB so you don't re-embed on every run — embedding is the slow, costly part.\n\n## Step 3: Retrieve Relevant Context\n\nAt query time, embed the question and run a similarity search for the top-k chunks (start with k=4). Each returned chunk carries its source metadata.\n\n```python\nretriever = vectordb.as_retriever(search_kwargs={\"k\": 4})\ndocs = retriever.invoke(user_question)\n```\n\n## Step 4: Build a Grounded Prompt\n\nThe key to reducing hallucination is **instructing the model to answer only from the provided context** and to say \"I don't know\" when the context is insufficient. Include source labels so the model can cite them.\n\n```python\ncontext = \"\\n\\n\".join(f\"[{d.metadata['source']} p.{d.metadata['page']}] {d.page_content}\" for d in docs)\nprompt = f\"\"\"Answer the question using ONLY the context below.\nIf the answer is not in the context, say you don't know.\nCite sources in brackets like [file.pdf p.3].\n\nContext:\n{context}\n\nQuestion: {user_question}\"\"\"\n```\n\n## Step 5: Generate and Cite\n\nSend the prompt to the chat model with a low temperature (0–0.2) for factual consistency. Display the answer plus the list of source documents that were retrieved.\n\n```python\nfrom langchain_openai import ChatOpenAI\nllm = ChatOpenAI(model=\"gpt-4o-mini\", temperature=0)\nanswer = llm.invoke(prompt).content\n```\n\n## Step 6: Chat Loop and Memory\n\nWrap it in a loop. For multi-turn chat, prepend recent conversation history to the question, or use a query-rewriting step to make follow-up questions standalone before retrieval (\"What about its price?\" → \"What about the price of Product X?\").\n\n## Debugging Common RAG Failures\n\n- **Hallucination:** Tighten the prompt; lower temperature; confirm context is actually being injected.\n- **Bad retrieval:** Try smaller chunks, more overlap, increase k, or check the embedding model matches between ingest and query.\n- **Wrong citations:** Verify metadata is preserved through chunking.\n- **Truncated context:** Watch the context window; cap k or chunk size.\n\n## Stretch Goals\n\nAdd a relevance threshold to drop weak matches, a reranker for better ordering, streaming responses, and a simple web UI with Streamlit or Gradio.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Project: Document Q&A Chatbot",
+      "sub": "Build a RAG app that answers from your PDFs with citations",
+      "narration": "Welcome to the capstone project for this module. We're going to build a working Document Q&A chatbot that answers questions over a custom set of PDFs and cites its sources. This brings together embeddings, vector search, and prompt design into one shippable application."
+    },
+    {
+      "type": "content",
+      "title": "What We're Building",
+      "bullets": [
+        "A chatbot grounded in YOUR documents, not the model's training data",
+        "Two phases: offline ingestion and online querying",
+        "Every answer shows the source file and page",
+        "Reduces hallucination through grounded prompting"
+      ],
+      "narration": "The goal is a chatbot whose answers come from documents you provide, not from whatever the model memorized. There are two phases: an offline ingestion phase where we process the PDFs, and an online query phase where we answer questions. Crucially, every answer cites its source, so users can verify it, and we use grounding to keep the model honest."
+    },
+    {
+      "type": "content",
+      "title": "Step 1: Ingest and Chunk",
+      "bullets": [
+        "Load PDFs and keep filename + page as metadata",
+        "Split into overlapping chunks (~1000 chars, 150 overlap)",
+        "Overlap preserves context across boundaries",
+        "Metadata is what makes citations possible later"
+      ],
+      "code": "splitter = RecursiveCharacterTextSplitter(\n    chunk_size=1000, chunk_overlap=150)\nchunks = splitter.split_documents(pages)",
+      "narration": "First we load the PDFs, extracting text page by page while carefully keeping the filename and page number as metadata. We split the text into overlapping chunks, around a thousand characters each with a hundred-fifty-character overlap. That overlap stops us from cutting a sentence's meaning in half at a chunk boundary. Don't skip the metadata — it's what powers our citations at the end."
+    },
+    {
+      "type": "content",
+      "title": "Step 2: Embed and Store",
+      "bullets": [
+        "Convert each chunk to a vector with an embedding model",
+        "Store vectors + text + metadata in Chroma, FAISS, or Pinecone",
+        "Persist the DB so you don't re-embed every run",
+        "Embedding is the slow, costly step — cache it"
+      ],
+      "code": "vectordb = Chroma.from_documents(\n    chunks, OpenAIEmbeddings(model=\"text-embedding-3-small\"),\n    persist_directory=\"./db\")",
+      "narration": "Next, each chunk gets turned into a vector by an embedding model, and we store those vectors alongside the original text and metadata in a vector database like Chroma. Be sure to persist the database to disk. Embedding is the slowest and most expensive part of the pipeline, so you don't want to redo it every time you restart the app."
+    },
+    {
+      "type": "content",
+      "title": "Step 3: Retrieve Context",
+      "bullets": [
+        "Embed the user's question with the SAME model",
+        "Run similarity search for top-k chunks (start k=4)",
+        "Each chunk carries its source metadata",
+        "Tune k: too few misses info, too many adds noise"
+      ],
+      "code": "retriever = vectordb.as_retriever(\n    search_kwargs={\"k\": 4})\ndocs = retriever.invoke(user_question)",
+      "narration": "At query time we embed the user's question — using the exact same embedding model we used during ingestion — and search for the most similar chunks. Start with the top four. Each chunk comes back with its source metadata intact. Tuning k is a balance: too few and you miss relevant info, too many and you dilute the prompt with noise and waste tokens."
+    },
+    {
+      "type": "content",
+      "title": "Step 4: Build a Grounded Prompt",
+      "bullets": [
+        "Instruct: answer ONLY from the provided context",
+        "Tell it to say 'I don't know' when context is insufficient",
+        "Label each chunk so the model can cite it",
+        "This is your main defense against hallucination"
+      ],
+      "code": "Answer using ONLY the context below.\nIf not in context, say you don't know.\nCite sources like [file.pdf p.3].",
+      "narration": "This step is where grounding happens. We build a prompt that explicitly tells the model to answer only from the context we provide, to admit when it doesn't know, and to cite sources using the labels we attached. This instruction is your single biggest lever against hallucination. Make it clear and firm."
+    },
+    {
+      "type": "content",
+      "title": "Step 5 & 6: Generate, Cite, and Chat",
+      "bullets": [
+        "Call the chat model at temperature 0 for consistency",
+        "Display the answer plus the source documents",
+        "Loop for multi-turn conversation",
+        "Rewrite follow-up questions to be standalone before retrieval"
+      ],
+      "code": "llm = ChatOpenAI(model=\"gpt-4o-mini\", temperature=0)\nanswer = llm.invoke(prompt).content",
+      "narration": "We send the grounded prompt to the chat model with temperature zero for factual consistency, then show the answer along with the sources we retrieved. Wrap the whole thing in a loop for conversation. For follow-up questions like 'what about its price?', rewrite them into standalone queries before retrieval, otherwise the vector search won't know what 'it' refers to."
+    },
+    {
+      "type": "content",
+      "title": "Debugging RAG Failures",
+      "bullets": [
+        "Hallucination → tighten prompt, lower temperature, verify context injected",
+        "Bad retrieval → adjust chunk size, overlap, k, or check model match",
+        "Wrong citations → confirm metadata survived chunking",
+        "Truncated context → watch the context window limit"
+      ],
+      "narration": "When things go wrong, work systematically. If the model hallucinates, tighten your prompt and confirm context is actually being injected. If retrieval is poor, experiment with chunk size, overlap, and k, and make sure your embedding model matches between ingestion and query. If citations are wrong, your metadata probably got lost during chunking. And always watch that you're not overflowing the context window."
+    },
+    {
+      "type": "content",
+      "title": "Stretch Goals & Wrap-Up",
+      "bullets": [
+        "Add a relevance threshold to drop weak matches",
+        "Add a reranker for better chunk ordering",
+        "Stream responses for better UX",
+        "Ship a UI with Streamlit or Gradio"
+      ],
+      "narration": "Once your core bot works, level it up. Add a relevance threshold so weak matches get dropped, plug in a reranker to improve ordering, stream responses for a snappier feel, and put a simple Streamlit or Gradio UI on top so you can actually ship it. You now have a complete, grounded, citation-backed RAG application."
+    }
+  ]
+}

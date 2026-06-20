@@ -1,0 +1,179 @@
+{
+  "slug": "dsc-m4-l01-designing-and-analyzing-experiments",
+  "title": "Designing and Analyzing Experiments",
+  "month": 4,
+  "monthTitle": "Experimentation, Visualization, and Capstone",
+  "lesson": 1,
+  "video": "dsc-m4-l01-designing-and-analyzing-experiments.mp4",
+  "summary": "Learn to design rigorous A/B experiments end-to-end: forming hypotheses, choosing primary metrics, computing required sample size and power, running tests cleanly, and analyzing results to drive trustworthy product decisions.",
+  "objectives": [
+    "Formulate a testable hypothesis and select primary, secondary, and guardrail metrics for an experiment",
+    "Calculate the required sample size given baseline rate, minimum detectable effect, significance level, and power",
+    "Run an A/B test correctly while avoiding peeking, sample ratio mismatch, and other common pitfalls",
+    "Analyze experiment results using appropriate statistical tests and interpret p-values, confidence intervals, and effect sizes",
+    "Translate statistical findings into clear, actionable business recommendations"
+  ],
+  "quiz": [
+    {
+      "q": "Why is random assignment central to A/B testing?",
+      "options": [
+        "It guarantees equal group sizes",
+        "It balances confounding variables so differences can be attributed to the treatment",
+        "It eliminates the need for a sample size calculation",
+        "It makes the test one-sided"
+      ],
+      "answer": 1,
+      "why": "Random assignment distributes confounders evenly across groups in expectation, which is what enables a causal interpretation of any observed difference."
+    },
+    {
+      "q": "If you halve the minimum detectable effect (MDE) you want to detect, roughly what happens to the required sample size?",
+      "options": [
+        "It halves",
+        "It stays the same",
+        "It doubles",
+        "It quadruples"
+      ],
+      "answer": 3,
+      "why": "Sample size scales with 1/MDE^2, so halving the MDE multiplies the required sample size by about four."
+    },
+    {
+      "q": "Which practice inflates the false positive (Type I error) rate?",
+      "options": [
+        "Running the test for a full week",
+        "Repeatedly checking results and stopping as soon as p < 0.05",
+        "Randomizing at the user level",
+        "Reporting a confidence interval"
+      ],
+      "answer": 1,
+      "why": "Optional stopping (peeking) gives many chances to cross the significance threshold by chance, inflating the false positive rate beyond the nominal alpha."
+    },
+    {
+      "q": "What does a 95% confidence interval for the treatment effect that excludes 0 tell you?",
+      "options": [
+        "The result is not significant",
+        "The effect is practically important",
+        "The result is statistically significant at alpha = 0.05",
+        "The sample size was too small"
+      ],
+      "answer": 2,
+      "why": "A 95% CI excluding zero corresponds to rejecting the null at the 0.05 level — statistical significance, though not necessarily practical significance."
+    },
+    {
+      "q": "In one sentence, what is the difference between a primary (OEC) metric and a guardrail metric?",
+      "answer": "The primary/OEC metric is the single outcome the decision is based on, while guardrail metrics are metrics that must not be harmed by the change.",
+      "why": "The OEC drives the ship decision; guardrails ensure the change doesn't degrade critical health metrics like latency or churn."
+    },
+    {
+      "q": "Name one statistical test appropriate for comparing conversion rates between two groups.",
+      "answer": "Two-proportion z-test (or chi-square test).",
+      "why": "Conversion rate is a proportion, so a two-proportion z-test or a chi-square test of independence is appropriate."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Trustworthy Online Controlled Experiments (Kohavi, Tang, Xu)",
+      "url": "https://experimentguide.com/"
+    },
+    {
+      "label": "statsmodels: Statistics for power and proportions",
+      "url": "https://www.statsmodels.org/stable/stats.html"
+    },
+    {
+      "label": "Evan Miller's Sample Size and A/B Test Calculators",
+      "url": "https://www.evanmiller.org/ab-testing/"
+    },
+    {
+      "label": "Udacity / Google A/B Testing course notes",
+      "url": "https://www.udacity.com/course/ab-testing--ud257"
+    }
+  ],
+  "body_markdown": "## Why Experiments Matter\n\nObservational data tells you what *correlates*; controlled experiments tell you what *causes*. A/B testing (randomized controlled trials in a product context) is the gold standard for measuring the causal impact of a change because random assignment balances confounders across groups.\n\nAs a data scientist you will be asked: *\"Did this new feature actually move the needle?\"* A well-designed experiment answers that with quantified confidence.\n\n## The Experiment Lifecycle\n\n1. **Hypothesis** — a specific, falsifiable statement.\n2. **Metrics** — what you measure.\n3. **Design** — randomization unit, sample size, duration.\n4. **Run** — collect data, monitor health.\n5. **Analyze** — apply statistical tests.\n6. **Decide** — ship, iterate, or abandon.\n\n## 1. Hypotheses\n\nState a clear hypothesis: *\"Changing the checkout button from gray to green will increase the purchase conversion rate.\"*\n\n- **Null hypothesis (H0):** there is no difference between control and treatment.\n- **Alternative hypothesis (H1):** there is a difference (two-sided) or a directional difference (one-sided).\n\nMost teams use **two-sided** tests because they protect against the change being harmful.\n\n## 2. Choosing Metrics\n\n- **Primary metric (OEC):** the single metric the decision hinges on, e.g., conversion rate. Pick *one*.\n- **Secondary metrics:** supporting evidence, e.g., revenue per user.\n- **Guardrail metrics:** must-not-harm metrics, e.g., page load time, churn, refund rate.\n\nGood metrics are **sensitive** (move when the feature works) and **aligned** with long-term business value. Beware vanity metrics.\n\n## 3. Sample Size and Power\n\nFour quantities are linked; fix three and solve for the fourth:\n\n- **Significance level (alpha):** false positive rate, typically 0.05.\n- **Power (1 - beta):** chance of detecting a true effect, typically 0.80.\n- **Minimum Detectable Effect (MDE):** the smallest effect worth detecting.\n- **Sample size (n).**\n\nFor a comparison of two proportions, a useful approximation for n *per group* is:\n\n```\nn = 16 * p * (1 - p) / (MDE)^2\n```\n\nwhere `p` is the baseline rate and `MDE` is the absolute difference you want to detect. The constant 16 bundles alpha=0.05 and power=0.80.\n\n```python\nfrom statsmodels.stats.power import NormalIndPower\nfrom statsmodels.stats.proportion import proportion_effectsize\n\nbaseline = 0.10        # current conversion rate\nmde_abs  = 0.02        # detect a 2 percentage-point lift\neffect = proportion_effectsize(baseline + mde_abs, baseline)\n\nanalysis = NormalIndPower()\nn = analysis.solve_power(effect_size=effect, alpha=0.05,\n                         power=0.80, alternative='two-sided')\nprint(f\"Need ~{n:.0f} users per group\")\n```\n\nSmaller MDEs require dramatically larger samples (n scales with 1/MDE^2). Decide MDE based on business value, not statistical convenience.\n\n## 4. Running the Test\n\n- **Randomization unit:** usually the user, not the session, to avoid contamination and correlated observations.\n- **Run for full business cycles** (often at least one week) to capture weekday/weekend effects.\n- **Don't peek:** repeatedly checking and stopping when significant inflates false positives. Fix duration in advance or use sequential/Bayesian methods designed for continuous monitoring.\n- **Check Sample Ratio Mismatch (SRM):** if you expected 50/50 but got 48/52, a chi-square test on counts may reveal a broken assignment system — invalidating the experiment.\n\n## 5. Analyzing Results\n\nMatch the test to the metric type:\n\n- **Proportions** (conversion): two-proportion z-test or chi-square test.\n- **Continuous means** (revenue, time): two-sample t-test (Welch's by default).\n\n```python\nfrom statsmodels.stats.proportion import proportions_ztest\n\nconversions = [1200, 1320]   # control, treatment successes\nsamples     = [10000, 10000] # users per group\nstat, pval = proportions_ztest(conversions, samples)\nprint(f\"z={stat:.3f}, p={pval:.4f}\")\n```\n\nReport more than a p-value:\n\n- **Effect size:** the lift (e.g., +1.2 pp, a 10% relative increase).\n- **Confidence interval:** the plausible range for the true effect. If the 95% CI excludes 0, the result is significant at alpha=0.05.\n- **Practical significance:** is the effect big enough to matter, given cost?\n\n## Common Pitfalls\n\n- **Peeking / optional stopping** inflates Type I error.\n- **Multiple comparisons:** testing many metrics increases false positives — correct with Bonferroni or control false discovery rate.\n- **Simpson's paradox:** aggregated results can reverse within segments; segment carefully.\n- **Novelty / primacy effects:** users react to *change* itself; run long enough.\n- **Confusing statistical with practical significance.**\n\n## 6. Making the Decision\n\nCombine the primary metric result, guardrails, and business cost. A statistically significant but tiny lift may not justify engineering and maintenance cost. Document the decision and the evidence so the org can learn.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Designing and Analyzing Experiments",
+      "sub": "Turning A/B tests into trustworthy decisions",
+      "narration": "Welcome. In this lesson we'll cover how to design and analyze experiments like a data scientist. A/B testing is one of the most valuable tools in your toolkit because it lets you establish causation, not just correlation. We'll go from forming a hypothesis all the way to making a business decision."
+    },
+    {
+      "type": "content",
+      "title": "Why Experiments?",
+      "bullets": [
+        "Observational data shows correlation, experiments show causation",
+        "Random assignment balances confounders across groups",
+        "A/B tests answer: did this change actually move the metric?",
+        "The gold standard for product and policy decisions"
+      ],
+      "narration": "Why bother with experiments at all? Because observational data only tells us what correlates. When we randomly assign users to a control and a treatment group, random assignment balances out confounding variables, so any difference in outcomes can be attributed to the change we made. That's what lets us claim causation and confidently answer whether a feature actually worked."
+    },
+    {
+      "type": "content",
+      "title": "The Experiment Lifecycle",
+      "bullets": [
+        "Hypothesis — a specific, falsifiable claim",
+        "Metrics — what you'll measure",
+        "Design — randomization, sample size, duration",
+        "Run — collect data, monitor health",
+        "Analyze and Decide — test, then act"
+      ],
+      "narration": "Every experiment follows the same lifecycle. We start with a clear hypothesis, decide what metrics we'll measure, design the test including how many users we need, run it while monitoring its health, then analyze the results and make a decision. Skipping any of these steps tends to produce experiments you can't trust."
+    },
+    {
+      "type": "content",
+      "title": "Hypotheses and Metrics",
+      "bullets": [
+        "H0: no difference; H1: a difference exists",
+        "Prefer two-sided tests to catch harmful changes",
+        "Primary metric (OEC): pick exactly one",
+        "Secondary metrics support; guardrails protect against harm"
+      ],
+      "narration": "A good hypothesis is specific and falsifiable. The null hypothesis says there's no difference; the alternative says there is. We usually use two-sided tests so we can detect both improvements and regressions. For metrics, choose a single primary metric, your overall evaluation criterion, plus secondary metrics for supporting evidence and guardrail metrics like load time or churn that must not degrade."
+    },
+    {
+      "type": "content",
+      "title": "Sample Size and Power",
+      "bullets": [
+        "Four linked quantities: alpha, power, MDE, sample size",
+        "Typical defaults: alpha = 0.05, power = 0.80",
+        "n scales with 1 / MDE squared — small effects are expensive",
+        "Choose MDE from business value, not convenience"
+      ],
+      "code": "from statsmodels.stats.proportion import proportion_effectsize\nfrom statsmodels.stats.power import NormalIndPower\neffect = proportion_effectsize(0.12, 0.10)\nn = NormalIndPower().solve_power(effect, alpha=0.05, power=0.80)\nprint(round(n))",
+      "narration": "Before running anything, calculate your sample size. Four quantities are linked: significance level, power, the minimum detectable effect, and sample size. Fix three and solve for the fourth. Note that sample size scales with one over the MDE squared, so detecting tiny effects requires enormous samples. Choose your minimum detectable effect based on what lift is actually worth shipping, then use a tool like statsmodels to compute n per group."
+    },
+    {
+      "type": "content",
+      "title": "Running the Test Cleanly",
+      "bullets": [
+        "Randomize by user, not session, to avoid contamination",
+        "Run full business cycles — usually at least a week",
+        "Don't peek: optional stopping inflates false positives",
+        "Check Sample Ratio Mismatch with a chi-square test"
+      ],
+      "narration": "Running the test well matters as much as the math. Randomize at the user level so a person has a consistent experience and observations aren't correlated. Run for whole business cycles to capture weekday and weekend behavior. Resist peeking and stopping early when you see significance, because that inflates your false positive rate. And always check for sample ratio mismatch: if your fifty-fifty split came out skewed, your assignment system may be broken and the experiment invalid."
+    },
+    {
+      "type": "content",
+      "title": "Analyzing Results",
+      "bullets": [
+        "Proportions: two-proportion z-test or chi-square",
+        "Continuous means: Welch's t-test",
+        "Report effect size and confidence interval, not just p",
+        "CI excluding zero = significant at that alpha"
+      ],
+      "code": "from statsmodels.stats.proportion import proportions_ztest\nstat, p = proportions_ztest([1200, 1320], [10000, 10000])\nprint(round(stat,3), round(p,4))",
+      "narration": "Match the statistical test to your metric. For conversion rates and other proportions, use a two-proportion z-test or chi-square. For continuous metrics like revenue or time on page, use a t-test. Crucially, report more than a p-value: include the effect size, the actual lift, and a confidence interval. If the ninety-five percent interval excludes zero, the result is significant at the five percent level, and the interval tells you how large the effect plausibly is."
+    },
+    {
+      "type": "content",
+      "title": "Pitfalls and Decisions",
+      "bullets": [
+        "Peeking, multiple comparisons inflate false positives",
+        "Watch for Simpson's paradox and novelty effects",
+        "Statistical significance is not practical significance",
+        "Weigh lift against cost; document the decision"
+      ],
+      "narration": "Finally, beware common traps. Peeking and testing many metrics both inflate false positives, so correct for multiple comparisons. Watch for Simpson's paradox where segment-level effects reverse the aggregate, and novelty effects where users react to change itself. Remember a statistically significant result can still be too small to matter. Weigh the lift against engineering and maintenance cost, then document your decision and evidence so the whole organization can learn from it."
+    }
+  ]
+}

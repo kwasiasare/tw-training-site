@@ -1,0 +1,33 @@
+{
+  "slug": "ml-engineer",
+  "title": "Machine Learning Engineer Bootcamp: From Fundamentals to Production",
+  "description": "A project-based course that builds the practical skills needed to land a Machine Learning Engineer role, covering Python, math foundations, ML algorithms, PyTorch, feature engineering, model training and evaluation, and production-ready data pipelines. Learners build a portfolio of hands-on projects culminating in an end-to-end ML system.",
+  "audience": "Aspiring Machine Learning Engineers with basic programming exposure who want to bridge résumé gaps and become job-ready for ML engineering roles.",
+  "modules": 4,
+  "lessons": 16,
+  "layout": {
+    "decks": "decks",
+    "lessons": "lessons",
+    "videos": "videos",
+    "studyPacks": "study-packs"
+  },
+  "moduleTitles": {
+    "1": "Foundations: Python and Math for ML",
+    "2": "Core Machine Learning Algorithms",
+    "3": "Deep Learning with PyTorch",
+    "4": "Production ML: Pipelines, Evaluation, and Capstone"
+  },
+  "generated": true,
+  "targetRole": "Machine Learning Engineer",
+  "targetSkills": [
+    "python",
+    "linear algebra",
+    "statistics",
+    "ml algorithms",
+    "pytorch",
+    "feature engineering",
+    "model training",
+    "evaluation",
+    "data pipelines"
+  ]
+}

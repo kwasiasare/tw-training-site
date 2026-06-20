@@ -1,0 +1,192 @@
+{
+  "slug": "aad-m3-l02-integrating-external-apis-as-agent-tools",
+  "title": "Integrating External APIs as Agent Tools",
+  "month": 3,
+  "monthTitle": "Agents, Tools, and APIs",
+  "lesson": 2,
+  "video": "aad-m3-l02-integrating-external-apis-as-agent-tools.mp4",
+  "summary": "Learn how to wrap external APIs—web search, calculators, and third-party services—as callable tools your LLM agent can invoke dynamically. You'll define tool schemas, implement handlers, handle errors and authentication securely, and orchestrate the tool-calling loop.",
+  "objectives": [
+    "Explain how tool/function calling enables an LLM agent to invoke external code",
+    "Define clear tool schemas (name, description, JSON parameters) that guide model selection",
+    "Wrap a web search, calculator, and a third-party REST API as agent tools",
+    "Implement the tool-calling loop: parse model output, execute, and return results",
+    "Apply security and reliability best practices including auth, timeouts, validation, and error handling"
+  ],
+  "quiz": [
+    {
+      "q": "What is the single most important factor influencing whether the model picks the correct tool?",
+      "options": [
+        "The tool's name length",
+        "The clarity of the tool's description",
+        "The number of parameters",
+        "The order tools appear in the list"
+      ],
+      "answer": 1,
+      "why": "The model reads each tool's natural-language description to decide when and whether to use it, so clear, specific descriptions are the primary driver of correct tool selection."
+    },
+    {
+      "q": "Why should you avoid using raw eval() in a calculator tool?",
+      "options": [
+        "It is slower than AST parsing",
+        "It can execute arbitrary, malicious code from model-generated strings",
+        "It cannot handle decimals",
+        "It is deprecated in Python 3"
+      ],
+      "answer": 1,
+      "why": "Model-generated input is untrusted; raw eval() can run arbitrary code, creating a serious security vulnerability. Parsing a restricted AST limits execution to safe arithmetic."
+    },
+    {
+      "q": "In the tool-calling loop, what role is used for the message containing a tool's execution result?",
+      "options": [
+        "user",
+        "system",
+        "tool",
+        "assistant"
+      ],
+      "answer": 2,
+      "why": "Tool results are appended as messages with the 'tool' role (linked by tool_call_id) so the model can read the output and continue reasoning."
+    },
+    {
+      "q": "Why should you cap the number of iterations in the orchestration loop?",
+      "options": [
+        "To reduce the model's accuracy",
+        "To prevent runaway or infinite tool-calling",
+        "To force the model to answer in one call",
+        "To save disk space"
+      ],
+      "answer": 1,
+      "why": "A confused agent could request tools indefinitely; an iteration cap prevents runaway loops that waste cost and time."
+    },
+    {
+      "q": "Name one best practice for handling API keys when wrapping external APIs as tools.",
+      "answer": "Store them in environment variables instead of in code or the prompt",
+      "why": "Keeping secrets in environment variables (not hard-coded or embedded in prompts) prevents accidental exposure and keeps credentials out of logs and version control."
+    },
+    {
+      "q": "What are the three core components of a tool schema?",
+      "answer": "name, description, and parameters (JSON Schema)",
+      "why": "Every tool definition needs a unique name, a description telling the model what it does and when to use it, and a parameters JSON Schema describing the arguments."
+    }
+  ],
+  "resources": [
+    {
+      "label": "OpenAI Function/Tool Calling Guide",
+      "url": "https://platform.openai.com/docs/guides/function-calling"
+    },
+    {
+      "label": "Anthropic Tool Use Documentation",
+      "url": "https://docs.anthropic.com/en/docs/build-with-claude/tool-use"
+    },
+    {
+      "label": "Tavily Search API (LLM-friendly web search)",
+      "url": "https://docs.tavily.com/"
+    },
+    {
+      "label": "JSON Schema Reference",
+      "url": "https://json-schema.org/learn/getting-started-step-by-step"
+    }
+  ],
+  "body_markdown": "## Why Tools Matter\n\nAn LLM on its own is a text predictor frozen at its training cutoff. It can't look up today's news, run exact arithmetic reliably, or query your company's database. **Tools** close this gap by letting the model call external functions and APIs at runtime. The agent decides *when* to call a tool, *which* tool, and *with what arguments*—then incorporates the result into its reasoning.\n\n## How Tool Calling Works\n\nModern LLM APIs (OpenAI, Anthropic, etc.) support structured tool/function calling:\n\n1. You send the user message **plus a list of tool definitions** (schemas).\n2. The model responds either with a normal answer **or** a structured request to call a tool, including arguments as JSON.\n3. Your code executes the tool and sends the result back to the model.\n4. The model uses the result to produce a final answer—or calls another tool.\n\nThis is a loop, not a single round trip. The agent may chain several tool calls.\n\n## Anatomy of a Tool Definition\n\nA tool schema has three critical parts:\n\n- **name** — a short, unique identifier (e.g. `web_search`).\n- **description** — natural-language explanation of *what it does and when to use it*. This is what the model reads to decide. Write it carefully.\n- **parameters** — a JSON Schema describing the arguments, their types, and which are required.\n\n```json\n{\n  \"name\": \"web_search\",\n  \"description\": \"Search the web for current information. Use when the user asks about recent events or facts you don't know.\",\n  \"parameters\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"query\": {\"type\": \"string\", \"description\": \"The search query\"}\n    },\n    \"required\": [\"query\"]\n  }\n}\n```\n\n## Wrapping Three Common Tools\n\n### 1. Calculator\nLLMs are unreliable at exact math. Delegate to code:\n\n```python\ndef calculator(expression: str) -> str:\n    import ast, operator as op\n    # Safe eval: only allow arithmetic nodes\n    allowed = {ast.Add: op.add, ast.Sub: op.sub,\n               ast.Mult: op.mul, ast.Div: op.truediv,\n               ast.Pow: op.pow, ast.USub: op.neg}\n    def ev(node):\n        if isinstance(node, ast.Constant): return node.value\n        if isinstance(node, ast.BinOp): return allowed[type(node.op)](ev(node.left), ev(node.right))\n        if isinstance(node, ast.UnaryOp): return allowed[type(node.op)](ev(node.operand))\n        raise ValueError(\"unsupported\")\n    return str(ev(ast.parse(expression, mode='eval').body))\n```\nNever use raw `eval()` on model-generated strings.\n\n### 2. Web Search\nCall a search provider (Tavily, Bing, SerpAPI) and return concise results:\n\n```python\nimport requests, os\n\ndef web_search(query: str) -> str:\n    resp = requests.post(\n        \"https://api.tavily.com/search\",\n        json={\"api_key\": os.environ[\"TAVILY_API_KEY\"], \"query\": query, \"max_results\": 3},\n        timeout=10,\n    )\n    resp.raise_for_status()\n    results = resp.json().get(\"results\", [])\n    return \"\\n\".join(f\"{r['title']}: {r['content'][:200]}\" for r in results)\n```\n\n### 3. Third-Party REST API (e.g. weather)\nWrap any REST endpoint the same way—translate model arguments into an HTTP request and the response into a clean string.\n\n## The Orchestration Loop\n\n```python\nfrom openai import OpenAI\nimport json\n\nclient = OpenAI()\ntools = [...]  # your schemas\nhandlers = {\"calculator\": calculator, \"web_search\": web_search}\n\ndef run_agent(user_msg: str):\n    messages = [{\"role\": \"user\", \"content\": user_msg}]\n    while True:\n        resp = client.chat.completions.create(\n            model=\"gpt-4o\", messages=messages, tools=tools)\n        msg = resp.choices[0].message\n        if not msg.tool_calls:\n            return msg.content  # final answer\n        messages.append(msg)\n        for call in msg.tool_calls:\n            args = json.loads(call.function.arguments)\n            result = handlers[call.function.name](**args)\n            messages.append({\n                \"role\": \"tool\",\n                \"tool_call_id\": call.id,\n                \"content\": str(result),\n            })\n```\n\nAlways cap the loop (e.g. max 5 iterations) to avoid infinite tool-calling.\n\n## Security & Reliability Best Practices\n\n- **Validate arguments** against the schema before executing—models can hallucinate malformed input.\n- **Store API keys in environment variables**, never in code or the prompt.\n- **Set timeouts** on every network call and handle failures gracefully; return an error string the model can reason about.\n- **Limit scope**: give each tool the minimum permissions it needs (read-only where possible).\n- **Sanitize outputs** before passing back—truncate large payloads to control token cost.\n- **Add a loop guard** to prevent runaway tool-calling.\n- **Log tool calls** for debugging and auditing.\n\n## Writing Good Tool Descriptions\n\nThe model's tool choice quality depends almost entirely on your descriptions. Be specific about *when* to use the tool and what each parameter means. Vague descriptions cause wrong or missed tool calls.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Integrating External APIs as Agent Tools",
+      "sub": "Agents, Tools, and APIs",
+      "narration": "Welcome. In this lesson we'll learn how to give an LLM agent superpowers by wrapping external APIs—web search, calculators, and third-party services—as callable tools the agent can invoke on its own. By the end you'll be able to define tool schemas, implement handlers, and orchestrate the tool-calling loop safely."
+    },
+    {
+      "type": "content",
+      "title": "Why Agents Need Tools",
+      "bullets": [
+        "LLMs are frozen at their training cutoff—no live data",
+        "Unreliable at exact math and structured lookups",
+        "Can't access your databases or private APIs",
+        "Tools let the model call real code at runtime"
+      ],
+      "narration": "A language model on its own is just a text predictor. It doesn't know today's news, it makes arithmetic mistakes, and it can't reach your internal systems. Tools close that gap. They let the model decide when to call external code, run real APIs, and bring fresh, accurate results back into its reasoning."
+    },
+    {
+      "type": "content",
+      "title": "How Tool Calling Works",
+      "bullets": [
+        "Send user message PLUS tool definitions",
+        "Model replies with an answer OR a tool-call request",
+        "Your code runs the tool, returns the result",
+        "Model continues—possibly calling more tools",
+        "It's a loop, not a single round trip"
+      ],
+      "narration": "Here's the mechanism. You pass the user's message along with a list of tool definitions. The model can either answer directly or return a structured request to call a tool with specific arguments. Your code executes that tool, sends the result back, and the model continues. This repeats in a loop until the model produces a final answer."
+    },
+    {
+      "type": "content",
+      "title": "Anatomy of a Tool Schema",
+      "bullets": [
+        "name: short unique identifier",
+        "description: what it does AND when to use it",
+        "parameters: JSON Schema of arguments",
+        "The description drives the model's choice"
+      ],
+      "code": "{\n  \"name\": \"web_search\",\n  \"description\": \"Search the web for current info...\",\n  \"parameters\": {\n    \"type\": \"object\",\n    \"properties\": {\"query\": {\"type\": \"string\"}},\n    \"required\": [\"query\"]\n  }\n}",
+      "narration": "Every tool definition has three parts: a unique name, a description, and a parameters schema. The description is the most important—it's natural language the model reads to decide whether and how to use the tool. Write it carefully, specifying exactly what the tool does and when it's appropriate."
+    },
+    {
+      "type": "content",
+      "title": "Tool 1: A Safe Calculator",
+      "bullets": [
+        "LLMs are bad at exact arithmetic—delegate it",
+        "Parse the expression with an AST, never raw eval()",
+        "Allow only arithmetic operations",
+        "Return the result as a string"
+      ],
+      "code": "def calculator(expression: str) -> str:\n    import ast, operator as op\n    # parse + evaluate only arithmetic nodes\n    ...",
+      "narration": "Our first tool is a calculator. Because models slip on exact math, we hand the computation to code. Crucially, never call raw eval on model-generated strings—that's a security hole. Instead parse the expression into an abstract syntax tree and only evaluate safe arithmetic nodes."
+    },
+    {
+      "type": "content",
+      "title": "Tool 2: Web Search",
+      "bullets": [
+        "Call a provider: Tavily, Bing, or SerpAPI",
+        "Keep API keys in environment variables",
+        "Set a timeout and raise on errors",
+        "Return concise, truncated results"
+      ],
+      "code": "def web_search(query: str) -> str:\n    resp = requests.post(URL,\n        json={\"api_key\": KEY, \"query\": query},\n        timeout=10)\n    resp.raise_for_status()\n    return format(resp.json())",
+      "narration": "Second, web search. We wrap a search provider's REST endpoint, reading the API key from an environment variable, setting a timeout, and raising on HTTP errors. We then format the results into a short string—truncating long content to keep token costs down before returning it to the model."
+    },
+    {
+      "type": "content",
+      "title": "Tool 3: Any Third-Party REST API",
+      "bullets": [
+        "Same pattern: args in, HTTP request out",
+        "Translate JSON response into clean text",
+        "E.g. weather, stocks, internal microservices",
+        "Give each tool minimum required permissions"
+      ],
+      "narration": "The third tool generalizes the pattern to any REST API—weather, stock prices, or your own microservices. You translate the model's arguments into an HTTP request and the response into clean text. Always give each tool the least privilege it needs; prefer read-only access where possible."
+    },
+    {
+      "type": "content",
+      "title": "The Orchestration Loop",
+      "bullets": [
+        "Loop: call model, check for tool_calls",
+        "Execute each call, append result as 'tool' message",
+        "Repeat until model returns a final answer",
+        "Cap iterations to prevent runaway loops"
+      ],
+      "code": "while True:\n    msg = call_model(messages, tools)\n    if not msg.tool_calls:\n        return msg.content\n    for c in msg.tool_calls:\n        result = handlers[c.name](**args)\n        messages.append(tool_result(result))",
+      "narration": "This is the heart of the agent: the orchestration loop. We call the model, and if it requests tools, we execute each handler and append the results as tool-role messages, then loop again. When the model stops requesting tools, we return its final answer. Always cap the iterations—say five—so a confused agent can't loop forever."
+    },
+    {
+      "type": "content",
+      "title": "Security & Reliability",
+      "bullets": [
+        "Validate arguments before executing",
+        "Keys in env vars—never in prompts or code",
+        "Timeouts + graceful error handling",
+        "Truncate outputs; add loop guards; log calls"
+      ],
+      "narration": "Finally, the production essentials. Validate every argument against your schema because models can hallucinate malformed input. Keep secrets in environment variables. Set timeouts and handle failures gracefully by returning an error string the model can reason about. Truncate large outputs, guard the loop, and log every tool call for debugging and auditing."
+    }
+  ]
+}

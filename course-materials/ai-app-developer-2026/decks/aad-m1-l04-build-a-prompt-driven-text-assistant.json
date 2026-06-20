@@ -1,0 +1,192 @@
+{
+  "slug": "aad-m1-l04-build-a-prompt-driven-text-assistant",
+  "title": "Build a Prompt-Driven Text Assistant",
+  "month": 1,
+  "monthTitle": "Python and LLM Foundations",
+  "lesson": 4,
+  "video": "aad-m1-l04-build-a-prompt-driven-text-assistant.mp4",
+  "summary": "Build a small command-line text assistant in Python that uses engineered prompts and structured (JSON) outputs to summarize and transform user-supplied text. You'll learn to call an LLM API, design reliable prompts, parse structured responses, and ship a usable CLI.",
+  "objectives": [
+    "Set up a Python project that calls an LLM API securely using environment variables",
+    "Write engineered prompts with clear roles, instructions, and constraints",
+    "Request and parse structured JSON outputs from an LLM for reliable downstream use",
+    "Build a CLI that accepts text and a task (summarize, rewrite, extract) and prints results",
+    "Handle common failure modes like malformed JSON, rate limits, and empty input"
+  ],
+  "quiz": [
+    {
+      "q": "Why do we ask the model to return JSON instead of free-form text?",
+      "options": [
+        "JSON uses fewer tokens always",
+        "Structured output is predictable and easy to parse programmatically",
+        "The API only supports JSON",
+        "JSON prevents the model from hallucinating entirely"
+      ],
+      "answer": 1,
+      "why": "Requesting JSON matching a defined schema makes the model's output predictable and parseable, turning it into a reliable component your code can consume."
+    },
+    {
+      "q": "What is the main purpose of wrapping user text in delimiters like triple quotes?",
+      "options": [
+        "To make the output prettier",
+        "To reduce token cost",
+        "To separate data from instructions and reduce prompt injection risk",
+        "To force the model to summarize"
+      ],
+      "answer": 2,
+      "why": "Delimiters signal that the enclosed text is content to be processed, not instructions to follow, which helps guard against prompt injection."
+    },
+    {
+      "q": "Which setting in the API call helps make outputs more consistent and deterministic?",
+      "options": [
+        "A high temperature like 1.5",
+        "A low temperature like 0.3",
+        "Setting max_tokens to 1",
+        "Using more messages"
+      ],
+      "answer": 1,
+      "why": "Lower temperature reduces randomness, producing more consistent and repeatable outputs—useful for structured tasks."
+    },
+    {
+      "q": "Where should the API key be stored in this project?",
+      "options": [
+        "Hard-coded in the Python file",
+        "In a .env file that is gitignored",
+        "In the prompt text",
+        "In the CLI arguments"
+      ],
+      "answer": 1,
+      "why": "Secrets belong in a .env file loaded at runtime and excluded from version control via .gitignore, never hard-coded or committed."
+    },
+    {
+      "q": "Name one failure mode the CLI should handle and briefly how.",
+      "answer": "Malformed JSON: wrap json.loads in a try/except and optionally retry; or empty input: validate before calling the API; or rate limits: catch the API exception with backoff.",
+      "why": "Robust apps handle malformed JSON, empty input, rate limits, and prompt injection so they degrade gracefully instead of crashing."
+    },
+    {
+      "q": "What are the three parts of an engineered prompt described in this lesson?",
+      "answer": "System role (behavior/persona), instruction (the task with constraints), and the delimited user input.",
+      "why": "These three parts give the model clear behavior, a clear task, and clearly-marked data to work on."
+    }
+  ],
+  "resources": [
+    {
+      "label": "OpenAI API Reference — Chat Completions",
+      "url": "https://platform.openai.com/docs/api-reference/chat"
+    },
+    {
+      "label": "OpenAI Prompt Engineering Guide",
+      "url": "https://platform.openai.com/docs/guides/prompt-engineering"
+    },
+    {
+      "label": "Python argparse documentation",
+      "url": "https://docs.python.org/3/library/argparse.html"
+    },
+    {
+      "label": "python-dotenv on PyPI",
+      "url": "https://pypi.org/project/python-dotenv/"
+    }
+  ],
+  "body_markdown": "## What You're Building\n\nA small CLI tool, `assist`, that takes a chunk of text and a task—**summarize**, **rewrite**, or **extract key points**—and returns a clean, structured result. The app demonstrates the core loop of every LLM-powered application: take user input, wrap it in an engineered prompt, call the model, parse the response, and present it.\n\n## Project Setup\n\nCreate a virtual environment and install dependencies.\n\n```bash\npython -m venv .venv\nsource .venv/bin/activate   # Windows: .venv\\Scripts\\activate\npip install openai python-dotenv\n```\n\nStore your API key in a `.env` file and never commit it:\n\n```\nOPENAI_API_KEY=sk-...\n```\n\nAdd `.env` to your `.gitignore`.\n\n## Anatomy of an Engineered Prompt\n\nA good prompt has three parts:\n\n1. **System role** — sets behavior and persona (\"You are a precise text assistant\").\n2. **Instruction** — what to do, with explicit constraints (length, tone, format).\n3. **Input** — the user's text, clearly delimited so the model can't confuse instructions with content.\n\nDelimiters matter. Wrap user text in triple quotes or tags so injected instructions inside the text are treated as data, not commands.\n\n## Requesting Structured Output\n\nFree-form text is hard to use programmatically. Instead, ask the model to return **JSON** matching a schema you define. This makes the output predictable and parseable.\n\n```python\nimport json, os\nfrom openai import OpenAI\nfrom dotenv import load_dotenv\n\nload_dotenv()\nclient = OpenAI()\n\nSYSTEM = \"You are a precise text assistant. Always reply with valid JSON only.\"\n\ndef run_task(task: str, text: str) -> dict:\n    instruction = {\n        \"summarize\": \"Summarize the text in 2-3 sentences.\",\n        \"rewrite\": \"Rewrite the text to be clear and professional.\",\n        \"extract\": \"Extract the 3-5 most important points as a list.\",\n    }[task]\n\n    prompt = (\n        f\"{instruction}\\n\"\n        f\"Return JSON with keys: 'task', 'result' (string or list), 'word_count' (int).\\n\"\n        f\"Text:\\n\\\"\\\"\\\"{text}\\\"\\\"\\\"\"\n    )\n\n    resp = client.chat.completions.create(\n        model=\"gpt-4o-mini\",\n        messages=[\n            {\"role\": \"system\", \"content\": SYSTEM},\n            {\"role\": \"user\", \"content\": prompt},\n        ],\n        response_format={\"type\": \"json_object\"},\n        temperature=0.3,\n    )\n    return json.loads(resp.choices[0].message.content)\n```\n\nNote `response_format={\"type\": \"json_object\"}`, which instructs the API to return valid JSON, and a low `temperature` for consistency.\n\n## Building the CLI\n\nUse Python's built-in `argparse` to accept a task and text (from an argument or stdin).\n\n```python\nimport argparse, sys\n\ndef main():\n    parser = argparse.ArgumentParser(description=\"Prompt-driven text assistant\")\n    parser.add_argument(\"task\", choices=[\"summarize\", \"rewrite\", \"extract\"])\n    parser.add_argument(\"--text\", help=\"Input text; if omitted, read stdin\")\n    args = parser.parse_args()\n\n    text = args.text or sys.stdin.read()\n    if not text.strip():\n        print(\"Error: no input text provided.\", file=sys.stderr)\n        sys.exit(1)\n\n    try:\n        out = run_task(args.task, text)\n    except json.JSONDecodeError:\n        print(\"Error: model returned malformed JSON.\", file=sys.stderr)\n        sys.exit(2)\n\n    print(json.dumps(out, indent=2))\n\nif __name__ == \"__main__\":\n    main()\n```\n\nRun it:\n\n```bash\necho \"Long article text here...\" | python assist.py summarize\npython assist.py extract --text \"Meeting notes...\"\n```\n\n## Handling Failure Modes\n\nReal apps fail gracefully:\n\n- **Malformed JSON** — wrap `json.loads` in try/except and optionally retry once.\n- **Empty input** — validate before calling the API to save tokens.\n- **Rate limits / network errors** — catch API exceptions and show a friendly message; add retries with backoff for production.\n- **Prompt injection** — delimit user text and keep instructions in the system message.\n\n## Key Takeaways\n\nEvery LLM app is the same loop: shape the input with a prompt, constrain the output format, parse it, and handle errors. Structured JSON output turns an unpredictable model into a reliable component you can build on.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Build a Prompt-Driven Text Assistant",
+      "sub": "Python and LLM Foundations",
+      "narration": "Welcome. In this lesson we'll build a small but real command-line application: a text assistant that can summarize, rewrite, and extract key points from any text you give it. Along the way you'll learn the core pattern behind every LLM-powered app—shaping input with prompts and getting reliable structured output back."
+    },
+    {
+      "type": "content",
+      "title": "The Core LLM App Loop",
+      "bullets": [
+        "Take user input",
+        "Wrap it in an engineered prompt",
+        "Call the model API",
+        "Parse the structured response",
+        "Present results and handle errors"
+      ],
+      "narration": "Before we write code, understand the loop. Almost every LLM application does the same five things: it takes user input, wraps that input inside a carefully engineered prompt, sends it to the model, parses what comes back, and presents the result while handling any errors. Master this loop and you can build nearly any AI feature."
+    },
+    {
+      "type": "content",
+      "title": "Project Setup",
+      "bullets": [
+        "Create a virtual environment",
+        "Install openai and python-dotenv",
+        "Store the API key in a .env file",
+        "Add .env to .gitignore"
+      ],
+      "code": "python -m venv .venv\nsource .venv/bin/activate\npip install openai python-dotenv",
+      "narration": "Let's set up. Create a virtual environment to isolate dependencies, then install the openai client and python-dotenv. We keep our API key in a dot-env file and load it at runtime, never hard-coding secrets. Crucially, add dot-env to your gitignore so you never leak your key to a repository."
+    },
+    {
+      "type": "content",
+      "title": "Anatomy of an Engineered Prompt",
+      "bullets": [
+        "System role: sets behavior and persona",
+        "Instruction: the task with explicit constraints",
+        "Input: user text, clearly delimited",
+        "Delimiters prevent prompt injection"
+      ],
+      "narration": "A strong prompt has three parts. The system role sets the model's behavior—here, a precise assistant that replies only in JSON. The instruction states the task with constraints like length and tone. And the input is the user's text, wrapped in delimiters such as triple quotes. Delimiting matters: it tells the model the text is data to process, not commands to follow, which guards against prompt injection."
+    },
+    {
+      "type": "content",
+      "title": "Request Structured JSON Output",
+      "bullets": [
+        "Free-form text is hard to use in code",
+        "Define a JSON schema in your prompt",
+        "Use response_format json_object",
+        "Lower temperature for consistency"
+      ],
+      "code": "resp = client.chat.completions.create(\n  model=\"gpt-4o-mini\",\n  messages=[{\"role\":\"system\",\"content\":SYSTEM},\n            {\"role\":\"user\",\"content\":prompt}],\n  response_format={\"type\":\"json_object\"},\n  temperature=0.3)",
+      "narration": "Free-form prose is hard to consume programmatically. Instead, ask the model for JSON that matches a schema you define—keys like task, result, and word_count. The response_format json_object setting forces valid JSON, and a low temperature of around 0.3 keeps output stable and predictable. Now the model behaves like a reliable component, not a wildcard."
+    },
+    {
+      "type": "content",
+      "title": "The run_task Function",
+      "bullets": [
+        "Map each task to a clear instruction",
+        "Compose system + instruction + delimited text",
+        "Call the API and json.loads the response",
+        "Return a Python dict"
+      ],
+      "code": "def run_task(task, text):\n    instruction = {...}[task]\n    prompt = f\"{instruction}\\nReturn JSON...\\nText:\\n\\\"\\\"\\\"{text}\\\"\\\"\\\"\"\n    resp = client.chat.completions.create(...)\n    return json.loads(resp.choices[0].message.content)",
+      "narration": "Here's the heart of the app. We map each task name to a specific instruction, compose the full prompt with the delimited user text, call the API, and parse the JSON string into a Python dictionary with json dot loads. The function returns clean structured data the rest of our program can use."
+    },
+    {
+      "type": "content",
+      "title": "Building the CLI with argparse",
+      "bullets": [
+        "Accept a task: summarize, rewrite, extract",
+        "Read text from --text or stdin",
+        "Validate input before calling the API",
+        "Print results as formatted JSON"
+      ],
+      "code": "parser.add_argument(\"task\", choices=[\"summarize\",\"rewrite\",\"extract\"])\nparser.add_argument(\"--text\")\ntext = args.text or sys.stdin.read()",
+      "narration": "We expose the tool through a command-line interface using the built-in argparse module. The user picks a task, then supplies text either via a --text flag or piped through standard input. We validate that the text isn't empty before spending tokens, then print the result as nicely indented JSON. Now you can pipe an article straight into the assistant."
+    },
+    {
+      "type": "content",
+      "title": "Handling Failure Modes",
+      "bullets": [
+        "Malformed JSON: try/except, optional retry",
+        "Empty input: validate early to save tokens",
+        "Rate limits and network: catch and back off",
+        "Prompt injection: delimit text, instructions in system"
+      ],
+      "narration": "Production-ready apps fail gracefully. Wrap json dot loads in a try-except in case the model returns broken JSON, and consider one retry. Validate empty input before calling the API. Catch API exceptions for rate limits and network issues, ideally with backoff. And defend against prompt injection by keeping instructions in the system message and delimiting user text. These small touches separate a demo from a shippable tool."
+    },
+    {
+      "type": "content",
+      "title": "Recap and Next Steps",
+      "bullets": [
+        "Every LLM app follows the same input-prompt-parse loop",
+        "Structured JSON makes models reliable components",
+        "Engineered prompts plus delimiters improve safety",
+        "Try adding tasks, retries, and tests"
+      ],
+      "narration": "To recap: every LLM application follows the same loop, structured JSON output turns an unpredictable model into a dependable building block, and engineered prompts with delimiters keep things safe. As next steps, add new tasks, implement retry logic, and write tests that mock the API. You've now built the foundation for any prompt-driven app."
+    }
+  ]
+}

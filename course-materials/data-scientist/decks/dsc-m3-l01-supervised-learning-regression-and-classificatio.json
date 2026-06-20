@@ -1,0 +1,188 @@
+{
+  "slug": "dsc-m3-l01-supervised-learning-regression-and-classificatio",
+  "title": "Supervised Learning: Regression and Classification",
+  "month": 3,
+  "monthTitle": "Machine Learning in Practice",
+  "lesson": 1,
+  "video": "dsc-m3-l01-supervised-learning-regression-and-classificatio.mp4",
+  "summary": "Learn to train, evaluate, and interpret supervised learning models with scikit-learn. This lesson covers linear regression for continuous outcomes and logistic regression for classification, including the full workflow from train/test split to metric selection and coefficient interpretation.",
+  "objectives": [
+    "Distinguish regression from classification problems and choose the right model for each",
+    "Train linear and logistic regression models using scikit-learn's consistent API",
+    "Evaluate models with appropriate metrics (RMSE, R2, accuracy, precision, recall, ROC-AUC)",
+    "Interpret model coefficients to explain predictions to stakeholders",
+    "Apply train/test splitting and feature scaling to avoid data leakage and overfitting",
+    "Diagnose common pitfalls like imbalanced classes and the accuracy trap"
+  ],
+  "quiz": [
+    {
+      "q": "Which model would you choose to predict whether a customer will churn (yes/no)?",
+      "options": [
+        "Linear regression",
+        "Logistic regression",
+        "RMSE",
+        "StandardScaler"
+      ],
+      "answer": 1,
+      "why": "Churn is a binary categorical outcome, so it's a classification task. Logistic regression outputs class probabilities, making it the right choice."
+    },
+    {
+      "q": "Why is accuracy a poor metric when 97% of transactions are legitimate and 3% are fraud?",
+      "options": [
+        "Accuracy can't be computed on imbalanced data",
+        "A model predicting 'legitimate' always scores 97% but catches no fraud",
+        "Accuracy only works for regression",
+        "Accuracy requires scaled features"
+      ],
+      "answer": 1,
+      "why": "With heavy imbalance, a trivial model that always predicts the majority class gets high accuracy while completely failing at the actual goal. Precision, recall, and ROC-AUC are more informative."
+    },
+    {
+      "q": "What is the main reason to split data into train and test sets BEFORE scaling?",
+      "options": [
+        "It makes training faster",
+        "To prevent test-set information from leaking into training",
+        "Scaling only works on training data",
+        "To reduce the number of features"
+      ],
+      "answer": 1,
+      "why": "Fitting a scaler on all data lets test statistics influence training, leaking information and producing overly optimistic, dishonest performance estimates."
+    },
+    {
+      "q": "In linear regression, what does a coefficient of 2.5 for a feature mean?",
+      "options": [
+        "The feature explains 2.5% of variance",
+        "The target increases by 2.5 units per one-unit increase in that feature, holding others constant",
+        "The probability of the class is 2.5",
+        "The model has 2.5 errors"
+      ],
+      "answer": 1,
+      "why": "A linear regression coefficient is the expected change in the target for a one-unit increase in that feature, with all other features held fixed."
+    },
+    {
+      "q": "Name the scikit-learn method that returns predicted class probabilities (rather than hard labels) for a classifier.",
+      "answer": "predict_proba",
+      "why": "predict_proba returns the probability for each class, which you can threshold yourself or feed into metrics like ROC-AUC, whereas predict returns hard labels."
+    },
+    {
+      "q": "Which metric should you prioritize if missing a positive case (a false negative) is very costly, such as failing to detect a disease?",
+      "options": [
+        "Precision",
+        "Recall",
+        "R-squared",
+        "Intercept"
+      ],
+      "answer": 1,
+      "why": "Recall measures the fraction of actual positives the model catches. When false negatives are costly, maximizing recall ensures fewer positive cases are missed."
+    }
+  ],
+  "resources": [
+    {
+      "label": "scikit-learn Supervised Learning User Guide",
+      "url": "https://scikit-learn.org/stable/supervised_learning.html"
+    },
+    {
+      "label": "scikit-learn Model Evaluation: Metrics",
+      "url": "https://scikit-learn.org/stable/modules/model_evaluation.html"
+    },
+    {
+      "label": "scikit-learn Pipelines and Preprocessing",
+      "url": "https://scikit-learn.org/stable/modules/compose.html"
+    },
+    {
+      "label": "Google ML Crash Course: Logistic Regression",
+      "url": "https://developers.google.com/machine-learning/crash-course/logistic-regression"
+    }
+  ],
+  "body_markdown": "## What Is Supervised Learning?\n\nSupervised learning trains a model on labeled examples so it can predict labels for new, unseen data. Each row has input **features** (X) and a known **target** (y). The two core flavors are:\n\n- **Regression** predicts a continuous number (e.g., house price, demand, temperature).\n- **Classification** predicts a discrete category (e.g., spam vs. not spam, churn vs. retain).\n\nThe model learns a mapping `f(X) -> y` by minimizing error on the training data, then we measure how well it generalizes on held-out data.\n\n## The scikit-learn Workflow\n\nEvery estimator in scikit-learn follows the same pattern, which makes swapping models trivial:\n\n```python\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.linear_model import LinearRegression\n\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.2, random_state=42)\n\nmodel = LinearRegression()\nmodel.fit(X_train, y_train)      # learn parameters\npreds = model.predict(X_test)    # generate predictions\n```\n\nAlways split **before** any fitting or scaling so that information from the test set never leaks into training.\n\n## Linear Regression\n\nLinear regression fits a line (or hyperplane) of the form:\n\n```\ny = b0 + b1*x1 + b2*x2 + ... + bn*xn\n```\n\nThe coefficients (`b1...bn`) tell you the expected change in `y` for a one-unit increase in a feature, holding others constant. The intercept `b0` is the predicted value when all features are zero.\n\n**Key evaluation metrics:**\n\n- **RMSE** (Root Mean Squared Error): average prediction error in the target's units; penalizes large errors heavily.\n- **MAE** (Mean Absolute Error): average absolute error; more robust to outliers.\n- **R²**: proportion of variance explained (0 to 1; higher is better).\n\n```python\nfrom sklearn.metrics import mean_squared_error, r2_score\nimport numpy as np\n\nrmse = np.sqrt(mean_squared_error(y_test, preds))\nr2 = r2_score(y_test, preds)\n```\n\n## Logistic Regression\n\nDespite its name, logistic regression is a **classification** algorithm. It passes a linear combination of features through the **sigmoid function** to output a probability between 0 and 1:\n\n```\np = 1 / (1 + e^-(b0 + b1*x1 + ...))\n```\n\nWe convert probability to a class using a threshold (default 0.5). Coefficients relate to the **log-odds**: exponentiating a coefficient gives the **odds ratio** for that feature.\n\n```python\nfrom sklearn.linear_model import LogisticRegression\n\nclf = LogisticRegression(max_iter=1000)\nclf.fit(X_train, y_train)\nprobs = clf.predict_proba(X_test)[:, 1]\nlabels = clf.predict(X_test)\n```\n\n## Classification Metrics\n\nAccuracy alone is misleading on imbalanced data (the **accuracy trap**). If 95% of emails are not spam, a model that always predicts \"not spam\" scores 95% but is useless. Use:\n\n- **Precision**: of predicted positives, how many were correct? (TP / (TP+FP))\n- **Recall**: of actual positives, how many did we catch? (TP / (TP+FN))\n- **F1**: harmonic mean of precision and recall.\n- **ROC-AUC**: ranking quality across all thresholds.\n\n```python\nfrom sklearn.metrics import classification_report, roc_auc_score\nprint(classification_report(y_test, labels))\nprint(roc_auc_score(y_test, probs))\n```\n\n## Feature Scaling and Preprocessing\n\nLinear and logistic models benefit from **standardized** features (mean 0, std 1), especially when using regularization. Use a `Pipeline` to bundle scaling with the model so scaling fits only on training folds:\n\n```python\nfrom sklearn.pipeline import make_pipeline\nfrom sklearn.preprocessing import StandardScaler\n\npipe = make_pipeline(StandardScaler(), LogisticRegression(max_iter=1000))\npipe.fit(X_train, y_train)\n```\n\n## Interpreting and Communicating Results\n\nA major advantage of linear models is **interpretability**. After scaling, coefficient magnitude indicates relative importance; sign indicates direction. Always translate findings into business language: \"Each additional support ticket increases churn odds by 30%.\" This is what separates a data scientist from a black-box button-pusher.\n\n## Common Pitfalls\n\n- **Data leakage**: fitting scalers/encoders on the full dataset before splitting.\n- **Overfitting**: great train scores, poor test scores; add regularization (`C` parameter) or simplify.\n- **Ignoring class imbalance**: use `class_weight='balanced'`, resampling, or threshold tuning.\n- **Reading too much into correlated features**: collinearity makes individual coefficients unstable.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Supervised Learning: Regression and Classification",
+      "sub": "Training and interpreting linear & logistic models with scikit-learn",
+      "narration": "Welcome. In this lesson we'll cover the two foundational supervised learning tasks every data scientist uses daily: regression for predicting numbers and classification for predicting categories. We'll train both linear and logistic models in scikit-learn, evaluate them with the right metrics, and learn to interpret what they tell us about the business."
+    },
+    {
+      "type": "content",
+      "title": "Regression vs. Classification",
+      "bullets": [
+        "Supervised learning maps features X to a known target y",
+        "Regression predicts continuous values: price, demand, temperature",
+        "Classification predicts categories: churn/retain, spam/not-spam",
+        "The task type drives both the model and the metrics you choose"
+      ],
+      "narration": "Supervised learning means we train on labeled examples. The first decision is what kind of target you have. If it's a continuous number, you have a regression problem. If it's a discrete category, you have a classification problem. This single choice determines which models and which evaluation metrics make sense, so always identify it first."
+    },
+    {
+      "type": "content",
+      "title": "The scikit-learn Workflow",
+      "bullets": [
+        "Consistent API: fit() then predict() for every estimator",
+        "Always split into train and test before fitting anything",
+        "random_state makes splits reproducible",
+        "Swapping models is a one-line change"
+      ],
+      "code": "X_tr, X_te, y_tr, y_te = train_test_split(\n    X, y, test_size=0.2, random_state=42)\nmodel = LinearRegression()\nmodel.fit(X_tr, y_tr)\npreds = model.predict(X_te)",
+      "narration": "Scikit-learn's power is its consistency. Every model has a fit method to learn and a predict method to apply. The golden rule: split your data into training and test sets before you fit or scale anything. This prevents test information from leaking into training and gives you an honest estimate of real-world performance."
+    },
+    {
+      "type": "content",
+      "title": "Linear Regression",
+      "bullets": [
+        "Fits y = b0 + b1*x1 + ... + bn*xn",
+        "Coefficients = expected change in y per one-unit feature change",
+        "Evaluate with RMSE, MAE, and R-squared",
+        "RMSE punishes large errors; MAE is robust to outliers"
+      ],
+      "code": "rmse = np.sqrt(mean_squared_error(y_te, preds))\nr2 = r2_score(y_te, preds)",
+      "narration": "Linear regression fits a straight-line relationship. Each coefficient tells you how much the target changes when a feature increases by one unit, holding the others fixed. To judge quality, RMSE gives error in the target's own units and heavily penalizes big misses, MAE is gentler on outliers, and R-squared tells you what fraction of variance your model explains."
+    },
+    {
+      "type": "content",
+      "title": "Logistic Regression",
+      "bullets": [
+        "A classification algorithm despite the name",
+        "Sigmoid squashes a linear combination into a 0-1 probability",
+        "Threshold (default 0.5) converts probability to a class",
+        "exp(coefficient) gives the odds ratio for interpretation"
+      ],
+      "code": "clf = LogisticRegression(max_iter=1000)\nclf.fit(X_tr, y_tr)\nprobs = clf.predict_proba(X_te)[:, 1]",
+      "narration": "Logistic regression, confusingly, does classification. It runs a linear equation through the sigmoid function to produce a probability between zero and one, then applies a threshold to assign a class. For interpretation, exponentiating a coefficient gives an odds ratio, letting you say things like 'this feature doubles the odds of churn.'"
+    },
+    {
+      "type": "content",
+      "title": "Classification Metrics & The Accuracy Trap",
+      "bullets": [
+        "Accuracy misleads on imbalanced data",
+        "Precision: of predicted positives, how many are right?",
+        "Recall: of actual positives, how many did we catch?",
+        "F1 balances both; ROC-AUC measures ranking quality"
+      ],
+      "code": "print(classification_report(y_te, labels))\nprint(roc_auc_score(y_te, probs))",
+      "narration": "Accuracy can lie. If 95 percent of cases are negative, always guessing negative scores 95 percent but catches nothing. Instead, use precision to measure correctness of positive predictions, recall to measure how many positives you find, and F1 to balance them. ROC-AUC summarizes performance across all thresholds. Choose the metric that matches your business cost of errors."
+    },
+    {
+      "type": "content",
+      "title": "Scaling and Pipelines",
+      "bullets": [
+        "Linear models benefit from standardized features",
+        "Pipelines bundle scaling + model to prevent leakage",
+        "Scaler fits only on training data inside cross-validation",
+        "One object to fit, predict, and deploy"
+      ],
+      "code": "pipe = make_pipeline(StandardScaler(),\n    LogisticRegression(max_iter=1000))\npipe.fit(X_tr, y_tr)",
+      "narration": "Standardizing features to mean zero and unit variance helps linear and logistic models, especially with regularization. Wrap the scaler and model in a Pipeline. This guarantees the scaler learns its statistics only from training data during cross-validation, eliminating a subtle but common source of data leakage, and gives you a single object to deploy."
+    },
+    {
+      "type": "content",
+      "title": "Interpretation & Common Pitfalls",
+      "bullets": [
+        "Translate coefficients into business language",
+        "Avoid data leakage: fit transforms after splitting",
+        "Combat overfitting with regularization (C parameter)",
+        "Handle imbalance with class_weight='balanced' or resampling"
+      ],
+      "narration": "The real value you add is interpretation. Turn a coefficient into a sentence a stakeholder understands. And stay alert to pitfalls: never fit transformers on the full dataset, watch for overfitting by comparing train and test scores, regularize when needed, and address class imbalance deliberately. These habits separate reliable data scientists from button-pushers."
+    }
+  ]
+}

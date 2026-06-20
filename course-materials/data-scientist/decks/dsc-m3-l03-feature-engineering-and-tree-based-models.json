@@ -1,0 +1,193 @@
+{
+  "slug": "dsc-m3-l03-feature-engineering-and-tree-based-models",
+  "title": "Feature Engineering and Tree-Based Models",
+  "month": 3,
+  "monthTitle": "Machine Learning in Practice",
+  "lesson": 3,
+  "video": "dsc-m3-l03-feature-engineering-and-tree-based-models.mp4",
+  "summary": "Learn how to engineer predictive features and build tree-based models (random forests and gradient boosting) to lift model performance on real-world tabular data.",
+  "objectives": [
+    "Explain why feature engineering often matters more than model choice for tabular data",
+    "Create and transform features including encodings, interactions, and date/aggregate features",
+    "Distinguish how random forests and gradient boosting machines work and when to use each",
+    "Train, tune, and evaluate tree-based models with scikit-learn and gradient boosting libraries",
+    "Interpret feature importance and avoid common pitfalls like data leakage"
+  ],
+  "quiz": [
+    {
+      "q": "For tabular data, which generally has the biggest impact on model performance?",
+      "options": [
+        "The deep learning architecture",
+        "The quality of engineered features",
+        "The programming language used",
+        "The number of CPU cores"
+      ],
+      "answer": 1,
+      "why": "For structured/tabular data, well-engineered features typically matter more than the specific algorithm chosen."
+    },
+    {
+      "q": "How does a random forest reduce overfitting compared to a single decision tree?",
+      "options": [
+        "By building trees sequentially to fix errors",
+        "By averaging many trees trained on bootstrap samples and random feature subsets",
+        "By using a very high learning rate",
+        "By removing all categorical features"
+      ],
+      "answer": 1,
+      "why": "Random forests use bagging — averaging many decorrelated trees reduces variance and overfitting."
+    },
+    {
+      "q": "Which statement about gradient boosting is correct?",
+      "options": [
+        "Trees are built independently in parallel",
+        "Each new tree corrects the errors of the previous ensemble",
+        "It is insensitive to hyperparameters",
+        "It cannot be used for classification"
+      ],
+      "answer": 1,
+      "why": "Gradient boosting builds trees sequentially, each one fitting the residual errors of the current ensemble."
+    },
+    {
+      "q": "Which practice helps prevent data leakage?",
+      "options": [
+        "Fitting encoders on the full dataset before splitting",
+        "Using target encoding without cross-validation",
+        "Fitting transformations inside a pipeline on the training fold only",
+        "Including post-outcome features"
+      ],
+      "answer": 2,
+      "why": "Fitting transformations only on the training fold (via a pipeline) ensures no test/future information leaks into training."
+    },
+    {
+      "q": "Name one feature engineering technique appropriate for a high-cardinality categorical column.",
+      "answer": "Target/mean encoding (computed with cross-validation)",
+      "why": "High-cardinality columns are too wide for one-hot encoding; target encoding with cross-folds is compact and avoids leakage."
+    },
+    {
+      "q": "In gradient boosting, what combination typically generalizes better at the cost of training time?",
+      "answer": "A lower learning rate with more trees (plus early stopping)",
+      "why": "Smaller learning rates require more trees but produce smoother, better-generalizing models; early stopping prevents overfitting."
+    }
+  ],
+  "resources": [
+    {
+      "label": "scikit-learn: Ensemble methods documentation",
+      "url": "https://scikit-learn.org/stable/modules/ensemble.html"
+    },
+    {
+      "label": "LightGBM documentation",
+      "url": "https://lightgbm.readthedocs.io/"
+    },
+    {
+      "label": "SHAP: explaining model predictions",
+      "url": "https://shap.readthedocs.io/"
+    },
+    {
+      "label": "Kaggle: Feature Engineering course",
+      "url": "https://www.kaggle.com/learn/feature-engineering"
+    }
+  ],
+  "body_markdown": "## Why Feature Engineering Matters\n\nFor structured/tabular data, the quality of your features usually determines model performance more than the choice of algorithm. Feature engineering is the process of using domain knowledge and data transformations to create inputs that make patterns easier for models to learn.\n\nGood features:\n- Encode domain knowledge (e.g., `price_per_sqft` instead of raw price and area)\n- Reduce noise and expose signal\n- Handle missing values and outliers sensibly\n\n## Common Feature Engineering Techniques\n\n**Categorical encoding**\n- One-hot encoding for low-cardinality categories\n- Target/mean encoding for high-cardinality (with cross-fold to avoid leakage)\n- Ordinal encoding when categories have natural order\n\n**Numeric transformations**\n- Scaling (less critical for trees, important for linear/NN models)\n- Log transforms for skewed distributions\n- Binning continuous values\n\n**Interaction & ratio features**\n- Combine columns: `income / household_size`, `clicks * recency`\n\n**Date/time features**\n- Extract day-of-week, month, hour, is_weekend, time-since-event\n\n**Aggregation features**\n- Group-by statistics: customer's average purchase, rolling means\n\n## Tree-Based Models\n\nTree-based models split the feature space into regions using if/else rules. A single decision tree is interpretable but tends to overfit. Ensembles fix this.\n\n**Random Forest (bagging)**\n- Trains many deep trees on bootstrap samples with random feature subsets\n- Averages predictions to reduce variance\n- Robust, little tuning, parallelizable\n\n**Gradient Boosting (boosting)**\n- Builds trees sequentially, each correcting the previous errors\n- Often the highest accuracy on tabular data\n- Libraries: XGBoost, LightGBM, CatBoost, and sklearn's `HistGradientBoostingClassifier`\n- More sensitive to hyperparameters (learning rate, tree depth, number of estimators)\n\n## Key Hyperparameters\n\n| Model | Key knobs |\n|-------|-----------|\n| Random Forest | `n_estimators`, `max_depth`, `max_features`, `min_samples_leaf` |\n| Gradient Boosting | `learning_rate`, `n_estimators`, `max_depth`, `subsample` |\n\nLower learning rate + more trees usually generalizes better but trains slower. Use early stopping with a validation set.\n\n## Avoiding Data Leakage\n\nLeakage happens when information unavailable at prediction time sneaks into training. Common causes:\n- Fitting scalers/encoders on the full dataset before splitting\n- Target encoding without cross-validation\n- Including future or post-outcome features\n\nAlways fit transformations inside a pipeline on the training fold only.\n\n## Evaluation & Interpretation\n\n- Use proper validation (k-fold or time-based splits)\n- Choose metrics aligned with the business (AUC, F1, RMSE)\n- Inspect feature importance and SHAP values to explain predictions\n- Compare against a simple baseline before celebrating\n\n## Practical Workflow\n\n1. Build a baseline model on raw features\n2. Engineer features iteratively, validating each change\n3. Try random forest, then gradient boosting\n4. Tune hyperparameters with cross-validation\n5. Interpret and validate for leakage before deploying",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Feature Engineering and Tree-Based Models",
+      "sub": "Machine Learning in Practice",
+      "narration": "Welcome. In this lesson we'll cover two of the most impactful skills for working with tabular data: engineering predictive features, and building tree-based models like random forests and gradient boosting. These techniques win the majority of real-world structured data problems, so they deserve your attention."
+    },
+    {
+      "type": "content",
+      "title": "Why Features Beat Algorithms",
+      "bullets": [
+        "For tabular data, feature quality often outweighs model choice",
+        "Good features encode domain knowledge",
+        "They expose signal and reduce noise",
+        "A simple model with great features beats a fancy model with raw data"
+      ],
+      "narration": "Before reaching for complex algorithms, remember that for structured data, the features you feed your model usually matter more than which model you pick. A thoughtfully engineered feature like price-per-square-foot can capture a relationship that a model would struggle to discover from raw columns. Investing time in feature engineering typically gives the biggest returns."
+    },
+    {
+      "type": "content",
+      "title": "Encoding Categorical Variables",
+      "bullets": [
+        "One-hot encoding for low-cardinality features",
+        "Target/mean encoding for high-cardinality — use cross-fold",
+        "Ordinal encoding when order is meaningful",
+        "Watch for leakage when encoding with the target"
+      ],
+      "code": "from sklearn.preprocessing import OneHotEncoder\nenc = OneHotEncoder(handle_unknown='ignore')\nX_cat = enc.fit_transform(X_train[['city']])",
+      "narration": "Categorical variables need to become numbers. For features with a handful of categories, one-hot encoding works well. For high-cardinality features like zip codes, target encoding is more compact, but you must compute it with cross-validation to avoid leaking the target. When categories have a natural order, ordinal encoding preserves that information."
+    },
+    {
+      "type": "content",
+      "title": "Numeric, Interaction & Date Features",
+      "bullets": [
+        "Log-transform skewed numerics",
+        "Create ratios and interactions: income / household_size",
+        "Extract date parts: day-of-week, month, is_weekend",
+        "Aggregate: customer average spend, rolling means"
+      ],
+      "code": "df['price_per_sqft'] = df['price'] / df['sqft']\ndf['dow'] = df['date'].dt.dayofweek",
+      "narration": "Beyond encoding, you can transform numeric columns — log transforms tame skew. Ratios and interaction terms inject domain logic. Date columns are goldmines: extract day of week, month, or whether it's a weekend. Group-by aggregations, like a customer's average purchase, give the model context it can't see from a single row."
+    },
+    {
+      "type": "content",
+      "title": "Random Forests",
+      "bullets": [
+        "Bagging: many deep trees on bootstrap samples",
+        "Random feature subsets decorrelate trees",
+        "Averaging reduces variance and overfitting",
+        "Robust, minimal tuning, parallelizable"
+      ],
+      "code": "from sklearn.ensemble import RandomForestClassifier\nrf = RandomForestClassifier(n_estimators=300, n_jobs=-1)\nrf.fit(X_train, y_train)",
+      "narration": "A random forest trains many decision trees, each on a bootstrap sample of the data and a random subset of features. By averaging their predictions, it reduces the variance that plagues single trees. Random forests are a great default: robust, hard to overfit badly, and they need little tuning to get solid results."
+    },
+    {
+      "type": "content",
+      "title": "Gradient Boosting",
+      "bullets": [
+        "Trees built sequentially, each fixing prior errors",
+        "Often the top performer on tabular data",
+        "Libraries: XGBoost, LightGBM, CatBoost, HistGB",
+        "Tune learning_rate, n_estimators, max_depth"
+      ],
+      "code": "from sklearn.ensemble import HistGradientBoostingClassifier\ngb = HistGradientBoostingClassifier(learning_rate=0.05, max_iter=500)\ngb.fit(X_train, y_train)",
+      "narration": "Gradient boosting takes a different approach: it builds trees one after another, with each new tree correcting the residual errors of the ensemble so far. This sequential refinement frequently produces the best accuracy on tabular data. The trade-off is sensitivity to hyperparameters — especially learning rate and number of trees — so plan to tune carefully."
+    },
+    {
+      "type": "content",
+      "title": "Tuning & Avoiding Leakage",
+      "bullets": [
+        "Lower learning rate + more trees + early stopping",
+        "Use pipelines: fit transforms on training fold only",
+        "Never fit encoders/scalers on full data before splitting",
+        "Exclude post-outcome and future information"
+      ],
+      "code": "from sklearn.pipeline import Pipeline\npipe = Pipeline([('enc', enc), ('model', gb)])",
+      "narration": "For boosting, a lower learning rate paired with more trees and early stopping usually generalizes best. Equally important is preventing data leakage. Always wrap your transformations in a pipeline so encoders and scalers are fit only on the training fold. Leaking the test data or future information will inflate your scores and crush you in production."
+    },
+    {
+      "type": "content",
+      "title": "Evaluate & Interpret",
+      "bullets": [
+        "Validate with k-fold or time-based splits",
+        "Pick metrics tied to the business goal",
+        "Use feature importance and SHAP for explanations",
+        "Always beat a simple baseline first"
+      ],
+      "narration": "Finally, evaluate honestly. Use cross-validation or time-based splits that mirror how the model will be used, and choose metrics that match the business objective. Tree models give you feature importances, and SHAP values offer per-prediction explanations. Always compare against a simple baseline so you know your engineering actually added value."
+    },
+    {
+      "type": "content",
+      "title": "Practical Workflow Recap",
+      "bullets": [
+        "1. Baseline on raw features",
+        "2. Engineer features iteratively, validate each",
+        "3. Try random forest, then gradient boosting",
+        "4. Tune with cross-validation",
+        "5. Interpret and check for leakage before deploy"
+      ],
+      "narration": "To wrap up, here's a repeatable workflow: start with a baseline, then engineer features one change at a time while validating. Try a random forest, then gradient boosting. Tune your best model with cross-validation, and before deploying, interpret the results and audit for leakage. Follow this loop and you'll consistently ship strong models."
+    }
+  ]
+}

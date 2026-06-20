@@ -1,0 +1,190 @@
+{
+  "slug": "apm-m2-l02-writing-an-ai-product-strategy-and-one-page-visi",
+  "title": "Writing an AI Product Strategy and One-Page Vision",
+  "month": 2,
+  "monthTitle": "AI Product Strategy and Roadmapping",
+  "lesson": 2,
+  "video": "apm-m2-l02-writing-an-ai-product-strategy-and-one-page-visi.mp4",
+  "summary": "Learn to write a defensible AI product strategy and a one-page vision document that aligns stakeholders, clarifies positioning and differentiation, and connects AI capabilities to real customer and business value.",
+  "objectives": [
+    "Articulate a clear AI product vision narrative that motivates teams and stakeholders",
+    "Define positioning and differentiation grounded in defensible AI advantages (data, workflow, distribution)",
+    "Translate strategy into measurable outcomes and a prioritized set of bets",
+    "Distinguish genuine AI moats from commodity capabilities and feature parity",
+    "Produce a one-page vision document that fits on a single page and survives executive review"
+  ],
+  "quiz": [
+    {
+      "q": "Which of the following is most likely to be a durable moat for an AI product?",
+      "options": [
+        "Access to a general-purpose LLM API",
+        "A compounding proprietary data flywheel",
+        "A well-crafted prompt template",
+        "A clean chat interface"
+      ],
+      "answer": 1,
+      "why": "General API access, prompts, and chat UIs are easily replicated commodities. A proprietary data flywheel compounds with usage and is hard for competitors to copy."
+    },
+    {
+      "q": "What is the primary purpose of the \"What we are NOT doing\" section in a one-page vision?",
+      "options": [
+        "To pad the document to a full page",
+        "To impose the discipline of saying no and sharpen strategic choices",
+        "To list competitor weaknesses",
+        "To document technical limitations of the model"
+      ],
+      "answer": 1,
+      "why": "Explicit non-goals force real trade-offs, which is what separates a focused strategy from a wish list of features."
+    },
+    {
+      "q": "Which question best pressure-tests an AI product's defensibility?",
+      "options": [
+        "Does the model use the latest architecture?",
+        "If a competitor had the same model API tomorrow, what would they still lack?",
+        "How many parameters does the model have?",
+        "Is the UI better than competitors'?"
+      ],
+      "answer": 1,
+      "why": "This question isolates what is truly hard to copy — data, workflow, distribution, domain depth — versus commodity model access."
+    },
+    {
+      "q": "In the Today–Tension–Future–Bridge narrative structure, what does the 'Bridge' represent?",
+      "options": [
+        "The painful current state",
+        "The capability that makes the future state possible",
+        "The competitive landscape",
+        "The pricing model"
+      ],
+      "answer": 1,
+      "why": "The Bridge is the enabling capability that connects the painful Today to the aspirational Future the product creates."
+    },
+    {
+      "q": "Name one AI-specific guardrail metric (beyond a growth north-star) that an AI product strategy should track.",
+      "answer": "Quality/accuracy, trust and safety, cost-per-inference, or latency",
+      "why": "AI strategies must guard against degrading quality, safety, or unit economics; any of these guardrails prevents optimizing growth at the expense of the product's integrity."
+    },
+    {
+      "q": "Why is a strong 'why now' statement especially important for AI products?",
+      "answer": "It names the specific enabling shift (cheaper inference, new model capabilities, data availability, regulation) that makes the timing credible",
+      "why": "AI timing depends on recent enabling shifts; naming them makes the opportunity believable rather than speculative hype."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Good Strategy Bad Strategy by Richard Rumelt (kernel of strategy: diagnosis, guiding policy, coherent action)",
+      "url": "https://www.goodstrategybadstrategy.com/"
+    },
+    {
+      "label": "a16z — The Economics of AI and Where Moats Come From",
+      "url": "https://a16z.com/ai/"
+    },
+    {
+      "label": "Amazon's Working Backwards / PR-FAQ method for vision documents",
+      "url": "https://www.aboutamazon.com/news/workplace/an-insider-look-at-amazons-culture-and-processes"
+    },
+    {
+      "label": "Lenny's Newsletter — Product strategy and positioning frameworks",
+      "url": "https://www.lennysnewsletter.com/"
+    }
+  ],
+  "body_markdown": "## Why AI Product Strategy Is Different\n\nAI products carry uncertainty that traditional software does not: model behavior is probabilistic, data is a first-class asset, and capabilities can be rapidly commoditized by foundation-model providers. A strong AI product strategy answers a deceptively simple question: **why will this product win, and why will it keep winning?** It cannot rest on \"we use AI\" — that is table stakes. It must rest on a defensible advantage and a clear connection to customer value.\n\nStrategy is a set of choices about where to play and how to win. The one-page vision is the artifact that communicates those choices crisply enough that any stakeholder — an engineer, an executive, a sales rep — can repeat it.\n\n## The Core Components of an AI Product Strategy\n\n1. **Customer and problem** — Who hurts, how badly, and how often? AI is expensive and uncertain, so the problem must justify it. Prefer problems where current solutions are slow, costly, or impossible without intelligence.\n2. **Vision narrative** — A short story of the future state your product creates. It should be aspirational but believable.\n3. **Positioning** — The category you compete in and the reference point in the customer's mind (\"the X for Y\").\n4. **Differentiation and moat** — What makes you hard to copy. For AI this typically comes from proprietary or compounding data, deep workflow integration, distribution, or a system of models tuned to a specific domain — *not* the base model itself.\n5. **Strategic bets** — The 3-5 things you are betting on, and the assumptions behind each.\n6. **Outcomes and metrics** — How you will measure progress (north-star metric plus guardrails like quality, cost-per-inference, and trust/safety metrics).\n\n## Defensibility: Real Moats vs. Commodity Capabilities\n\nAsk: if a competitor had the same model API tomorrow, what would they still lack? Durable AI advantages include:\n\n- **Data flywheel** — usage generates proprietary data that improves the product, which attracts more usage.\n- **Workflow lock-in** — the product is embedded in how work gets done, with switching costs.\n- **Distribution** — existing channels, integrations, or an installed base.\n- **Domain depth** — evaluation sets, fine-tuning, guardrails, and tacit knowledge competitors lack.\n\nCommodity (not moats by themselves): access to a general LLM, a clever prompt, a chat UI, generic embeddings. These are easily replicated.\n\n## Writing the Vision Narrative\n\nGood vision narratives are concrete and customer-anchored. Use the structure: **Today** (the painful status quo), **Tension** (why it persists / why now), **Future** (the world your product enables), **Bridge** (the capability that makes it possible). Keep it to a paragraph or two. Avoid hype words; describe observable outcomes (\"a claims adjuster resolves a case in minutes, not days\").\n\n\"Why now?\" is critical for AI — name the specific enabling shift (cheaper inference, multimodal models, regulatory change, data availability) so the timing is credible.\n\n## The One-Page Vision Template\n\nFit all of this on a single page:\n\n- **Vision statement** (1-2 sentences)\n- **Target customer & problem** (who, pain, frequency)\n- **Why now** (the enabling shift)\n- **How we win** (positioning + differentiation/moat)\n- **Strategic bets** (3-5 bullets with key assumption each)\n- **Success metrics** (north star + 2-3 guardrails including a quality/trust metric)\n- **What we are NOT doing** (explicit non-goals)\n\nThe non-goals section is what separates strategy from a wish list. Saying no is the discipline that makes the document defensible.\n\n## Common Pitfalls\n\n- **Tech-first framing** — leading with the model instead of the customer outcome.\n- **No defensibility** — a vision any competitor with an API key could execute.\n- **Vague metrics** — \"improve engagement\" without a target or guardrail.\n- **Ignoring trust and risk** — AI strategies must address quality, safety, and failure modes as part of the value proposition.\n- **Too long** — if it doesn't fit on one page, the choices aren't sharp enough.\n\n## Putting It Together\n\nDraft the narrative first to get conviction, then compress into the one-pager, then pressure-test defensibility with the \"same API tomorrow\" question. Socialize it, capture objections, and iterate. The one-pager becomes the anchor for your roadmap — every initiative should trace back to a strategic bet on the page.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Writing an AI Product Strategy and One-Page Vision",
+      "sub": "Positioning, differentiation, and a crisp vision narrative",
+      "narration": "Welcome. In this lesson we'll learn how to write a defensible AI product strategy and compress it into a one-page vision that aligns every stakeholder. By the end, you'll be able to articulate why your AI product will win and keep winning."
+    },
+    {
+      "type": "content",
+      "title": "Why AI Strategy Is Different",
+      "bullets": [
+        "Model behavior is probabilistic, not deterministic",
+        "Data is a first-class strategic asset",
+        "Capabilities are quickly commoditized by foundation models",
+        "\"We use AI\" is table stakes, not a strategy"
+      ],
+      "narration": "AI products carry uncertainty traditional software doesn't. Models are probabilistic, data is a core asset, and base capabilities get commoditized fast as foundation-model providers improve. So your strategy can't rest on simply using AI. It must answer why you'll win and keep winning, grounded in something hard to copy."
+    },
+    {
+      "type": "content",
+      "title": "Core Components of the Strategy",
+      "bullets": [
+        "Customer and problem worth the cost of AI",
+        "Vision narrative — the believable future state",
+        "Positioning — the category and reference point",
+        "Differentiation and moat",
+        "Strategic bets, outcomes, and metrics"
+      ],
+      "narration": "A complete AI strategy has six parts: the customer and a problem painful enough to justify AI, a vision narrative, positioning in a category, your differentiation or moat, the three to five bets you're making, and the metrics that prove progress. Each section forces a real choice."
+    },
+    {
+      "type": "content",
+      "title": "Real Moats vs. Commodity",
+      "bullets": [
+        "Test: same model API tomorrow — what do they still lack?",
+        "Moats: data flywheel, workflow lock-in, distribution, domain depth",
+        "Commodity: generic LLM access, clever prompts, chat UI",
+        "Defensibility compounds with usage over time"
+      ],
+      "narration": "Pressure-test defensibility with a simple question: if a competitor had your exact model API tomorrow, what would they still lack? Durable advantages come from a data flywheel, deep workflow integration, distribution, and domain depth. A general model, a prompt, or a chat interface alone is commodity — easily replicated."
+    },
+    {
+      "type": "content",
+      "title": "The Data Flywheel",
+      "bullets": [
+        "Usage generates proprietary data",
+        "Data improves the product",
+        "Better product attracts more usage",
+        "Compounds into a widening, hard-to-copy lead"
+      ],
+      "narration": "The strongest AI moat is often a data flywheel. Usage generates proprietary data that no one else has, that data improves your models and product, and the better product attracts more usage. Over time this compounds into a lead competitors can't shortcut, because they can't buy your accumulated, domain-specific data."
+    },
+    {
+      "type": "content",
+      "title": "Writing the Vision Narrative",
+      "bullets": [
+        "Structure: Today, Tension, Future, Bridge",
+        "Anchor in observable customer outcomes",
+        "Name a credible \"why now\" enabling shift",
+        "Avoid hype words; be concrete"
+      ],
+      "narration": "Write the narrative using four beats: Today, the painful status quo; Tension, why it persists and why now; Future, the world your product enables; and Bridge, the capability that makes it possible. Anchor it in observable outcomes — like resolving a claim in minutes not days — and name the specific shift that makes the timing right."
+    },
+    {
+      "type": "content",
+      "title": "The One-Page Vision Template",
+      "bullets": [
+        "Vision statement (1-2 sentences)",
+        "Target customer, problem, and why now",
+        "How we win: positioning + moat",
+        "3-5 strategic bets with key assumptions",
+        "Success metrics + explicit non-goals"
+      ],
+      "code": "# One-Page Vision\nVision: ...\nCustomer & Problem: ...\nWhy Now: ...\nHow We Win: ...\nBets: 1) ... 2) ... 3) ...\nMetrics: north-star + guardrails\nNOT doing: ...",
+      "narration": "Everything fits on one page: a one or two sentence vision, the target customer and why now, how you win, three to five strategic bets each with its key assumption, success metrics including a quality or trust guardrail, and crucially, what you are NOT doing. The non-goals section is what turns a wish list into a strategy."
+    },
+    {
+      "type": "content",
+      "title": "Metrics That Matter for AI",
+      "bullets": [
+        "North-star tied to customer value",
+        "Quality metric (accuracy, helpfulness, resolution rate)",
+        "Trust and safety guardrails",
+        "Cost-per-inference and latency"
+      ],
+      "narration": "AI strategies need a north-star metric tied to value, plus guardrails unique to AI: a quality metric like resolution rate, trust and safety measures, and operational guardrails like cost-per-inference and latency. These prevent you from optimizing growth while quality or unit economics quietly collapse."
+    },
+    {
+      "type": "content",
+      "title": "Pitfalls and Next Steps",
+      "bullets": [
+        "Tech-first instead of customer-first framing",
+        "No defensibility — anyone with an API could do it",
+        "Vague metrics; ignoring trust and risk",
+        "Draft narrative, compress, pressure-test, socialize"
+      ],
+      "narration": "Avoid leading with the model, having no real moat, vague metrics, and ignoring risk. The workflow: draft the narrative to build conviction, compress it to one page, pressure-test defensibility, then socialize and iterate. The one-pager becomes the anchor for your roadmap — every initiative should trace back to a bet on the page."
+    }
+  ]
+}

@@ -1,0 +1,188 @@
+{
+  "slug": "age-m3-l04-project-a-multi-agent-workflow-with-human-in-the",
+  "title": "Project: A Multi-Agent Workflow with Human-in-the-Loop Checkpoints",
+  "month": 3,
+  "monthTitle": "Multi-Agent Orchestration with LangGraph",
+  "lesson": 4,
+  "video": "age-m3-l04-project-a-multi-agent-workflow-with-human-in-the.mp4",
+  "summary": "Build a production-style multi-agent workflow in LangGraph where a supervisor routes work to specialist agents, pauses at human approval gates before high-risk actions, and recovers gracefully from errors. You'll wire up shared state, conditional routing, interrupts with checkpointers, and resumable execution.",
+  "objectives": [
+    "Design a supervised multi-agent topology with a router/supervisor and specialist worker agents in LangGraph",
+    "Model shared graph state and conditional edges to coordinate a multi-step business task",
+    "Implement human-in-the-loop approval gates using interrupts and a persistent checkpointer",
+    "Add error-recovery patterns (retries, fallbacks, and escalation to a human) for robust execution",
+    "Resume a paused graph from a saved checkpoint and feed in human decisions",
+    "Evaluate when to use human checkpoints versus full autonomy in production"
+  ],
+  "quiz": [
+    {
+      "q": "What two LangGraph features together enable human-in-the-loop checkpoints?",
+      "options": [
+        "LLM routing and tool calling",
+        "A checkpointer and an interrupt (e.g., interrupt_before)",
+        "Streaming and async nodes",
+        "Subgraphs and reducers"
+      ],
+      "answer": 1,
+      "why": "A checkpointer persists state per thread_id so the run can be paused and resumed, and interrupt_before/after halts execution to return control for human review."
+    },
+    {
+      "q": "Why is `Annotated[list, operator.add]` used for the errors field in state?",
+      "options": [
+        "It encrypts the error messages",
+        "It limits the list to one item",
+        "It acts as a reducer so concurrent node writes append instead of overwrite",
+        "It converts errors to strings automatically"
+      ],
+      "answer": 2,
+      "why": "Reducers tell LangGraph how to merge state updates; operator.add appends lists so multiple nodes can record errors without clobbering each other."
+    },
+    {
+      "q": "After a graph pauses at an interrupt, how do you resume it with a human decision?",
+      "options": [
+        "Restart the whole graph from scratch",
+        "Call update_state with the decision, then invoke with None and the same config",
+        "Delete the checkpoint and rebuild the graph",
+        "Call get_state repeatedly until it continues"
+      ],
+      "answer": 1,
+      "why": "You write the human's decision into state via update_state, then invoke with None on the same thread_id config so execution continues from the saved checkpoint."
+    },
+    {
+      "q": "Which actions are the best candidates for a human approval gate?",
+      "options": [
+        "Every single node for maximum safety",
+        "Read-only data retrieval steps",
+        "Irreversible or high-risk actions like issuing a refund",
+        "LLM routing decisions"
+      ],
+      "answer": 2,
+      "why": "Gating should target irreversible or high-risk actions; over-gating reversible or low-risk steps destroys throughput without adding meaningful safety."
+    },
+    {
+      "q": "Why should MemorySaver be replaced in production?",
+      "options": [
+        "It is slower than all alternatives",
+        "It does not support interrupts",
+        "Its state is in-memory and lost on restart, so use a durable saver like SqliteSaver or PostgresSaver",
+        "It cannot store TypedDict state"
+      ],
+      "answer": 2,
+      "why": "MemorySaver keeps state in memory, which is lost on process restart; durable checkpointers persist state so long-running, human-gated workflows survive restarts."
+    },
+    {
+      "q": "In one sentence, what is the role of the supervisor in this architecture?",
+      "answer": "The supervisor inspects the shared state and decides which specialist agent runs next, looping until the task is complete.",
+      "why": "The supervisor pattern centralizes routing: each worker returns to the supervisor, which reads state and chooses the next node or ends the run."
+    }
+  ],
+  "resources": [
+    {
+      "label": "LangGraph Human-in-the-Loop docs",
+      "url": "https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/"
+    },
+    {
+      "label": "LangGraph Persistence & Checkpointers",
+      "url": "https://langchain-ai.github.io/langgraph/concepts/persistence/"
+    },
+    {
+      "label": "LangGraph Multi-Agent (Supervisor) tutorial",
+      "url": "https://langchain-ai.github.io/langgraph/tutorials/multi_agent/agent_supervisor/"
+    },
+    {
+      "label": "LangGraph StateGraph & Reducers API reference",
+      "url": "https://langchain-ai.github.io/langgraph/reference/graphs/"
+    }
+  ],
+  "body_markdown": "## Project Overview\n\nIn this project you'll build a **supervised team of agents** that processes a multi-step business task: drafting and sending a customer refund decision. The workflow includes specialist agents, **approval gates** where a human must sign off before irreversible actions, and **error recovery** so transient failures don't crash the run.\n\nThe scenario: a customer submits a refund request. The system must (1) gather order data, (2) analyze policy eligibility, (3) draft a customer email, (4) **pause for human approval** before issuing the refund, then (5) execute and confirm.\n\n## The Architecture\n\nWe use a **supervisor pattern**: a central supervisor node inspects the shared state and routes to the right worker. Workers are specialist agents:\n\n- **Retriever** — fetches order and customer history.\n- **PolicyAnalyst** — decides eligibility against refund rules.\n- **Drafter** — writes the customer-facing message.\n- **Executor** — issues the refund (the irreversible action, gated by a human).\n\nThe supervisor reads state, picks the next worker, and the graph loops back to the supervisor after each worker finishes until the task is `done`.\n\n## Shared State\n\nAll agents read and write a single typed state object. Keep it explicit:\n\n```python\nfrom typing import TypedDict, Literal, Annotated\nimport operator\n\nclass RefundState(TypedDict):\n    request: str\n    order: dict | None\n    eligibility: str | None        # \"approved\" | \"denied\" | \"unclear\"\n    draft_email: str | None\n    human_decision: str | None     # \"approve\" | \"reject\" | \"edit\"\n    status: str                    # routing signal\n    errors: Annotated[list, operator.add]\n    next: str\n```\n\nUsing `Annotated[list, operator.add]` lets multiple nodes append to `errors` without clobbering each other — this is how LangGraph reducers merge concurrent writes.\n\n## Building the Supervisor\n\nThe supervisor is a function (or small LLM call) that returns the name of the next node. Keep routing deterministic where you can — LLM routing is powerful but harder to test.\n\n```python\ndef supervisor(state: RefundState) -> dict:\n    if state.get(\"order\") is None:\n        return {\"next\": \"retriever\"}\n    if state.get(\"eligibility\") is None:\n        return {\"next\": \"policy_analyst\"}\n    if state.get(\"draft_email\") is None:\n        return {\"next\": \"drafter\"}\n    if state.get(\"human_decision\") is None:\n        return {\"next\": \"approval_gate\"}\n    if state[\"human_decision\"] == \"approve\":\n        return {\"next\": \"executor\"}\n    return {\"next\": \"END\"}\n```\n\n## Wiring the Graph\n\n```python\nfrom langgraph.graph import StateGraph, END\nfrom langgraph.checkpoint.memory import MemorySaver\n\nbuilder = StateGraph(RefundState)\nbuilder.add_node(\"supervisor\", supervisor)\nbuilder.add_node(\"retriever\", retriever)\nbuilder.add_node(\"policy_analyst\", policy_analyst)\nbuilder.add_node(\"drafter\", drafter)\nbuilder.add_node(\"approval_gate\", approval_gate)\nbuilder.add_node(\"executor\", executor)\n\nbuilder.set_entry_point(\"supervisor\")\n\ndef route(state): return state[\"next\"] if state[\"next\"] != \"END\" else END\n\nbuilder.add_conditional_edges(\"supervisor\", route)\nfor worker in [\"retriever\", \"policy_analyst\", \"drafter\", \"executor\"]:\n    builder.add_edge(worker, \"supervisor\")\n\n# Compile with a checkpointer and an interrupt BEFORE the gate\ngraph = builder.compile(\n    checkpointer=MemorySaver(),\n    interrupt_before=[\"approval_gate\"],\n)\n```\n\n## Human-in-the-Loop Checkpoints\n\nTwo things make HITL work in LangGraph:\n\n1. **A checkpointer** (e.g., `MemorySaver`, or `SqliteSaver`/`PostgresSaver` in production) that persists state after every step, keyed by a `thread_id`.\n2. **An interrupt** — `interrupt_before=[\"approval_gate\"]` halts execution *before* the node runs, returning control to your application.\n\nRun until the interrupt:\n\n```python\nconfig = {\"configurable\": {\"thread_id\": \"refund-123\"}}\nresult = graph.invoke({\"request\": \"...\", \"status\": \"new\", \"errors\": []}, config)\n# Execution pauses; inspect the draft\nstate = graph.get_state(config)\nprint(state.values[\"draft_email\"])\n```\n\nA human reviews the draft and eligibility. To resume, update the state with their decision and invoke with `None`:\n\n```python\ngraph.update_state(config, {\"human_decision\": \"approve\"})\nfinal = graph.invoke(None, config)   # continues from the checkpoint\n```\n\nIf the human edits the draft, write both the edit and the decision before resuming. The graph picks up exactly where it paused — no recomputation of earlier steps.\n\n## Error Recovery\n\nProduction agents fail: APIs time out, the LLM returns malformed JSON, a tool 500s. Layer your defenses:\n\n- **Retries with backoff** inside a node for transient errors.\n- **Fallbacks**: if `policy_analyst` is unsure, route to a human instead of guessing.\n- **Escalation**: append to `state['errors']`; the supervisor can route to an `approval_gate` or a `human_escalation` node when errors accumulate.\n\n```python\ndef policy_analyst(state):\n    try:\n        result = call_llm_policy(state[\"order\"])\n        return {\"eligibility\": result}\n    except Exception as e:\n        return {\"eligibility\": \"unclear\", \"errors\": [str(e)]}\n```\n\nBecause the checkpointer saves state after each node, a crash mid-run can be resumed from the last good checkpoint rather than restarted.\n\n## Putting It Together — Run Loop\n\nA real app exposes two endpoints: **start** (invoke fresh) and **resume** (after human input). Store `thread_id` so the human's later approval maps back to the right paused run. The same pattern scales to long-running tasks that wait hours or days for a human.\n\n## Production Tips\n\n- Use a durable checkpointer (`SqliteSaver`/`PostgresSaver`), not `MemorySaver`, so state survives restarts.\n- Gate only **irreversible or high-risk** actions — over-gating destroys throughput.\n- Log every state transition for auditability.\n- Make routing testable: prefer deterministic supervisor logic, reserve LLM routing for genuinely ambiguous decisions.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Multi-Agent Workflows with Human-in-the-Loop Checkpoints",
+      "sub": "Building a supervised agent team in LangGraph",
+      "narration": "Welcome. In this project lesson we'll build a supervised team of agents that handle a real multi-step business task — processing a customer refund — with human approval gates and error recovery baked in. By the end you'll know how to pause an agent graph for human sign-off and resume it cleanly."
+    },
+    {
+      "type": "content",
+      "title": "The Scenario & Architecture",
+      "bullets": [
+        "Task: decide and issue a customer refund across 5 steps",
+        "Supervisor routes work to specialist agents",
+        "Workers: Retriever, PolicyAnalyst, Drafter, Executor",
+        "Executor is gated — humans approve before money moves"
+      ],
+      "narration": "Our scenario is a refund request. A central supervisor inspects shared state and decides which specialist runs next. The Retriever pulls order data, the PolicyAnalyst checks eligibility, the Drafter writes the customer email, and the Executor issues the refund. That last step is irreversible, so we'll require a human to approve before it runs."
+    },
+    {
+      "type": "content",
+      "title": "Shared State Design",
+      "bullets": [
+        "One typed state object read and written by all nodes",
+        "Track order, eligibility, draft, human_decision, status",
+        "Use reducers for fields written concurrently",
+        "Explicit state makes routing and testing easy"
+      ],
+      "code": "class RefundState(TypedDict):\n    order: dict | None\n    eligibility: str | None\n    draft_email: str | None\n    human_decision: str | None\n    errors: Annotated[list, operator.add]\n    next: str",
+      "narration": "Everything coordinates through one typed state object. Notice the errors field uses an annotated reducer with operator.add — that lets multiple nodes append errors without overwriting each other. Keeping state explicit makes your supervisor logic deterministic and your graph far easier to test and debug."
+    },
+    {
+      "type": "content",
+      "title": "The Supervisor Pattern",
+      "bullets": [
+        "Supervisor returns the name of the next node",
+        "Loop: supervisor -> worker -> supervisor",
+        "Prefer deterministic routing; reserve LLM routing for ambiguity",
+        "Clear stop condition routes to END"
+      ],
+      "code": "def supervisor(state):\n    if state.get('order') is None:\n        return {'next': 'retriever'}\n    if state.get('eligibility') is None:\n        return {'next': 'policy_analyst'}\n    if state.get('human_decision') is None:\n        return {'next': 'approval_gate'}\n    ...",
+      "narration": "The supervisor is just a function that looks at state and names the next worker. After each worker finishes, control returns to the supervisor, which decides what's next until the task is done. Wherever possible keep this logic deterministic — it's much easier to test than an LLM making routing calls every step."
+    },
+    {
+      "type": "content",
+      "title": "Wiring the Graph",
+      "bullets": [
+        "add_node for supervisor and each worker",
+        "conditional_edges from supervisor based on state['next']",
+        "Every worker edges back to the supervisor",
+        "Compile with checkpointer + interrupt_before"
+      ],
+      "code": "graph = builder.compile(\n    checkpointer=MemorySaver(),\n    interrupt_before=['approval_gate'],\n)",
+      "narration": "We add every node, then conditional edges from the supervisor that route on the next field, and a plain edge from each worker back to the supervisor. The key line is compile: we attach a checkpointer and tell LangGraph to interrupt before the approval gate. Those two pieces are what enable human-in-the-loop."
+    },
+    {
+      "type": "content",
+      "title": "Human-in-the-Loop Checkpoints",
+      "bullets": [
+        "Checkpointer persists state per thread_id after every step",
+        "interrupt_before halts execution and returns control",
+        "Inspect paused state with get_state",
+        "Resume by updating state and invoking with None"
+      ],
+      "code": "config = {'configurable': {'thread_id': 'refund-123'}}\ngraph.invoke(inputs, config)        # pauses\ngraph.update_state(config, {'human_decision': 'approve'})\ngraph.invoke(None, config)          # resumes",
+      "narration": "Here's the magic. The checkpointer saves state after every node, keyed by a thread id. When the graph hits the interrupt, it stops and hands control back to your app. You inspect the draft, a human decides, you write their decision into state with update_state, then invoke with None to resume exactly where it paused — no recomputation of earlier steps."
+    },
+    {
+      "type": "content",
+      "title": "Error Recovery Patterns",
+      "bullets": [
+        "Retries with backoff for transient failures",
+        "Fallbacks: route to a human when an agent is unsure",
+        "Escalation: accumulate errors, then gate or hand off",
+        "Checkpoints let you resume after a crash"
+      ],
+      "code": "def policy_analyst(state):\n    try:\n        return {'eligibility': call_llm_policy(state['order'])}\n    except Exception as e:\n        return {'eligibility': 'unclear', 'errors': [str(e)]}",
+      "narration": "Production agents fail, so layer defenses. Retry transient errors inside the node, fall back to a human when an agent can't decide confidently, and escalate when errors pile up. And because state is checkpointed after each node, a crash mid-run can resume from the last good checkpoint instead of starting over."
+    },
+    {
+      "type": "content",
+      "title": "Production Tips",
+      "bullets": [
+        "Use durable checkpointers: SqliteSaver / PostgresSaver",
+        "Gate only irreversible or high-risk actions",
+        "Log every state transition for audit trails",
+        "Map thread_id to user so resume routes correctly"
+      ],
+      "narration": "To take this to production: swap MemorySaver for a durable Sqlite or Postgres checkpointer so state survives restarts and long waits. Only gate the truly risky actions — over-gating kills throughput. Log every transition for auditability, and store the thread id so a human's approval, even days later, resumes the right run. That's a robust, supervised, human-in-the-loop agent system."
+    }
+  ]
+}

@@ -1,0 +1,191 @@
+{
+  "slug": "age-m1-l04-build-a-single-tool-using-agent-loop-from-scratc",
+  "title": "Build a Single Tool-Using Agent Loop from Scratch",
+  "month": 1,
+  "monthTitle": "LLM Foundations and Tool-Using Agents",
+  "lesson": 4,
+  "video": "age-m1-l04-build-a-single-tool-using-agent-loop-from-scratc.mp4",
+  "summary": "Learn to build a complete observe-think-act agent loop from scratch, where an LLM selects tools, executes them, observes results, and iterates until a task is solved—without relying on heavyweight frameworks.",
+  "objectives": [
+    "Explain the observe-think-act loop and how it enables iterative problem solving in LLM agents",
+    "Design a tool interface (name, description, JSON schema, callable) that an LLM can reliably invoke",
+    "Implement a control loop that parses model output, dispatches tool calls, and feeds observations back into context",
+    "Add termination conditions, step limits, and error handling to keep the loop safe and bounded",
+    "Trace and debug a running agent by inspecting the prompt, tool calls, and observations at each step"
+  ],
+  "quiz": [
+    {
+      "q": "In the observe-think-act loop, what does the 'observe' step do?",
+      "options": [
+        "It asks the model to generate its final answer",
+        "It captures the tool's output and adds it back to the conversation",
+        "It validates the JSON schema of the tool parameters",
+        "It increments the step counter to enforce limits"
+      ],
+      "answer": 1,
+      "why": "Observe means capturing the result of the executed tool and feeding it back into the model's context so it can decide the next step."
+    },
+    {
+      "q": "Which tool field most directly determines whether the model chooses the right tool?",
+      "options": [
+        "The name",
+        "The description",
+        "The return type",
+        "The step limit"
+      ],
+      "answer": 1,
+      "why": "The description acts like a mini-prompt telling the model when the tool should be used; vague descriptions lead to wrong or missed tool selection."
+    },
+    {
+      "q": "Why is max_steps important in an agent loop?",
+      "options": [
+        "It improves the quality of the model's reasoning",
+        "It prevents the loop from running forever if the model gets stuck",
+        "It is required by all LLM APIs",
+        "It removes the need for error handling"
+      ],
+      "answer": 1,
+      "why": "A hard step cap bounds the loop so a confused or looping model can't run indefinitely, controlling cost and risk."
+    },
+    {
+      "q": "What is the recommended way to handle a tool that raises an exception during execution?",
+      "options": [
+        "Crash the program so the developer notices",
+        "Silently ignore it and continue",
+        "Catch it and feed the error back as an observation so the model can recover",
+        "Retry the same call forever until it succeeds"
+      ],
+      "answer": 2,
+      "why": "Returning the error as an observation lets the model adjust its approach instead of crashing the whole agent."
+    },
+    {
+      "q": "Name the pattern that interleaves reasoning traces with tool actions in an agent loop.",
+      "answer": "ReAct",
+      "why": "ReAct (Reasoning + Acting) describes interleaving the model's reasoning with tool actions and observations, which is exactly what the observe-think-act loop implements."
+    },
+    {
+      "q": "In a text-protocol loop, what must your code do every iteration after the model replies?",
+      "answer": "Parse the reply to decide whether it's a tool call or a final answer (and then dispatch the tool or return).",
+      "why": "With a text protocol there's no structured field, so you parse the model's JSON output to distinguish a tool call from a final answer and act accordingly."
+    }
+  ],
+  "resources": [
+    {
+      "label": "ReAct: Synergizing Reasoning and Acting in Language Models (Yao et al., 2022)",
+      "url": "https://arxiv.org/abs/2210.03629"
+    },
+    {
+      "label": "OpenAI Function/Tool Calling Guide",
+      "url": "https://platform.openai.com/docs/guides/function-calling"
+    },
+    {
+      "label": "Anthropic Tool Use Documentation",
+      "url": "https://docs.anthropic.com/en/docs/build-with-claude/tool-use"
+    },
+    {
+      "label": "LangChain Agents Conceptual Guide (for comparison with what frameworks hide)",
+      "url": "https://python.langchain.com/docs/concepts/agents/"
+    }
+  ],
+  "body_markdown": "## Why Build the Loop Yourself?\n\nFrameworks like LangChain or the OpenAI Agents SDK hide a surprisingly small core: a loop that lets a language model *think*, *choose a tool*, *act*, and *observe the result*—repeating until the task is done. Building this loop from scratch makes you a far better agentic engineer because you understand exactly what the model sees, where failures happen, and how to control cost and safety.\n\n## The Observe-Think-Act Loop\n\nAt its heart, an agent is a `while` loop around an LLM call:\n\n1. **Think** – The model reads the task plus the history so far and decides what to do next.\n2. **Act** – If the model requests a tool, we execute that tool with the model's arguments.\n3. **Observe** – We capture the tool's output and append it to the conversation.\n4. **Repeat** – The model now sees the observation and decides the next step.\n5. **Finish** – When the model produces a final answer instead of a tool call, we exit.\n\nThis mirrors the **ReAct** pattern (Reasoning + Acting): interleaving reasoning traces with tool actions so the model can ground its decisions in real-world feedback.\n\n## Anatomy of a Tool\n\nA tool needs four things so the model can use it reliably:\n\n- **name** – a short identifier (`search_web`, `calculator`).\n- **description** – tells the model *when* to use it. This is the most important field; write it like a prompt.\n- **parameters schema** – a JSON Schema describing the arguments. This lets you validate inputs.\n- **callable** – the actual Python function that runs the work.\n\n```python\ntools = {\n    \"calculator\": {\n        \"description\": \"Evaluate a math expression. Input: {\\\"expression\\\": \\\"2+2\\\"}\",\n        \"parameters\": {\"type\": \"object\", \"properties\": {\"expression\": {\"type\": \"string\"}}, \"required\": [\"expression\"]},\n        \"fn\": lambda args: str(eval(args[\"expression\"], {\"__builtins__\": {}}))\n    }\n}\n```\n\n## How the Model Signals a Tool Call\n\nThere are two common mechanisms:\n\n- **Native function/tool calling** – Modern APIs return a structured `tool_calls` field. Preferred: no fragile parsing.\n- **Text-protocol (prompted) calling** – You instruct the model to emit JSON like `{\"action\": \"calculator\", \"action_input\": {...}}` and you parse it. Useful for models without native support.\n\nEither way, your loop must distinguish *\"the model wants to call a tool\"* from *\"the model is giving a final answer.\"*\n\n## A Minimal Loop (Text Protocol)\n\n```python\nimport json\n\nSYSTEM = '''You are an agent. To use a tool, respond with ONLY:\n{\"action\": \"<tool_name>\", \"action_input\": {...}}\nWhen you have the answer, respond with:\n{\"action\": \"final\", \"action_input\": \"<answer>\"}\nAvailable tools: calculator(expression).'''\n\ndef run_agent(task, llm, tools, max_steps=6):\n    messages = [{\"role\": \"system\", \"content\": SYSTEM},\n                {\"role\": \"user\", \"content\": task}]\n    for step in range(max_steps):\n        reply = llm(messages)                 # call your model\n        messages.append({\"role\": \"assistant\", \"content\": reply})\n        try:\n            call = json.loads(reply)\n        except json.JSONDecodeError:\n            return \"Error: model did not return valid JSON\"\n        if call[\"action\"] == \"final\":\n            return call[\"action_input\"]\n        tool = tools.get(call[\"action\"])\n        if not tool:\n            obs = f\"Error: unknown tool {call['action']}\"\n        else:\n            try:\n                obs = tool[\"fn\"](call[\"action_input\"])\n            except Exception as e:\n                obs = f\"Tool error: {e}\"\n        messages.append({\"role\": \"user\", \"content\": f\"Observation: {obs}\"})\n    return \"Stopped: reached max steps\"\n```\n\n## Termination, Limits, and Safety\n\nA production loop must never run forever or do something dangerous:\n\n- **Step limit** (`max_steps`) – a hard cap so a confused model can't loop infinitely.\n- **Final-answer detection** – an explicit `final` action is more reliable than guessing.\n- **Tool error handling** – feed errors back as observations so the model can recover, rather than crashing.\n- **Input validation** – validate arguments against the JSON schema before executing.\n- **Sandboxing** – never `eval` untrusted input in production; use safe evaluators and least-privilege tools.\n\n## Debugging the Loop\n\nThe single best habit: **log every step**—the messages sent, the raw model reply, the parsed tool call, and the observation. Most agent bugs are really *prompt* bugs (the model mis-formats output) or *tool* bugs (bad arguments). Seeing the full trace turns mysterious failures into obvious ones.\n\n## Recap\n\nYou now have the irreducible core of an agent: a bounded loop that lets a model reason, call tools, observe results, and converge on an answer. Everything more advanced—multi-agent systems, planners, memory—builds on this exact pattern.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Build a Single Tool-Using Agent Loop from Scratch",
+      "sub": "LLM Foundations and Tool-Using Agents",
+      "narration": "Welcome. In this lesson we'll build the beating heart of every LLM agent: the observe-think-act loop. By the end you'll be able to write, from scratch, a loop that lets a model choose tools, run them, observe results, and keep going until the task is solved. No magic frameworks—just the core mechanics you need to understand to be a real agentic engineer."
+    },
+    {
+      "type": "content",
+      "title": "What Is an Agent, Really?",
+      "bullets": [
+        "An agent = an LLM wrapped in a control loop",
+        "The loop lets the model take actions and see results",
+        "Frameworks hide this loop; we'll expose it",
+        "Understanding it makes debugging far easier"
+      ],
+      "narration": "Strip away the marketing and an agent is simply a language model placed inside a control loop. On its own, a model just produces text. The loop is what lets it actually do things—run a search, call an API, do math—and then react to what comes back. Frameworks bundle this up, but the core is small enough to build yourself, and doing so pays off every time something breaks."
+    },
+    {
+      "type": "content",
+      "title": "The Observe-Think-Act Loop",
+      "bullets": [
+        "Think: model decides the next action",
+        "Act: we execute the requested tool",
+        "Observe: capture the tool output",
+        "Repeat until the model gives a final answer",
+        "This is the ReAct pattern: reason + act"
+      ],
+      "narration": "Here's the loop. First the model thinks—it reads the task and history and decides what to do. If it wants a tool, we act by running that tool. Then we observe, capturing the output and adding it back to the conversation. The model sees that observation and decides again. We repeat until it produces a final answer instead of a tool call. This interleaving of reasoning and acting is the well-known ReAct pattern."
+    },
+    {
+      "type": "content",
+      "title": "Anatomy of a Tool",
+      "bullets": [
+        "name: short identifier the model calls",
+        "description: tells the model WHEN to use it",
+        "parameters: JSON schema for validation",
+        "fn: the Python callable that does the work"
+      ],
+      "code": "tools = {\n  \"calculator\": {\n    \"description\": \"Evaluate math. {\\\"expression\\\": \\\"2+2\\\"}\",\n    \"parameters\": {\"type\":\"object\",\n      \"properties\":{\"expression\":{\"type\":\"string\"}},\n      \"required\":[\"expression\"]},\n    \"fn\": lambda a: str(eval(a[\"expression\"]))\n  }\n}",
+      "narration": "A tool needs four parts. The name is how the model refers to it. The description is the most important—it's a mini-prompt telling the model when this tool is the right choice. The parameters schema describes the arguments so you can validate them. And the function is the actual code that runs. Spend real effort on descriptions: vague ones lead to the model picking the wrong tool or skipping it entirely."
+    },
+    {
+      "type": "content",
+      "title": "How the Model Requests a Tool",
+      "bullets": [
+        "Native tool calling: structured tool_calls field (preferred)",
+        "Text protocol: model emits JSON you parse",
+        "Loop must tell 'call a tool' from 'final answer'",
+        "Native is robust; text protocol works anywhere"
+      ],
+      "narration": "There are two ways the model signals it wants a tool. Modern APIs support native tool calling, returning a structured field—no fragile parsing, and it's the preferred approach. Alternatively, you instruct the model to emit JSON in its text, and you parse it yourself. That text protocol works with any model. Whichever you use, your loop's key job is to distinguish a tool request from a final answer."
+    },
+    {
+      "type": "content",
+      "title": "A Minimal Loop in Code",
+      "bullets": [
+        "System prompt defines the JSON protocol",
+        "Parse reply: tool call or final?",
+        "Run tool, append 'Observation:' message",
+        "Bounded by max_steps"
+      ],
+      "code": "for step in range(max_steps):\n    reply = llm(messages)\n    call = json.loads(reply)\n    if call[\"action\"] == \"final\":\n        return call[\"action_input\"]\n    obs = tools[call[\"action\"]][\"fn\"](call[\"action_input\"])\n    messages.append({\"role\":\"user\",\n        \"content\": f\"Observation: {obs}\"})",
+      "narration": "Here's the whole loop in a dozen lines. The system prompt defines the JSON protocol the model must follow. Each iteration: call the model, parse its reply. If the action is 'final', we're done. Otherwise we look up the tool, run it with the model's arguments, and append the result as an observation message. The model sees that on the next pass. The for-loop's range gives us a built-in step limit so we never run forever."
+    },
+    {
+      "type": "content",
+      "title": "Termination, Limits & Safety",
+      "bullets": [
+        "max_steps: hard cap against infinite loops",
+        "Explicit 'final' action beats guessing",
+        "Feed tool errors back as observations",
+        "Validate args; never eval untrusted input",
+        "Least-privilege tools and sandboxing"
+      ],
+      "narration": "A loop that can act in the world must be bounded and safe. Always set a step limit so a confused model can't loop forever. Use an explicit final-answer signal rather than guessing when the model is done. When a tool throws an error, catch it and feed the message back as an observation so the model can recover instead of crashing. Validate arguments against the schema, and never run untrusted input through eval in production—use safe evaluators and give each tool the least privilege it needs."
+    },
+    {
+      "type": "content",
+      "title": "Debugging: Log Everything",
+      "bullets": [
+        "Log messages sent, raw reply, parsed call, observation",
+        "Most bugs are prompt bugs or tool bugs",
+        "A full trace makes failures obvious",
+        "Inspect what the model actually sees"
+      ],
+      "narration": "The single most valuable habit in agent engineering is logging every step: the messages you send, the raw model reply, the parsed tool call, and the observation returned. Almost every bug is either a prompt bug—the model mis-formats its output—or a tool bug—bad arguments or a broken function. When you can see the entire trace, mysterious failures become obvious. Build this visibility in from day one."
+    },
+    {
+      "type": "content",
+      "title": "Recap & What's Next",
+      "bullets": [
+        "You built the irreducible core of an agent",
+        "Think -> Act -> Observe -> repeat, bounded & safe",
+        "Tools = name, description, schema, callable",
+        "Next: multi-tool agents, planning, and memory"
+      ],
+      "narration": "You now have the irreducible core of an agent: a bounded loop that lets a model reason, call tools, observe results, and converge on an answer. You've seen how to define tools, how the model signals calls, how to keep the loop safe, and how to debug it. Everything more advanced—multiple tools, planners, memory, multi-agent systems—is built directly on this exact pattern. Next up, we'll scale this to richer toolsets and smarter control."
+    }
+  ]
+}

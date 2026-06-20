@@ -1,0 +1,177 @@
+{
+  "slug": "dsc-m3-l02-model-evaluation-and-validation",
+  "title": "Model Evaluation and Validation",
+  "month": 3,
+  "monthTitle": "Machine Learning in Practice",
+  "lesson": 2,
+  "video": "dsc-m3-l02-model-evaluation-and-validation.mp4",
+  "summary": "Learn to measure model performance honestly using train-test splits, cross-validation, and the right metrics so you can detect and prevent overfitting before deploying to production.",
+  "objectives": [
+    "Explain why a held-out test set is essential and how data leakage undermines evaluation",
+    "Apply train-test splits and k-fold cross-validation correctly in scikit-learn",
+    "Select appropriate metrics (accuracy, precision, recall, F1, ROC-AUC) for a given problem",
+    "Interpret ROC and precision-recall curves to compare classifiers",
+    "Diagnose overfitting vs underfitting using train/validation performance gaps",
+    "Use stratification and pipelines to avoid common validation mistakes"
+  ],
+  "quiz": [
+    {
+      "q": "Why is stratification important when splitting data for classification?",
+      "options": [
+        "It speeds up model training",
+        "It preserves the class proportions in each split",
+        "It removes outliers automatically",
+        "It scales the features"
+      ],
+      "answer": 1,
+      "why": "Stratification keeps the same class balance in train and test sets, which is especially important for imbalanced datasets so each split is representative."
+    },
+    {
+      "q": "A model scores 0.98 on training data but 0.71 on the validation set. This indicates:",
+      "options": [
+        "Underfitting",
+        "Overfitting",
+        "Perfect generalization",
+        "Data leakage from test to train"
+      ],
+      "answer": 1,
+      "why": "A large gap between high training performance and lower validation performance is the classic signature of overfitting."
+    },
+    {
+      "q": "Which metric is most misleading on a heavily imbalanced dataset?",
+      "options": [
+        "Recall",
+        "Precision",
+        "Accuracy",
+        "ROC-AUC"
+      ],
+      "answer": 2,
+      "why": "Accuracy can be very high simply by predicting the majority class, hiding poor performance on the minority class."
+    },
+    {
+      "q": "What does an ROC-AUC of 0.5 mean?",
+      "options": [
+        "Perfect classifier",
+        "Random guessing",
+        "High precision",
+        "Severe overfitting"
+      ],
+      "answer": 1,
+      "why": "An AUC of 0.5 means the model performs no better than random chance at ranking positives above negatives."
+    },
+    {
+      "q": "In one sentence, why should preprocessing be inside a cross-validation pipeline?",
+      "answer": "So that transformations like scaling are fit only on training folds, preventing data leakage and giving honest performance estimates.",
+      "why": "Fitting preprocessing on the full dataset lets information from validation folds leak into training, inflating scores."
+    },
+    {
+      "q": "Name a situation where recall should be prioritized over precision.",
+      "answer": "Fraud or disease detection, where missing a true positive is far costlier than a false alarm.",
+      "why": "When false negatives carry high cost, maximizing recall ensures more true positives are caught even at the expense of some false positives."
+    }
+  ],
+  "resources": [
+    {
+      "label": "scikit-learn: Cross-validation guide",
+      "url": "https://scikit-learn.org/stable/modules/cross_validation.html"
+    },
+    {
+      "label": "scikit-learn: Model evaluation metrics",
+      "url": "https://scikit-learn.org/stable/modules/model_evaluation.html"
+    },
+    {
+      "label": "Google ML Crash Course: Classification (ROC & AUC)",
+      "url": "https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc"
+    }
+  ],
+  "body_markdown": "## Why Evaluation Matters\n\nA model that scores 99% on the data it was trained on may be useless on new data. The whole point of machine learning is **generalization** — performing well on data the model has never seen. Honest evaluation is how we estimate that future performance before committing to production.\n\n## Train-Test Split\n\nThe simplest approach: hold out a portion of data (commonly 20-30%) that the model never sees during training. We train on the rest and evaluate on the held-out test set.\n\n```python\nfrom sklearn.model_selection import train_test_split\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.2, random_state=42, stratify=y)\n```\n\n- `random_state` makes the split reproducible.\n- `stratify=y` preserves class proportions — critical for imbalanced data.\n\n**Never** let test data influence training, feature scaling, or feature selection. That is **data leakage** and produces overly optimistic scores.\n\n## Cross-Validation\n\nA single split can be lucky or unlucky. **K-fold cross-validation** splits data into k parts, trains on k-1 and validates on the remaining fold, rotating through all folds and averaging the results.\n\n```python\nfrom sklearn.model_selection import cross_val_score\nscores = cross_val_score(model, X, y, cv=5, scoring='roc_auc')\nprint(scores.mean(), scores.std())\n```\n\n- Use **StratifiedKFold** for classification to keep class balance per fold.\n- More folds = lower bias, higher variance and cost. 5 or 10 are typical.\n- For time-series, use `TimeSeriesSplit` — never shuffle temporal data.\n\n## Choosing Metrics\n\n**Accuracy** = correct predictions / total. It is misleading when classes are imbalanced (99% accuracy by always predicting the majority class).\n\nFor classification, use the **confusion matrix** to derive:\n\n- **Precision** = TP / (TP + FP) — of predicted positives, how many were right.\n- **Recall (sensitivity)** = TP / (TP + FN) — of actual positives, how many we caught.\n- **F1** = harmonic mean of precision and recall.\n\nThe choice depends on cost: fraud detection prioritizes recall; spam filtering may prioritize precision.\n\n## ROC-AUC\n\nThe **ROC curve** plots true positive rate vs false positive rate across all classification thresholds. The **AUC** (area under the curve) summarizes it in one number:\n\n- 0.5 = random guessing, 1.0 = perfect.\n- AUC is threshold-independent and robust to class proportion shifts.\n- For heavily imbalanced data, the **precision-recall curve (PR-AUC)** is often more informative.\n\n```python\nfrom sklearn.metrics import roc_auc_score, roc_curve\ny_proba = model.predict_proba(X_test)[:, 1]\nprint(roc_auc_score(y_test, y_proba))\n```\n\n## Diagnosing Over/Underfitting\n\n- **Overfitting**: high training score, much lower validation score. Fix with more data, regularization, simpler models, or fewer features.\n- **Underfitting**: low scores on both. Fix with more complex models or better features.\n- A **validation curve** or **learning curve** visualizes these gaps.\n\n## Pipelines Prevent Leakage\n\nWrap preprocessing and the model in a `Pipeline` so transformations are fit only on training folds during cross-validation.\n\n```python\nfrom sklearn.pipeline import make_pipeline\nfrom sklearn.preprocessing import StandardScaler\npipe = make_pipeline(StandardScaler(), model)\ncross_val_score(pipe, X, y, cv=5, scoring='roc_auc')\n```\n\nThis ensures the scaler never sees validation data, giving trustworthy estimates.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Model Evaluation and Validation",
+      "sub": "Measuring performance and avoiding overfitting",
+      "narration": "Welcome. In this lesson we'll learn how to honestly measure how well a machine learning model performs, using train-test splits, cross-validation, and the right metrics — so we can catch overfitting before it reaches production."
+    },
+    {
+      "type": "content",
+      "title": "Why We Evaluate",
+      "bullets": [
+        "Goal of ML is generalization to unseen data",
+        "Training accuracy can be misleadingly high",
+        "Honest evaluation estimates future performance",
+        "Bad evaluation leads to costly production failures"
+      ],
+      "narration": "A model that memorizes its training data may score perfectly on it yet fail completely on new data. The whole point of machine learning is generalization. Proper evaluation gives us a realistic estimate of how the model will perform in the real world, before we commit resources to deploying it."
+    },
+    {
+      "type": "content",
+      "title": "Train-Test Split",
+      "bullets": [
+        "Hold out 20-30% the model never sees in training",
+        "random_state makes splits reproducible",
+        "stratify preserves class balance",
+        "Test data must never touch training or preprocessing"
+      ],
+      "code": "X_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.2, random_state=42, stratify=y)",
+      "narration": "The simplest method is to set aside a test set. We train on the majority and evaluate on the untouched remainder. Use random_state for reproducibility and stratify to keep class proportions consistent. Critically, the test set must never influence training, scaling, or feature selection — otherwise you get data leakage and inflated scores."
+    },
+    {
+      "type": "content",
+      "title": "Cross-Validation",
+      "bullets": [
+        "Single split can be lucky or unlucky",
+        "K-fold rotates train/validation across all data",
+        "Use StratifiedKFold for classification",
+        "5 or 10 folds are common; TimeSeriesSplit for temporal data"
+      ],
+      "code": "scores = cross_val_score(model, X, y, cv=5, scoring='roc_auc')\nprint(scores.mean(), scores.std())",
+      "narration": "A single split can mislead by chance. K-fold cross-validation splits the data into k parts, trains on k minus one and validates on the rest, rotating through every fold and averaging. This gives a more stable estimate plus a measure of variance. Use stratified folds for classification, and never shuffle time-series data — use TimeSeriesSplit instead."
+    },
+    {
+      "type": "content",
+      "title": "Classification Metrics",
+      "bullets": [
+        "Accuracy misleads on imbalanced data",
+        "Precision: of predicted positives, how many correct",
+        "Recall: of actual positives, how many caught",
+        "F1 balances precision and recall"
+      ],
+      "narration": "Accuracy alone is dangerous when classes are imbalanced — you can score 99% by always predicting the majority. Instead, use the confusion matrix to compute precision and recall. Precision answers how trustworthy our positive predictions are; recall answers how many real positives we found. The F1 score balances both. The right metric depends on the cost of each error type."
+    },
+    {
+      "type": "content",
+      "title": "ROC-AUC",
+      "bullets": [
+        "ROC plots true positive vs false positive rate",
+        "AUC summarizes across all thresholds",
+        "0.5 = random, 1.0 = perfect",
+        "Use PR-AUC for heavily imbalanced data"
+      ],
+      "code": "y_proba = model.predict_proba(X_test)[:, 1]\nroc_auc_score(y_test, y_proba)",
+      "narration": "The ROC curve shows the tradeoff between true and false positive rates across every threshold, and AUC condenses it into one number. An AUC of 0.5 is random guessing and 1.0 is perfect. AUC is threshold-independent, but for highly imbalanced problems the precision-recall curve and its area are usually more informative."
+    },
+    {
+      "type": "content",
+      "title": "Over vs Underfitting",
+      "bullets": [
+        "Overfit: high train score, low validation score",
+        "Underfit: low scores on both",
+        "Fix overfit with regularization, more data, simpler models",
+        "Use learning/validation curves to diagnose"
+      ],
+      "narration": "Compare training and validation performance. A big gap — great on training, poor on validation — signals overfitting; combat it with regularization, more data, or simpler models. Low scores everywhere mean underfitting; add complexity or better features. Learning and validation curves make these patterns visible."
+    },
+    {
+      "type": "content",
+      "title": "Pipelines Prevent Leakage",
+      "bullets": [
+        "Wrap preprocessing and model together",
+        "Scaler fits only on training folds",
+        "Ensures trustworthy cross-validation scores",
+        "make_pipeline keeps code clean"
+      ],
+      "code": "pipe = make_pipeline(StandardScaler(), model)\ncross_val_score(pipe, X, y, cv=5, scoring='roc_auc')",
+      "narration": "A subtle leakage source is fitting your scaler or imputer on the whole dataset before cross-validation. Wrap preprocessing and the model in a Pipeline so each transformation is fit only on the training portion of every fold. This gives you honest, leak-free performance estimates and cleaner, production-ready code."
+    }
+  ]
+}

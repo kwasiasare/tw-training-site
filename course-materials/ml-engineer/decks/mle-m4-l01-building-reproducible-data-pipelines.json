@@ -1,0 +1,184 @@
+{
+  "slug": "mle-m4-l01-building-reproducible-data-pipelines",
+  "title": "Building Reproducible Data Pipelines",
+  "month": 4,
+  "monthTitle": "Production ML: Pipelines, Evaluation, and Capstone",
+  "lesson": 1,
+  "video": "mle-m4-l01-building-reproducible-data-pipelines.mp4",
+  "summary": "Learn to construct automated, versioned data pipelines that reliably ingest, transform, validate, and serve data into training workflows—making your ML systems reproducible from raw source to trained model.",
+  "objectives": [
+    "Explain why reproducibility matters in production ML and identify the components that must be versioned",
+    "Design a modular pipeline with ingestion, transformation, validation, and serving stages",
+    "Apply data and code versioning using tools like DVC and Git to make runs reproducible",
+    "Implement data validation and schema checks to catch issues before training",
+    "Orchestrate pipeline steps with a DAG-based tool and parameterize runs via configuration",
+    "Connect pipeline outputs to training workflows with deterministic, traceable artifacts"
+  ],
+  "quiz": [
+    {
+      "q": "What does it mean for a pipeline stage to be idempotent?",
+      "options": [
+        "It runs faster each time it executes",
+        "Running it multiple times with the same inputs yields the same output",
+        "It automatically retries on failure",
+        "It encrypts its output data"
+      ],
+      "answer": 1,
+      "why": "Idempotency means repeated execution on identical inputs produces identical outputs, which is essential for reproducibility and safe re-runs."
+    },
+    {
+      "q": "In DVC, what is stored in Git versus remote storage?",
+      "options": [
+        "Both data and code go to Git",
+        "Lightweight pointer files go to Git; actual data goes to remote storage",
+        "Data goes to Git; pointers go to remote storage",
+        "Everything is stored only in remote storage"
+      ],
+      "answer": 1,
+      "why": "DVC commits small .dvc pointer files to Git while pushing the large actual data files to remote object storage like S3 or GCS."
+    },
+    {
+      "q": "Why should random seeds be set and recorded in a data pipeline?",
+      "options": [
+        "To make the pipeline run faster",
+        "To make stochastic steps like splitting reproducible",
+        "To encrypt the dataset",
+        "To reduce memory usage"
+      ],
+      "answer": 1,
+      "why": "Recording seeds ensures stochastic operations such as train/test splits produce the same results across runs, preserving reproducibility."
+    },
+    {
+      "q": "What is the purpose of data validation before transformation/training?",
+      "options": [
+        "To compress the data",
+        "To fail fast and catch schema or quality issues before training on bad data",
+        "To version the data automatically",
+        "To speed up model inference"
+      ],
+      "answer": 1,
+      "why": "Validation enforces expectations on schema, types, and ranges so the pipeline stops loudly instead of silently training on corrupt data."
+    },
+    {
+      "q": "Name one thing (besides code) that must be versioned to achieve full reproducibility.",
+      "answer": "Data (or configuration/parameters, or the environment/dependencies)",
+      "why": "Reproducibility requires versioning code, data, configuration, and environment together—any of data, config, or environment is a valid answer."
+    },
+    {
+      "q": "Why does DVC only re-run stages whose dependencies or parameters changed?",
+      "answer": "It uses caching to skip unchanged stages, saving time while keeping outputs reproducible and traceable.",
+      "why": "DVC tracks deps, params, and outs per stage, so it recomputes only what changed, combining efficient caching with deterministic reproducibility."
+    }
+  ],
+  "resources": [
+    {
+      "label": "DVC Documentation — Data Version Control",
+      "url": "https://dvc.org/doc"
+    },
+    {
+      "label": "Great Expectations — Data Validation",
+      "url": "https://docs.greatexpectations.io"
+    },
+    {
+      "label": "Pandera — Statistical Data Validation for pandas",
+      "url": "https://pandera.readthedocs.io"
+    },
+    {
+      "label": "MLflow — Tracking and Lineage",
+      "url": "https://mlflow.org/docs/latest/index.html"
+    }
+  ],
+  "body_markdown": "## Why Reproducible Data Pipelines Matter\n\nIn production ML, a model is only as trustworthy as the data that produced it. If you cannot recreate the exact dataset, transformations, and parameters that generated a model, you cannot debug regressions, satisfy audits, or safely retrain. **Reproducibility** means that given the same inputs and code, you get the same outputs—every time.\n\nA reproducible pipeline versions four things together:\n\n- **Code** (transformation logic) via Git\n- **Data** (raw and processed) via a data versioning tool\n- **Configuration** (parameters, paths, hyperparameters) via config files\n- **Environment** (dependencies) via lockfiles or containers\n\n## Anatomy of a Data Pipeline\n\nA typical pipeline is a directed acyclic graph (DAG) of stages:\n\n1. **Ingestion** — pull raw data from sources (databases, APIs, object storage). Capture a snapshot or a queryable version.\n2. **Validation** — check schema, types, ranges, null rates, and distribution drift before proceeding.\n3. **Transformation** — clean, join, engineer features. Keep this deterministic (avoid `now()`, unseeded randomness).\n4. **Splitting** — produce train/validation/test sets with fixed seeds and stable keys.\n5. **Serving** — write versioned artifacts (feature tables, TFRecords, parquet) that training consumes.\n\nEach stage should be **idempotent**: running it twice with the same inputs yields the same output.\n\n## Versioning Data with DVC\n\n[DVC](https://dvc.org) tracks large data files alongside Git. It stores lightweight `.dvc` pointer files in Git and pushes the actual data to remote storage (S3, GCS, etc.).\n\n```bash\n# Track a raw dataset\ndvc add data/raw/transactions.csv\ngit add data/raw/transactions.csv.dvc .gitignore\ngit commit -m \"Add raw transactions v1\"\n\n# Push data to remote\ndvc remote add -d storage s3://my-bucket/dvcstore\ndvc push\n```\n\nNow a teammate runs `git checkout <commit> && dvc pull` to retrieve the *exact* data tied to that code version.\n\n## Defining Pipeline Stages\n\nDVC pipelines (or tools like Airflow, Prefect, Kubeflow) let you declare stages with explicit dependencies and outputs. With DVC's `dvc.yaml`:\n\n```yaml\nstages:\n  transform:\n    cmd: python src/transform.py\n    deps:\n      - src/transform.py\n      - data/raw/transactions.csv\n    params:\n      - transform.fillna_strategy\n    outs:\n      - data/processed/features.parquet\n  split:\n    cmd: python src/split.py\n    deps:\n      - data/processed/features.parquet\n    params:\n      - split.test_size\n      - split.seed\n    outs:\n      - data/splits/\n```\n\nRun the whole graph with `dvc repro`. DVC re-executes only stages whose dependencies or params changed—this gives caching plus reproducibility.\n\n## Parameterizing with Configuration\n\nKeep all tunable values in a `params.yaml` rather than hardcoding them. This makes runs explicit and diffable.\n\n```yaml\ntransform:\n  fillna_strategy: median\nsplit:\n  test_size: 0.2\n  seed: 42\n```\n\nChanging `seed` or `test_size` produces a new, tracked pipeline run. Always set and record random seeds.\n\n## Data Validation\n\nValidate data before it flows downstream. Libraries like Great Expectations or Pandera define expectations:\n\n```python\nimport pandera as pa\nfrom pandera import Column, Check\n\nschema = pa.DataFrameSchema({\n    \"amount\": Column(float, Check.greater_than(0)),\n    \"customer_id\": Column(int, nullable=False),\n    \"category\": Column(str, Check.isin([\"a\", \"b\", \"c\"])),\n})\n\nvalidated = schema.validate(df)  # raises on violation\n```\n\nFail fast: a broken schema should stop the pipeline rather than silently train on garbage.\n\n## Connecting to Training\n\nTraining reads versioned artifacts and records which data version it used (the Git commit / DVC hash). Log this into your experiment tracker (MLflow, W&B) so every model links back to its exact dataset. This closes the loop: model → params → data → raw source.\n\n## Best Practices\n\n- Make every stage **deterministic and idempotent**.\n- Never mutate raw data in place; treat it as immutable.\n- Store config separate from code; record seeds.\n- Validate early and fail loudly.\n- Tie model artifacts to data + code versions for full lineage.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Building Reproducible Data Pipelines",
+      "sub": "Production ML: Pipelines, Evaluation, and Capstone",
+      "narration": "Welcome. In this lesson we'll build automated, versioned data pipelines that reliably feed your training workflows. The goal is reproducibility: being able to recreate any dataset and model exactly, from raw source to trained artifact."
+    },
+    {
+      "type": "content",
+      "title": "Why Reproducibility Matters",
+      "bullets": [
+        "A model is only as trustworthy as the data behind it",
+        "Reproducibility = same inputs + same code → same outputs",
+        "Needed to debug regressions, pass audits, and retrain safely",
+        "Version four things: code, data, config, and environment"
+      ],
+      "narration": "In production, you must be able to recreate the exact dataset, transformations, and parameters that produced a model. Without that you cannot debug a regression, satisfy an audit, or retrain confidently. Reproducibility means the same inputs and code always yield the same outputs. To achieve it, we version four things together: the code that transforms data, the data itself, the configuration, and the environment of dependencies."
+    },
+    {
+      "type": "content",
+      "title": "Anatomy of a Pipeline",
+      "bullets": [
+        "Ingestion: pull and snapshot raw data",
+        "Validation: check schema, types, ranges, drift",
+        "Transformation: clean, join, engineer features deterministically",
+        "Splitting: fixed seeds and stable keys",
+        "Serving: write versioned artifacts for training"
+      ],
+      "narration": "A pipeline is a directed acyclic graph of stages. First, ingestion pulls raw data and captures a snapshot. Then validation checks schema and quality before anything proceeds. Transformation cleans and engineers features—keep it deterministic, so avoid things like current timestamps or unseeded randomness. Splitting produces train, validation, and test sets with fixed seeds. Finally, serving writes versioned artifacts that training consumes. Every stage should be idempotent: run it twice on the same input, get the same output."
+    },
+    {
+      "type": "content",
+      "title": "Versioning Data with DVC",
+      "bullets": [
+        "DVC stores lightweight pointer files in Git",
+        "Actual data lives in remote storage (S3, GCS)",
+        "`dvc add` tracks files, `dvc push` uploads them",
+        "`git checkout` + `dvc pull` recreates exact data",
+        "Couples a data version to a code commit"
+      ],
+      "code": "dvc add data/raw/transactions.csv\ngit commit -m \"Add raw transactions v1\"\ndvc remote add -d storage s3://my-bucket/dvcstore\ndvc push",
+      "narration": "DVC lets us version large data alongside code. It stores tiny pointer files in Git while the real data goes to remote object storage. You run dvc add to track a file, commit the pointer, and dvc push to upload. Later, a teammate checks out a commit and runs dvc pull to get the exact data tied to that code version. This coupling of data and code is the heart of reproducibility."
+    },
+    {
+      "type": "content",
+      "title": "Defining Pipeline Stages",
+      "bullets": [
+        "Declare stages with deps, params, and outs in dvc.yaml",
+        "`dvc repro` runs the full DAG",
+        "Only re-runs stages whose inputs changed",
+        "Gives caching plus guaranteed reproducibility"
+      ],
+      "code": "stages:\n  transform:\n    cmd: python src/transform.py\n    deps: [src/transform.py, data/raw/transactions.csv]\n    params: [transform.fillna_strategy]\n    outs: [data/processed/features.parquet]",
+      "narration": "We declare each stage with its command, its dependencies, the parameters it reads, and the outputs it produces. Running dvc repro executes the whole graph, but DVC is smart: it only re-runs stages whose dependencies or parameters actually changed. That gives you both caching for speed and a fully reproducible, traceable execution graph. The same idea applies in Airflow, Prefect, or Kubeflow."
+    },
+    {
+      "type": "content",
+      "title": "Parameterize with Config",
+      "bullets": [
+        "Keep tunable values in params.yaml, not hardcoded",
+        "Configs are diffable and explicit per run",
+        "Always set and record random seeds",
+        "Changing a param creates a new tracked run"
+      ],
+      "code": "transform:\n  fillna_strategy: median\nsplit:\n  test_size: 0.2\n  seed: 42",
+      "narration": "Never hardcode tunable values. Put them in a params file that DVC tracks. This makes every run explicit and diffable—you can see exactly what changed between runs. Critically, set and record random seeds so splits and any stochastic steps are reproducible. Changing a parameter like the seed or test size produces a new, tracked pipeline run."
+    },
+    {
+      "type": "content",
+      "title": "Validate Your Data",
+      "bullets": [
+        "Check schema, types, ranges, null rates before training",
+        "Use Great Expectations or Pandera",
+        "Fail fast: stop the pipeline on violations",
+        "Prevents silently training on corrupt data"
+      ],
+      "code": "schema = pa.DataFrameSchema({\n  \"amount\": Column(float, Check.greater_than(0)),\n  \"customer_id\": Column(int, nullable=False),\n})\nschema.validate(df)",
+      "narration": "Validate data before it flows downstream. Tools like Great Expectations or Pandera let you declare expectations about types, ranges, nullability, and allowed values. The key principle is fail fast: a schema violation should halt the pipeline loudly rather than let you silently train a model on garbage data. This catches upstream data problems before they become model problems."
+    },
+    {
+      "type": "content",
+      "title": "Connecting to Training & Best Practices",
+      "bullets": [
+        "Training records the data version it used (commit/hash)",
+        "Log lineage into MLflow or W&B",
+        "Treat raw data as immutable—never mutate in place",
+        "Make stages deterministic and idempotent",
+        "Tie every model back to data + code + config"
+      ],
+      "narration": "Finally, close the loop. Training reads the versioned artifacts and logs which data version it used into an experiment tracker like MLflow or Weights and Biases. Now every model links back to its exact dataset, parameters, and raw source. Remember the best practices: keep raw data immutable, make every stage deterministic and idempotent, separate config from code, validate early, and maintain full lineage from model to source. That's a reproducible pipeline."
+    }
+  ]
+}

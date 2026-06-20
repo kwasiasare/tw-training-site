@@ -1,0 +1,192 @@
+{
+  "slug": "age-m1-l01-calling-llm-apis-in-python-completions-chat-and-",
+  "title": "Calling LLM APIs in Python: Completions, Chat, and Structured Output",
+  "month": 1,
+  "monthTitle": "LLM Foundations and Tool-Using Agents",
+  "lesson": 1,
+  "video": "age-m1-l01-calling-llm-apis-in-python-completions-chat-and-.mp4",
+  "summary": "A hands-on lesson on calling LLM APIs from Python. You'll set up a clean environment, make your first chat completion request, understand the difference between legacy completions and the chat API, and learn to force reliable, schema-validated JSON output using structured output and Pydantic.",
+  "objectives": [
+    "Set up a Python environment with API keys managed securely via environment variables",
+    "Distinguish between legacy text completions and the modern chat completions API",
+    "Make chat completion requests and control behavior with parameters like temperature and max_tokens",
+    "Generate structured JSON output and validate it against a schema using Pydantic",
+    "Implement basic error handling and retries for robust production calls"
+  ],
+  "quiz": [
+    {
+      "q": "Which API should you use for modern instruction-tuned models?",
+      "options": [
+        "The legacy completions API",
+        "The chat completions API",
+        "The embeddings API",
+        "The fine-tuning API"
+      ],
+      "answer": 1,
+      "why": "The chat completions API uses role-based messages and is the standard for modern models; legacy completions is largely deprecated."
+    },
+    {
+      "q": "What is the best way to store your API key?",
+      "options": [
+        "Hard-coded in the script",
+        "In a .env file loaded as an environment variable",
+        "In a public GitHub repo",
+        "Passed as a command-line argument every time"
+      ],
+      "answer": 1,
+      "why": "Storing keys in a gitignored .env file and loading them as environment variables keeps secrets out of source code."
+    },
+    {
+      "q": "What does passing a Pydantic model as response_format give you?",
+      "options": [
+        "A raw text string",
+        "Valid JSON syntax but an unknown shape",
+        "An already-validated Python object matching your schema",
+        "Faster inference"
+      ],
+      "answer": 2,
+      "why": "Schema-enforced structured output returns a parsed, validated instance of your model with exactly the fields you defined."
+    },
+    {
+      "q": "Which temperature setting is most appropriate for reliable structured output?",
+      "options": [
+        "A low value near 0",
+        "A high value near 2",
+        "It has no effect on structure",
+        "Always exactly 1.0"
+      ],
+      "answer": 0,
+      "why": "Low temperature makes output more deterministic and consistent, which is preferable for structured, parseable tasks."
+    },
+    {
+      "q": "Name the strategy you should wrap API calls in to handle rate limits and transient failures.",
+      "answer": "Exponential backoff with retries",
+      "why": "Retrying with exponentially increasing wait times handles rate limits and transient errors gracefully before failing loudly."
+    },
+    {
+      "q": "What does Pydantic's model_validate_json raise when data does not match the schema?",
+      "answer": "ValidationError",
+      "why": "It raises a ValidationError, which you can catch to retry or repair instead of letting bad data flow downstream silently."
+    }
+  ],
+  "resources": [
+    {
+      "label": "OpenAI Python SDK documentation",
+      "url": "https://github.com/openai/openai-python"
+    },
+    {
+      "label": "OpenAI Structured Outputs guide",
+      "url": "https://platform.openai.com/docs/guides/structured-outputs"
+    },
+    {
+      "label": "Pydantic documentation",
+      "url": "https://docs.pydantic.dev/latest/"
+    },
+    {
+      "label": "python-dotenv documentation",
+      "url": "https://pypi.org/project/python-dotenv/"
+    }
+  ],
+  "body_markdown": "## Why API calls are the foundation of agents\n\nEvery LLM agent, no matter how sophisticated, ultimately rests on one operation: sending a request to a model and parsing its response. Before you build tool-using loops or multi-agent systems, you must be able to call an LLM reliably and get back data your code can trust. This lesson focuses on that primitive.\n\n## Setting up your environment\n\nIsolate dependencies in a virtual environment and never hard-code secrets.\n\n```bash\npython -m venv .venv\nsource .venv/bin/activate   # Windows: .venv\\Scripts\\activate\npip install openai pydantic python-dotenv\n```\n\nStore your key in a `.env` file (and add `.env` to `.gitignore`):\n\n```\nOPENAI_API_KEY=sk-...\n```\n\nLoad it in Python:\n\n```python\nfrom dotenv import load_dotenv\nfrom openai import OpenAI\n\nload_dotenv()\nclient = OpenAI()  # reads OPENAI_API_KEY from the environment\n```\n\n## Completions vs. chat\n\nThe **legacy completions** API takes a single text prompt and returns a continuation. It is largely deprecated. The **chat completions** API takes a list of messages with roles (`system`, `user`, `assistant`) and is the standard for modern instruction-tuned models. Always prefer chat.\n\n```python\nresp = client.chat.completions.create(\n    model=\"gpt-4o-mini\",\n    messages=[\n        {\"role\": \"system\", \"content\": \"You are a concise assistant.\"},\n        {\"role\": \"user\", \"content\": \"Name three uses of vector databases.\"},\n    ],\n    temperature=0.2,\n)\nprint(resp.choices[0].message.content)\n```\n\n### Key parameters\n- **model**: which model to call.\n- **messages**: the conversation history; the `system` message sets behavior.\n- **temperature**: 0 = deterministic, higher = more creative. Use low values for structured tasks.\n- **max_tokens**: cap on the response length.\n\n## Getting reliable structured output\n\nFree-form text is hard for code to consume. For agents you usually want JSON. Three escalating techniques:\n\n1. **Prompt for JSON** — ask the model to reply in JSON. Cheap but unreliable.\n2. **JSON mode** — pass `response_format={\"type\": \"json_object\"}` to guarantee valid JSON syntax (but not a specific shape).\n3. **Schema-enforced structured output** — supply a JSON schema (or a Pydantic model) so the model conforms to your exact fields.\n\n```python\nfrom pydantic import BaseModel\n\nclass Movie(BaseModel):\n    title: str\n    year: int\n    genres: list[str]\n\nresp = client.beta.chat.completions.parse(\n    model=\"gpt-4o-mini\",\n    messages=[{\"role\": \"user\", \"content\": \"Give details for the film Inception.\"}],\n    response_format=Movie,\n)\nmovie = resp.choices[0].message.parsed  # already a validated Movie instance\nprint(movie.year)  # 2010\n```\n\n## Validating output yourself\n\nEven when you only get a JSON string, validate before trusting it. Pydantic turns malformed data into a catchable error instead of a silent bug downstream.\n\n```python\nimport json\nfrom pydantic import ValidationError\n\ntry:\n    data = Movie.model_validate_json(raw_json_string)\nexcept ValidationError as e:\n    # log, retry, or repair\n    print(e)\n```\n\n## Error handling and retries\n\nNetwork calls fail. Wrap requests to handle rate limits and transient errors with exponential backoff.\n\n```python\nimport time\nfrom openai import RateLimitError, APIError\n\ndef call_with_retry(**kwargs):\n    for attempt in range(5):\n        try:\n            return client.chat.completions.create(**kwargs)\n        except (RateLimitError, APIError):\n            time.sleep(2 ** attempt)\n    raise RuntimeError(\"LLM call failed after retries\")\n```\n\n## Putting it together\n\nA production-grade call: load secrets from env, use the chat API with a low temperature, request schema-validated output, wrap in retry logic, and validate the parsed object before using it. This pattern is the reliable building block every agent in later lessons depends on.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Calling LLM APIs in Python",
+      "sub": "Completions, Chat, and Structured Output",
+      "narration": "Welcome. In this lesson we'll build the most fundamental skill of an agentic AI engineer: reliably calling an LLM API from Python and getting back data your code can trust. Everything we do in later modules sits on top of this primitive."
+    },
+    {
+      "type": "content",
+      "title": "Set up a clean environment",
+      "bullets": [
+        "Create a virtual environment to isolate dependencies",
+        "Install openai, pydantic, and python-dotenv",
+        "Store secrets in a .env file, never in code",
+        "Load keys with load_dotenv() at startup"
+      ],
+      "code": "python -m venv .venv\npip install openai pydantic python-dotenv",
+      "narration": "Start by isolating your project in a virtual environment and installing the core libraries. Critically, keep your API key in a dot-env file and add it to gitignore. Hard-coding secrets is the number one way teams leak credentials. The OpenAI client automatically reads the key from your environment, so once it's loaded you never touch it directly."
+    },
+    {
+      "type": "content",
+      "title": "Completions vs. Chat",
+      "bullets": [
+        "Legacy completions: single text prompt, mostly deprecated",
+        "Chat completions: list of role-based messages",
+        "System message sets behavior and constraints",
+        "Always prefer the chat API for modern models"
+      ],
+      "narration": "There are two API families. The legacy completions endpoint takes one text prompt and continues it; it's effectively obsolete. The chat completions API takes a list of messages tagged with roles like system, user, and assistant. The system message is where you define the assistant's behavior. For all modern instruction-tuned models, use chat."
+    },
+    {
+      "type": "content",
+      "title": "Making your first chat call",
+      "bullets": [
+        "create() with model and messages",
+        "temperature controls randomness; use low for structured tasks",
+        "max_tokens caps the response length",
+        "Read the text from choices[0].message.content"
+      ],
+      "code": "resp = client.chat.completions.create(\n  model=\"gpt-4o-mini\",\n  messages=[{\"role\":\"user\",\"content\":\"Hello\"}],\n  temperature=0.2,\n)",
+      "narration": "Here's the core call. You pass a model name and your messages list. Temperature controls creativity: set it near zero when you need deterministic, structured answers, and higher for brainstorming. Max tokens bounds the output. The generated text lives in choices, index zero, message, content."
+    },
+    {
+      "type": "content",
+      "title": "Why structured output matters",
+      "bullets": [
+        "Free-form text is hard for code to parse reliably",
+        "Agents need predictable fields to act on",
+        "Three levels: prompt-for-JSON, JSON mode, schema-enforced",
+        "Schema enforcement gives you the exact shape you want"
+      ],
+      "narration": "Agents make decisions based on model output, so unpredictable text breaks them. We want JSON with known fields. There are three escalating techniques: simply asking for JSON, which is unreliable; JSON mode, which guarantees valid syntax but not shape; and schema-enforced structured output, which forces the model to match your exact fields."
+    },
+    {
+      "type": "content",
+      "title": "Structured output with Pydantic",
+      "bullets": [
+        "Define your shape as a Pydantic BaseModel",
+        "Pass it as response_format to the parse() helper",
+        "Get back an already-validated Python object",
+        "No manual JSON parsing needed"
+      ],
+      "code": "class Movie(BaseModel):\n    title: str\n    year: int\nresp = client.beta.chat.completions.parse(\n  model=\"gpt-4o-mini\",\n  messages=[...],\n  response_format=Movie)\nmovie = resp.choices[0].message.parsed",
+      "narration": "The cleanest approach: define your desired structure as a Pydantic model, then pass that model as the response format. The parse helper returns an already-validated instance of your class. No string parsing, no guessing about types. This is the pattern you'll reuse constantly when building tool-using agents."
+    },
+    {
+      "type": "content",
+      "title": "Validate before you trust",
+      "bullets": [
+        "Always validate model output against a schema",
+        "Pydantic raises ValidationError on bad data",
+        "Catch errors to retry or repair instead of failing silently",
+        "Validation turns hidden bugs into visible exceptions"
+      ],
+      "code": "try:\n    data = Movie.model_validate_json(raw)\nexcept ValidationError as e:\n    print(e)  # log, retry, repair",
+      "narration": "Even with structured output, defensive validation is wise, especially when working with raw JSON strings from other sources. Pydantic's model_validate_json raises a clear ValidationError when data doesn't conform. Catching it lets you retry or repair, turning what would be a silent downstream bug into an explicit, handleable event."
+    },
+    {
+      "type": "content",
+      "title": "Error handling and retries",
+      "bullets": [
+        "Network and rate-limit errors are inevitable",
+        "Wrap calls with exponential backoff",
+        "Catch RateLimitError and APIError specifically",
+        "Fail loudly after a bounded number of attempts"
+      ],
+      "code": "for attempt in range(5):\n    try:\n        return client.chat.completions.create(**kw)\n    except (RateLimitError, APIError):\n        time.sleep(2 ** attempt)",
+      "narration": "Production calls fail: rate limits, timeouts, transient server errors. Wrap your requests in a retry loop with exponential backoff, sleeping longer after each failure. Catch the specific OpenAI exception types, and after a bounded number of attempts, raise so the failure is visible rather than hanging forever."
+    },
+    {
+      "type": "content",
+      "title": "The reliable building block",
+      "bullets": [
+        "Secrets from env, chat API, low temperature",
+        "Schema-validated output via Pydantic",
+        "Retry logic around every call",
+        "This pattern powers every agent you'll build next"
+      ],
+      "narration": "Put it all together and you have a robust, reusable function: load secrets from the environment, call the chat API at low temperature, request schema-validated output, and wrap everything in retries. This single reliable building block is what every tool-using and multi-agent system in the coming modules will depend on."
+    }
+  ]
+}

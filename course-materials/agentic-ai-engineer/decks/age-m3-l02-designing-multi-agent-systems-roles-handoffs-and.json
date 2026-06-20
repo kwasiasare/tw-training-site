@@ -1,0 +1,183 @@
+{
+  "slug": "age-m3-l02-designing-multi-agent-systems-roles-handoffs-and",
+  "title": "Designing Multi-Agent Systems: Roles, Handoffs, and Communication",
+  "month": 3,
+  "monthTitle": "Multi-Agent Orchestration with LangGraph",
+  "lesson": 2,
+  "video": "age-m3-l02-designing-multi-agent-systems-roles-handoffs-and.mp4",
+  "summary": "Learn to architect multi-agent systems where specialized LLM agents collaborate through message passing, delegation, and shared state. This lesson covers role design, handoff patterns, communication protocols, and how to implement them in LangGraph.",
+  "objectives": [
+    "Define specialized agent roles with clear responsibilities and boundaries",
+    "Compare orchestration topologies (supervisor, network, hierarchical) and choose appropriately",
+    "Implement agent handoffs and delegation using LangGraph commands and routing",
+    "Design shared state and message-passing schemas that prevent context bloat and confusion",
+    "Apply guardrails to control loops, termination, and error recovery in multi-agent flows"
+  ],
+  "quiz": [
+    {
+      "q": "Which orchestration topology is recommended as the default starting point?",
+      "options": [
+        "Network (peer-to-peer)",
+        "Supervisor (central router)",
+        "Hierarchical teams",
+        "Single mega-agent"
+      ],
+      "answer": 1,
+      "why": "The supervisor topology centralizes routing decisions, making the system easiest to reason about and debug. You only graduate to hierarchical when the supervisor prompt becomes overloaded."
+    },
+    {
+      "q": "In LangGraph, what does the `goto` field of a `Command` specify?",
+      "options": [
+        "The tool to call next",
+        "The next node/agent to run",
+        "The maximum recursion limit",
+        "The summary of the previous step"
+      ],
+      "answer": 1,
+      "why": "`goto` names the next node to execute, transferring control; the `update` field writes data into shared state."
+    },
+    {
+      "q": "What is a primary risk when agents forward all their internal messages to each other?",
+      "options": [
+        "Context bloat that wastes tokens and confuses models",
+        "Loss of the recursion limit",
+        "Tools becoming unavailable",
+        "State keys being deleted"
+      ],
+      "answer": 0,
+      "why": "Forwarding every message inflates context, raising cost and confusing the next agent. Pass summaries or structured payloads and use separate state channels instead."
+    },
+    {
+      "q": "Which mechanisms help prevent infinite loops in a multi-agent graph? (select the best answer)",
+      "options": [
+        "Adding more tools to each agent",
+        "Setting a recursion_limit and an explicit END termination path",
+        "Using a larger model",
+        "Removing the supervisor"
+      ],
+      "answer": 1,
+      "why": "A recursion_limit caps total steps and an explicit END path lets the supervisor terminate, together preventing runaway loops."
+    },
+    {
+      "q": "In one or two sentences, explain the difference between delegation and a handoff.",
+      "answer": "Delegation assigns a sub-task and expects a result to be returned to the caller, while a handoff transfers control (and possibly ownership of the conversation) to another agent, which may not return.",
+      "why": "Delegation is request/response for a sub-task; a handoff passes control onward, so the originating agent may not regain control."
+    },
+    {
+      "q": "What is a strong signal that an agent's role is too broad and should be split?",
+      "answer": "When its prompt keeps adding 'and also handle this' clauses, indicating multiple distinct responsibilities.",
+      "why": "A focused role has a single-sentence mandate; needing 'and also' instructions means it covers multiple jobs that belong in separate specialized agents."
+    }
+  ],
+  "resources": [
+    {
+      "label": "LangGraph Multi-Agent Concepts Documentation",
+      "url": "https://langchain-ai.github.io/langgraph/concepts/multi_agent/"
+    },
+    {
+      "label": "LangGraph Supervisor Tutorial",
+      "url": "https://langchain-ai.github.io/langgraph/tutorials/multi_agent/agent_supervisor/"
+    },
+    {
+      "label": "LangGraph Command and Handoffs How-To",
+      "url": "https://langchain-ai.github.io/langgraph/how-tos/command/"
+    },
+    {
+      "label": "LangSmith: Tracing and Evaluating Agents",
+      "url": "https://docs.smith.langchain.com/"
+    }
+  ],
+  "body_markdown": "## Why Multi-Agent Systems?\n\nA single LLM agent with one giant prompt and 30 tools quickly becomes unreliable: it forgets instructions, picks wrong tools, and produces inconsistent output. Splitting work across **specialized agents** improves accuracy, makes prompts shorter and testable, and lets teams own components independently.\n\nUse multiple agents when:\n- The task spans distinct skills (research vs. writing vs. code review).\n- You need isolation of tools/permissions per role.\n- You want parallelism or independent scaling/evaluation.\n\nAvoid them when a single agent or a simple tool call works — orchestration adds latency, cost, and failure modes.\n\n## Designing Roles\n\nTreat each agent like a focused team member. A good role definition includes:\n- **Mandate**: one clear job (\"You research factual questions and return cited sources\").\n- **Tools**: only what the role needs (least privilege).\n- **Inputs/Outputs**: a contract — what it receives and the shape it returns.\n- **Boundaries**: when to hand off rather than guess.\n\nKeep roles narrow. If a prompt needs \"and also...\", that's a signal to split.\n\n## Orchestration Topologies\n\n- **Supervisor (router)**: a central agent decides which worker handles the next step. Easiest to reason about and debug. Best default.\n- **Network (peer-to-peer)**: any agent can hand off to any other. Flexible but harder to control; risk of loops.\n- **Hierarchical**: supervisors of supervisors — teams of agents. Scales to complex workflows but adds depth and latency.\n\nStart with a supervisor; graduate to hierarchical only when the supervisor prompt gets overloaded.\n\n## Handoffs and Delegation\n\nA **handoff** transfers control (and optionally a payload) from one agent to another. In LangGraph, agents return a `Command` that updates shared state and names the next node via `goto`.\n\n```python\nfrom langgraph.graph import StateGraph, MessagesState, START, END\nfrom langgraph.types import Command\nfrom typing import Literal\n\ndef supervisor(state: MessagesState) -> Command[Literal[\"researcher\", \"writer\", \"__end__\"]]:\n    decision = route(state[\"messages\"])  # LLM picks next role\n    if decision == \"done\":\n        return Command(goto=END)\n    return Command(goto=decision)\n\ndef researcher(state: MessagesState) -> Command[Literal[\"supervisor\"]]:\n    result = do_research(state[\"messages\"])\n    return Command(goto=\"supervisor\", update={\"messages\": [result]})\n```\n\nDelegation differs from handoff: in delegation the caller expects a result back (sub-task), while a handoff may transfer ownership entirely.\n\n## Communication: Shared State vs. Messages\n\nTwo patterns to move information:\n- **Shared state**: a typed object (e.g., `MessagesState` plus custom keys) all agents read/write. Great for accumulated artifacts.\n- **Message passing**: agents append messages to a list; the next agent reads recent context.\n\nGuard against **context bloat**: don't forward every internal message between agents. Pass summaries or structured handoff payloads. Consider separate state channels (e.g., `research_notes`, `draft`) instead of one giant transcript.\n\n```python\nfrom typing import Annotated, TypedDict\nfrom operator import add\n\nclass AgentState(TypedDict):\n    messages: Annotated[list, add]\n    research_notes: str\n    draft: str\n    next_agent: str\n```\n\n## Control, Loops, and Termination\n\nMulti-agent systems can loop forever. Always add:\n- A **step/iteration counter** with a max via `graph.invoke(..., {\"recursion_limit\": 25})`.\n- Explicit **termination conditions** (supervisor returns `END`).\n- **Error handling** so a failing worker reports back instead of crashing the graph.\n\n## Practical Checklist\n\n1. Write each agent's mandate in one sentence.\n2. Define the state schema and which keys each agent touches.\n3. Choose a topology (default: supervisor).\n4. Implement handoffs with `Command(goto=..., update=...)`.\n5. Add recursion limits and termination logic.\n6. Trace and evaluate each agent independently (e.g., with LangSmith).",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Designing Multi-Agent Systems",
+      "sub": "Roles, Handoffs, and Communication in LangGraph",
+      "narration": "Welcome. In this lesson we'll learn how to architect multi-agent systems where specialized LLM agents collaborate. We'll cover defining roles, the handoff and delegation patterns, how agents communicate through shared state and messages, and how to keep these systems controllable in production using LangGraph."
+    },
+    {
+      "type": "content",
+      "title": "Why Split Into Multiple Agents?",
+      "bullets": [
+        "One mega-prompt with 30 tools becomes unreliable",
+        "Specialized agents = shorter, testable prompts",
+        "Isolate tools and permissions per role",
+        "Enables parallelism and independent evaluation",
+        "But: only when complexity justifies the overhead"
+      ],
+      "narration": "A single agent juggling many tools and a huge prompt tends to forget instructions and pick the wrong tool. Splitting the work into specialists keeps each prompt short, focused, and testable, and lets you grant least-privilege tool access per role. The tradeoff is added latency, cost, and new failure modes, so reach for multi-agent only when a single agent genuinely can't handle the task well."
+    },
+    {
+      "type": "content",
+      "title": "Designing a Good Role",
+      "bullets": [
+        "Mandate: one clear job, one sentence",
+        "Tools: only what the role needs",
+        "Inputs/Outputs: a defined contract",
+        "Boundaries: when to hand off, not guess",
+        "If the prompt says 'and also...', split it"
+      ],
+      "narration": "Treat each agent like a focused team member. Give it a single-sentence mandate, the minimum set of tools, and a clear input-output contract. Crucially, define its boundaries: when it should hand off rather than improvise. A reliable signal that a role is too broad is when its prompt keeps saying 'and also handle this' — that's your cue to split it into another agent."
+    },
+    {
+      "type": "content",
+      "title": "Orchestration Topologies",
+      "bullets": [
+        "Supervisor: central router picks next worker (best default)",
+        "Network: any agent hands off to any other (flexible, loop-prone)",
+        "Hierarchical: teams of agents under supervisors",
+        "Start simple, add depth only when needed"
+      ],
+      "narration": "There are three common shapes. The supervisor topology uses a central router that decides which worker acts next — it's the easiest to debug and a great default. The network topology lets any agent call any other; flexible but prone to loops. Hierarchical stacks supervisors over teams of agents for very complex workflows. Always start with a supervisor and only graduate to hierarchical when that supervisor prompt gets overloaded."
+    },
+    {
+      "type": "content",
+      "title": "Handoffs with Command",
+      "bullets": [
+        "A handoff transfers control plus a payload",
+        "In LangGraph: return a Command with goto and update",
+        "goto names the next node; update writes shared state",
+        "Delegation expects a result back; handoff may transfer ownership"
+      ],
+      "code": "def researcher(state) -> Command[Literal[\"supervisor\"]]:\n    result = do_research(state[\"messages\"])\n    return Command(goto=\"supervisor\",\n                   update={\"messages\": [result]})",
+      "narration": "In LangGraph, an agent performs a handoff by returning a Command object. The goto field names the next node to run, and update writes new data into shared state. Here the researcher finishes its work and hands control back to the supervisor along with its findings. Note the distinction: delegation means you expect a result returned for a sub-task, while a full handoff can transfer ownership of the conversation entirely."
+    },
+    {
+      "type": "content",
+      "title": "Communication: State vs. Messages",
+      "bullets": [
+        "Shared state: typed object all agents read/write",
+        "Message passing: append to a messages list",
+        "Avoid context bloat — don't forward everything",
+        "Use separate channels: research_notes, draft, next_agent"
+      ],
+      "code": "class AgentState(TypedDict):\n    messages: Annotated[list, add]\n    research_notes: str\n    draft: str\n    next_agent: str",
+      "narration": "Agents share information two ways. Shared state is a typed object every agent can read and write — ideal for accumulated artifacts. Message passing appends to a running list of messages. The biggest pitfall is context bloat: forwarding every internal message between agents wastes tokens and confuses models. Instead, pass summaries or structured payloads, and use separate state channels like research_notes and draft rather than one giant transcript."
+    },
+    {
+      "type": "content",
+      "title": "Control, Loops, and Termination",
+      "bullets": [
+        "Multi-agent flows can loop forever",
+        "Set recursion_limit on invoke",
+        "Supervisor must have an explicit END path",
+        "Workers report errors back instead of crashing",
+        "Trace and evaluate each agent independently"
+      ],
+      "code": "graph.invoke(inputs, {\"recursion_limit\": 25})",
+      "narration": "Because agents hand control back and forth, infinite loops are a real risk. Always set a recursion limit when invoking the graph, give your supervisor an explicit termination path to END, and make workers report failures back gracefully rather than crashing the whole graph. Finally, trace and evaluate each agent on its own — tools like LangSmith let you see exactly where a handoff went wrong."
+    },
+    {
+      "type": "content",
+      "title": "Practical Checklist",
+      "bullets": [
+        "Write each agent's mandate in one sentence",
+        "Define the state schema and key ownership",
+        "Pick a topology — default to supervisor",
+        "Implement handoffs with Command(goto, update)",
+        "Add recursion limits and termination logic"
+      ],
+      "narration": "To wrap up, here's your build checklist. Write every agent's mandate in one sentence. Define the shared state schema and which keys each agent owns. Choose a topology, defaulting to supervisor. Implement handoffs using Command with goto and update. And always add recursion limits and clear termination conditions. Follow these and your multi-agent system will be both capable and controllable in production."
+    }
+  ]
+}

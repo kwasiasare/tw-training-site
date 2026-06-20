@@ -1,0 +1,182 @@
+{
+  "slug": "apm-m3-l01-prompt-design-fundamentals-for-product-outcomes",
+  "title": "Prompt Design Fundamentals for Product Outcomes",
+  "month": 3,
+  "monthTitle": "Building, Evaluating, and Prompting AI Features",
+  "lesson": 1,
+  "video": "apm-m3-l01-prompt-design-fundamentals-for-product-outcomes.mp4",
+  "summary": "This lesson teaches AI Product Managers how to design and iterate on prompts that reliably meet product requirements. You'll learn the anatomy of a strong prompt, how to use structure, examples, and constraints to control model behavior, and how to build a reusable prompt library with versioning and lightweight evaluation tied to product outcomes.",
+  "objectives": [
+    "Identify the core components of an effective prompt (role, task, context, constraints, output format) and explain how each maps to a product requirement",
+    "Apply few-shot examples and explicit constraints to reduce variance and improve reliability of model outputs",
+    "Translate fuzzy product requirements into testable prompt specifications and acceptance criteria",
+    "Iterate on prompts systematically using a small evaluation set rather than one-off vibe checks",
+    "Build and version a reusable prompt library that engineering can ship and maintain"
+  ],
+  "quiz": [
+    {
+      "q": "Which of these best converts the requirement 'responses should be brief' into a usable prompt constraint?",
+      "options": [
+        "'Be concise and to the point'",
+        "'Keep it short, please'",
+        "'Respond in no more than 50 words'",
+        "'Avoid being too long'"
+      ],
+      "answer": 2,
+      "why": "Measurable constraints like a word limit are testable and produce consistent behavior; the others are vague and leave the model to interpret 'brief'."
+    },
+    {
+      "q": "What is the primary purpose of using an evaluation set of 15-30 inputs when iterating on a prompt?",
+      "options": [
+        "To make the prompt longer",
+        "To replace opinion-based checks with repeatable evidence and catch regressions",
+        "To increase model temperature",
+        "To avoid using examples in the prompt"
+      ],
+      "answer": 1,
+      "why": "An eval set lets you measure changes objectively across representative and edge cases, and serves as a regression check when prompts or models change."
+    },
+    {
+      "q": "Why should you separate instructions from user-supplied content using delimiters like XML tags?",
+      "options": [
+        "It makes the model faster",
+        "It clarifies boundaries and reduces prompt-injection risk",
+        "It removes the need for an output format",
+        "It guarantees JSON output"
+      ],
+      "answer": 1,
+      "why": "Delimiters clearly mark which text is data versus instruction, improving reliability and lowering the chance that user content overrides your instructions."
+    },
+    {
+      "q": "When iterating to improve a prompt's results, what is the recommended practice?",
+      "options": [
+        "Change several variables at once to move faster",
+        "Change one variable at a time and re-run the eval set",
+        "Only test on the single example that failed",
+        "Trust your judgment after one good output"
+      ],
+      "answer": 1,
+      "why": "Changing one variable at a time isolates what caused the improvement; testing on the full eval set avoids overfitting to a single case."
+    },
+    {
+      "q": "In one sentence, why are model choice and temperature considered part of a prompt spec?",
+      "answer": "Because the same prompt can produce different outputs depending on the model and temperature, so reproducing the validated behavior requires recording those settings.",
+      "why": "A prompt's results are inseparable from the model and settings used; documenting them ensures the tuned behavior is reproducible in production."
+    },
+    {
+      "q": "Name one component of a well-structured prompt and the product requirement it typically maps to.",
+      "answer": "Output format maps to integration/parsing needs (or: constraints map to brand/safety; examples map to quality/edge cases; role maps to tone/domain).",
+      "why": "Each prompt component is a knob that addresses a specific product requirement, which is why mapping them helps translate requirements into prompts."
+    }
+  ],
+  "resources": [
+    {
+      "label": "OpenAI Prompt Engineering Guide",
+      "url": "https://platform.openai.com/docs/guides/prompt-engineering"
+    },
+    {
+      "label": "Anthropic Prompt Engineering Documentation",
+      "url": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview"
+    },
+    {
+      "label": "Learn Prompting (open-source course)",
+      "url": "https://learnprompting.org/"
+    },
+    {
+      "label": "OpenAI Evals — building evaluation sets",
+      "url": "https://github.com/openai/evals"
+    }
+  ],
+  "body_markdown": "## Why prompt design is a PM skill\n\nPrompts are the interface between a product requirement and a model's behavior. As an AI PM, you may not write every production prompt, but you must be able to specify what 'good' looks like, draft prompts to validate feasibility, and define the acceptance criteria engineering builds against. A well-designed prompt is the cheapest, fastest lever you have to change product behavior before reaching for fine-tuning or new models.\n\n## The anatomy of a reliable prompt\n\nMost effective prompts contain some combination of these building blocks:\n\n- **Role / persona**: who the model is acting as (\"You are a support triage assistant\"). Sets tone and domain.\n- **Task instruction**: the single, clear action to perform. Lead with the verb.\n- **Context / inputs**: the data the model needs (user message, retrieved documents, customer tier).\n- **Constraints**: length, tone, what NOT to do, safety boundaries, allowed values.\n- **Output format**: the exact shape of the response (JSON schema, markdown, bullet list) so it's parseable downstream.\n- **Examples (few-shot)**: 1-5 input/output pairs that demonstrate the pattern.\n\nThink of these as knobs. Each maps to a product requirement: format maps to integration needs, constraints map to brand and safety, examples map to quality and edge cases.\n\n## From product requirement to prompt spec\n\nFuzzy requirements like \"summarize support tickets nicely\" must become testable specs. Convert them:\n\n- Requirement: *Summaries must be skimmable for agents.*\n- Spec: *Output 3-5 bullets, each under 15 words, neutral tone, must include the customer's requested action.*\n- Acceptance criteria: *On 20 sample tickets, 90%+ include the requested action and stay within bullet limits.*\n\nIf you can't write acceptance criteria, you don't yet have a prompt spec — you have a wish.\n\n## Techniques that move reliability\n\n- **Be explicit, not clever.** Ambiguity is the enemy of consistency. State edge-case handling directly: \"If the ticket has no clear action, output: 'No action requested.'\"\n- **Structure the output.** Ask for JSON when downstream code parses it. Provide the schema in the prompt.\n- **Use delimiters** (triple quotes, XML tags) to separate instructions from user-supplied content. This also reduces prompt-injection risk.\n- **Few-shot for tricky patterns.** Examples teach format and tone faster than prose. Include at least one hard/edge case.\n- **Decompose complex tasks.** Chain or break into steps rather than one giant prompt.\n- **Constrain the failure mode.** Tell the model what to do when it's unsure rather than letting it hallucinate.\n\n## Iterating systematically (not vibe-checking)\n\nGood prompt iteration looks like lightweight evaluation:\n\n1. Build a small **eval set** of 15-30 representative inputs, including edge cases and known-hard examples.\n2. Define **pass/fail criteria** per output (format valid? action included? on-tone?).\n3. Change **one variable at a time** and re-run the set.\n4. Track results in a simple table; keep the winning version.\n\nThis turns prompt work from opinion into evidence, and gives you a regression check when models or prompts change.\n\n## Building a prompt library\n\nTreat prompts as product assets:\n\n- **Version** each prompt (v1, v2) with a changelog and date.\n- Store the **prompt, intended use, eval results, and owner**.\n- Use **variables/templates** ({{customer_name}}, {{ticket_body}}) so prompts are reusable.\n- Separate the **system prompt** (stable instructions) from **user content** (dynamic).\n- Note **model + settings** (temperature, max tokens) the prompt was tuned for — they're part of the spec.\n\nA shared library prevents teams from reinventing prompts, enables A/B testing, and makes handoff to engineering clean.\n\n## Common pitfalls\n\n- Overloading one prompt with too many tasks.\n- Vague constraints (\"be concise\") instead of measurable ones (\"under 50 words\").\n- No edge-case handling, so the model improvises.\n- Iterating on a single example and overfitting.\n- Forgetting that temperature and model choice are part of the result.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Prompt Design Fundamentals for Product Outcomes",
+      "sub": "Turning product requirements into reliable model behavior",
+      "narration": "Welcome. In this lesson we'll treat prompt design as a core product management skill. Prompts are the cheapest, fastest lever you have to shape an AI feature's behavior, and as an AI PM you need to know how to design, specify, and iterate on them so they reliably meet product requirements."
+    },
+    {
+      "type": "content",
+      "title": "Why prompts are a PM concern",
+      "bullets": [
+        "Prompts are the interface between a requirement and model behavior",
+        "Cheapest lever before fine-tuning or new models",
+        "PMs define what 'good' looks like and the acceptance criteria",
+        "You'll draft prompts to validate feasibility early"
+      ],
+      "narration": "You may not author every production prompt, but you must specify what good output looks like and define acceptance criteria engineering can build against. Drafting prompts yourself is also the fastest way to test whether a feature is even feasible before you commit a roadmap to it. Prompting is your first lever, well before fine-tuning or swapping models."
+    },
+    {
+      "type": "content",
+      "title": "Anatomy of a reliable prompt",
+      "bullets": [
+        "Role / persona — sets domain and tone",
+        "Task — one clear action, lead with the verb",
+        "Context / inputs — the data the model needs",
+        "Constraints — length, tone, what NOT to do",
+        "Output format + few-shot examples"
+      ],
+      "narration": "Most strong prompts combine these building blocks. A role sets the domain. A single clear task instruction tells the model what to do. Context supplies the inputs. Constraints bound length, tone, and safety. An explicit output format keeps responses parseable, and few-shot examples teach the pattern. Think of each as a knob that maps directly to a product requirement."
+    },
+    {
+      "type": "content",
+      "title": "From requirement to prompt spec",
+      "bullets": [
+        "Fuzzy: 'summarize tickets nicely'",
+        "Spec: 3-5 bullets, <15 words each, include requested action",
+        "Acceptance: 90%+ of 20 samples meet criteria",
+        "No acceptance criteria = a wish, not a spec"
+      ],
+      "code": "Requirement -> Spec -> Acceptance criteria\n'Skimmable summary' -> '3-5 bullets, neutral tone' -> '90% include action'",
+      "narration": "Vague requirements must become testable specs. Take 'summarize tickets nicely' and turn it into measurable rules: three to five bullets, each under fifteen words, neutral tone, must include the requested action. Then write acceptance criteria you can check against samples. If you can't write acceptance criteria, you don't have a spec yet — you have a wish."
+    },
+    {
+      "type": "content",
+      "title": "Techniques that move reliability",
+      "bullets": [
+        "Be explicit, not clever — state edge cases",
+        "Structure output as JSON when code parses it",
+        "Use delimiters to separate instructions from user content",
+        "Few-shot with at least one hard case",
+        "Tell the model what to do when unsure"
+      ],
+      "code": "<ticket>\n{{ticket_body}}\n</ticket>\nReturn JSON: {\"summary\": [..], \"action\": \"...\"}\nIf no action: action = \"No action requested.\"",
+      "narration": "Ambiguity is the enemy of consistency. Be explicit and handle edge cases directly. Ask for structured JSON when downstream code parses the output, and provide the schema. Use delimiters like XML tags to separate instructions from user-supplied content, which also reduces injection risk. Include a hard example in your few-shot set, and always tell the model what to do when it's unsure so it doesn't improvise."
+    },
+    {
+      "type": "content",
+      "title": "Iterate with evals, not vibes",
+      "bullets": [
+        "Build a 15-30 input eval set with edge cases",
+        "Define pass/fail criteria per output",
+        "Change one variable at a time, re-run",
+        "Track results in a table, keep the winner"
+      ],
+      "narration": "Replace one-off vibe checks with lightweight evaluation. Build an eval set of fifteen to thirty representative inputs including known-hard cases. Define clear pass or fail criteria. Change one variable at a time and re-run the whole set so you know what actually caused an improvement. Track results in a simple table. This turns prompt work into evidence and gives you a regression check when models change."
+    },
+    {
+      "type": "content",
+      "title": "Building a prompt library",
+      "bullets": [
+        "Version prompts with changelog and owner",
+        "Store prompt, intended use, eval results",
+        "Use templates with variables: {{ticket_body}}",
+        "Separate stable system prompt from user content",
+        "Record model + temperature — they're part of the spec"
+      ],
+      "narration": "Treat prompts as product assets. Version each one with a changelog and an owner. Store the intended use and eval results alongside it. Use templated variables so prompts are reusable, and separate the stable system prompt from dynamic user content. Always record the model and settings the prompt was tuned for, because temperature and model choice are part of the result. A shared library prevents reinvention and makes engineering handoff clean."
+    },
+    {
+      "type": "content",
+      "title": "Common pitfalls & recap",
+      "bullets": [
+        "One prompt doing too many tasks",
+        "Vague constraints like 'be concise'",
+        "No edge-case handling",
+        "Overfitting to a single example",
+        "Forgetting settings are part of the spec"
+      ],
+      "narration": "To recap, avoid overloading a single prompt, replace vague constraints with measurable ones, always handle edge cases, and don't overfit to one example by testing against your full eval set. Remember model and temperature are part of the spec. Master these fundamentals and you'll ship AI features whose behavior you can actually predict and defend."
+    }
+  ]
+}

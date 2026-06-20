@@ -1,0 +1,181 @@
+{
+  "slug": "age-m3-l01-introduction-to-langgraph-state-nodes-and-edges",
+  "title": "Introduction to LangGraph: State, Nodes, and Edges",
+  "month": 3,
+  "monthTitle": "Multi-Agent Orchestration with LangGraph",
+  "lesson": 1,
+  "video": "age-m3-l01-introduction-to-langgraph-state-nodes-and-edges.mp4",
+  "summary": "LangGraph models agent workflows as explicit stateful graphs, giving you fine-grained control, persistence, and observability that simple chains and ReAct loops lack. This lesson teaches the three core primitives—State, Nodes, and Edges—and how to compile and run a graph.",
+  "objectives": [
+    "Explain why graph-based orchestration improves control, persistence, and observability over linear chains",
+    "Define a typed graph State using TypedDict and reducer annotations",
+    "Implement nodes as pure functions that read state and return partial updates",
+    "Wire normal and conditional edges, including START and END, to control flow",
+    "Compile and invoke a StateGraph, and add a checkpointer for persistence"
+  ],
+  "quiz": [
+    {
+      "q": "What is the purpose of a reducer in a LangGraph state field?",
+      "options": [
+        "It validates the LLM output before it is stored",
+        "It defines how a node's update is merged into existing state",
+        "It compiles the graph into a runnable",
+        "It schedules which node runs next"
+      ],
+      "answer": 1,
+      "why": "A reducer (set via Annotated[type, fn]) tells LangGraph how to merge an update with the current value—e.g. operator.add appends to a list instead of overwriting it."
+    },
+    {
+      "q": "What should a node function return?",
+      "options": [
+        "The entire new state object",
+        "A boolean indicating success",
+        "A partial state update containing only changed keys",
+        "The name of the next node to run"
+      ],
+      "answer": 2,
+      "why": "Nodes return a partial dict of just the keys they change; LangGraph merges it into state using the reducers."
+    },
+    {
+      "q": "Which construct lets the graph choose its next node based on the current state?",
+      "options": [
+        "A normal edge",
+        "A conditional edge",
+        "A checkpointer",
+        "The END sentinel"
+      ],
+      "answer": 1,
+      "why": "add_conditional_edges runs a router function that inspects state and returns the name of the next node, enabling branching."
+    },
+    {
+      "q": "What does adding a checkpointer at compile time provide?",
+      "options": [
+        "Faster LLM inference",
+        "Automatic prompt optimization",
+        "Persistence: state snapshots that enable resume and human-in-the-loop",
+        "Type validation of the state schema"
+      ],
+      "answer": 2,
+      "why": "A checkpointer snapshots state after each step; with a thread_id this gives durable, resumable execution and human-in-the-loop pauses."
+    },
+    {
+      "q": "In one sentence, what happens to a state field that has no reducer when a node returns a new value for it?",
+      "answer": "The new value overwrites (replaces) the existing value.",
+      "why": "Without a reducer, the default behavior is replacement rather than merging or appending."
+    },
+    {
+      "q": "Name the two special sentinels used to mark a graph's entry and exit points.",
+      "answer": "START and END",
+      "why": "START marks where execution begins and END marks where it terminates; edges connect these to your nodes."
+    }
+  ],
+  "resources": [
+    {
+      "label": "LangGraph Documentation",
+      "url": "https://langchain-ai.github.io/langgraph/"
+    },
+    {
+      "label": "LangGraph Low-Level Concepts (State, Nodes, Edges)",
+      "url": "https://langchain-ai.github.io/langgraph/concepts/low_level/"
+    },
+    {
+      "label": "LangGraph Persistence & Checkpointers Guide",
+      "url": "https://langchain-ai.github.io/langgraph/concepts/persistence/"
+    },
+    {
+      "label": "LangGraph Quickstart Tutorial",
+      "url": "https://langchain-ai.github.io/langgraph/tutorials/introduction/"
+    }
+  ],
+  "body_markdown": "## Why LangGraph?\n\nMost first agents are built as linear chains or a single ReAct loop. These work for demos but break down in production: you cannot easily branch, retry, loop, pause for human input, or inspect what happened. LangGraph reframes an agent as a **stateful graph**—a set of nodes (units of work) connected by edges (control flow) that all read from and write to a shared **state** object.\n\nThis buys you three things:\n\n- **Control** — explicit branching, loops, and routing instead of hoping the LLM does the right thing.\n- **Persistence** — checkpointers snapshot state after every step, enabling resume, time-travel, and human-in-the-loop.\n- **Observability** — every transition is a discrete, inspectable event you can trace and debug.\n\n## The State\n\nState is the single source of truth that flows through the graph. You declare its shape with a `TypedDict` (or Pydantic model).\n\n```python\nfrom typing import Annotated, TypedDict\nfrom operator import add\n\nclass AgentState(TypedDict):\n    messages: Annotated[list, add]   # reducer: append, don't overwrite\n    step_count: int                  # default behavior: overwrite\n```\n\nEach key can have a **reducer** via `Annotated[type, reducer_fn]`. A reducer decides how a node's update is merged into existing state. Without a reducer, the new value **replaces** the old one; with `add` (or `operator.add`), lists are concatenated—essential for accumulating message history.\n\n## Nodes\n\nA node is just a function (sync or async) that takes the current state and returns a **partial** state update—a dict containing only the keys it wants to change.\n\n```python\ndef call_model(state: AgentState) -> dict:\n    response = llm.invoke(state[\"messages\"])\n    return {\"messages\": [response], \"step_count\": state[\"step_count\"] + 1}\n```\n\nNodes should be small and ideally side-effect-aware. They never mutate state in place; they return updates that LangGraph merges using the reducers.\n\n## Edges\n\nEdges define how control moves between nodes.\n\n- **Normal edge**: always go from A to B — `graph.add_edge(\"a\", \"b\")`.\n- **Conditional edge**: a routing function inspects state and returns the name of the next node — `graph.add_conditional_edges(\"a\", router_fn)`.\n- **START / END**: special sentinels marking entry and exit points.\n\n```python\nfrom langgraph.graph import StateGraph, START, END\n\ndef should_continue(state: AgentState) -> str:\n    last = state[\"messages\"][-1]\n    return \"tools\" if last.tool_calls else END\n\nbuilder = StateGraph(AgentState)\nbuilder.add_node(\"model\", call_model)\nbuilder.add_node(\"tools\", call_tools)\nbuilder.add_edge(START, \"model\")\nbuilder.add_conditional_edges(\"model\", should_continue)\nbuilder.add_edge(\"tools\", \"model\")   # loop back\ngraph = builder.compile()\n```\n\n## Compiling and Running\n\nCalling `.compile()` validates the graph and returns a runnable. Invoke it with an initial state:\n\n```python\nresult = graph.invoke({\"messages\": [user_msg], \"step_count\": 0})\n```\n\nYou can also `.stream()` to observe each node's output as it executes.\n\n## Persistence with Checkpointers\n\nPass a checkpointer at compile time to snapshot state after every step. With a `thread_id`, you get durable, resumable conversations and human-in-the-loop pauses.\n\n```python\nfrom langgraph.checkpoint.memory import MemorySaver\n\ngraph = builder.compile(checkpointer=MemorySaver())\nconfig = {\"configurable\": {\"thread_id\": \"user-123\"}}\ngraph.invoke({\"messages\": [user_msg], \"step_count\": 0}, config)\n```\n\nIn production swap `MemorySaver` for a SQLite or Postgres saver so state survives restarts.\n\n## Mental Model\n\nThink of LangGraph as a state machine for agents: state is the data, nodes are the work, edges are the rules, and the checkpointer is the memory. Master these four and you can build loops, retries, and multi-agent systems with confidence.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Introduction to LangGraph",
+      "sub": "State, Nodes, and Edges",
+      "narration": "Welcome. In this lesson we'll learn how LangGraph models agent workflows as stateful graphs. By the end you'll understand the three core primitives—state, nodes, and edges—and how they give you control, persistence, and observability over your agents."
+    },
+    {
+      "type": "content",
+      "title": "Why Graphs Over Chains?",
+      "bullets": [
+        "Chains and ReAct loops are great for demos, fragile in production",
+        "Graphs give explicit control: branching, loops, retries",
+        "Checkpointers add persistence and human-in-the-loop",
+        "Every transition is observable and debuggable"
+      ],
+      "narration": "Most people start with a linear chain or a single ReAct loop. These break down once you need branching, retries, or to pause for human input. LangGraph reframes the agent as a stateful graph, which buys you three things: control over flow, persistence through checkpointing, and observability because every step is a discrete event you can inspect."
+    },
+    {
+      "type": "content",
+      "title": "The State",
+      "bullets": [
+        "Single source of truth flowing through the graph",
+        "Declared with TypedDict or Pydantic",
+        "Reducers control how updates merge",
+        "No reducer = overwrite; add = append"
+      ],
+      "code": "from typing import Annotated, TypedDict\nfrom operator import add\n\nclass AgentState(TypedDict):\n    messages: Annotated[list, add]\n    step_count: int",
+      "narration": "State is the data that travels through every node. You define its shape with a TypedDict. The key concept is the reducer: by annotating a field you tell LangGraph how to merge a node's update. With no reducer, a new value replaces the old one. With operator.add, lists are concatenated—which is exactly what you want for accumulating message history."
+    },
+    {
+      "type": "content",
+      "title": "Nodes",
+      "bullets": [
+        "A node is a function: state in, partial update out",
+        "Return only the keys you want to change",
+        "Never mutate state in place",
+        "Can be sync or async"
+      ],
+      "code": "def call_model(state: AgentState) -> dict:\n    response = llm.invoke(state[\"messages\"])\n    return {\"messages\": [response],\n            \"step_count\": state[\"step_count\"] + 1}",
+      "narration": "A node is just a function that receives the current state and returns a partial update—a dictionary with only the keys it changes. Notice we don't mutate state directly; we return new values and let LangGraph merge them using the reducers. Keep nodes small and focused so they're easy to test and reason about."
+    },
+    {
+      "type": "content",
+      "title": "Edges",
+      "bullets": [
+        "Normal edge: always A then B",
+        "Conditional edge: a router function picks the next node",
+        "START and END are special sentinels",
+        "Edges can loop back to create cycles"
+      ],
+      "code": "def should_continue(state) -> str:\n    last = state[\"messages\"][-1]\n    return \"tools\" if last.tool_calls else END",
+      "narration": "Edges define how control moves. A normal edge always goes from one node to the next. A conditional edge runs a routing function that inspects the state and returns the name of the next node—this is how you branch. START and END mark entry and exit. Because edges can loop back, you can build the classic agent loop: call the model, run tools, then return to the model."
+    },
+    {
+      "type": "content",
+      "title": "Building and Compiling",
+      "bullets": [
+        "Create a StateGraph with your state schema",
+        "Add nodes, then wire edges",
+        "compile() validates and returns a runnable",
+        "invoke() to run, stream() to observe steps"
+      ],
+      "code": "builder = StateGraph(AgentState)\nbuilder.add_node(\"model\", call_model)\nbuilder.add_edge(START, \"model\")\nbuilder.add_conditional_edges(\"model\", should_continue)\ngraph = builder.compile()",
+      "narration": "You assemble everything with a StateGraph built around your state schema. Add your nodes, wire your edges from START through to END, then call compile, which validates the structure and returns a runnable object. Use invoke for a single result, or stream to watch each node's output as execution unfolds."
+    },
+    {
+      "type": "content",
+      "title": "Persistence with Checkpointers",
+      "bullets": [
+        "Pass a checkpointer at compile time",
+        "State is snapshotted after every step",
+        "thread_id enables resume and human-in-the-loop",
+        "Use SQLite/Postgres saver in production"
+      ],
+      "code": "from langgraph.checkpoint.memory import MemorySaver\ngraph = builder.compile(checkpointer=MemorySaver())\nconfig = {\"configurable\": {\"thread_id\": \"user-123\"}}\ngraph.invoke(initial_state, config)",
+      "narration": "Persistence is what makes LangGraph production-ready. Pass a checkpointer at compile time and the state is snapshotted after every step. Combined with a thread_id, you get durable, resumable conversations and the ability to pause for human approval. MemorySaver is fine for development; in production swap in a SQLite or Postgres saver so state survives restarts."
+    },
+    {
+      "type": "content",
+      "title": "Mental Model & Recap",
+      "bullets": [
+        "State = the data",
+        "Nodes = the work",
+        "Edges = the rules",
+        "Checkpointer = the memory"
+      ],
+      "narration": "Think of LangGraph as a state machine for agents. State is the data, nodes are the work, edges are the rules, and the checkpointer is the memory. Master these four primitives and you can confidently build loops, retries, and full multi-agent systems. Next we'll use them to orchestrate multiple cooperating agents."
+    }
+  ]
+}

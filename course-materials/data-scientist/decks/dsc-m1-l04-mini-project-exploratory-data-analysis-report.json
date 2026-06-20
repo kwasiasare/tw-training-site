@@ -1,0 +1,180 @@
+{
+  "slug": "dsc-m1-l04-mini-project-exploratory-data-analysis-report",
+  "title": "Mini-Project: Exploratory Data Analysis Report",
+  "month": 1,
+  "monthTitle": "Python and Data Wrangling Foundations",
+  "lesson": 4,
+  "video": "dsc-m1-l04-mini-project-exploratory-data-analysis-report.mp4",
+  "summary": "In this capstone mini-project, you build an end-to-end exploratory data analysis (EDA) notebook on a public dataset. You will profile the data, clean it, engineer simple features, visualize distributions and relationships, and write up actionable initial insights in a reproducible report.",
+  "objectives": [
+    "Load a public dataset and produce a structured data profile (shape, dtypes, missingness, summary stats)",
+    "Apply systematic cleaning steps: handle missing values, fix dtypes, and remove duplicates and obvious errors",
+    "Create univariate, bivariate, and correlation visualizations to surface patterns",
+    "Identify and document outliers and data-quality issues with clear rationale",
+    "Translate findings into a concise, reproducible EDA report with insights and next steps"
+  ],
+  "quiz": [
+    {
+      "q": "What is the primary purpose of the profiling step in EDA?",
+      "options": [
+        "To train a predictive model",
+        "To build a mental model of the data's structure and quality before changing it",
+        "To delete all missing values",
+        "To deploy the notebook to production"
+      ],
+      "answer": 1,
+      "why": "Profiling (shape, dtypes, missingness, summary stats) builds your understanding of the data before any cleaning or modeling decisions."
+    },
+    {
+      "q": "Which approach to missing values is recommended?",
+      "options": [
+        "Always fill every column with zero",
+        "Always drop any row with a missing value",
+        "Decide per column: drop, impute, or flag, based on context",
+        "Ignore missing values entirely"
+      ],
+      "answer": 2,
+      "why": "Missing-value handling should be column-specific and reasoned, since blanket strategies like zero-filling or dropping all rows can distort the data or lose information."
+    },
+    {
+      "q": "Why should you be cautious about imputing missing values before a train/test split?",
+      "options": [
+        "It makes plots harder to read",
+        "It causes data leakage that inflates later model performance",
+        "It changes the column dtypes",
+        "It always removes outliers"
+      ],
+      "answer": 1,
+      "why": "Imputing using statistics computed over the whole dataset leaks information from the test set into training, giving overly optimistic results."
+    },
+    {
+      "q": "According to the IQR rule, an outlier is a value beyond which thresholds?",
+      "options": [
+        "Mean plus or minus one standard deviation",
+        "Q1 minus 1.5*IQR and Q3 plus 1.5*IQR",
+        "The minimum and maximum values",
+        "Median plus or minus the mode"
+      ],
+      "answer": 1,
+      "why": "The standard IQR rule flags values below Q1 - 1.5*IQR or above Q3 + 1.5*IQR as potential outliers."
+    },
+    {
+      "q": "Name one element that should appear in the provenance header of your EDA notebook.",
+      "answer": "The data source (and/or download date and license)",
+      "why": "Recording the source, date, and license makes the analysis reproducible and trustworthy."
+    },
+    {
+      "q": "In one short phrase, what should each 'Key Finding' be backed by?",
+      "answer": "A number or a plot",
+      "why": "Findings should be evidence-based — each tied to a specific statistic or visualization rather than vague impressions."
+    }
+  ],
+  "resources": [
+    {
+      "label": "pandas Getting Started & User Guide",
+      "url": "https://pandas.pydata.org/docs/user_guide/index.html"
+    },
+    {
+      "label": "ydata-profiling (automated EDA reports)",
+      "url": "https://docs.profiling.ydata.ai/"
+    },
+    {
+      "label": "seaborn Statistical Visualization Tutorial",
+      "url": "https://seaborn.pydata.org/tutorial.html"
+    },
+    {
+      "label": "Kaggle Datasets (public data for practice)",
+      "url": "https://www.kaggle.com/datasets"
+    }
+  ],
+  "body_markdown": "## What This Mini-Project Delivers\n\nYou will produce a single Jupyter notebook that takes a raw public dataset and ends with a short written set of insights. Think of it as the artifact you would hand to a stakeholder or attach to a portfolio. A good EDA report answers three questions: *What is in this data? Can I trust it? What is interesting or actionable?*\n\nPick a dataset with at least a few thousand rows and a mix of numeric and categorical columns. Good options include the Titanic dataset, the Ames Housing dataset, or any CSV from Kaggle or a government open-data portal.\n\n## Step 1 — Set Up and Load\n\nStart with a clean, reproducible header.\n\n```python\nimport pandas as pd\nimport numpy as np\nimport matplotlib.pyplot as plt\nimport seaborn as sns\n\npd.set_option('display.max_columns', 50)\ndf = pd.read_csv('data/dataset.csv')\ndf.head()\n```\n\nRecord the data source, download date, and license at the top of the notebook in a markdown cell. Reproducibility starts with provenance.\n\n## Step 2 — Profile the Data\n\nProfiling builds your mental model before you touch anything.\n\n```python\nprint(df.shape)\ndf.info()\ndf.describe(include='all').T\ndf.isna().mean().sort_values(ascending=False)\ndf.duplicated().sum()\n```\n\nFor each column note: its type, its meaning, the percentage missing, cardinality (for categoricals), and the range or distribution (for numerics). Tools like `ydata-profiling` (formerly pandas-profiling) can automate this, but do it manually at least once so you understand what the automated report shows.\n\n## Step 3 — Clean Systematically\n\nDon't clean randomly. Work column by column and log every decision.\n\n- **Dtypes:** convert dates with `pd.to_datetime`, cast categoricals, fix numbers stored as strings.\n- **Duplicates:** `df = df.drop_duplicates()` after confirming they are true duplicates.\n- **Missing values:** decide per column — drop, impute with median/mode, or flag with an indicator column. Never blindly fill everything with zero.\n- **Errors and impossible values:** negative ages, future dates, values outside a known domain.\n\n```python\ndf['age'] = pd.to_numeric(df['age'], errors='coerce')\ndf['age'] = df['age'].clip(lower=0, upper=120)\ndf['city'] = df['city'].str.strip().str.title()\nmedian_fare = df['fare'].median()\ndf['fare'] = df['fare'].fillna(median_fare)\n```\n\n## Step 4 — Visualize Distributions and Relationships\n\nUse three layers of plots:\n\n- **Univariate:** histograms and boxplots for numerics, bar charts for categoricals.\n- **Bivariate:** scatter plots, grouped boxplots, and crosstabs against your target or key variable.\n- **Multivariate:** a correlation heatmap for numeric features.\n\n```python\nfig, ax = plt.subplots(1, 2, figsize=(12, 4))\nsns.histplot(df['age'], kde=True, ax=ax[0])\nsns.boxplot(x='survived', y='fare', data=df, ax=ax[1])\nplt.tight_layout()\n\ncorr = df.select_dtypes('number').corr()\nsns.heatmap(corr, annot=True, cmap='coolwarm', fmt='.2f')\n```\n\nUse the IQR rule (`Q1 - 1.5*IQR`, `Q3 + 1.5*IQR`) to flag outliers, but investigate before deleting — outliers are sometimes the most interesting rows.\n\n## Step 5 — Write the Insights\n\nClose the notebook with a markdown section titled **Key Findings**. Each finding should be one sentence backed by a number or plot, for example: *\"Passengers in first class survived at 63% vs 24% in third class, suggesting class is a strong predictor.\"* Add a **Data Quality Notes** list and a **Next Steps** list (modeling ideas, additional data to collect).\n\n## Common Pitfalls\n\n- Imputing before splitting data (causes leakage in later modeling).\n- Dropping rows with any missing value, losing most of your data.\n- Reporting correlation as causation.\n- Charts with no titles or axis labels — always label.\n\n## Deliverable Checklist\n\n1. Provenance header with source and date.\n2. Profiling section.\n3. Documented cleaning steps.\n4. At least 5 labeled visualizations.\n5. Key Findings, Data Quality Notes, and Next Steps.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Mini-Project: Exploratory Data Analysis Report",
+      "sub": "From raw CSV to actionable insights",
+      "narration": "Welcome to your first capstone mini-project. Over the next few minutes we'll walk through how to build a complete exploratory data analysis notebook on a public dataset. By the end you'll have a portfolio-ready artifact that profiles, cleans, and surfaces insights from real data."
+    },
+    {
+      "type": "content",
+      "title": "What Makes a Good EDA Report",
+      "bullets": [
+        "Answers: what's in the data, can I trust it, what's interesting",
+        "Reproducible notebook anyone can rerun",
+        "Documents every cleaning decision",
+        "Ends with clear, number-backed findings"
+      ],
+      "narration": "A strong EDA report answers three core questions: what is in this data, can I trust it, and what is actionable. It should be fully reproducible, document every decision you made, and end with concrete findings backed by numbers — not just a pile of charts. Keep the audience in mind: a stakeholder or hiring manager should be able to skim it and understand your dataset."
+    },
+    {
+      "type": "content",
+      "title": "Step 1: Set Up and Load",
+      "bullets": [
+        "Import pandas, numpy, matplotlib, seaborn",
+        "Record source, date, and license up front",
+        "Load with read_csv and inspect head()",
+        "Provenance enables reproducibility"
+      ],
+      "code": "import pandas as pd, numpy as np\nimport seaborn as sns\ndf = pd.read_csv('data/dataset.csv')\ndf.head()",
+      "narration": "Start with a clean header. Import your core libraries, then add a markdown cell recording where the data came from, when you downloaded it, and its license. Load the CSV and look at the first few rows. This provenance step is what separates a professional notebook from a throwaway script."
+    },
+    {
+      "type": "content",
+      "title": "Step 2: Profile the Data",
+      "bullets": [
+        "Check shape, info(), and describe()",
+        "Measure missingness per column",
+        "Note cardinality for categoricals",
+        "Count duplicates before deciding anything"
+      ],
+      "code": "df.info()\ndf.describe(include='all').T\ndf.isna().mean().sort_values(ascending=False)",
+      "narration": "Profiling builds your mental model before you change anything. Check the shape, data types, and summary statistics. Measure the fraction of missing values in each column and sort to find the worst offenders. Note how many unique values categoricals have, and count duplicate rows. Automated tools exist, but do this manually at least once so you truly understand the output."
+    },
+    {
+      "type": "content",
+      "title": "Step 3: Clean Systematically",
+      "bullets": [
+        "Fix dtypes: dates, numbers, categories",
+        "Drop true duplicates",
+        "Handle missing values per column, not globally",
+        "Fix impossible values like negative ages"
+      ],
+      "code": "df['age'] = pd.to_numeric(df['age'], errors='coerce')\ndf['age'] = df['age'].clip(0, 120)\ndf['fare'] = df['fare'].fillna(df['fare'].median())",
+      "narration": "Clean column by column and log each decision. Convert dates and numbers to proper types, drop confirmed duplicates, and decide per column how to handle missing data — drop, impute, or flag. Never blindly fill everything with zero. Catch impossible values like negative ages or future dates by clipping or coercing. Every step should have a reason you could explain to a reviewer."
+    },
+    {
+      "type": "content",
+      "title": "Step 4: Visualize in Three Layers",
+      "bullets": [
+        "Univariate: histograms, boxplots, bar charts",
+        "Bivariate: scatter, grouped boxplots, crosstabs",
+        "Multivariate: correlation heatmap",
+        "Flag outliers with the IQR rule, then investigate"
+      ],
+      "code": "sns.histplot(df['age'], kde=True)\nsns.heatmap(df.select_dtypes('number').corr(), annot=True)",
+      "narration": "Visualize in three layers. Univariate plots show each variable alone — histograms and boxplots for numbers, bar charts for categories. Bivariate plots relate variables to your target. Multivariate views like a correlation heatmap reveal structure across numeric features. Use the interquartile range rule to flag outliers, but always investigate before deleting — outliers are sometimes your most interesting rows. And always label your axes."
+    },
+    {
+      "type": "content",
+      "title": "Step 5: Write the Insights",
+      "bullets": [
+        "Key Findings: one sentence each, backed by a number",
+        "Data Quality Notes: issues you found",
+        "Next Steps: modeling ideas, more data",
+        "Example: '1st class survived 63% vs 24% in 3rd'"
+      ],
+      "narration": "Close the notebook with a written summary. Each key finding should be a single sentence backed by a number or a chart, like first-class passengers surviving at sixty-three percent versus twenty-four percent in third class. Add a data-quality notes section listing the issues you found, and a next-steps section with modeling ideas. This is the part stakeholders actually read."
+    },
+    {
+      "type": "content",
+      "title": "Pitfalls and Deliverable Checklist",
+      "bullets": [
+        "Avoid imputing before train/test split (leakage)",
+        "Don't drop all rows with any NA",
+        "Correlation is not causation",
+        "Checklist: provenance, profile, cleaning, 5+ plots, findings"
+      ],
+      "narration": "Watch out for common pitfalls: imputing before splitting data causes leakage later, dropping every row with a missing value can destroy your dataset, and correlation never proves causation. Your final deliverable should include a provenance header, a profiling section, documented cleaning, at least five labeled visualizations, and the findings, quality notes, and next steps sections. Hit those and you have a portfolio-worthy EDA report."
+    }
+  ]
+}

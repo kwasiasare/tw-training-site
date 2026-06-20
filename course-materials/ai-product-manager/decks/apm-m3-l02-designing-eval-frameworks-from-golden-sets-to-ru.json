@@ -1,0 +1,191 @@
+{
+  "slug": "apm-m3-l02-designing-eval-frameworks-from-golden-sets-to-ru",
+  "title": "Designing Eval Frameworks: From Golden Sets to Rubrics",
+  "month": 3,
+  "monthTitle": "Building, Evaluating, and Prompting AI Features",
+  "lesson": 2,
+  "video": "apm-m3-l02-designing-eval-frameworks-from-golden-sets-to-ru.mp4",
+  "summary": "Learn to design a practical evaluation framework for AI features: build golden sets, write scoring rubrics, and set acceptance thresholds so you can ship with confidence and catch regressions.",
+  "objectives": [
+    "Explain why AI features need systematic evals beyond manual spot-checks",
+    "Construct a representative golden set with edge cases and clear labels",
+    "Write scoring rubrics (binary, scaled, and dimensional) that produce consistent judgments",
+    "Define acceptance thresholds and ship/no-ship gates tied to product risk",
+    "Choose between human, automated, and LLM-as-judge scoring methods",
+    "Operationalize evals into a repeatable plan integrated with releases"
+  ],
+  "quiz": [
+    {
+      "q": "What is the primary purpose of a golden set in an eval framework?",
+      "options": [
+        "To store all production logs indefinitely",
+        "A curated, representative set of test cases used as a quality benchmark",
+        "A list of prompts that always pass",
+        "The model's training data"
+      ],
+      "answer": 1,
+      "why": "A golden set is a curated, versioned collection of representative and edge-case test cases used to benchmark feature quality over time."
+    },
+    {
+      "q": "Which scoring approach is best for enforcing a hard 'output must be valid JSON' constraint?",
+      "options": [
+        "LLM-as-judge",
+        "Scaled 1-5 human rating",
+        "Programmatic/deterministic checks",
+        "Ignoring it until launch"
+      ],
+      "answer": 2,
+      "why": "Format and schema constraints are objective and reliably enforced with programmatic checks rather than subjective scoring."
+    },
+    {
+      "q": "Why should acceptance thresholds be tied to a baseline rather than an absolute ideal?",
+      "options": [
+        "Baselines are easier to fake",
+        "To ensure the feature is at least as good as current production/human performance and to detect regressions",
+        "Absolute ideals are illegal",
+        "It removes the need for a golden set"
+      ],
+      "answer": 1,
+      "why": "Comparing against a baseline shows real improvement or regression relative to what users already experience, which is the meaningful decision criterion."
+    },
+    {
+      "q": "When using LLM-as-judge for scoring, what critical step keeps it trustworthy?",
+      "options": [
+        "Using the largest model available",
+        "Validating its judgments against human labels and checking for bias",
+        "Running it only once",
+        "Removing all programmatic checks"
+      ],
+      "answer": 1,
+      "why": "LLM-as-judge scales scoring but can be biased or inconsistent, so it must be periodically validated against human-labeled cases."
+    },
+    {
+      "q": "Name one type of input you should deliberately include in a golden set beyond common, representative cases.",
+      "answer": "Edge cases such as adversarial, ambiguous, empty, or out-of-scope inputs",
+      "why": "Edge and adversarial cases reveal failure modes that representative-only sets miss, making the eval a stronger safety and quality net."
+    },
+    {
+      "q": "In one phrase, what is the key advantage of a dimensional rubric over a single overall score?",
+      "answer": "It makes failures diagnosable by separating axes like accuracy, tone, and safety",
+      "why": "Scoring independent dimensions lets you see exactly where quality breaks down rather than getting one ambiguous number."
+    }
+  ],
+  "resources": [
+    {
+      "label": "OpenAI Evals framework (GitHub)",
+      "url": "https://github.com/openai/evals"
+    },
+    {
+      "label": "Anthropic: Building evaluations for your use case",
+      "url": "https://docs.anthropic.com/en/docs/test-and-evaluate/develop-tests"
+    },
+    {
+      "label": "Hugging Face Evaluate library",
+      "url": "https://huggingface.co/docs/evaluate"
+    },
+    {
+      "label": "Google PAIR: Guidebook on Human-Centered AI evaluation",
+      "url": "https://pair.withgoogle.com/guidebook/"
+    }
+  ],
+  "body_markdown": "## Why Evals Matter for AI PMs\n\nAI features are probabilistic, not deterministic. The same prompt can yield different answers, and a model upgrade can silently break behavior that worked yesterday. As an AI PM, you cannot rely on \"it looked good in the demo.\" You need a repeatable measurement system that tells you whether a feature meets quality bars before launch and whether it stays there over time.\n\nAn **eval framework** is the product spec for quality. It answers: What does good look like? How do we measure it? What score is good enough to ship?\n\n## The Three Pillars\n\n1. **Golden set** — a curated collection of test cases (inputs and, where possible, expected outputs or reference answers).\n2. **Scoring rubric** — the rules for judging an output's quality.\n3. **Acceptance thresholds** — the numeric bar a feature must clear to ship or stay live.\n\n## Building a Golden Set\n\nA golden set is your benchmark. Quality beats quantity early on; 50–200 well-chosen cases often outperform thousands of random ones.\n\n**Principles:**\n- **Representative:** mirror real user distribution (common intents, languages, formats).\n- **Edge cases:** include adversarial, ambiguous, empty, and out-of-scope inputs.\n- **Stratified:** tag cases by category, difficulty, and risk so you can analyze by slice.\n- **Versioned:** store as data (CSV/JSON) under version control; freeze a set per release.\n- **Sourced honestly:** pull from real logs (anonymized), support tickets, and known failure modes — not just inputs you know the model handles well.\n\nEach case should capture: `input`, `context`, `expected_output` or `reference`, `category`, `difficulty`, and any `must_not` constraints (e.g., never reveal PII).\n\n## Writing Scoring Rubrics\n\nA rubric converts fuzzy \"quality\" into a measurable judgment. Pick the simplest type that captures what matters.\n\n- **Binary (pass/fail):** \"Did it correctly answer the question? Y/N.\" Easy to aggregate, great for correctness-critical tasks.\n- **Scaled (1–5):** captures degrees of quality (e.g., helpfulness). Define each point on the scale to reduce subjectivity.\n- **Dimensional:** score multiple independent axes — e.g., **accuracy**, **completeness**, **tone**, **safety**, **format compliance** — then combine with weights.\n\n**Rubric best practices:**\n- Anchor every score with concrete descriptions and examples.\n- Separate *correctness* (factual) from *style* (tone/format) so failures are diagnosable.\n- Include hard constraints as gating checks (safety violation = automatic fail regardless of other scores).\n- Calibrate: have two people score the same 20 cases and measure agreement; refine until consistent.\n\n## Choosing a Scoring Method\n\n| Method | Best for | Tradeoffs |\n|---|---|---|\n| Exact/deterministic match | Structured output, classification | Cheap, fast; brittle for free text |\n| Programmatic checks | Format, JSON schema, keyword presence | Reliable for constraints; can't judge nuance |\n| Human review | Subjective quality, high-stakes | Gold standard; slow, expensive |\n| LLM-as-judge | Scaling subjective scoring | Fast and cheap; needs validation against human labels, watch for bias |\n\nA common pattern: programmatic checks for hard constraints + LLM-as-judge for quality, periodically audited by humans.\n\n## Setting Acceptance Thresholds\n\nThresholds turn scores into decisions. Tie them to **product risk** and **baseline**.\n\n- Define the **metric** (e.g., % passing, mean rubric score) and the **bar** (e.g., ≥90% pass on correctness, zero safety failures).\n- Use **ship gates**: must-pass (safety, no regressions) vs. nice-to-have (helpfulness improvement).\n- Compare against a **baseline** (current production or human performance), not an absolute ideal.\n- Account for **statistical confidence** — small golden sets have noisy estimates; report ranges.\n- Treat **regressions** explicitly: a new model can't drop any critical slice below its prior level.\n\n## Operationalizing the Plan\n\n- Run evals automatically on every prompt change, model upgrade, or release candidate.\n- Track results over time in a dashboard; alert on regressions.\n- Grow the golden set continuously by mining production failures.\n- Review and recalibrate rubrics quarterly as the product and user expectations evolve.\n\nThe deliverable is a one-page **eval plan**: feature, golden set location, rubric, scoring method, thresholds, and owner.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Designing Eval Frameworks: From Golden Sets to Rubrics",
+      "sub": "Building measurable quality bars for AI features",
+      "narration": "Welcome. In this lesson we'll learn how to design an evaluation framework for an AI feature. By the end you'll be able to build a golden set, write scoring rubrics, and set acceptance thresholds that let you ship AI products with confidence rather than guesswork."
+    },
+    {
+      "type": "content",
+      "title": "Why Evals Matter",
+      "bullets": [
+        "AI outputs are probabilistic — demos lie",
+        "Model and prompt changes cause silent regressions",
+        "Evals are the product spec for quality",
+        "Answer: what is good, how to measure, when to ship"
+      ],
+      "narration": "AI features behave probabilistically, so the same input can give different outputs, and a model upgrade can quietly break what worked yesterday. A polished demo tells you nothing about reliability. An eval framework is essentially the product spec for quality — it answers three questions: what does good look like, how do we measure it, and what score is good enough to ship?"
+    },
+    {
+      "type": "content",
+      "title": "The Three Pillars",
+      "bullets": [
+        "Golden set: curated test cases",
+        "Scoring rubric: rules for judging outputs",
+        "Acceptance thresholds: the bar to ship",
+        "Together they form a repeatable eval plan"
+      ],
+      "narration": "Every eval framework rests on three pillars. First, the golden set — a curated collection of test cases. Second, the scoring rubric — the rules you use to judge each output. Third, acceptance thresholds — the numeric bar a feature must clear before it ships or stays live. Combine these into a repeatable plan and you have a measurement system you can trust."
+    },
+    {
+      "type": "content",
+      "title": "Building a Golden Set",
+      "bullets": [
+        "Representative of real user distribution",
+        "Include edge, adversarial, and out-of-scope cases",
+        "Stratify by category, difficulty, risk",
+        "Version it; freeze a set per release",
+        "Source from real logs, not just easy wins"
+      ],
+      "narration": "A golden set is your benchmark. Quality beats quantity — fifty to two hundred well-chosen cases often beat thousands of random ones. Make it representative of real usage, but deliberately include edge cases: ambiguous, adversarial, empty, and out-of-scope inputs. Tag every case by category, difficulty, and risk so you can analyze by slice. Store it as versioned data and pull from real, anonymized logs and support tickets — not just the inputs you already know the model handles well."
+    },
+    {
+      "type": "content",
+      "title": "Anatomy of a Test Case",
+      "bullets": [
+        "input, context, expected_output or reference",
+        "category, difficulty tags",
+        "must_not constraints (e.g., no PII)",
+        "Stored as JSON/CSV under version control"
+      ],
+      "code": "{\n  \"input\": \"Cancel my order #4821\",\n  \"context\": \"user authenticated; order shipped\",\n  \"reference\": \"Explain shipped orders can't be canceled; offer return\",\n  \"category\": \"order_mgmt\",\n  \"difficulty\": \"medium\",\n  \"must_not\": [\"reveal other customers' data\"]\n}",
+      "narration": "Here's what a single test case looks like as structured data. Each case captures the input, any context the model needs, and an expected output or reference answer. We tag it with category and difficulty for slicing, and crucially we add must-not constraints — hard rules the output can never violate, like exposing another customer's data. Storing cases as JSON or CSV in version control makes evals reproducible."
+    },
+    {
+      "type": "content",
+      "title": "Writing Scoring Rubrics",
+      "bullets": [
+        "Binary: pass/fail for correctness-critical tasks",
+        "Scaled 1-5: degrees of quality, define each point",
+        "Dimensional: accuracy, completeness, tone, safety",
+        "Anchor scores with examples; calibrate raters"
+      ],
+      "narration": "A rubric turns fuzzy quality into a measurable judgment. Use the simplest type that captures what matters. Binary pass-fail is great for correctness-critical tasks. A one-to-five scale captures degrees of quality, but you must define each point to reduce subjectivity. Dimensional rubrics score independent axes like accuracy, completeness, tone, and safety, then combine with weights. Always anchor scores with concrete examples, and calibrate by having two people score the same cases until they agree."
+    },
+    {
+      "type": "content",
+      "title": "Choosing a Scoring Method",
+      "bullets": [
+        "Deterministic match: structured output, cheap, brittle",
+        "Programmatic checks: format, schema, keywords",
+        "Human review: gold standard, slow, costly",
+        "LLM-as-judge: scalable but validate vs humans"
+      ],
+      "narration": "There are four main scoring methods. Deterministic matching works for structured or classification outputs but is brittle for free text. Programmatic checks reliably enforce hard constraints like JSON schema or required keywords. Human review is the gold standard for subjective and high-stakes quality, but it's slow and expensive. LLM-as-judge scales subjective scoring cheaply — just validate it against human labels and watch for bias. A common pattern combines programmatic checks for constraints with LLM-as-judge for quality, audited periodically by humans."
+    },
+    {
+      "type": "content",
+      "title": "Setting Acceptance Thresholds",
+      "bullets": [
+        "Tie thresholds to product risk and baseline",
+        "Define metric + bar (e.g. >=90% pass, 0 safety fails)",
+        "Must-pass gates vs nice-to-have improvements",
+        "No regressions on any critical slice",
+        "Account for confidence on small sets"
+      ],
+      "narration": "Thresholds turn scores into ship or no-ship decisions. Anchor them to product risk and to your baseline — current production or human performance — not an abstract ideal. Define the metric and the bar, for example ninety percent pass on correctness and zero safety failures. Separate must-pass gates, like safety and no regressions, from nice-to-have improvements. And remember small golden sets give noisy estimates, so report confidence ranges rather than treating a single number as truth."
+    },
+    {
+      "type": "content",
+      "title": "Operationalize the Plan",
+      "bullets": [
+        "Run evals on every prompt/model change",
+        "Dashboard results; alert on regressions",
+        "Grow golden set from production failures",
+        "Deliverable: a one-page eval plan with an owner"
+      ],
+      "narration": "Finally, make evals part of your workflow. Run them automatically on every prompt change, model upgrade, and release candidate. Track results on a dashboard and alert on regressions. Continuously grow your golden set by mining real production failures. The concrete deliverable is a one-page eval plan listing the feature, golden set location, rubric, scoring method, thresholds, and a named owner. That document is how you ship AI features responsibly."
+    }
+  ]
+}

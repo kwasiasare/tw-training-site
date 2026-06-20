@@ -1,0 +1,192 @@
+{
+  "slug": "age-m4-l03-deploying-agents-as-apis-with-persistence-and-sc",
+  "title": "Deploying Agents as APIs with Persistence and Scaling",
+  "month": 4,
+  "monthTitle": "Evaluation, Deployment, and Capstone",
+  "lesson": 3,
+  "video": "age-m4-l03-deploying-agents-as-apis-with-persistence-and-sc.mp4",
+  "summary": "Learn to package an agent graph behind a production FastAPI service with persistent conversation state, streaming token responses, and containerized deployment that scales horizontally.",
+  "objectives": [
+    "Expose an agent graph through FastAPI endpoints with request validation and structured responses",
+    "Implement persistent agent state using a checkpointer backed by a database for cross-request continuity",
+    "Stream agent responses to clients using Server-Sent Events or chunked HTTP",
+    "Containerize the service with Docker and configure it for horizontal scaling and health checks",
+    "Apply production concerns: configuration, concurrency, observability, and graceful shutdown"
+  ],
+  "quiz": [
+    {
+      "q": "Why should conversation state be stored in a shared database checkpointer rather than in process memory?",
+      "options": [
+        "It makes the agent respond faster",
+        "So any replica can resume any conversation and state survives restarts",
+        "Because FastAPI cannot hold variables in memory",
+        "To reduce the number of tokens sent to the LLM"
+      ],
+      "answer": 1,
+      "why": "A shared, durable checkpointer keyed by thread_id lets stateless replicas resume any conversation and preserves state across restarts — essential for horizontal scaling."
+    },
+    {
+      "q": "Which FastAPI mechanism is used to stream token-by-token agent output to clients?",
+      "options": [
+        "StreamingResponse with Server-Sent Events",
+        "A blocking synchronous return",
+        "Pydantic response_model only",
+        "Module-level global variables"
+      ],
+      "answer": 0,
+      "why": "StreamingResponse paired with an async generator yielding SSE events streams chunks as the agent produces them, lowering perceived latency."
+    },
+    {
+      "q": "Why are async endpoints (async def with ainvoke/astream) preferred for agent APIs?",
+      "options": [
+        "They use less memory than sync code always",
+        "LLM calls are I/O-bound, so async lets one worker handle many concurrent requests",
+        "They guarantee the LLM returns faster",
+        "They remove the need for a load balancer"
+      ],
+      "answer": 1,
+      "why": "Agent requests spend most time waiting on I/O-bound LLM calls; async concurrency lets a single worker serve many requests while waiting."
+    },
+    {
+      "q": "What identifies which conversation a request belongs to in the persisted state?",
+      "options": [
+        "The Docker container ID",
+        "The thread_id in the run config",
+        "The Uvicorn worker number",
+        "The client's IP address"
+      ],
+      "answer": 1,
+      "why": "The thread_id passed in the configurable run config is the key the checkpointer uses to load and save that conversation's state."
+    },
+    {
+      "q": "Name two endpoints you should add so an orchestrator (like Kubernetes) can probe the service.",
+      "answer": "/health and /ready",
+      "why": "Liveness (/health) and readiness (/ready) probes let the orchestrator know when to restart or route traffic to a replica."
+    },
+    {
+      "q": "In one sentence, why must application workers stay stateless when scaling horizontally?",
+      "answer": "Because requests can hit any replica, so conversation state must live in shared storage rather than in any single worker's memory.",
+      "why": "Load balancers distribute requests across replicas; if state were in process memory, a follow-up request hitting a different replica would lose context."
+    }
+  ],
+  "resources": [
+    {
+      "label": "FastAPI documentation",
+      "url": "https://fastapi.tiangolo.com/"
+    },
+    {
+      "label": "LangGraph persistence & checkpointers",
+      "url": "https://langchain-ai.github.io/langgraph/concepts/persistence/"
+    },
+    {
+      "label": "Uvicorn deployment guide",
+      "url": "https://www.uvicorn.org/deployment/"
+    },
+    {
+      "label": "Docker Python best practices",
+      "url": "https://docs.docker.com/language/python/"
+    }
+  ],
+  "body_markdown": "## Why APIs for Agents\n\nAn agent that only runs in a notebook is a prototype. To serve real users you need a network-accessible service that handles concurrent requests, remembers conversations, streams output, and recovers from restarts. FastAPI is the de-facto Python choice: it is async-native, fast, and gives automatic OpenAPI docs.\n\n## Wrapping the Agent Graph\n\nAssume you built an agent as a compiled graph (e.g. a LangGraph `app` or any callable that takes input + config and returns output). The service layer should:\n\n- Accept a validated request (Pydantic model)\n- Attach a `thread_id` / session identifier to the run config\n- Invoke the graph asynchronously\n- Return a structured response\n\n```python\nfrom fastapi import FastAPI\nfrom pydantic import BaseModel\n\napp = FastAPI()\n\nclass ChatRequest(BaseModel):\n    thread_id: str\n    message: str\n\nclass ChatResponse(BaseModel):\n    thread_id: str\n    reply: str\n\n@app.post(\"/chat\", response_model=ChatResponse)\nasync def chat(req: ChatRequest):\n    config = {\"configurable\": {\"thread_id\": req.thread_id}}\n    result = await agent.ainvoke({\"messages\": [(\"user\", req.message)]}, config)\n    return ChatResponse(thread_id=req.thread_id, reply=result[\"messages\"][-1].content)\n```\n\nUse `async def` and the async invocation methods (`ainvoke`, `astream`) so a single worker can handle many concurrent requests while waiting on LLM I/O.\n\n## Persistence: Remembering State Across Requests\n\nEach HTTP request is stateless, but conversations are not. A **checkpointer** persists the graph state keyed by `thread_id`. In-memory checkpointers lose everything on restart and don't work across multiple replicas, so for production use a shared database.\n\n```python\nfrom langgraph.checkpoint.postgres.aio import AsyncPostgresSaver\n\ncheckpointer = AsyncPostgresSaver.from_conn_string(DB_URL)\nagent = graph.compile(checkpointer=checkpointer)\n```\n\nKey points:\n\n- The `thread_id` is the conversation key — generate it client-side or server-side and return it.\n- A shared store (Postgres, Redis) lets any replica resume any conversation — essential for horizontal scaling.\n- Set TTLs or archival policies so state doesn't grow unbounded.\n\n## Streaming Responses\n\nUsers expect token-by-token output. Stream with Server-Sent Events (SSE) using FastAPI's `StreamingResponse`.\n\n```python\nfrom fastapi.responses import StreamingResponse\n\n@app.post(\"/chat/stream\")\nasync def chat_stream(req: ChatRequest):\n    config = {\"configurable\": {\"thread_id\": req.thread_id}}\n    async def gen():\n        async for chunk in agent.astream(\n            {\"messages\": [(\"user\", req.message)]}, config, stream_mode=\"messages\"\n        ):\n            yield f\"data: {chunk_to_text(chunk)}\\n\\n\"\n        yield \"data: [DONE]\\n\\n\"\n    return StreamingResponse(gen(), media_type=\"text/event-stream\")\n```\n\nStreaming reduces perceived latency and lets you cancel long runs early.\n\n## Containerization\n\nPackage the app in Docker for reproducible deploys.\n\n```dockerfile\nFROM python:3.12-slim\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY . .\nEXPOSE 8000\nCMD [\"uvicorn\", \"main:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"]\n```\n\nFor production you often front Uvicorn with Gunicorn workers or run multiple Uvicorn processes behind a load balancer.\n\n## Scaling Horizontally\n\nBecause state lives in the shared checkpointer (not in process memory), you can run **stateless replicas** behind a load balancer. Guidelines:\n\n- Keep workers stateless; never cache conversation state in a module-level dict.\n- Size concurrency for I/O-bound LLM calls — many async tasks per worker.\n- Add `/health` and `/ready` endpoints for orchestrator probes.\n- Handle graceful shutdown so in-flight streams finish before the pod dies.\n- Externalize secrets and config via environment variables.\n\n## Observability\n\nLog request IDs and `thread_id`, emit latency and token-usage metrics, and trace agent steps. Without tracing, debugging multi-step agent failures in production is nearly impossible.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Deploying Agents as APIs with Persistence and Scaling",
+      "narration": "Welcome. In this lesson we take an agent graph out of the notebook and turn it into a production-ready API. We'll cover wrapping it in FastAPI, persisting conversation state, streaming responses, containerizing with Docker, and scaling horizontally."
+    },
+    {
+      "type": "content",
+      "title": "From Prototype to Service",
+      "bullets": [
+        "Notebooks are prototypes; users need a network service",
+        "FastAPI: async-native, fast, auto OpenAPI docs",
+        "Must handle concurrency, memory, streaming, restarts",
+        "Goal: stateless replicas + shared persistent state"
+      ],
+      "narration": "An agent in a notebook is just a prototype. To serve real users you need something reachable over the network that handles many concurrent requests, remembers conversations, streams output, and survives restarts. FastAPI is the standard Python choice because it's async-native and gives you automatic documentation. Our architectural goal is stateless application replicas backed by shared persistent state."
+    },
+    {
+      "type": "content",
+      "title": "Wrapping the Agent Graph",
+      "bullets": [
+        "Validate input with Pydantic models",
+        "Attach a thread_id to the run config",
+        "Use async invocation (ainvoke) for concurrency",
+        "Return structured responses"
+      ],
+      "code": "@app.post(\"/chat\", response_model=ChatResponse)\nasync def chat(req: ChatRequest):\n    config = {\"configurable\": {\"thread_id\": req.thread_id}}\n    result = await agent.ainvoke(\n        {\"messages\": [(\"user\", req.message)]}, config)\n    return ChatResponse(thread_id=req.thread_id,\n                        reply=result[\"messages\"][-1].content)",
+      "narration": "The service layer validates input with a Pydantic model, attaches a thread ID to the run configuration, and invokes the compiled graph. Use async invocation so a single worker can serve many requests concurrently while they wait on slow LLM calls. Always return a structured, validated response so clients have a stable contract."
+    },
+    {
+      "type": "content",
+      "title": "Persistence with Checkpointers",
+      "bullets": [
+        "HTTP is stateless; conversations are not",
+        "Checkpointer persists graph state by thread_id",
+        "In-memory loses state on restart and across replicas",
+        "Use Postgres or Redis for shared, durable state"
+      ],
+      "code": "checkpointer = AsyncPostgresSaver.from_conn_string(DB_URL)\nagent = graph.compile(checkpointer=checkpointer)",
+      "narration": "Each HTTP request is stateless but conversations aren't. A checkpointer persists the graph's state keyed by thread ID. In-memory checkpointers lose everything on restart and can't be shared between replicas, so production needs a shared backend like Postgres or Redis. The thread ID is your conversation key, and a shared store means any replica can resume any conversation."
+    },
+    {
+      "type": "content",
+      "title": "Streaming Responses",
+      "bullets": [
+        "Users expect token-by-token output",
+        "Use StreamingResponse with SSE",
+        "Stream with agent.astream(...)",
+        "Lowers perceived latency, enables early cancel"
+      ],
+      "code": "async def gen():\n    async for chunk in agent.astream(payload, config,\n            stream_mode=\"messages\"):\n        yield f\"data: {chunk_to_text(chunk)}\\n\\n\"\n    yield \"data: [DONE]\\n\\n\"\nreturn StreamingResponse(gen(), media_type=\"text/event-stream\")",
+      "narration": "Users expect responses to appear token by token, not after a long pause. FastAPI's StreamingResponse with Server-Sent Events lets you yield chunks as the agent produces them. Use the async streaming method and emit each chunk as an SSE event, finishing with a done marker. Streaming dramatically improves perceived latency and lets clients cancel long runs early."
+    },
+    {
+      "type": "content",
+      "title": "Containerization",
+      "bullets": [
+        "Docker for reproducible deploys",
+        "Slim Python base image, install deps, copy code",
+        "Run uvicorn binding to 0.0.0.0",
+        "Front with Gunicorn workers or a load balancer"
+      ],
+      "code": "FROM python:3.12-slim\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY . .\nCMD [\"uvicorn\", \"main:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"]",
+      "narration": "Package the service in Docker for reproducible deploys. Start from a slim Python base, install dependencies, copy your code, and run Uvicorn bound to all interfaces. In production you typically run multiple worker processes or multiple containers behind a load balancer to use all CPU cores and add redundancy."
+    },
+    {
+      "type": "content",
+      "title": "Scaling Horizontally",
+      "bullets": [
+        "Keep workers stateless — no module-level conversation dicts",
+        "State lives in the shared checkpointer",
+        "Size async concurrency for I/O-bound LLM calls",
+        "Add /health and /ready probes",
+        "Handle graceful shutdown for in-flight streams"
+      ],
+      "narration": "Because state lives in the shared checkpointer, your application replicas stay stateless and you can scale out simply by adding more behind a load balancer. Never cache conversation state in a module-level dictionary or it breaks across replicas. Tune concurrency high since LLM calls are I/O-bound, expose health and readiness endpoints for your orchestrator, and handle graceful shutdown so in-flight streams complete before a pod terminates."
+    },
+    {
+      "type": "content",
+      "title": "Observability & Config",
+      "bullets": [
+        "Log request IDs and thread_id",
+        "Emit latency and token-usage metrics",
+        "Trace multi-step agent runs",
+        "Externalize secrets via environment variables"
+      ],
+      "narration": "Finally, production agents need observability. Log request and thread identifiers, emit latency and token-usage metrics, and trace each agent step. Multi-step agent failures are nearly impossible to debug without tracing. Keep all secrets and configuration in environment variables, never hardcoded, so the same image runs across environments."
+    },
+    {
+      "type": "content",
+      "title": "Summary",
+      "bullets": [
+        "Wrap graph in async FastAPI endpoints",
+        "Persist state with a shared DB checkpointer",
+        "Stream with SSE for low perceived latency",
+        "Containerize and scale stateless replicas",
+        "Add health checks, tracing, and config hygiene"
+      ],
+      "narration": "To recap: wrap your agent graph in async FastAPI endpoints, persist conversation state in a shared database checkpointer, stream responses with SSE, containerize with Docker, and scale stateless replicas behind a load balancer. Add health checks, tracing, and clean configuration, and you have a production-ready agent API. In the capstone you'll apply all of this end to end."
+    }
+  ]
+}
