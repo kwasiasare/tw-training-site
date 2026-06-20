@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Quiz from '../../components/Quiz.astro';
+import Tutor from '../../components/Tutor.astro';
 import VideoEmbed from '../../components/VideoEmbed.astro';
 import { getCourse, courseModules } from '../../consts';
 
@@ -49,6 +50,8 @@ const next = idx >= 0 && idx < ordered.length - 1 ? ordered[idx + 1] : undefined
       </div>
 
       <Quiz questions={d.quiz} course={d.course} lesson={topic.id} />
+
+      <Tutor course={d.course} lesson={topic.id} />
 
       {d.resources.length > 0 && (
         <div class="resources">

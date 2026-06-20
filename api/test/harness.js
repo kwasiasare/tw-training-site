@@ -34,13 +34,15 @@ function setCache(absId, exports) {
 // Load a function module in isolation. Returns { handlers, exports } where
 // `handlers` maps each registered name to its options object (incl. handler),
 // and `exports` is the module's own exports (used by the sync test).
-function loadFunction(name, { cosmosContainer, r2, advisor, resumes, notify } = {}) {
+function loadFunction(name, { cosmosContainer, r2, advisor, resumes, notify, tutor, lessons } = {}) {
   const azFuncId = require.resolve('@azure/functions', { paths: [FUNCTIONS_DIR] });
   const cosmosId = path.join(SHARED_DIR, 'cosmos.js');
   const r2Id = path.join(SHARED_DIR, 'r2.js');
   const advisorId = path.join(SHARED_DIR, 'advisor.js');
   const resumesId = path.join(SHARED_DIR, 'resumes.js');
   const notifyId = path.join(SHARED_DIR, 'notify.js');
+  const tutorId = path.join(SHARED_DIR, 'tutor.js');
+  const lessonsId = path.join(SHARED_DIR, 'lessons.js');
   const principalId = path.join(SHARED_DIR, 'principal.js');
   const fnId = path.join(FUNCTIONS_DIR, name + '.js');
 
@@ -68,6 +70,17 @@ function loadFunction(name, { cosmosContainer, r2, advisor, resumes, notify } = 
   });
   setCache(notifyId, {
     notifyCourseRequest: notify || (async () => ({ sent: false, reason: 'stubbed' })),
+  });
+
+  // AI tutor stubs (the real tutor.js hits the Anthropic API; lessons.js reads the
+  // committed lesson index). Default lessons stub returns a generic lesson so tests
+  // that don't care about lookup still exercise the handler.
+  setCache(tutorId, {
+    answerLessonQuestion: tutor || (async () => ({ reply: 'stubbed reply' })),
+  });
+  setCache(lessonsId, {
+    getLesson: (lessons && lessons.getLesson)
+      || (() => ({ course: 'demo-course', title: 'Demo', objectives: [], body: 'demo body' })),
   });
 
   // Real principal + fresh function module each load.
