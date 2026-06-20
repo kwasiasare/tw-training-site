@@ -78,10 +78,10 @@ test('custom-advisor: matched path enrolls and persists the advisor doc', async 
 
   assert.equal(res.status, 200);
   assert.equal(res.jsonBody.outcome.type, 'matched');
-  assert.equal(res.jsonBody.outcome.courseSlug, 'dami-ai-career');
+  assert.equal(res.jsonBody.outcome.courseSlug, 'ai-app-developer-2026');
   assert.equal(stored.length, 1, 'résumé was stored before analysis');
   const ids = container._calls.upserts.map((d) => d.id);
-  assert.ok(ids.includes('user-123:enroll:dami-ai-career'), 'enrollment created');
+  assert.ok(ids.includes('user-123:enroll:ai-app-developer-2026'), 'enrollment created');
   assert.ok(ids.includes('user-123:advisor'), 'advisor doc persisted');
   const advisorDoc = container._calls.upserts.find((d) => d.type === 'advisor');
   assert.equal(advisorDoc.consent, true);
@@ -146,10 +146,10 @@ test('custom-advisor: GET auto-delivers a now-published course (enroll + matched
   const res = await handler(makeRequest({ method: 'GET', user: authUser() }), makeContext());
   assert.equal(res.status, 200);
   assert.equal(res.jsonBody.advisor.outcome.type, 'matched');
-  assert.equal(res.jsonBody.advisor.outcome.courseSlug, 'dami-ai-career');
+  assert.equal(res.jsonBody.advisor.outcome.courseSlug, 'ai-app-developer-2026');
   assert.equal(res.jsonBody.advisor.outcome.delivered, 'generated');
   assert.equal(res.jsonBody.generation, null, 'request cleared');
-  assert.ok(container._calls.upserts.some((d) => d.id === 'user-123:enroll:dami-ai-career'), 'enrolled');
+  assert.ok(container._calls.upserts.some((d) => d.id === 'user-123:enroll:ai-app-developer-2026'), 'enrolled');
   assert.ok(container._calls.deletes.includes('gen:user-123'), 'request deleted');
 });
 

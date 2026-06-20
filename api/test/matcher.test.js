@@ -7,13 +7,13 @@ const path = require('node:path');
 const { match, score } = require(path.join(__dirname, '..', 'src', 'shared', 'matcher.js'));
 const { BUILTIN_COURSES } = require(path.join(__dirname, '..', 'src', 'shared', 'catalog.js'));
 
-test('match assigns an AI App Developer profile to dami-ai-career', () => {
+test('match assigns an Applied GenAI profile to kwasi-GenAI', () => {
   const m = match(
-    { role: 'AI Application Developer', skills: ['python', 'rag', 'llm apps', 'apis'] },
+    { role: 'Applied GenAI Engineer', skills: ['rag', 'agents', 'llm apis', 'cloud'] },
     BUILTIN_COURSES,
   );
   assert.ok(m, 'expected a match');
-  assert.equal(m.courseSlug, 'dami-ai-career');
+  assert.equal(m.courseSlug, 'kwasi-GenAI');
   assert.ok(m.score >= 0.5);
 });
 
@@ -48,13 +48,13 @@ test('match returns null when nothing meets the threshold', () => {
 });
 
 test('score weights role similarity above skill overlap', () => {
-  const sameRole = score({ role: 'AI Application Developer', skills: [] }, BUILTIN_COURSES[0].targetProfile);
-  const sameSkillsOnly = score({ role: 'Zzz', skills: ['python', 'rag'] }, BUILTIN_COURSES[0].targetProfile);
+  const sameRole = score({ role: 'Applied GenAI Engineer', skills: [] }, BUILTIN_COURSES[0].targetProfile);
+  const sameSkillsOnly = score({ role: 'Zzz', skills: ['rag', 'cloud'] }, BUILTIN_COURSES[0].targetProfile);
   assert.ok(sameRole > sameSkillsOnly);
 });
 
 test('threshold is tunable', () => {
-  const profile = { role: 'Data Person', skills: ['sql', 'data'] };
+  const profile = { role: 'Generalist', skills: ['windows', 'networking'] };
   const loose = match(profile, BUILTIN_COURSES, 0.1);
   const strict = match(profile, BUILTIN_COURSES, 0.95);
   assert.ok(loose, 'loose threshold should match something');

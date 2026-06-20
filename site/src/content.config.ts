@@ -9,7 +9,9 @@ import { glob } from 'astro/loaders';
 // slugs are globally unique across courses (e.g. m1-l01… vs g1-l01…).
 const topics = defineCollection({
   loader: glob({
-    pattern: '*/lessons/**/*.md',
+    // dami-ai-career is unpublished (superseded by ai-app-developer-2026); its
+    // content stays in the repo but is excluded from the build.
+    pattern: ['*/lessons/**/*.md', '!dami-ai-career/lessons/**'],
     base: '../course-materials',
     generateId: ({ entry }) => entry.split(/[\\/]/).pop()!.replace(/\.md$/, ''),
   }),
