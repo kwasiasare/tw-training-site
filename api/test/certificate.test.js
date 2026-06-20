@@ -16,9 +16,10 @@ function completed(course, n) {
   }));
 }
 
-test('certificate: anonymous request returns 401', async () => {
+test('certificate: anonymous request returns 403 (not 401, to dodge the SWA signin redirect)', async () => {
   const res = await handler()(makeRequest({ method: 'GET', query: { course: 'demo-course' } }), makeContext());
-  assert.equal(res.status, 401);
+  assert.equal(res.status, 403);
+  assert.equal(res.jsonBody.error, 'login_required');
 });
 
 test('certificate: a bad course slug returns 400', async () => {

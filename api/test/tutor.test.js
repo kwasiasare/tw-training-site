@@ -21,9 +21,10 @@ function body(overrides = {}) {
   };
 }
 
-test('tutor: anonymous request returns 401', async () => {
+test('tutor: anonymous request returns 403 (not 401, to dodge the SWA signin redirect)', async () => {
   const res = await handler()(makeRequest({ method: 'POST', body: { lesson: 'x', messages: [] } }), makeContext());
-  assert.equal(res.status, 401);
+  assert.equal(res.status, 403);
+  assert.equal(res.jsonBody.error, 'login_required');
 });
 
 test('tutor: a malformed lesson slug is rejected (400)', async () => {
