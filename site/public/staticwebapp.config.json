@@ -34,6 +34,9 @@
   "routes": [
     { "route": "/api/GetRoles", "allowedRoles": ["anonymous", "authenticated"] },
     { "route": "/api/video", "allowedRoles": ["anonymous", "authenticated"] },
+    { "route": "/api/tutor", "allowedRoles": ["anonymous", "authenticated"] },
+    { "route": "/api/grade", "allowedRoles": ["anonymous", "authenticated"] },
+    { "route": "/api/certificate", "allowedRoles": ["anonymous", "authenticated"] },
     { "route": "/api/stats", "allowedRoles": ["authenticated"] },
     { "route": "/api/profile", "allowedRoles": ["authenticated"] },
     { "route": "/api/*", "allowedRoles": ["authenticated"] },
