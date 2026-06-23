@@ -93,16 +93,21 @@ A tool schema has three critical parts:
 - **description** — natural-language explanation of *what it does and when to use it*. This is what the model reads to decide. Write it carefully.
 - **parameters** — a JSON Schema describing the arguments, their types, and which are required.
 
+The OpenAI Chat Completions API wraps each tool as `{"type": "function", "function": {...}}`, with the `name`, `description`, and `parameters` nested inside `function`:
+
 ```json
 {
-  "name": "web_search",
-  "description": "Search the web for current information. Use when the user asks about recent events or facts you don't know.",
-  "parameters": {
-    "type": "object",
-    "properties": {
-      "query": {"type": "string", "description": "The search query"}
-    },
-    "required": ["query"]
+  "type": "function",
+  "function": {
+    "name": "web_search",
+    "description": "Search the web for current information. Use when the user asks about recent events or facts you don't know.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "query": {"type": "string", "description": "The search query"}
+      },
+      "required": ["query"]
+    }
   }
 }
 ```
@@ -119,9 +124,16 @@ def calculator(expression: str) -> str:
     allowed = {ast.Add: op.add, ast.Sub: op.sub,
                ast.Mult: op.mul, ast.Div: op.truediv,
                ast.Pow: op.pow, ast.USub: op.neg}
+    # Cap exponentiation: even a "safe" AST evaluator must bound Pow, or a
+    # model-generated expression like 9**9**9 will hang/OOM the process (DoS).
+    MAX_EXP = 100
     def ev(node):
         if isinstance(node, ast.Constant): return node.value
-        if isinstance(node, ast.BinOp): return allowed[type(node.op)](ev(node.left), ev(node.right))
+        if isinstance(node, ast.BinOp):
+            left, right = ev(node.left), ev(node.right)
+            if isinstance(node.op, ast.Pow) and (abs(right) > MAX_EXP or abs(left) > 1e6):
+                raise ValueError("exponent or base too large")
+            return allowed[type(node.op)](left, right)
         if isinstance(node, ast.UnaryOp): return allowed[type(node.op)](ev(node.operand))
         raise ValueError("unsupported")
     return str(ev(ast.parse(expression, mode='eval').body))
@@ -158,9 +170,9 @@ client = OpenAI()
 tools = [...]  # your schemas
 handlers = {"calculator": calculator, "web_search": web_search}
 
-def run_agent(user_msg: str):
+def run_agent(user_msg: str, max_iters: int = 5):
     messages = [{"role": "user", "content": user_msg}]
-    while True:
+    for _ in range(max_iters):  # cap iterations to avoid runaway tool-calling
         resp = client.chat.completions.create(
             model="gpt-4o", messages=messages, tools=tools)
         msg = resp.choices[0].message
@@ -175,6 +187,7 @@ def run_agent(user_msg: str):
                 "tool_call_id": call.id,
                 "content": str(result),
             })
+    return "Stopped: reached the maximum number of tool-calling iterations."
 ```
 
 Always cap the loop (e.g. max 5 iterations) to avoid infinite tool-calling.

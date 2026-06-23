@@ -97,15 +97,53 @@ A tool needs four things so the model can use it reliably:
 - **parameters schema** – a JSON Schema describing the arguments. This lets you validate inputs.
 - **callable** – the actual Python function that runs the work.
 
+The tool's input is **model-generated and therefore untrusted**. It is tempting to back the calculator with `eval(args["expression"], {"__builtins__": {}})`, but **restricting `__builtins__` is not a sandbox**: known bypasses walk Python's object graph (e.g. `().__class__.__base__.__subclasses__()`) to recover dangerous callables and read files or run commands. The safe pattern for arithmetic is to parse the expression with `ast` and evaluate only a whitelist of arithmetic nodes — and never expose a code path that can reach an object or builtin. (For tools that must run *arbitrary* code, use a real sandbox like E2B, Modal, or a locked-down container instead of `eval`.)
+
 ```python
+import ast
+import operator
+
+# Only these binary/unary operators are permitted.
+_BIN_OPS = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.FloorDiv: operator.floordiv,
+    ast.Mod: operator.mod,
+}
+_UNARY_OPS = {
+    ast.UAdd: operator.pos,
+    ast.USub: operator.neg,
+}
+
+def _safe_eval(node):
+    if isinstance(node, ast.Expression):
+        return _safe_eval(node.body)
+    if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
+        return node.value
+    if isinstance(node, ast.BinOp) and type(node.op) in _BIN_OPS:
+        # Pow (**) is intentionally excluded to avoid compute DoS (e.g. 9**9**9).
+        return _BIN_OPS[type(node.op)](_safe_eval(node.left), _safe_eval(node.right))
+    if isinstance(node, ast.UnaryOp) and type(node.op) in _UNARY_OPS:
+        return _UNARY_OPS[type(node.op)](_safe_eval(node.operand))
+    raise ValueError(f"Unsupported expression element: {ast.dump(node)}")
+
+def safe_calculator(expression: str) -> str:
+    # Safe arithmetic evaluation: parse + whitelist, never eval().
+    tree = ast.parse(expression, mode="eval")
+    return str(_safe_eval(tree))
+
 tools = {
     "calculator": {
         "description": "Evaluate a math expression. Input: {\"expression\": \"2+2\"}",
         "parameters": {"type": "object", "properties": {"expression": {"type": "string"}}, "required": ["expression"]},
-        "fn": lambda args: str(eval(args["expression"], {"__builtins__": {}}))
+        "fn": lambda args: safe_calculator(args["expression"])
     }
 }
 ```
+
+The parser accepts numbers, `+ - * / // %`, unary `+/-`, and parentheses, and raises a clear `ValueError` on anything else (function calls, attribute access, names, or `**`). Because the grammar contains no way to reach an object or builtin, there is nothing to bypass.
 
 ## How the Model Signals a Tool Call
 
@@ -159,7 +197,7 @@ A production loop must never run forever or do something dangerous:
 - **Final-answer detection** – an explicit `final` action is more reliable than guessing.
 - **Tool error handling** – feed errors back as observations so the model can recover, rather than crashing.
 - **Input validation** – validate arguments against the JSON schema before executing.
-- **Sandboxing** – never `eval` untrusted input in production; use safe evaluators and least-privilege tools.
+- **Sandboxing** – never `eval` untrusted input, and remember that restricting `__builtins__` is *not* a sandbox (the object graph leaks dangerous callables). Use an `ast`-whitelist evaluator for arithmetic, a real sandbox (E2B, Modal, locked-down container) for arbitrary code, and least-privilege tools throughout.
 
 ## Debugging the Loop
 

@@ -102,11 +102,11 @@ Put the **stable** content first (system prompt, tools, long context) and the **
 
 ## Lever 2: model routing
 
-Not every request needs your most capable model. Most are easy. **Model routing** tries a cheap, fast model first — Haiku, `claude-haiku-4-5-20251001` — and escalates to a stronger one only when the cheap answer isn't good enough.
+Not every request needs your most capable model. Most are easy. **Model routing** tries a cheap, fast model first — Haiku, `claude-haiku-4-5` — and escalates to a stronger one only when the cheap answer isn't good enough.
 
 ```python
 def answer(q):
-    draft = call("claude-haiku-4-5-20251001", q)
+    draft = call("claude-haiku-4-5", q)
     if confident(draft):
         return draft
     return call("claude-opus-4-8", q)   # escalate hard cases

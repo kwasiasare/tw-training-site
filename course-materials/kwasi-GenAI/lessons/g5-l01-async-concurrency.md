@@ -113,7 +113,7 @@ client = AsyncAnthropic()
 
 async def classify(ticket):
     msg = await client.messages.create(
-        model="claude-haiku-4-5-20251001",
+        model="claude-haiku-4-5",
         max_tokens=50,
         messages=[{"role": "user", "content": f"Label this ticket: {ticket}"}],
     )
