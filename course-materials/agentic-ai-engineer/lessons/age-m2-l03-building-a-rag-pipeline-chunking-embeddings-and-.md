@@ -99,11 +99,13 @@ Key decisions:
 - **Strategy:** Prefer **semantic/structural splitting** (by paragraph, heading, or sentence) over naive character counts. Respect document structure—don't cut mid-sentence when avoidable.
 
 ```python
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-splitter = RecursiveCharacterTextSplitter(
-    chunk_size=600,
-    chunk_overlap=80,
+# from_tiktoken_encoder makes chunk_size/chunk_overlap count TOKENS, not
+# characters—so these numbers match the 300–800 token guidance above.
+splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+    chunk_size=500,        # tokens (within the 300–800 range)
+    chunk_overlap=75,      # tokens (~15% overlap)
     separators=["\n\n", "\n", ". ", " "]
 )
 chunks = splitter.split_text(document_text)

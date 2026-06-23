@@ -61,8 +61,8 @@ quiz:
   why: Higher dimensions and longer context cost more storage and money; domain fit affects retrieval
     quality, so you trade these against each other.
 resources:
-- label: Anthropic docs — Embeddings
-  url: https://docs.anthropic.com/en/docs/build-with-claude/embeddings
+- label: Voyage AI — Embeddings (Anthropic's recommended partner)
+  url: https://docs.voyageai.com/docs/embeddings
 - label: OpenAI docs — Embeddings guide
   url: https://platform.openai.com/docs/guides/embeddings
 - label: Amazon Bedrock — Titan Text Embeddings
@@ -104,7 +104,7 @@ In practice your vector database computes this for you across millions of vector
 
 ## Getting an embedding from an API
 
-You call an embeddings endpoint with text and get a vector back. The pattern is identical whether you use Anthropic, an OpenAI-compatible endpoint, or **Amazon Bedrock Titan** / **Azure OpenAI** in the cloud you already run.
+You call an embeddings endpoint with text and get a vector back. Anthropic does not offer its own embeddings API — it recommends a dedicated provider, **Voyage AI**, for this step. The pattern is identical across providers, whether you use Voyage AI, an OpenAI-compatible endpoint, **Amazon Bedrock Titan** / **Azure OpenAI** in the cloud you already run, or an open model you host yourself (such as **BGE** or **E5**).
 
 ```python
 # Pseudocode — provider-agnostic

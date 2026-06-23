@@ -85,16 +85,16 @@ The industry shorthand is **3-2-1**: keep **3 copies** of your data, on **2 diff
 
 There are two flavours you must keep straight. A **file backup** copies documents, photos and settings — small, frequent, easy to restore one item from. A **system image** is a block-level snapshot of the entire drive: operating system, installed apps and settings as one unit. You restore a file backup to get a document back; you restore an image to rebuild a whole machine after a disk failure.
 
-On Windows, **File History** handles versioned file backups:
+On Windows, **File History** handles versioned file backups. There is no first-class PowerShell cmdlet for it — File History is turned on and managed from Control Panel, and its settings live in a config file under your profile. So to "check status" from PowerShell you confirm that a configuration exists:
 
 ```powershell
-# File History is configured in Settings, but you can drive the engine
-FileHistory
-# Check status from PowerShell
-Get-WindowsFeature -Name FS-Data-Deduplication | Format-Table -AutoSize
+# Open the File History control panel to turn it on or check settings
+control /name Microsoft.FileHistory
+# Check status from PowerShell: a config file means File History has been set up
+Get-ChildItem "$env:LOCALAPPDATA\Microsoft\Windows\FileHistory\Configuration\" -ErrorAction SilentlyContinue
 ```
 
-To restore a single file, open **File History** from Control Panel, browse to the file, pick a version, and click the green restore button.
+If that folder contains a `Config*.xml` file, File History has been configured for the user; an empty or missing folder means it has never been turned on. To restore a single file, open **File History** from Control Panel, browse to the file, pick a version, and click the green restore button.
 
 ## System image with wbadmin
 

@@ -1,0 +1,980 @@
+[
+  {
+    "slug": "ai-app-developer-2026",
+    "role": "AI Application Developer",
+    "courseGrade": "B-",
+    "professorGrade": "B",
+    "industryGrade": "B-",
+    "verdict": "significant-revisions",
+    "headline": "Pedagogically strong, copy-paste-broken in spots, and a model/API/MCP generation behind 2026 hireability — fixable to A- with code fixes plus a currency refresh.",
+    "jdAlignmentScore": 72,
+    "topRecommendations": [
+      "Fix the copy-paste-breaking code defects before any cohort runs: async-correct m4-l01 (AsyncOpenAI+await or run_in_threadpool, async streaming generator) and merge the duplicate @app.post('/chat'); wrap m3-l02 tool schemas in {type:function,function:{...}} to match m3-l04 and the real API and add the iteration cap the lesson preaches; bound ast.Pow in the 'safe' calculator. Both reviewers flag all of these.",
+      "Refresh provider currency course-wide: move off the gpt-4o/gpt-4o-mini line to a current frontier model, teach model selection/routing as a skill, and link live model/pricing pages instead of hard-coding IDs and per-1K prices (convert to per-1M).",
+      "Teach the OpenAI Responses API and true Structured Outputs (json_schema/strict) alongside Chat Completions, and stop conflating JSON mode ('valid JSON') with schema adherence ('matches my schema') in m1-l03/m1-l04 — validate parsed output against a Pydantic schema since structured output is load-bearing across the course.",
+      "Close the 2026 agent-infrastructure gap in Module 3: add an MCP (Model Context Protocol) lesson and convert the thin multi-agent lesson (m3-l03) from pseudocode to a concrete LangGraph (and/or CrewAI) hands-on build.",
+      "Correct the outdated Pinecone 'requires pre-computed vectors' claim (including the graded quiz answer) to reflect integrated/hosted embeddings, and standardize LangChain imports on langchain_text_splitters + langchain_chroma across sibling lessons with pinned versions.",
+      "Modernize remaining currency: bump the Dockerfile to python:3.12/3.13-slim with chown'd non-root files, set temperature=0 in the m2-l03 RAG example, and use get_or_create_collection in m2-l01 for re-run safety.",
+      "Go at least partly multi-provider (industry-weighted): add one Anthropic/Claude hands-on path and mention an abstraction layer (LiteLLM/Portkey), since 2026 postings state single-provider knowledge is insufficient."
+    ],
+    "sectionsToRedo": [
+      {
+        "section": "m3-l02 'Anatomy of a Tool Definition' + 'The Orchestration Loop'",
+        "reason": "Tool schemas are passed as bare {name,description,parameters} which the Chat Completions API rejects (m3-l04 shows the correct {type:function,function:{...}} wrapper), and the orchestration loop is `while True` with no iteration cap despite the prose insisting on one. Learners copying this get non-working code that violates the lesson's own guardrail guidance. Professor rated critical, industry rated major.",
+        "severity": "critical",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "m4-l01 'A Basic Chat Endpoint', 'Streaming Responses', and 'Error Handling'",
+        "reason": "async routes call the synchronous OpenAI client and a sync streaming generator runs the blocking client inside an async route, blocking the event loop and contradicting the lesson's own 'async frees workers' thesis; plus two colliding @app.post('/chat') endpoints where the second silently overrides the first. Use AsyncOpenAI+await or run_in_threadpool, make the generator async, and consolidate the route.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "m1-l03 / m1-l04 'Enforcing/Requesting Structured Output'",
+        "reason": "Only JSON mode (response_format=json_object, guarantees valid JSON) is taught while Structured Outputs/json_schema strict (guarantees the schema) is only linked; the lessons conflate 'valid JSON' with 'matches my schema'. m1-l04's run_task also lacks the try/except around json.loads it preaches. Add strict structured outputs and validate against a Pydantic schema.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "Module 3 — add an MCP lesson + LangGraph/CrewAI hands-on (deepen m3-l03)",
+        "reason": "MCP (Model Context Protocol) is absent despite being a near-universal 2026 agent-JD requirement, and the multi-agent lesson stays at pseudocode while citing LangGraph; m3-l03 is also thinner than peers (5 quiz Qs/3 resources vs 6/4). Add a concrete framework walkthrough and an MCP integration. Industry weighted this heavily as table-stakes; professor flagged the depth/MCP gap too.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "Module 1 L2 / structured-output guidance — model & API currency + multi-provider",
+        "reason": "Course standardizes on gpt-4o/gpt-4o-mini and Chat Completions only for a 2026 cohort; refresh to current models with model-selection framing, introduce the Responses API as the recommended successor, and add at least one second provider (Anthropic) so the course is not single-provider. Industry weighted multi-provider as a JD must-have.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "m2-l01 'The Pinecone Equivalent' + quiz Q6 answer + intro Chroma snippet",
+        "reason": "The 'Pinecone requires pre-computed vectors / cannot embed for you' claim (baked into a graded answer) is outdated — Pinecone offers integrated inference/hosted embeddings (upsert_records). Soften the absolute contrast and fix the graded answer; also switch the intro create_collection() to get_or_create_collection() for re-run safety. Professor rated the Pinecone claim major.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "m3-l02 'Calculator' tool — bound ast.Pow",
+        "reason": "The 'safe' AST evaluator allows unbounded ast.Pow, so a model-generated 9**9**9 can hang or OOM the process — a DoS gap in the example presented as the security best practice. Bound the exponent/operand magnitude or reject Pow. Professor rated minor, industry rated major (reconciled major given it is the security exemplar).",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "m2-l03 RAG generation call — set temperature=0",
+        "reason": "The flagship end-to-end RAG generation call omits temperature (defaults high) even though the lesson's theme is hallucination reduction and sibling m2-l04 correctly sets temperature=0. Make the flagship example obey its own anti-hallucination advice.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "LangChain imports across m2-l02 / m2-l04",
+        "reason": "Deprecated/inconsistent paths: m2-l02 uses langchain.text_splitter vs m2-l04's langchain_text_splitters, and m2-l04 uses langchain_community.vectorstores.Chroma instead of langchain_chroma; modern Chroma no longer needs explicit .persist(). Standardize and pin versions so the shown imports run.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "m4-l02 Dockerfile + m4-l03 pricing",
+        "reason": "Bump python:3.11-slim to a supported minor (3.12/3.13-slim) and chown copied files to the non-root user (COPY runs before USER appuser, leaving files root-owned); convert m4-l03's hard-coded per-1K prices to per-1M or a live-pricing pointer, keeping the cost formula.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "Multi-provider abstraction / fine-tuning / prompt-caching primers",
+        "reason": "Industry-only: course is OpenAI-only in practice with no LiteLLM/Portkey abstraction, no fine-tuning/LoRA/QLoRA exposure (explicit comp premium in JDs), no prompt/semantic caching, and no OpenTelemetry GenAI tracing. Add at least conceptual primers to match 2026 postings.",
+        "severity": "minor",
+        "whoFlagged": "industry"
+      }
+    ],
+    "accuracyConcerns": [
+      "m3-l02 tool schemas use the bare {name,description,parameters} form and are passed directly to chat.completions.create; the API requires the {type:function,function:{...}} wrapper (correctly shown in m3-l04). As written the code raises an API error and two sibling lessons teach contradictory formats. [both — professor: critical, industry: major]",
+      "m4-l01 calls the synchronous OpenAI client inside async def routes and inside a sync streaming generator, blocking the event loop and contradicting the lesson's 'async frees workers' claim. [both — major]",
+      "m4-l01 defines two colliding @app.post('/chat') endpoints; the second silently overrides the first for copy-paste learners. [both — minor]",
+      "m3-l02's m3-l02 orchestration loop is `while True` with no iteration cap, contradicting its own 'always cap the loop (max 5 iterations)' guidance; only m3-l04 shows the correct cap. [professor — major]",
+      "m3-l02's 'safe' AST calculator allows unbounded ast.Pow (9**9**9 DoS) while being presented as the security-best-practice example. [both — professor: minor, industry: major]",
+      "m2-l01 teaches in prose and the graded quiz answer that Pinecone 'requires pre-computed vectors / cannot embed for you'; this is outdated — Pinecone offers integrated inference/hosted embeddings. [both — major]",
+      "m1-l03/m1-l04 conflate JSON mode (response_format=json_object, valid JSON) with schema adherence; Structured Outputs/json_schema strict (which enforces the schema) is only linked, not taught. [both — major]",
+      "m1-l04 run_task claims json_object output is 'predictable and parseable' but does not wrap json.loads in try/except, so malformed JSON would raise, contradicting its 'handle failures gracefully' message. [industry — minor]",
+      "m2-l03 RAG generation omits temperature (defaults high) despite the hallucination-reduction theme; sibling m2-l04 correctly sets temperature=0. [both — minor]",
+      "m2-l01 intro uses chromadb.Client().create_collection(), which raises on a second run; m2-l03 safely uses get_or_create_collection(). [professor — minor]"
+    ],
+    "currencyConcerns": [
+      "Entire course pins to gpt-4o/gpt-4o-mini and Chat Completions as the primary interface for a 2026 cohort across ~7 lessons, never mentioning the Responses API or current frontier model lines (GPT-5.x / Claude 4.x / Gemini 3.x). [both — top concern]",
+      "MCP (Model Context Protocol) is entirely absent from the Agents module despite being a near-universal 2026 agent/AI-developer JD requirement. [both]",
+      "OpenAI Structured Outputs (json_schema/strict) — the schema-enforcing successor to JSON mode — is only linked, not taught in the body. [both]",
+      "Multi-provider fluency (Anthropic Claude, AWS Bedrock) and abstraction layers (LiteLLM/Portkey) are absent; the course is OpenAI-only in practice while 2026 JDs say single-provider knowledge is insufficient. [industry]",
+      "Named agent frameworks (LangGraph, CrewAI) are cited in resources but the orchestration module stays at pseudocode with no hands-on framework build. [both]",
+      "Deprecated/inconsistent LangChain imports: langchain.text_splitter vs langchain_text_splitters, and langchain_community.vectorstores.Chroma vs the dedicated langchain_chroma; modern Chroma no longer needs explicit .persist(). [both]",
+      "m4-l02 Dockerfile uses python:3.11-slim (heading to maintenance-only by 2026) and copies files before USER appuser, leaving them root-owned. [both]",
+      "m4-l03 hard-codes per-1K-token prices ($0.00015 in / $0.0006 out for gpt-4o-mini); pricing is volatile and increasingly quoted per 1M tokens. [both]",
+      "Missing modern AI-dev expectations carrying explicit JD/comp weight: fine-tuning/LoRA/QLoRA, prompt and semantic caching, OpenTelemetry GenAI tracing, parallel tool-call execution, computer-use, and embedding 'dimensions'/normalization details. [industry]",
+      "m4-l04 lists Chroma Cloud as a managed option without qualifying its production maturity vs Pinecone/pgvector. [industry — minor]"
+    ]
+  },
+  {
+    "slug": "agentic-ai-engineer",
+    "role": "Agentic AI Engineer",
+    "courseGrade": "B",
+    "professorGrade": "B+",
+    "industryGrade": "B-",
+    "verdict": "significant-revisions",
+    "headline": "Pedagogically excellent agentic-AI course with a sound from-scratch spine, held back by two critical defects (insecure eval() taught against its own rule; no security/prompt-injection or MCP coverage) and a currency drift across the SDK/framework surface that must be fixed before it is production-current for a 2026 Agentic AI Engineer role.",
+    "jdAlignmentScore": 74,
+    "topRecommendations": [
+      "Replace every eval()-based calculator (m1-l03, m1-l04) with a genuinely safe evaluator (restricted ast-based numeric parser, simpleeval/numexpr) or a sandboxed executor (E2B/Modal) — both reviewers flag this as the most concrete security-accuracy defect, and as written the worked code directly contradicts the course's own 'never eval untrusted input' rule.",
+      "Add a first-class Security & Guardrails thread: prompt-injection / jailbreak / indirect-injection-via-retrieved-or-tool-content, tool-permission threat modeling, input validation, and output filtering — placed in m1-l02 and reinforced in m3-l04/m4-l04 for a course whose agents issue refunds and send email. Both reviewers rate this the biggest foundational gap.",
+      "Add a first-class MCP (Model Context Protocol) lesson — build a minimal MCP server and consume it as a tool source from the agent — plus a short A2A/ACP overview. The industry reviewer rates this the single biggest 2026 JD currency gap (most-cited protocol, entirely absent); the chair weights it as critical.",
+      "Fix the m2-l03 chunking tokens-vs-characters conflation (use from_tiktoken_encoder or relabel the prose as characters) — both reviewers flag this as a silent, foundational RAG bug that mis-sizes chunks ~4-6x and propagates into the capstone.",
+      "Run a currency pass on the SDK/framework surface: stable openai .parse (drop .beta), langchain_text_splitters import, langgraph.types Send import, modern interrupt()/Command(resume=) HITL idiom, narrow the retry helper to transient-only exceptions, soften the 'largely deprecated' wording, and add a forward-pointer to the Responses API and reasoning models; pin library versions and add a CI check that every code block runs.",
+      "Introduce a second agent framework (OpenAI Agents SDK, CrewAI, or PydanticAI) re-implementing the supervisor/multi-agent patterns plus a multi-provider example (Claude/Gemini with model routing/fallback) so graduates can credibly claim 2+ frameworks and provider-agnostic understanding for 2026 JDs."
+    ],
+    "sectionsToRedo": [
+      {
+        "section": "m1-l03 'Wiring Functions in Python' and m1-l04 'Anatomy of a Tool' calculator examples (replace eval with a safe parser or sandboxed executor; explain why restricted-__builtins__ eval is unsafe)",
+        "reason": "Both reviewers independently flag the eval(expression, {'__builtins__': {}}) calculator as a known-bypassable non-sandbox applied to untrusted model-generated input, directly contradicting the same lessons' 'never eval untrusted input' rule. Industry escalates to critical and ties it to the absent E2B/Modal sandboxing JDs name.",
+        "severity": "critical",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "New lesson: Tool Integration via MCP (build a minimal MCP server, consume it from a LangGraph/Agents-SDK agent) plus an A2A/ACP overview",
+        "reason": "MCP is the most-cited protocol in 2026 Agentic AI Engineer JDs and is entirely absent; without it candidates miss a baseline interview/keyword filter. Flagged critical by industry; the chair weights protocol currency for this target role heavily.",
+        "severity": "critical",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "New cross-cutting Security & Guardrails content (best in m1-l02, reinforced in m3-l04/m4-l04): prompt-injection, indirect injection via retrieved/tool content, tool-permission threat modeling, input validation, output filtering, behavioral monitoring",
+        "reason": "Neither prompt-injection nor agentic threat modeling appears anywhere in 16 lessons despite agents that issue refunds and send email. Both reviewers call this the single biggest foundational gap; it is the marquee agentic security threat least-privilege is meant to defend against.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "m2-l03 'Step 1: Chunking' code block and surrounding prose (reconcile tokens vs characters; switch to a token-based splitter or relabel prose as characters; fix the langchain.text_splitter import)",
+        "reason": "Prose specifies 300-800 tokens / 10-20% overlap but the code uses RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=80), which counts characters by default — yielding chunks ~4-6x smaller than intended. Both reviewers rate this major because it is silent and chunking is foundational to the whole RAG/capstone arc.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "m1-l01 structured-output, retry, and provider coverage: change beta.chat.completions.parse to stable .parse, narrow retry to transient errors (RateLimitError/APITimeoutError/APIConnectionError/5xx) instead of blanket APIError, soften 'largely deprecated', add a Responses-API forward pointer, and add a multi-provider (Claude/Gemini) routing/fallback example",
+        "reason": "Both reviewers flag the .beta path (may AttributeError on current SDKs), the over-broad APIError retry that masks permanent 4xx failures, and the GPT-only Chat-Completions-as-THE-standard framing. Industry additionally ties it to the missing Responses API and multi-provider JD requirements.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "Add a second agent framework module (OpenAI Agents SDK, CrewAI, or PydanticAI) re-implementing the supervisor/hierarchical/parallel patterns taught in LangGraph",
+        "reason": "2026 JDs near-universally want comfort with 2+ frameworks; teaching only LangGraph weakens hireability and portfolio breadth. Industry rates this major. (Professor frames the single-framework, from-scratch-first approach as a pedagogical strength, so this is a coverage/currency add rather than a correctness fix.)",
+        "severity": "major",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "m3-l04 human-in-the-loop section and m3-l03 Send import: add the modern interrupt()/Command(resume=) HITL idiom alongside the legacy interrupt_before+update_state pattern, and change 'from langgraph.constants import Send' to 'from langgraph.types import Send'",
+        "reason": "Both reviewers flag the legacy-only HITL idiom and the langgraph.constants Send import as currency drift; the Send import is also internally inconsistent with m3-l02 which already imports Command from langgraph.types.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "m2-l01 CoT accuracy claim and m1-l03 raw assistant-message append",
+        "reason": "Both reviewers note the unconditional 2022 'CoT improves accuracy' framing should be qualified for reasoning-tuned models (explicit step-by-step prompting often unnecessary/counterproductive; visible CoT may be provider-hidden). Both also flag that messages.append(msg) of the raw SDK response object is version-sensitive and should be serialized (model_dump/explicit dict) and tested against the pinned SDK.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      }
+    ],
+    "accuracyConcerns": [
+      "m2-l03 RAG chunking conflates tokens and characters: prose says 300-800 tokens / 10-20% overlap but RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=80) counts characters by default, silently producing chunks ~4-6x smaller than intended (both reviewers, major).",
+      "m1-l03 and m1-l04 teach a calculator using eval(expression, {'__builtins__': {}}) — a known-bypassable non-sandbox on untrusted model-generated input — while the same lessons say 'never eval untrusted input' (both reviewers; professor major, industry critical).",
+      "m1-l01 retry helper catches broad APIError and retries up to 5 times with backoff, silently retrying non-transient 4xx (auth/invalid-request) failures and masking permanent bugs (both reviewers, minor).",
+      "m2-l01 presents classic 2022 'let's think step by step' CoT as an unconditional accuracy booster without noting that reasoning-tuned models often make explicit CoT prompting unnecessary/counterproductive and may hide visible CoT (both reviewers, minor).",
+      "m1-l03 appends the raw SDK assistant response object (messages.append(msg)) before re-sending; whether the object can be re-appended directly is SDK-version-sensitive and should be serialized and tested against the pinned SDK (both reviewers, minor).",
+      "m3-l01 add_conditional_edges('model', should_continue) returns a node-name string or END sentinel with no explicit path-map; compiles in current LangGraph but should be confirmed against the pinned version (professor, minor)."
+    ],
+    "currencyConcerns": [
+      "client.beta.chat.completions.parse should be the stable client.chat.completions.parse — Structured Outputs graduated from beta and the .beta path may emit deprecation behavior or raise AttributeError on current SDKs (both reviewers; professor outdated, industry major).",
+      "RecursiveCharacterTextSplitter is imported from the deprecated langchain.text_splitter; canonical path is langchain_text_splitters (both reviewers).",
+      "Send is imported from langgraph.constants; canonical location is langgraph.types, and the course is internally inconsistent since m3-l02 already imports Command from langgraph.types (both reviewers).",
+      "HITL is taught only via the legacy interrupt_before + update_state + invoke(None) pattern; the modern idiom is interrupt() inside a node + Command(resume=) (both reviewers).",
+      "Chat Completions is framed as THE modern standard with legacy completions called 'largely deprecated' (overstated) and no mention of the Responses API now positioned as the agent primitive, nor reasoning-model families (both reviewers).",
+      "MCP (Model Context Protocol) is entirely absent — the most-cited protocol in 2026 JDs — along with A2A and ACP interoperability protocols (industry, critical).",
+      "Only LangGraph is taught; 2026 JDs want 2+ frameworks (CrewAI/AutoGen/PydanticAI/OpenAI Agents SDK) (industry, major).",
+      "Model examples are GPT-4o/4o-mini only with no Claude/Gemini code and no multi-provider routing/fallback, despite JDs listing multi-provider integration as a skill (industry, major)."
+    ]
+  },
+  {
+    "slug": "ai-product-manager",
+    "role": "AI Product Manager",
+    "courseGrade": "B+",
+    "professorGrade": "A-",
+    "industryGrade": "B",
+    "verdict": "significant-revisions",
+    "headline": "Pedagogically excellent AI PM course with correct, verified content, but three hard 2026 currency gaps — no agents/tool-use, stale model/cost framing, and a missing EU AI Act — keep it short of hire-ready until revised.",
+    "jdAlignmentScore": 78,
+    "topRecommendations": [
+      "Add a first-class Agents & Tool-Use building block (function-calling, single- vs multi-step agents, orchestration/reliability, when to choose an agent over RAG, and MCP as the integration standard) in m1-l04, and weave agent failure modes into the eval (m3-l02/03) and launch (m4-l03) lessons. BOTH reviewers rank this the #1 gap; industry marks it critical because target JDs (e.g., Intuit 'Staff PM, AI Agents') are agent-centric.",
+      "Fix the m1-l03 cost formula: price input and output tokens separately (output typically 3-5x input), switch to per-1M-token framing, and note prompt-caching discounts. Verified blended single-rate formula at m1-l03 line 131 — both reviewers flag as MAJOR because it understates output-heavy unit economics in the very lesson teaching margin sanity-checks.",
+      "Add the EU AI Act to m3-l04 (risk tiers: prohibited/high-risk/limited/minimal, transparency obligations) and tie the risk tier to the HITL pattern and ship-gate checklist; keep existing NIST AI RMF/GDPR/CCPA/OWASP. Verified absent — both reviewers flag as the dominant 2026 regulatory currency gap.",
+      "Make the m4-l04 capstone build something: require a vibe-coded prototype PLUS a real golden set and an actual eval run with a go/no-go threshold, alongside the written plan and pitch. Industry-flagged (major) as the proof-of-work 2026 interviews now expect.",
+      "Add a hands-on tooling/data layer: a short SQL + Jupyter/pandas primer plus one exercise running a small eval harness, and a tooling-landscape callout naming Arize/Evidently, MLflow/W&B, LaunchDarkly/Optimizely, and LangChain. Industry-flagged (major); JDs explicitly request working SQL/Python and named tools.",
+      "Modernize specifics: genericize 'GPT-4' (m1-l04 line 87) to capability/vendor framing, add a one-line note on parameter-efficient fine-tuning (LoRA/QLoRA) shifting build-vs-buy economics, and deepen RAG beyond 'indexes go stale' (chunking, embeddings, retrieval precision/recall, re-ranking).",
+      "Do NOT 'fix' the quiz answer keys: verified m3-l04 Q2 answer:2 -> 'Human-in-the-loop (AI proposes, human approves)' is correct under uniform 0-based indexing. The digest's answer-key-bug flags are FALSE POSITIVES; editing the keys would introduce real bugs."
+    ],
+    "sectionsToRedo": [
+      {
+        "section": "apm-m1-l04 — The AI Product Landscape: add Agents/Tool-Use/MCP as a fifth building block; deepen RAG retrieval-quality; genericize 'GPT-4'",
+        "reason": "Agentic patterns (tool-use, function-calling, multi-step agents, MCP) are absent course-wide (verified: 'agent' appears only as human 'support agent'), yet they are the dominant 2026 build pattern and central to target JDs. RAG is taught only at architecture level (no chunking/embeddings/retrieval metrics), and 'GPT-4' headline naming (line 87) reads stale.",
+        "severity": "critical",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "apm-m1-l03 — Cost Realities and the cost formula",
+        "reason": "Verified blended single-rate formula '(input_tokens + output_tokens)/1000 * price_per_1k' (line 131) understates output-heavy economics by 2-4x; needs separate input/output pricing, per-1M-token framing, and prompt-caching mention.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "apm-m3-l04 — Responsible AI: privacy/governance and ship-gate checklist",
+        "reason": "Verified EU AI Act is absent (only NIST AI RMF, OWASP, GDPR/CCPA present). Add risk tiers, prohibited uses, and transparency obligations, tied to harm-scoring, HITL pattern, and ship-gate checklist.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "apm-m4-l04 — Capstone: require a buildable, evaluated prototype",
+        "reason": "Capstone is a written plan + mock pitch only; 2026 interviews increasingly expect a vibe-coded demo plus a real golden set and eval run as proof-of-work. Pitch-only under-prepares the portfolio.",
+        "severity": "major",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "Cross-course — add a hands-on tooling/data layer (SQL/Jupyter basics; named eval/monitoring/experiment/agent tools)",
+        "reason": "JDs request working SQL/Python/pandas and name specific tools (Arize, Evidently, MLflow, W&B, LaunchDarkly, LangChain); the course is concept-only and never has the learner touch a notebook, query data, or name the production stack.",
+        "severity": "major",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "apm-m1-l01 / apm-m1-l04 — fine-tuning economics",
+        "reason": "Fine-tuning framed as 'cheaper but still an investment' with no mention of parameter-efficient methods (LoRA/QLoRA) that have lowered cost substantially (verified: no LoRA/QLoRA anywhere), skewing build-vs-buy intuition.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "apm-m2-l01 — Scoring and Prioritization formula",
+        "reason": "(Value x AI fit x Data readiness x Feasibility)/Effort multiplies four 1-5 factors, producing extreme dynamic range and single-low-score sensitivity with no caveats. Add calibration notes, score-independence caveat, and weighted-sum alternative to avoid false precision.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "apm-m3-l02 and apm-m3-l03 — eval design vs running",
+        "reason": "Substantial overlap (golden sets, LLM-as-judge validation, held-out/overfitting, distribution-vs-average appear in both). Tighten and use reclaimed space to operationalize the statistical-significance / A-B methods currently named but never made concrete.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "apm-m2-l04 — AI PRD model-name example",
+        "reason": "Uses 'GPT-4 at temperature 0.3' (lines 33, 110). Defensible since it is framed as a 'don't hardcode this' example, but date-label or genericize the version to age gracefully.",
+        "severity": "minor",
+        "whoFlagged": "professor"
+      }
+    ],
+    "accuracyConcerns": [
+      "m1-l03 cost formula applies a single blended rate to combined input+output tokens (verified at line 131); output is typically priced 3-5x input, pricing is now per-1M-token, and prompt caching changes economics — this understates output-heavy margins by 2-4x (MAJOR, flagged by both).",
+      "m2-l01 priority formula multiplies four independent 1-5 factors then divides by Effort (range up to 625/effort), presented without calibration, score-independence, or weighted-sum caveats, inviting false quantitative precision (minor, both).",
+      "m1-l02 token heuristics ('1 token ~= 4 chars ~= 0.75 words') are stated as near-constants; they are tokenizer/content-dependent (higher for code/JSON/non-English). The lesson hedges, so minor, but should be framed explicitly as rules of thumb (minor, both).",
+      "m1-l01 fine-tuning framed as expensive with no mention of parameter-efficient methods (LoRA/QLoRA), slightly overstating cost and skewing build-vs-buy intuition (minor, both).",
+      "FALSE POSITIVE (do not act on): the digest's claim of inconsistent/buggy quiz answer keys is incorrect. Independently verified — m3-l04 Q2 answer:2 maps to options index 2 'Human-in-the-loop (AI proposes, human approves)' with a matching rationale; all 16 lessons use uniform 0-based indexing graded correctly by the renderer. Editing the keys would introduce real bugs. Both reviewers independently confirmed this."
+    ],
+    "currencyConcerns": [
+      "No agentic AI anywhere: tool-use, function-calling, multi-step agents, orchestration, and MCP are absent (verified — 'agent' appears only as human support agent), despite being the dominant 2026 production pattern and central to target JDs. Single biggest currency/hireability gap (critical, both).",
+      "Responsible-AI lesson (m3-l04) omits the EU AI Act, the dominant 2026 regulatory frame for AI risk classification (verified absent; only NIST/OWASP/GDPR/CCPA present) (major, both).",
+      "Stale model naming: 'GPT-4' is the headline frontier example in m1-l04 (line 87) and used in m2-l04; the GPT-4 generation is superseded by mid-2026. Genericize to vendor/capability framing or date-label (minor-to-major, both).",
+      "No named production tool fluency: eval/monitoring (Arize, Evidently, WhyLabs), tracking (MLflow, W&B, Hugging Face), experiments (LaunchDarkly, Optimizely), and agent frameworks (LangChain) are never mentioned, though JDs request them (major, industry).",
+      "No hands-on data/tooling layer (SQL, Python/Jupyter/pandas); the course is concept-only and never has the learner run a real eval harness or query data, a literacy JDs explicitly require (major, industry).",
+      "Capstone lacks a buildable/evaluated prototype (vibe-coded demo + real golden set + eval run), which 2026 interviews increasingly expect as proof-of-work (major, industry).",
+      "RAG taught only at architecture level; retrieval-quality failure modes (chunking, embeddings, retrieval precision/recall, re-ranking) not covered beyond 'indexes go stale,' under-preparing PMs for the system they most often own (minor-to-major, both)."
+    ]
+  },
+  {
+    "slug": "data-scientist",
+    "role": "Data Scientist",
+    "courseGrade": "B+",
+    "professorGrade": "A-",
+    "industryGrade": "B-",
+    "verdict": "significant-revisions",
+    "headline": "Rigorous, leak-free classical-DS foundation that is excellent at what it teaches but, against 2026 JDs, stops at \"build a model\" and omits production/MLOps, GenAI, cloud, and BI — ship the cheap currency fixes now, then add the role-critical modules.",
+    "jdAlignmentScore": 66,
+    "topRecommendations": [
+      "Add a Productionization & MLOps module: serve the capstone model as an API (FastAPI + Docker), add MLflow experiment tracking/registry, and a monitoring/drift primer. Both reviewers flag this as the single biggest gap; industry rates it CRITICAL because 2026 JDs frame the role as 'own a model in production' (~15-25% salary tier). Highest-leverage structural change.",
+      "Add a GenAI/LLM Foundations module: LLM APIs, prompt engineering, a minimal RAG pipeline with a vector DB, and judgment on when classical ML beats an LLM. It is the fastest-growing requirement (~31% of postings, NLP 5%->19% YoY) and entirely absent — the most strategically damaging omission for 2026 competitiveness.",
+      "Make the low-cost currency fixes immediately (can ship now, independent of the big modules): use sklearn root_mean_squared_error in m3-l01; point to TargetEncoder and native HistGradientBoosting categorical support in m3-l03; modernize m1-l01 env setup to uv/pyproject.toml; standardize prose on Welch's t-test to match the code in m2-l02.",
+      "Broaden modeling beyond tabular supervised learning: add one unsupervised lesson (k-means/PCA) and one time-series forecasting lesson; both reviewers list these as standard DS families. Add a cloud-exposure lesson (run one pipeline/warehouse query on Azure/AWS + a cloud SQL engine) since ~62% of postings name a cloud platform.",
+      "Tighten the two statistical formulas and reposition scope honestly: use df-weighted pooled SD for Cohen's d in m2-l04 (or label the approximation), add the low-multicollinearity caveat to the coefficient-importance claim in m3-l01, and state plainly in the syllabus/capstone that the course targets entry-analyst/junior-DS readiness with a 'what to learn next' pointer. DO NOT touch the quiz answer keys — the professor verified all flagged indices are correct under a uniform 0-based convention; 'fixing' them would inject real errors."
+    ],
+    "sectionsToRedo": [
+      {
+        "section": "New module: Productionization & MLOps (FastAPI + Docker model serving, MLflow tracking/registry, monitoring/drift primer, optional Airflow)",
+        "reason": "Largest gap vs 2026 JDs, which frame the role as owning models in production. The course stops at a saved joblib pipeline; 'deploy' appears only as an aside. Industry rated critical; professor independently flagged deployment/MLOps as a top scope gap.",
+        "severity": "critical",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "New module: Generative AI / LLM Foundations for Data Scientists (LLM APIs, prompt engineering, minimal RAG with a vector DB, when-not-to-use-an-LLM)",
+        "reason": "Fastest-growing requirement (~31% of postings, NLP up 5%->19% YoY, 15-25% salary premium) and entirely absent. Industry rated critical. Professor did not surface GenAI explicitly (focused on classical pedagogy), so industry weighting governs here.",
+        "severity": "critical",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "Course-level scope (capstone m4-l04 / syllabus): add OR explicitly bound the missing modeling families — unsupervised learning (k-means/PCA) and time-series forecasting",
+        "reason": "Both reviewers list these as standard DS modeling families whose absence narrows the course to tabular supervised learning. Professor labels the scope omission major; industry rates the modeling-breadth additions major.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "New Cloud & scaled-data module (one cloud — Azure or AWS — plus a cloud SQL warehouse like BigQuery/Snowflake; optional Databricks/Spark intro)",
+        "reason": "~62% of postings name a cloud platform and all course work is local-only. Even a lightweight 'run your pipeline/query in the cloud' lesson closes a near-universal checkbox. Industry-driven; professor noted only foundational-scope tooling gaps.",
+        "severity": "major",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "dsc-m4-l02 Visualization — add a BI-tool segment (Tableau or Power BI) producing a shareable dashboard",
+        "reason": "Tableau/Power BI appear in ~53% of postings combined; the portfolio currently has no clickable dashboard artifact. Visualization is matplotlib/seaborn only.",
+        "severity": "major",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "dsc-m2-l04 Step 4 — Cohen's d code block",
+        "reason": "Uses simple variance-average pooled SD instead of df-weighted pooled SD, giving a slightly biased effect size for unequal group sizes, and is not labeled as an approximation in a rigor-themed mini-project. Independently flagged by both reviewers.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "dsc-m3-l01 'Interpreting and Communicating Results' paragraph",
+        "reason": "'After scaling, coefficient magnitude indicates relative importance' is stated without a multicollinearity caveat and mildly contradicts the lesson's own collinearity-instability pitfall. Add a low-multicollinearity caveat (else use permutation importance/SHAP). Independently flagged by both reviewers.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "dsc-m1-l01 'Setting Up Your Environment' section",
+        "reason": "venv + pip + 'pip freeze > requirements.txt' only — dated for 2026 and conflates direct with transitive deps. Add uv/pyproject.toml and separate direct vs locked deps. (Professor additionally notes the to_float example pre-strips the comma so the messy-input try/except path is never exercised — fix that too.) Flagged by both.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "dsc-m3-l01 / dsc-m3-l03 code refresh — root_mean_squared_error and sklearn TargetEncoder / native HistGradientBoosting categorical support",
+        "reason": "np.sqrt(mean_squared_error(...)) and manual target encoding teach soon-deprecated/hand-rolled patterns. Point to the current sklearn APIs while keeping legacy equivalents as notes. Independently flagged by both reviewers.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "dsc-m2-l02 — standardize on Welch's t-test in prose",
+        "reason": "Lesson presents equal-variance Student's t as the baseline assumption ('reasonably comparable variances') while every code example uses equal_var=False (Welch's). Align the prose recommendation with the code. Industry-flagged; professor noted Welch's-by-default as a strength, so this is a prose-consistency tweak, not a correctness defect.",
+        "severity": "minor",
+        "whoFlagged": "industry"
+      }
+    ],
+    "accuracyConcerns": [
+      "dsc-m2-l04: Cohen's d uses sqrt((a.var()+b.var())/2) (simple variance average) rather than the df-weighted pooled SD sqrt(((n1-1)s1^2+(n2-1)s2^2)/(n1+n2-2)); slightly biased for unequal group sizes and unlabeled as an approximation. (Both reviewers) — minor.",
+      "dsc-m3-l01: 'After scaling, coefficient magnitude indicates relative importance' lacks a low-multicollinearity caveat and partially self-contradicts the lesson's collinearity-instability pitfall; recommend caveat plus permutation importance/SHAP alternative. (Both reviewers) — minor.",
+      "dsc-m2-l02: Prose names equal-variance Student's t as the baseline while all code uses Welch's (equal_var=False) — mixed messaging on the default; recommend Welch's as the stated default. (Industry) — minor.",
+      "dsc-m4-l01: Per-group sample-size approximation n = 16*p*(1-p)/MDE^2 uses a single baseline p for both groups' variance; already labeled 'a useful approximation' and the worked statsmodels example uses proper proportion_effectsize, so borderline/no change required. (Both reviewers) — minor.",
+      "RESOLVED / NOT A DEFECT: Quiz answer-key indices flagged in m2-l01 Q4 (Poisson), m2-l02 Q2/Q4, and m4-l01 Q4 were independently verified by the professor as CORRECT under a uniform 0-based indexing convention, with each rationale matching the keyed option; industry concurs the indices resolve to correct answers. Do NOT 'fix' these — editing them would introduce real errors."
+    ],
+    "currencyConcerns": [
+      "dsc-m3-l01: RMSE computed via np.sqrt(mean_squared_error(...)); sklearn 1.4+ provides root_mean_squared_error and squared=False is deprecated/removed. Switch to the dedicated function, keep np.sqrt as a legacy note. (Both reviewers).",
+      "dsc-m3-l03: Recommends manual cross-fold target/mean encoding without mentioning sklearn.preprocessing.TargetEncoder (added 1.3, 2023) or HistGradientBoosting native categorical support (categorical_features). Point to both modern built-ins. (Both reviewers).",
+      "dsc-m1-l01: Environment reproducibility taught only via venv + pip + 'pip freeze > requirements.txt' — dated for 2025-2026 and mixes direct with transitive deps. Add uv (uv venv / uv pip install) and/or pyproject.toml, separating direct deps from a fully-pinned lockfile. (Both reviewers).",
+      "Course-wide tooling/paradigm currency: no GenAI/LLM/RAG, no MLOps tooling (MLflow/Airflow), no cloud (Azure/AWS/GCP) or cloud SQL (BigQuery/Snowflake/Redshift), no BI tools (Tableau/Power BI), and no big-data/distributed exposure (Spark/Databricks). These reflect the 2025-2026 hiring shift to production ownership and GenAI fluency. (Primarily industry; professor concurs on MLOps/deployment scope)."
+    ]
+  },
+  {
+    "slug": "ml-engineer",
+    "role": "Machine Learning Engineer",
+    "courseGrade": "B",
+    "professorGrade": "A-",
+    "industryGrade": "C+",
+    "verdict": "significant-revisions",
+    "headline": "Excellent classical-ML/DL fundamentals undermined by a few real code/stats bugs and, critically, zero LLM/MLOps/cloud content — strong for a junior-DS screen, not yet hireable as a 2026 ML Engineer.",
+    "jdAlignmentScore": 68,
+    "topRecommendations": [
+      "Fix the concrete, runnable-code defects first (both reviewers agree, fast and high-trust): (1) reconcile the m3-l03 CNN head with its own 224x224 augmentation via nn.AdaptiveAvgPool2d so the network is input-size-agnostic; (2) switch m1-l03 model comparison from independent stats.ttest_ind to a paired stats.ttest_rel over shared folds and note the Nadeau-Bengio corrected test; (3) modernize m4-l03 serving — FastAPI lifespan model loading into app.state, add model_version to the /predict response, make the Dockerfile/worker story consistent with a per-worker memory caveat.",
+      "Close the headline scope gap that drives the industry grade down: add an LLM/Generative-AI module (transformers & attention, tokenization/embeddings, Hugging Face Transformers, a minimal RAG pipeline with a vector store, and a LoRA/PEFT fine-tune). This is the single largest reason graduates would miss 2026 ML Engineer offers and is the only path to closing the ~24-point gap between the two reviewers' alignment scores.",
+      "Make the 'Engineer' half real: extend deployment beyond local Docker to one cloud target (SageMaker/Vertex/Azure ML) plus a Kubernetes/serving lesson (KServe/Triton/Ray Serve), a model registry and CI/CD-for-models pipeline, and an IMPLEMENTED drift-monitoring snippet (Evidently/NannyML) so 'monitor drift' is demonstrated, not just named.",
+      "Modernize tabular boosting in m2-l04: make HistGradientBoostingClassifier the default and add at least one real XGBoost/LightGBM code block (fit/predict, early stopping, basic params) instead of name-dropping.",
+      "Convert asserted skills into demonstrated ones: add a worked GridSearchCV/RandomizedSearchCV example in m2-l02/m2-l04 and validation-driven decisions in m3-l02 (close the objectives-vs-content gap), and add a Testing & CI/CD-for-ML lesson (pytest for transforms/endpoints + a GitHub Actions train/validate/build workflow).",
+      "Tidy the linear-algebra lesson (m1-l02): add the mean-centering caveat before SVD-for-PCA, add an intercept/bias column to the normal-equation example, and prefer np.linalg.lstsq over forming Xt@X to stay consistent with the lesson's own numerical-stability message; refresh stale version pins course-wide."
+    ],
+    "sectionsToRedo": [
+      {
+        "section": "mle-m3-l03 'A Simple CNN in PyTorch' vs the lesson's 224x224 Data Augmentation transforms",
+        "reason": "SimpleCNN's nn.Linear(64*8*8,128) head assumes 32x32 input, but the lesson's own RandomResizedCrop(224)/Resize(256)+CenterCrop(224) produce 224x224 (correct flatten is 64*56*56), so the two copy-paste blocks raise a shape RuntimeError. Both reviewers flag this as the clearest broken example. Fix by adding nn.AdaptiveAvgPool2d((1,1)) before the Linear (input-size-agnostic) or by aligning transforms to 32x32; show how to derive the flatten dim.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "mle-m1-l03 'Hypothesis Testing' model-comparison code and 'Applying This in ML' bullet",
+        "reason": "Uses independent stats.ttest_ind to compare two models evaluated on shared folds/test set, violating the independence assumption and inflating false positives. Replace with a paired stats.ttest_rel and reference the Nadeau-Bengio corrected resampled t-test, explaining why independence fails. Both reviewers flag it; the professor calls it the course's most consequential conceptual error.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "mle-m4-l03 serving example — model loading, /predict response schema, Dockerfile/workers ('Production Concerns')",
+        "reason": "Preaches practices it doesn't implement: recommends a response model version but IrisResponse omits it; recommends multi-worker serving but the Dockerfile runs a single worker with no per-worker model-memory caveat; loads the model via import-time global rather than the FastAPI lifespan context manager; pins are ~1 year stale. Add model_version, move loading into lifespan/app.state, reconcile the Dockerfile/worker story with a memory note, and refresh pins. Severity differs by reviewer (professor minor, industry critical in the cloud-deploy framing); rated major as the reconciled middle given it spans both a code-fidelity bug and a currency gap.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "mle-m2-l04 Ensembles — modernize boosting",
+        "reason": "Teaches legacy GradientBoostingClassifier as the boosting workhorse and only name-drops XGBoost/LightGBM/CatBoost. Make HistGradientBoostingClassifier the modern sklearn default (histogram-based, native NaN/categorical) and add at least one real XGBoost or LightGBM code example with early stopping. Both reviewers flag the outdated default.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "New Module 5 — LLMs, Transformers, RAG & Fine-tuning",
+        "reason": "Zero generative-AI/LLM content across all 16 lessons: no transformers/attention, tokenization/embeddings, Hugging Face Transformers, RAG/vector DBs, or LoRA/PEFT. Industry reviewer rates this the #1 in-demand 2026 ML Engineer skill cluster (RAG in ~65% of applied-LLM postings) and a critical hireability gap. Professor lists the same omission as a scope addition rather than a correction, hence flagged primarily by industry but acknowledged by both.",
+        "severity": "critical",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "Module 4 — cloud deployment + orchestration (extend mle-m4-l03 and add a new serving lesson)",
+        "reason": "Deployment stops at local 'docker run': no cloud target (SageMaker/Vertex/Azure ML), no Kubernetes/serving (KServe/Triton/Ray Serve), no model registry or CI/CD-for-models. These are core ML Engineer responsibilities in every 2026 JD. Industry rates critical; professor lists the same items as MLOps scope gaps.",
+        "severity": "critical",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "Implemented drift monitoring (mle-m4-l03 / mle-m4-l04)",
+        "reason": "'Monitor data/prediction drift' is stated repeatedly but never coded. Add a concrete reference-vs-current drift report with a current tool (Evidently AI or NannyML) plus a simple alert threshold so the skill is demonstrable. Both reviewers flag 'named but never implemented.'",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "New lesson — Testing & CI/CD for ML code",
+        "reason": "No pytest unit/integration tests for pipelines, transforms, or the prediction API, and no CI/CD-for-models, despite 'clean, versioned, tested code + CI/CD' being a near-universal JD requirement. Add a testing lesson plus a GitHub Actions workflow that trains/validates/builds the image. Industry rates major; professor notes the same testing gap.",
+        "severity": "major",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "mle-m2-l02 and mle-m3-l02 (and m2-l04) hyperparameter-tuning objectives vs content",
+        "reason": "Objectives assert learners will 'tune key hyperparameters' but the lessons show fixed values, only mention RandomizedSearchCV, or run a loop that never uses validation results to drive a decision. Add a short worked GridSearchCV/RandomizedSearchCV example and validation-driven choices so the asserted skill is demonstrated and assessable. Both reviewers flag the objectives-vs-content gap.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "mle-m1-l02 Linear Algebra — SVD-for-PCA centering, intercept, and normal-equation stability",
+        "reason": "SVD is presented as underpinning PCA but runs np.linalg.svd on raw, uncentered X (variance interpretation requires mean-centering); the normal-equation example forms Xt@X (squares condition number, contradicting the lesson's own 'prefer solve' guidance) and omits the bias/intercept column, fitting through the origin. Add mean-centering before SVD, add an intercept column, and prefer np.linalg.lstsq. Both reviewers flag these as minor internal inconsistencies.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      }
+    ],
+    "accuracyConcerns": [
+      "m1-l03: independent two-sample t-test (stats.ttest_ind) used to compare two models on shared folds/test set — violates independence, inflates false positives; paired t-test (ttest_rel) or Nadeau-Bengio corrected test is correct. Flagged major by BOTH reviewers; most consequential conceptual error and central to the MLE role.",
+      "m3-l03: SimpleCNN head nn.Linear(64*8*8,128) assumes 32x32 input but the lesson's augmentation produces 224x224 (correct flatten 64*56*56) — the two snippets cannot run together (shape RuntimeError). Flagged major by BOTH.",
+      "m1-l02: SVD presented as underpinning PCA but applied to raw, uncentered X; 'top singular values capture most variance' only holds for centered data — centering caveat missing. Flagged minor by BOTH.",
+      "m1-l02: normal-equation example fits through the origin (no bias/intercept column) and explicitly forms Xt@X (squares the condition number), contradicting the lesson's own 'prefer solve over inv for stability' guidance. Flagged minor by BOTH.",
+      "m4-l03: code does not implement what it preaches — /predict response (IrisResponse) omits the recommended model version; Dockerfile runs a single worker despite recommending uvicorn --workers 4/Gunicorn, with no warning that each worker loads a full copy of the model (RAM multiplies). Flagged minor by professor, embedded in a major cloud-deploy rework by industry."
+    ],
+    "currencyConcerns": [
+      "No LLM/generative-AI content anywhere (transformers, attention, tokenization/embeddings, Hugging Face Transformers, RAG/vector DBs, LoRA/PEFT fine-tuning) — the #1 in-demand 2026 ML Engineer skill cluster (RAG in ~65% of applied-LLM postings). Industry: critical; professor: scope gap.",
+      "No real MLOps/cloud: deployment stops at local Docker — no SageMaker/Vertex/Azure ML, no Kubernetes/KServe/Triton/Ray Serve, no model registry, no CI/CD-for-models, no automated retraining. Industry: critical; professor: MLOps scope gaps.",
+      "Drift monitoring named but never implemented — needs a concrete Evidently/NannyML reference-vs-current report with an alert threshold. Flagged by BOTH.",
+      "m2-l04: teaches legacy GradientBoostingClassifier instead of the modern histogram-based HistGradientBoostingClassifier, and only name-drops XGBoost/LightGBM/CatBoost without code. Flagged by BOTH.",
+      "m4-l03: dated FastAPI pattern — import-time/global model load instead of the lifespan context manager; pinned versions (fastapi==0.111.0, uvicorn==0.30.0, scikit-learn==1.5.0, joblib==1.4.0) are ~1 year+ stale. Flagged by BOTH.",
+      "No distributed/big-data or orchestration tooling (Spark/SparkML, Airflow/Prefect/Dagster beyond a conceptual DAG, Kafka/streaming) and no ML-code testing (pytest) — standard mid-level MLE expectations. Primarily industry; professor notes testing and scale gaps."
+    ]
+  },
+  {
+    "slug": "mlops-engineer",
+    "role": "MLOps Engineer",
+    "courseGrade": "B+",
+    "professorGrade": "A-",
+    "industryGrade": "B-",
+    "verdict": "significant-revisions",
+    "headline": "Conceptually excellent, copy-runnable classic-MLOps backbone undercut by a 2023-era curriculum: missing LLMOps/GPU-serving plus internal probe/MLflow/version inconsistencies keep it short of A.",
+    "jdAlignmentScore": 70,
+    "topRecommendations": [
+      "Add a dedicated LLMOps/GPU-serving module (the single biggest 2026 hireability gap, flagged critical by industry): serve an open LLM with vLLM behind KServe (or BentoML), cover continuous batching, quantization, OpenAI-compatible streaming endpoints, and GPU-saturation/queue-depth autoscaling (Ray Serve/KEDA). Pair it with nvidia-container-toolkit/CUDA GPU container tooling so the foundations match the later GPU node-pool content.",
+      "Fix the readiness/liveness probe inconsistency across all K8s lessons (both reviewers, professor weighted heaviest): readiness must hit a /ready endpoint that confirms model-weight loading, liveness hits /health(z). m3-l01 uses /healthz for both and m4-l01 points readiness at /health, contradicting the m1-l03 contract and the course's own central teaching that readiness gates model loading. This is the most pedagogically damaging correctness defect.",
+      "Pin and unify the MLflow story (both reviewers, major): choose a target MLflow major version, lead with aliases over legacy stages in ALL lessons (m2-l02 already teaches this but m2-l04/m4-l01/m4-l04 revert), update artifact_path -> name= for 3.x, and wire promote_if_better to actually fetch the incumbent Production metric.",
+      "Close the recommend-but-don't-demonstrate gaps (both reviewers): ship a real custom-metric HPA manifest (Pods/External via Prometheus Adapter or KEDA) where CPU is criticized, and replace the capstone's plain rolling 'kubectl set image' with a real canary/blue-green (ideally Argo Rollouts/GitOps) so the safe-rollout objective is actually built.",
+      "Refresh all aging versions and dependencies (both reviewers): bump EKS 1.29 (EOL) to a supported version, raise Docker/Python floors, update Pandera to the pandera.pandas namespace/DataFrameModel API, reframe Gunicorn to single-worker-per-container, and add a 'pick latest supported version at setup' caveat to all hardcoded versions.",
+      "Strengthen reproducibility (the course's own headline theme) and modern delivery: teach deterministic lockfiles (pip-tools/Poetry/uv with hashes) as the default instead of pip freeze, add GitOps (ArgoCD/Flux) as the deploy mechanism, reconcile the PSI 0.25 vs 0.2 thresholds with a note that PSI bands are domain-specific conventions, and SHA-pin third-party GitHub Actions.",
+      "Implement (not just mention) a feature store (Feast) reused across training/serving, and add a hands-on managed-platform lesson (SageMaker or Vertex AI pipelines + registry) to match employers who run cloud-native MLOps stacks rather than self-managed K8s/MLflow only."
+    ],
+    "sectionsToRedo": [
+      {
+        "section": "NEW MODULE: LLMOps & GPU Serving (vLLM, KServe/BentoML, Ray Serve, quantization, continuous batching, GPU-aware K8s scheduling)",
+        "reason": "The single largest gap versus 2026 JDs (TRM Labs, Lucky Robots, deepsense.ai, Experian). No coverage of LLM serving runtimes, continuous batching, quantization, token/throughput optimization, or GPU scheduling — the LLMOps requirements now dominant in postings. Course prepares only for classic/tabular MLOps roles.",
+        "severity": "critical",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "Probe usage across mlo-m3-l01, mlo-m3-l02, mlo-m4-l01 (readiness vs liveness endpoints)",
+        "reason": "m3-l01 points BOTH readiness and liveness at /healthz and m4-l01 points readiness at /health, so readiness never verifies model-weight loading — directly contradicting the m1-l03 /health-vs-/ready contract and the lessons' own teaching that readiness gates model loading. Learners copying these manifests wire readiness to the wrong endpoint.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "MLflow registry/logging across mlo-m2-l01, mlo-m2-l02, mlo-m2-l04, mlo-m4-l01, mlo-m4-l04",
+        "reason": "Deprecated artifact_path argument and legacy stage-based registry (transition_model_version_stage, models:/name/Production) used as the primary path despite m2-l02 correctly teaching aliases as the modern replacement. Must pin MLflow major version, lead with aliases everywhere, update to name= for 3.x, and demonstrate the full promotion gate (fetch incumbent Production metric).",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "Serving layer across mlo-m1-l03, mlo-m3-l01, mlo-m4-l04 (purpose-built serving runtime)",
+        "reason": "Every model is served via hand-rolled FastAPI; no KServe/Seldon/BentoML, so learners cannot speak to OpenAI-compatible endpoints, request batching, streaming, or queue-depth/GPU-saturation autoscaling that production serving requires.",
+        "severity": "major",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "mlo-m4-l04 capstone deploy step (safe rollout)",
+        "reason": "Capstone asserts canary/blue-green safe rollout but ships a plain rolling 'kubectl set image' with no canary/blue-green implementation; the stated learning objective is never demonstrated. Replace with a real canary/blue-green (two Deployments + Service selector switch, or Argo Rollouts/GitOps) and show fetching prod_metrics for the promotion gate.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "mlo-m3-l02 and mlo-m4-l01 HPA examples (custom-metric scaling)",
+        "reason": "Lessons argue CPU is a poor inference-scaling metric (request-rate/queue-depth is better) but ship only CPU-based HPA manifests. Add a concrete custom-metric HPA (type Pods or External via Prometheus Adapter/KEDA, e.g. requests-per-second or queue depth) so the advocated approach is actually demonstrated.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "mlo-m1-l01 toolchain (GPU tooling + dependency management)",
+        "reason": "No GPU/CUDA container tooling (nvidia-container-toolkit) in foundations despite later GPU node-pool/model content; pip freeze taught as the primary reproducibility mechanism (non-deterministic, no hashes) in a course whose headline theme is reproducibility. Add GPU container setup and a deterministic lockfile-first workflow (pip-tools/Poetry/uv with hashes).",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "mlo-m4-l01 cloud platform deployment (versions + GitOps)",
+        "reason": "Hardcoded EKS cluster_version 1.29 is past end of standard support as of 2026, and the deploy mechanism is imperative kubectl. Bump to a currently-supported EKS version with a 'pick latest supported' caveat, and add ArgoCD/Flux GitOps as the modern declarative delivery mechanism.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "mlo-m4-l02 / mlo-m4-l03 PSI thresholds",
+        "reason": "PSI alert threshold is inconsistent (FeatureDriftHigh at 0.25 in m4-l02 vs 0.2 in m4-l03 for the same concept) and PSI bands are taught as a universal rule of thumb when they are a domain-specific (credit-scoring) convention. Use one consistent threshold and frame the cutoffs as domain-tunable heuristics.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "Feature store implementation (Feast/Tecton) + managed-platform lesson (SageMaker/Vertex AI)",
+        "reason": "Feature stores are name-dropped once and never implemented despite appearing as a concrete must-have ('set up a Feature Store reused across training and serving') in current JDs; no hands-on cloud-native managed MLOps platform. Add a Feast lesson reusing features across training/serving and a SageMaker or Vertex AI pipelines+registry lesson.",
+        "severity": "minor",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "mlo-m1-l02 / mlo-m1-l03 example self-consistency",
+        "reason": "m1-l02 minimal app loads the model at module import time, contradicting m1-l03's next-lesson lifespan/load-at-startup guidance; m1-l03 also hardcodes model_version='1.0.0' in the handler, contradicting m4-l02's own guidance to attach the real model version. Make examples self-consistent.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "mlo-m3-l03 CI workflow (checkout + action pinning)",
+        "reason": "The deploy job runs ./deploy.sh with no actions/checkout step, so the script would not exist on the runner; actions are pinned to mutable major tags (@v4) rather than full commit SHAs. Add checkout where workflow files are needed and SHA-pin third-party actions (with Dependabot) for supply-chain hardening.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      }
+    ],
+    "accuracyConcerns": [
+      "Readiness/liveness probe endpoints are inconsistent across K8s lessons: m1-l03 defines /health=liveness and /ready=readiness, but m3-l01 points BOTH probes at /healthz and m4-l01 points readiness at /health, so the readiness probe never verifies model-weight loading — contradicting the course's own central teaching and quiz prose (most pedagogically damaging correctness defect).",
+      "MLflow guidance is internally contradictory: m2-l02 teaches aliases as the modern replacement for stages, yet m2-l04/m4-l01/m4-l04 use the legacy stage API (transition_model_version_stage, models:/name/Production) as the primary serving/promotion path.",
+      "m2-l04 promotion gate is incomplete: train_and_register gates on a hardcoded 0.80 threshold while promote_if_better takes prod_metric as a parameter but never shows where it comes from (fetching the current Production version's metric), so the advocated candidate-vs-incumbent comparison is asserted but never demonstrated end to end.",
+      "PSI alert threshold is inconsistent between m4-l02 (>0.25) and m4-l03 (>0.2) for the same concept, and PSI bands are presented as a universal rule of thumb rather than a domain-specific (credit-scoring) convention.",
+      "m1-l03 hardcodes model_version='1.0.0' in the PredictResponse handler, contradicting m4-l02's guidance to attach the real model version from the loaded model/registry; m1-l02 also loads the model at module import, contradicting m1-l03's lifespan/load-at-startup guidance.",
+      "m3-l03 deploy job runs ./deploy.sh with no actions/checkout step in that job, so the script would not exist on the runner; the job would fail as written.",
+      "NOTE: The 'answer-index bug' candidate flags from the digest were verified as false alarms by the professor — all 16 lessons' quiz answer indices resolve correctly under 0-based indexing, so this is NOT an accuracy concern."
+    ],
+    "currencyConcerns": [
+      "MLflow version is never pinned and examples use artifact_path= (deprecated in MLflow 3.x in favor of name=) plus the legacy stage lifecycle (None/Staging/Production/Archived), which 3.x reworks around aliases and 'logged models' — current installs will hit deprecation warnings or API drift.",
+      "ENTIRE LLMOps/GenAI track is absent (vLLM, KServe LLMInferenceService, Ray Serve, Triton/TensorRT-LLM, continuous batching, paged attention, quantization, token/throughput optimization, GPU-aware scheduling) — these now appear in the majority of 2026 MLOps/LLMOps postings, making this a 2023-era curriculum in a 2026 market.",
+      "No purpose-built model-serving runtime (KServe/Seldon/BentoML) — every model is hand-rolled FastAPI, leaving learners unable to speak to OpenAI-compatible endpoints, streaming, batching, or queue-depth autoscaling that production serving requires.",
+      "EKS cluster_version hardcoded to 1.29, which is past EKS standard end-of-support as of 2026 (current ~1.31+); no 'pick latest supported version' caveat.",
+      "Aging version floors and import paths: Docker 20.10+ (24/25+ current), Python 3.10+ floor (3.12/3.13 current), and Pandera's deprecated top-level 'from pandera import Column, Check' import (0.20+ moved to the pandera.pandas namespace / DataFrameModel API).",
+      "Gunicorn + Uvicorn workers presented as the production serving recommendation; current containerized FastAPI/Uvicorn guidance favors single-worker-per-container scaled by K8s replicas (the pattern the course itself later teaches).",
+      "pip freeze taught as the primary dependency-capture mechanism (non-deterministic, no hashes) despite reproducibility being the course's headline theme; deterministic lockfiles (pip-tools/Poetry/uv) only name-dropped.",
+      "GitOps continuous delivery (ArgoCD/Flux) is absent — the course deploys via imperative kubectl set image, while modern teams (and JDs like deepsense.ai) expect declarative GitOps.",
+      "Feature stores (Feast/Tecton) and vector DBs (pgvector/Pinecone) mentioned only in passing, never implemented, despite appearing as concrete must-haves in current JDs.",
+      "m4-l03 recommends Pushgateway for periodic drift-job metrics without the documented caveats (stale last-value persistence, single point of failure, upstream-flagged anti-pattern); OpenTelemetry/remote-write or a metrics store is the more current pattern."
+    ]
+  },
+  {
+    "slug": "junior-digital-marketing",
+    "role": "Junior Digital Marketing / Social Media Assistant",
+    "courseGrade": "B",
+    "professorGrade": "B+",
+    "industryGrade": "B-",
+    "verdict": "significant-revisions",
+    "headline": "Solid, accurate, job-aligned course held back by one decisive 2026 gap (no AI) and one real internal contradiction; the digest's quiz off-by-one alarm is confirmed false.",
+    "jdAlignmentScore": 78,
+    "topRecommendations": [
+      "Add AI/generative-AI literacy: a dedicated lesson (prompting ChatGPT/Claude/Gemini for copy, AI image generation, human-in-the-loop editing, disclosure/brand-safety/data-privacy guardrails) PLUS threaded AI steps across copywriting (m1-l02), Canva Magic (m1-l03), Meta Advantage+ (m2-l02), Google RSA asset generation (m2-l03), and email subject-line/segmentation (m4-l02). This is the single highest-leverage change and the reason both reviewers withhold an A.",
+      "Update the portfolio/job lesson (dm-m4-l04) to have learners list AI tools in their skills section and include at least one clearly-labeled AI-assisted artifact, since ATS/JDs now scan for AI fluency and this is the most hire-critical lesson.",
+      "Fix the welcome-series stage contradiction (professor-only finding, verified): dm-m4-l03's journey table and quiz Q3 map the email welcome series to Retention, contradicting dm-m4-l01's correct Nurture/Convert placement. Standardize on welcome series = Nurture/Onboarding and Retention = ongoing newsletters/re-engagement, then correct quiz Q3. It misinforms in both lesson body and quiz.",
+      "Do NOT act on the digest's quiz-indexing 'fix': verified across lessons that quizzes are 0-indexed and keys are correct (e.g., dm-m1-l01 Q1 'email newsletter' at index 2 = answer:2). Rewriting keys would inject errors.",
+      "Source, date, or soften all hard benchmark/ROI numbers (email ROI $36:$1, open rate 20-35%, CTR ~1%/~2%) with 'varies by industry, verify current data' framing, cite the already-linked Mailchimp benchmarks, and reconcile the open-rate-vs-Apple-MPP tension by leading with click-based metrics.",
+      "Modernize tracking content: correct GA4 'cookieless by default' wording to Consent Mode/modeled conversions with first-party cookies by default (m3-l03), and frame the Meta Pixel within a dataset + Conversions API model (m2-l02).",
+      "Add a short practical note in Module 2 on real ad-spend/billing thresholds and minimum budgets so learners aren't blindsided attempting paid exercises; refresh drifting specs (LinkedIn image sizes, 2024-dated examples, Keyword Planner bucketed ranges for non-spending accounts)."
+    ],
+    "sectionsToRedo": [
+      {
+        "section": "Course-wide: AI/generative-AI integration (new dedicated lesson + threaded updates across all modules)",
+        "reason": "AI fluency is a stated 2026 must-have for junior marketing roles and is entirely absent from all 16 lessons (verified: only 2 incidental, unrelated AI matches across the full course). This is the largest single hireability and currency gap, and the reason both reviewers cap the course below A.",
+        "severity": "critical",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "dm-m4-l04 — Building Your Portfolio & Landing the Job",
+        "reason": "The most hire-critical lesson omits AI-tool skills and AI-assisted artifacts that employers and ATS now scan for. Add an AI skills line and at least one clearly-labeled AI-assisted portfolio piece.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "dm-m4-l03 — Step 2 customer-journey table and quiz Q3 (welcome series stage)",
+        "reason": "Verified contradiction: the journey table (line 94) and quiz Q3 (keyed 'Email welcome series' = Retention) classify the welcome series as Retention, directly contradicting dm-m4-l01's correct Nurture/Convert placement. A welcome series is onboarding/nurture, not retention. Misinforms in both body and quiz; reassign to Nurture/Onboarding, reserve Retention for ongoing newsletters/re-engagement, and fix Q3.",
+        "severity": "major",
+        "whoFlagged": "professor"
+      },
+      {
+        "section": "dm-m2-l02 — Launching Your First Meta Ads Campaign (tracking model)",
+        "reason": "Pixel-centric conversion tracking is dated for the privacy era; should add Conversions API / dataset awareness and frame Advantage+ AI features to match current Meta practice.",
+        "severity": "major",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "dm-m3-l03 — Measuring Traffic with GA4 ('cookieless tracking' wording)",
+        "reason": "Overstates GA4 default behavior. GA4 still uses first-party cookies by default and approaches cookieless only via Consent Mode and modeled conversions. Reword precisely.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "dm-m4-l01 / dm-m4-l02 / dm-m2-l04 — benchmark and ROI stats (email ROI $36:$1, open rate 20-35%, CTR ~1%/~2%)",
+        "reason": "Unsourced/aging stats stated as fixed truths without date or industry framing; the open-rate benchmark also conflicts with the same lesson's correct Apple MPP inflation warning. Add caveats, cite current benchmarks (Mailchimp, already linked), and reconcile by foregrounding click-based metrics.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "dm-m1-l03 / dm-m3-l01 — drifting platform specs and dated examples",
+        "reason": "LinkedIn image guidance limited to 1200x627 (add 1080x1080 square and 1080x1350 vertical); 2024-dated example keywords and filenames; Keyword Planner volume shown as bucketed ranges for non-spending accounts not noted. Refresh to evergreen, current specs.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "Quiz answer keys (DO NOT redo)",
+        "reason": "Explicitly flagged to NOT change: the digest's claimed systemic 0-vs-1 off-by-one error is FALSE. Verified the platform is consistently 0-indexed and keys are correct (e.g., dm-m1-l01 Q1 'email newsletter' index 2 = answer:2). Auditing-and-rewriting would inject errors. Listed here so no one acts on the false digest alarm.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      }
+    ],
+    "accuracyConcerns": [
+      "GA4 described as 'built with privacy and cookieless tracking in mind' (dm-m3-l03) overstates default behavior; GA4 still uses first-party cookies by default and reaches cookieless only via Consent Mode/modeled data. Flagged by both reviewers.",
+      "Internal contradiction (professor-only, verified): dm-m4-l03 classifies the email welcome series as 'Retention' in both the journey table and quiz Q3, contradicting dm-m4-l01's correct Nurture/Convert placement. Two incompatible funnel models taught.",
+      "Email ROI '$36 for every $1' (dm-m4-l01) stated as flat fact with no source/date; an aging DMA/Litmus-era figure variously quoted $36-$42 and frequently challenged.",
+      "Open-rate benchmark (~20-35%, dm-m4-l02) presented in the same lesson that correctly warns Apple Mail Privacy Protection inflates opens, with no reconciliation; undermines the metric the lesson teaches learners to distrust.",
+      "Hard CTR benchmarks (~1% Meta / ~2% Google, dm-m2-l04) stated as fixed rules without industry/date caveat.",
+      "Meta Pixel framed as the primary conversion mechanism (dm-m2-l02) without Conversions API / server-side dataset shift (industry-only).",
+      "FALSE ALARM resolved: the digest's claimed systemic quiz answer-key off-by-one is incorrect; both reviewers and my own spot-check confirm 0-indexed, correct keys. No answer-key remediation needed and none should be performed."
+    ],
+    "currencyConcerns": [
+      "Complete absence of AI/generative-AI workflow content across all 16 lessons (verified) in a 2026 course; AI fluency is now a stated entry-level must-have. The decisive currency gap both reviewers cite.",
+      "Portfolio/resume lesson never coaches learners to surface AI-assisted work or name AI tools, despite current ATS/JD expectations.",
+      "Meta tracking content pre-dates the pixel-to-dataset / Conversions API shift (privacy-era standard).",
+      "Platform specs drift: LinkedIn image sizes limited to landscape 1200x627 (square 1080x1080 and vertical 1080x1350 increasingly preferred); Canva free-tier brand-kit limits, Instagram caption truncation, and 2024-dated example keywords/filenames need a currency pass.",
+      "No mention of real ad-spend/billing thresholds and minimum budgets required to actually complete Module 2 paid exercises — an expectation gap for an entry-level audience.",
+      "Google Keyword Planner volume described as available 'free' without noting non-spending accounts see only bucketed ranges, not precise figures."
+    ]
+  },
+  {
+    "slug": "kwasi-GenAI",
+    "role": "Applied GenAI Engineer (from Cloud Engineer)",
+    "courseGrade": "B+/A-",
+    "professorGrade": "A-",
+    "industryGrade": "B+",
+    "verdict": "minor-revisions",
+    "headline": "A current, well-sequenced GenAI course that ships as-is for the cloud-to-applied-GenAI transition, but needs a targeted minor-revision pass: fix the phantom Anthropic embeddings endpoint, add judge-bias + A/B significance rigor, and harden the concrete artifacts (Dockerfile, caching math, model-ID hygiene).",
+    "jdAlignmentScore": 85,
+    "topRecommendations": [
+      "DO NOT TOUCH the verified-current API surface. The pre-flight digest's headline 'model IDs and output_config.format/messages.parse are wrong' is a confirmed FALSE ALARM — independently corroborated by both reviewers AND verified by me against the live claude-api reference. claude-opus-4-8 / claude-sonnet-4-6 / claude-haiku-4-5, output_config.format, messages.parse/parsed_output, mcp_servers, the memory tool, and the large-max_tokens streaming guard are all canonical and current. Changing any of them would introduce errors, not fix them.",
+      "Fix the highest-confidence accuracy bug first (g2-l01 embeddings): both reviewers independently flagged it and the live API reference confirms Anthropic has no first-party embeddings endpoint. Remove the implied native endpoint and the dead docs.anthropic.com/.../embeddings link; point to real options (Voyage AI as Anthropic's recommended partner, Bedrock Titan, Azure OpenAI, open models like BGE/E5); state plainly that Anthropic offers no native embeddings API. This is a lesson-1-of-the-RAG-module trust breaker that also fails if a learner tries the call.",
+      "Close the two quantitative-rigor gaps both reviewers cite in the measurement month: (a) g4-l01 — name and mitigate LLM-as-judge biases (position/order, verbosity, self-preference when the judge shares the model family) with swap-A/B-and-average and held-out human calibration; (b) g4-l02 — give a concrete significance method (two-proportion z-test / confidence interval / sample-size rule of thumb) and fix the pairwise-judge example to randomize A/B order and reconcile the judge() signature with g4-l01. This is the difference between a graduate who can claim to measure quality and one who actually can in a technical screen.",
+      "Harden the concrete artifacts to match the course's stated security-engineer posture: make the g5-l04 Dockerfile non-root + multi-stage with build-time secrets (currently single-stage as root); add the g4-l03 prompt-caching break-even economics (write premium ~1.25x for 5-min / 2x for 1-hr, reads ~0.1x, ~2-request break-even, and the model-dependent minimum cacheable prefix — 4096 tokens on Opus 4.8, verified against the live reference); add the g2-l03 distance-metric/normalization caveat (cosine vs dot-product/inner-product vs L2 must match the embedding model).",
+      "Sweep the remaining currency/hygiene items: normalize date-suffixed model IDs (claude-haiku-4-5-20251001) to bare aliases per the canonical 'never append date suffixes' guidance; normalize all resource URLs to platform.claude.com with a link-check pass and remove the two non-existent first-party links (embeddings g2-l01, fine-tuning g2-l06); add a 'these are beta/dated APIs — pin and verify your SDK version' note to the MCP and memory lessons.",
+      "Decide on scope for the larger JD-coverage gaps the industry reviewer raised (hands-on LoRA/QLoRA fine-tuning, hybrid BM25+vector search, LangGraph/CrewAI, multimodal/vision). These are real 2026-JD line items and the most likely to surface in a technical screen, but they are additive curriculum expansion, not corrections — schedule them as a fast-follow content release rather than blocking the minor-revision ship of the accuracy/rigor fixes above."
+    ],
+    "sectionsToRedo": [
+      {
+        "section": "g2-l01-embeddings — resources list and the 'Getting an embedding from an API' framing",
+        "reason": "Implies a first-party Anthropic embeddings endpoint and links a dead docs.anthropic.com/.../embeddings URL. Verified against the live claude-api reference: Anthropic has no native embeddings API. Highest-confidence accuracy bug, in lesson one of the RAG module, and it fails if a learner attempts the call. Remove the implied endpoint + dead link; point to Voyage AI / Bedrock Titan / Azure OpenAI / open models; state Anthropic offers no first-party embeddings.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "g4-l01-evaluation — LLM-as-judge section",
+        "reason": "For the lesson whose entire purpose is reliable measurement, judge biases (position/order, verbosity, self-preference when the judge shares the answer model's family) are unnamed and the only mitigation offered is the too-weak 'spot-check the judge.' Add explicit bias treatment and standard mitigations: swap A/B order and average, use a different model family as judge where feasible, calibrate against human ratings on a held-out slice.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "g4-l02-prompt-ab-testing — 'Telling signal from noise' section and the pairwise-judge code example",
+        "reason": "Repeatedly tells learners to 'decide sample size up front' / 'avoid peeking' with no method to act on it (no two-proportion test, no confidence interval, no sample-size heuristic), so a learner cannot separate signal from noise on their own data. Additionally the pairwise example feeds A/B in a fixed order — embodying the position bias the lesson never warns about — and the judge() call signature contradicts its g4-l01 definition. Add a concrete significance method and fix the example to randomize/alternate order and reconcile the signature.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "g2-l06-rag-vs-finetuning — resource label and link (plus optional hands-on fine-tuning lesson)",
+        "reason": "Resource 'Anthropic docs — Fine-tuning' + docs.anthropic.com/.../fine-tuning URL imply a first-party Anthropic fine-tuning product; fine-tuning is only via Amazon Bedrock (the lesson body states this correctly, but the label/link overstate availability and likely 404). Relabel/repoint to the real Bedrock destination. Separately, the industry reviewer notes there is zero hands-on LoRA/QLoRA practice anywhere — a real JD gap; an added practical fine-tuning lesson is recommended as a fast-follow, but the link/label fix is the in-scope correction.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "g4-l03-cost-optimization — 'Lever 1: prompt caching' section",
+        "reason": "Omits the break-even economics needed to estimate when caching pays off. Verified against the live reference: add write premium (~1.25x for 5-min TTL, 2x for 1-hr), read discount (~0.1x), ~2-request break-even (5-min), and the model-dependent minimum cacheable prefix (4096 tokens on Opus 4.8 — a short prefix silently won't cache). Also normalize the date-suffixed Haiku IDs that appear in this lesson's code.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "g5-l04-packaging — Dockerfile example",
+        "reason": "Single-stage, runs as root with no non-root USER directive, in a course that repeatedly positions the learner as a security-minded engineer — the concrete artifact contradicts the stated posture. Add a non-root USER, prefer a multi-stage (builder + slim runtime) build, reference Docker build secrets / pinned base image digest / healthcheck rather than only -e at runtime.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "g2-l03-vector-databases — distance-metric / 'three operations' guidance",
+        "reason": "Presents cosine as the metric 'usually' used with only vector_cosine_ops shown; no note that the metric must match the embedding model's training objective (cosine vs dot-product/inner-product vs L2) and no mention of vector normalization — a silent retrieval-quality footgun. Add a short matching-and-normalization caveat. (Industry reviewer additionally flags absent hybrid BM25+vector search here — additive, schedule as fast-follow.)",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "Resource-link hygiene across Months 2 and 4 + MCP/memory beta version notes",
+        "reason": "Months 2 and 4 use the legacy docs.anthropic.com host while Months 1 and 3 use the current platform.claude.com host, indicating un-reverified/stale link sets. Normalize every resource URL to platform.claude.com/docs/en/... and add a link-check step. Separately, the MCP and memory lessons rely on current-but-version-fragile beta surfaces and dated type strings (memory_20250818, beta tool_runner/async_mcp_tool import paths) — add a one-line 'targets SDK >= X.Y; these are beta APIs, verify your SDK version' note so learners re-verify after an SDK bump.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "g3-l03-orchestration-frameworks — add LangGraph and name CrewAI",
+        "reason": "Industry reviewer only: LangChain/LlamaIndex get one lesson while LangGraph (stateful/graph agents) and CrewAI — the frameworks 2026 Applied AI Engineer postings cite most — are barely surfaced; learners will meet them in JDs and interviews. Add a short LangGraph section and at least name CrewAI, mapping both back to the raw plan-act-observe loop the course already teaches. Additive currency fix, not a correction.",
+        "severity": "minor",
+        "whoFlagged": "industry"
+      }
+    ],
+    "accuracyConcerns": [
+      "VERIFIED FALSE ALARM (do not change): The digest's top-flagged 'errors' — that model IDs (claude-opus-4-8, claude-sonnet-4-6, claude-haiku-4-5) and the structured-output surface (output_config.format, messages.parse, parsed_output) are wrong — are NOT errors. Both reviewers independently refuted this and I confirmed it against the live claude-api reference: these are the canonical current model IDs and the recommended current structured-output mechanism (the old output_format is deprecated). mcp_servers, the memory tool, and the large-max_tokens streaming guard are likewise current. A reviewer working from an early-2026 mental model would wrongly flag these as forward-dated; they are real.",
+      "CONFIRMED (major): g2-l01 implies a first-party Anthropic embeddings endpoint and links a dead docs URL. Anthropic has no native embeddings API — verified by its absence from the live reference. Both reviewers flagged this independently; it is the single highest-confidence accuracy defect.",
+      "CONFIRMED (minor): g2-l06 resource label + docs.anthropic.com/.../fine-tuning URL imply a first-party Anthropic fine-tuning product. Fine-tuning is available only through Amazon Bedrock (the lesson body says this correctly); the resource label/link overstate first-party availability and likely 404.",
+      "CONFIRMED (minor): g4-l02 pairwise-judge code is internally inconsistent — judge() is defined as judge(question, reference, answer) in g4-l01 but called as judge(c, a, b) in g4-l02, and feeds A/B in a fixed order, demonstrating (without flagging) the position bias the lesson never warns about. Presented as a working pattern though it is illustrative pseudocode.",
+      "CONFIRMED (minor): g2-l03 teaches cosine as the metric 'usually' used with only vector_cosine_ops, no mention that the metric must match the embedding model's objective (dot-product/inner-product or L2) and no normalization caveat — a silent retrieval-degradation footgun with no error surfaced."
+    ],
+    "currencyConcerns": [
+      "CONFIRMED (minor): Date-suffixed model IDs (claude-haiku-4-5-20251001) appear in runnable code in g4-l03 and g5-l01, contradicting the canonical 'use bare aliases, never append date suffixes' guidance verified in the live reference. Note the suffixed string is the real full Haiku ID, so it is not invalid — but it is inconsistent with the alias convention used for Opus/Sonnet in the same lessons and reads as stale. Normalize to claude-haiku-4-5.",
+      "CONFIRMED (minor): Resource links use two hosts — Months 2 and 4 use legacy docs.anthropic.com/en/..., Months 1 and 3 use the current platform.claude.com/docs/en/.... The legacy host generally redirects, but the split indicates the Month-2/4 link sets were never re-verified. Normalize to platform.claude.com and add a link-check step; the two non-existent first-party links (embeddings, fine-tuning) must be removed/relabeled in the same pass.",
+      "CONFIRMED (minor): MCP and memory lessons depend on current-but-fast-moving beta surfaces and dated identifiers — memory tool type string memory_20250818, client.beta.messages.tool_runner, anthropic.lib.tools.mcp.async_mcp_tool, the mcp_servers request param. These are correct and current as written (verified) but are version-sensitive and break silently on SDK upgrades. Add an explicit 'targets SDK >= X.Y; these are beta APIs/dated type strings — check the SDK changelog' note so learners re-verify rather than assuming permanence.",
+      "CONFIRMED (minor): g4-l03 prompt-caching cost lesson omits the break-even inputs that decide whether caching pays off. Live-reference values: write premium ~1.25x (5-min TTL) / 2x (1-hr), reads ~0.1x, ~2-request break-even on 5-min, and a model-dependent minimum cacheable prefix of 4096 tokens on Opus 4.8 (a shorter prefix silently won't cache). The industry reviewer's 'minimum cacheable prefix ~4096 on Opus 4.8' is the precise figure; the professor's '1024-4096, model-dependent' is the right shape. Add these so the cost lesson is actionable.",
+      "SCOPE NOTE (not a correction): Agent-framework currency — LangGraph and CrewAI (the most-cited 2026 orchestration frameworks) are barely surfaced vs a single LangChain/LlamaIndex lesson. This is a framework-currency gap that drifts fastest of any course content; address as a fast-follow content refresh."
+    ]
+  },
+  {
+    "slug": "helpdesk-tier1-2",
+    "role": "IT Helpdesk / Desktop Support Technician (Tier 1-2)",
+    "courseGrade": "B+/A-",
+    "professorGrade": "A-",
+    "industryGrade": "B+",
+    "verdict": "minor-revisions",
+    "headline": "A modern, cert-aligned Tier 1-2 helpdesk curriculum that is publication-ready after a short errata pass: one verified PowerShell error and one missing Windows 10 EOL date are the only must-fix blockers.",
+    "jdAlignmentScore": 86,
+    "topRecommendations": [
+      "Fix the verified technical error in hd3-l07 immediately: replace the Server-only `Get-WindowsFeature -Name FS-Data-Deduplication` snippet (presented as a File History status check) with a valid client-side method (configure File History in Settings; verify via the FileHistory Control Panel applet or fhmanagew.exe). Confirmed in source at lines ~90-95. Both reviewers rank this the #1 blocker — it errors on the target OS and teaches a false association.",
+      "Close the currency gap in hd1-l05: the lifecycle section (confirmed at lines ~114-120) teaches date-tracking as a skill but states no dates and tells learners to 'look up online.' Add the concrete callout — Windows 10 end of support 14 Oct 2025 (ESU/upgrade/replace decision), Windows 11 as the supported client with annual H2 cadence — and a Microsoft Lifecycle/Learn link so it ages gracefully. This is the single most-asked support-currency fact in 2026.",
+      "Run a precision pass on the defensible-but-loose A+/Network+ simplifications that both reviewers flagged: add the ~55 m Cat6 10GbE figure (hd2-l08), note same-vendor generational socket differences e.g. LGA1700 vs LGA1851 (hd1-l02), list the shared-mailbox licensing exceptions of litigation hold/archive/>50 GB (hd6-l03), and add the DNS caching/stub-resolver and TCP/DoH nuance (hd2-l04/l05). None change a quiz key; all sharpen exam and interview readiness.",
+      "Bridge the on-prem and cloud-managed halves: in hd3-l06 add a one-line note that local `net accounts` lockout is largely superseded by Entra smart lockout / Intune in the cloud-managed world the later modules teach, plus the NIST caution that aggressive lockout thresholds enable denial-of-service.",
+      "Strongly consider (industry-only major) converting the existing capstones (hd4-l10, hd6-l09) and the job-search lesson (hd6-l10) into shippable portfolio artifacts — a worked ticket trail, a KCS-format KB article, and a documented Intune/Autopilot or AD home-lab write-up — so candidates leave with interview-ready deliverables, closing the loop the course already recommends.",
+      "Preserve what is verified-strong: the CompTIA 7-step malware list, the 93-day vs 30-day SharePoint soft-delete distinction, the capstone containment ordering, accurate quiz keys, and the concept -> command -> hands-on-task scaffolding. Do not touch these during the errata pass."
+    ],
+    "sectionsToRedo": [
+      {
+        "section": "hd3-l07 — Backup, recovery and imaging: the File History 'check status' code block (Get-WindowsFeature -Name FS-Data-Deduplication, lines ~90-95)",
+        "reason": "Verified in source: Get-WindowsFeature is a Windows Server ServerManager cmdlet absent on client Windows, and FS-Data-Deduplication is unrelated to File History. The snippet errors on the target client OS and teaches a false association. Replace with a valid client check (File History in Settings; verify via the FileHistory Control Panel applet or fhmanagew.exe) and test on a client OS before publishing.",
+        "severity": "critical",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "hd1-l05 — Operating systems overview: 'Choosing an OS and the support lifecycle' section + the task (lines ~114-120)",
+        "reason": "Verified: the section teaches lifecycle/EOL tracking as a core skill but names no concrete date and tells learners to 'look up online.' In a 2026-dated course it must state Windows 10 end of support (14 Oct 2025), the ESU/upgrade/replace decision, and Windows 11 supported status with annual H2 cadence, plus a Microsoft Lifecycle/Learn pointer to stay maintainable.",
+        "severity": "critical",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "Capstones (hd4-l10, hd6-l09) and job-search lesson (hd6-l10) — portfolio output",
+        "reason": "Industry reviewer (major) notes the capstones are guided scenario walk-throughs that produce nothing showable, while the job-search lesson itself tells candidates to build a home lab and show their work. Convert them into deliverable artifacts: a worked ticket trail, a KCS-format KB article, and a documented Intune/Autopilot or AD home-lab write-up. Professor did not flag this (out of accuracy scope), so it is an enhancement, not a correctness blocker.",
+        "severity": "major",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "hd3-l06 — Security best practices: the local 'net accounts' lockout demonstration",
+        "reason": "Both reviewers note the lesson teaches `net accounts /lockoutthreshold` as best practice without (a) the NIST caution that aggressive lockout enables denial-of-service and (b) noting it is largely superseded by Entra smart lockout / Intune in the cloud-managed environments taught in Modules 5-6. Add a one-line bridge for tool-selection and on-prem/cloud consistency.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "hd6-l03 — Exchange Online: shared-mailbox licensing claim ('no licence under 50 GB')",
+        "reason": "Both reviewers: the rule is correct only on the size dimension. A licence is also required when the shared mailbox is on litigation hold, has an in-place/online archive enabled, or exceeds 50 GB. Append the exceptions so learners do not assume shared mailboxes are always free (also relevant to MS-102).",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "hd2-l08 — Cabling and connectors: Cat6 10GbE distance",
+        "reason": "Both reviewers: Cat6 10G is given as 'short runs' without the ~55 m figure (vs Cat6a at 100 m). The lesson does teach the Cat6-vs-Cat6a contrast, so impact is low, but A+/Network+ test the exact figure. Add ~55 m for precision.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "hd1-l02 — Inside the PC: CPU socket compatibility claim",
+        "reason": "Both reviewers: 'an Intel chip won't fit an AMD socket' is framed as if sockets divide only by vendor, ignoring that same-vendor sockets differ by generation (LGA1700 vs LGA1851, AM4 vs AM5) — a frequent real upgrade-ticket failure. Reframe as generation+vendor specific.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "hd2-l04 / hd2-l05 — DNS resolution model",
+        "reason": "Industry reviewer: DNS is presented as a full root->TLD->authoritative walk on every lookup and 'UDP because speed,' omitting recursive/stub resolver caching and TCP use for large responses/zone transfers (and DoT/DoH). Flag the simplification and add the caching/TCP nuance, which is commonly probed and prevents mis-troubleshooting.",
+        "severity": "minor",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "hd5-l07 — Windows Update for Business: '23H2 to 24H2' feature-update example",
+        "reason": "Both reviewers: correct as of the 2026 course date but date-sensitive and will drift. Anchor it with a 'current as of' note and a Microsoft Learn 'verify current supported version' pointer so it ages gracefully.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "hd3-l08 — Virtualization and cloud basics: client Hyper-V labelled 'type 1 hypervisor'",
+        "reason": "Professor only, flagged for nuance not error: architecturally defensible (Hyper-V installs a type-1 hypervisor beneath the host OS) and the quiz key is correct, but the flat claim invites debate. Add a one-line nuance ('the host Windows becomes a privileged partition') to pre-empt confusion. Not a correctness blocker.",
+        "severity": "minor",
+        "whoFlagged": "professor"
+      }
+    ],
+    "accuracyConcerns": [
+      "VERIFIED CRITICAL — hd3-l07: `Get-WindowsFeature -Name FS-Data-Deduplication | Format-Table` presented as the way to check File History status. Confirmed in source (lines ~90-95). Server-only ServerManager cmdlet, unrelated to File History; errors on client Windows and teaches a false association. Flagged by both reviewers as the single most important pre-publication fix.",
+      "hd6-l03: shared-mailbox 'no licence under 50 GB' omits the litigation-hold / in-place-archive / >50 GB licensing exceptions (both reviewers, minor).",
+      "hd2-l08: Cat6 10GbE given as 'short runs' rather than the standard ~55 m figure; lesson does contrast Cat6a-over-100m so impact is low (both reviewers, minor).",
+      "hd1-l02: CPU socket compatibility framed as purely vendor-divided ('Intel chip won't fit an AMD socket'), ignoring same-vendor generational socket differences (LGA1700 vs LGA1851, AM4 vs AM5) (both reviewers, minor).",
+      "hd2-l04/l05: DNS oversimplified as full root->TLD->authoritative walk per lookup and 'UDP because speed,' omitting resolver caching, stub resolvers, and TCP/DoH fallback (industry only, minor).",
+      "hd3-l08: client Hyper-V flatly called a 'type 1 hypervisor' alongside VirtualBox as type 2 — architecturally defensible and quiz key correct, but invites debate; nuance recommended (professor only, minor — not an error)."
+    ],
+    "currencyConcerns": [
+      "VERIFIED CRITICAL — hd1-l05: lifecycle section teaches EOL-tracking as a skill but states no concrete date and instructs learners to 'look up online.' Confirmed in source (lines ~114-120). Missing Windows 10 end of support (14 Oct 2025) — the most-asked support-currency fact in 2026 — and no current Windows 11 servicing version. Both reviewers rank this a major currency gap in a 2026-dated course.",
+      "hd5-l07: '23H2 to 24H2' feature-update example is correct as of the 2026 course date but will silently drift as new H2 releases ship; needs a 'current as of' note and a Microsoft Learn verify-current pointer (both reviewers).",
+      "hd3-l06: local `net accounts` lockout taught as best practice without bridging to its modern Entra smart-lockout / Intune equivalent that the later cloud-managed modules assume, leaving an on-prem/cloud currency-consistency gap (both reviewers)."
+    ]
+  },
+  {
+    "slug": "helpdesk-tier3-advanced",
+    "role": "Tier 3 Endpoint Engineer / Senior Desktop Support",
+    "courseGrade": "B+",
+    "professorGrade": "A-",
+    "industryGrade": "B-",
+    "verdict": "significant-revisions",
+    "headline": "Senior-grade reasoning and security/automation depth, but a verified day-job provisioning blind spot (zero Autopilot/co-management/app-packaging/cross-platform) plus three confirmed lab bugs keep it from being hire-ready.",
+    "jdAlignmentScore": 72,
+    "topRecommendations": [
+      "Add a full Modern Endpoint Provisioning & Lifecycle module (the single biggest hireability gap, verified as zero coverage across all 32 lessons): Windows Autopilot + Enrollment Status Page, co-management with SCCM/MECM and workload sliders, Win32 app packaging (.intunewin) with detection rules, and Windows Update for Business update rings / patch-compliance reporting. These are headline must-haves in nearly every Modern Endpoint / Senior Desktop Support JD.",
+      "Fix and run-verify the three confirmed lab/capstone code bugs before any of this is used as portfolio material: ht2-l08:116 New-MgGroupMember must resolve to the Entra device directoryObject id, not $d.AzureAdDeviceId (critical); ht3-l08:119-120 KQL must project DeviceNetworkEvents.RemoteUrl/RemoteIP and join on DeviceId not DeviceName (major); ht2-l03:156 replace the PS7-only ternary with if/else or label PS7-only (major). All three contradict principles the course itself teaches.",
+      "Add cross-platform and cloud-endpoint coverage: macOS via Jamf+Intune, iOS/iPadOS/Android MDM and MAM/app-protection, Apple Business Manager enrollment, plus a Windows 365/Cloud PC and AVD primer. Pick at least the Apple+Android MDM/MAM piece even if AVD stays introductory.",
+      "Modernize identity/security currency: add Entra Cloud Sync and reframe AD FS as legacy in ht3-l05; add token protection and device-bound passkeys to ht3-l02 (tying to the ht3-l08 token-theft capstone); prefer v1.0 Graph endpoints in production examples (ht2-l04); replace the hardcoded Microsoft.Graph 2.0.0 pin in ht2-l07 with a placeholder/current build.",
+      "Realign certifications and add achievement-style labs: put MD-102 first in the ht4-l08 roadmap (MD-102 to MS-102 to SC-200 to AZ-104 to AZ-500 to AI-102), add a Power BI device-health/compliance reporting lesson, and attach a solution key/rubric plus quantified provisioning/app-deployment metrics to the labs.",
+      "Preserve the course's core strengths while fixing the above: the RCA mental models, safety-first automation defaults, and reasoning-style quizzes are the differentiators and must not be diluted during the rework."
+    ],
+    "sectionsToRedo": [
+      {
+        "section": "New module: Modern Endpoint Provisioning & Lifecycle (Autopilot, ESP, co-management/MECM, Win32 app packaging/.intunewin, Windows Update for Business/update rings)",
+        "reason": "Verified zero coverage across all 32 lessons. Every Modern Endpoint / Senior Desktop Support JD reviewed lists these as must-haves; without them graduates fail standard interview questions (Autopilot ESP failure, Win32 packaging) and lack portfolio achievements. Largest hireability gap.",
+        "severity": "critical",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "ht2-l08 'Stage 3 - act, safely' code block (line 116, Invoke-StaleDeviceRemediation)",
+        "reason": "Confirmed: New-MgGroupMember -DirectoryObjectId $d.AzureAdDeviceId uses the device deviceId GUID where a directoryObject id is required; the call fails or adds the wrong object and contradicts ht2-l03's resolve-to-id rule. Sits in the month's capstone deliverable run against live tenants. Resolve the device to its object id first.",
+        "severity": "critical",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "ht3-l08 'Detect and analyse' KQL hunt (lines 119-120)",
+        "reason": "Confirmed: projects RemoteUrl=InitiatingProcessRemoteSessionDeviceName (a remote-session device-name field aliased as a C2 URL) and joins on DeviceName instead of DeviceId. For outbound C2 use DeviceNetworkEvents.RemoteUrl/RemoteIP and join on DeviceId (per ht3-l03). Also state the query surface (Defender XDR advanced hunting; AADSignInEventsBeta is a beta XDR table, not Log Analytics SigninLogs).",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "ht2-l03 'Surviving throttling' retry snippet (line 156) and its reuse in ht2-l08",
+        "reason": "Confirmed PS7-only ternary ($wait ? $wait : 10) is a parse error in Windows PowerShell 5.1, which ht2-l01 stresses still ships in-box. Rewrite with if/else or label PS7-only, and read Retry-After robustly against the current Microsoft.Graph SDK exception shape.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "ht2-l05 'Export what you already have' and 'Idempotent import' blocks",
+        "reason": "Settings-catalog configurationPolicies are exported via top-level GET (ConvertTo-Json) without nested settingInstances, then the import PATCHes that incomplete body, making the round-trip lossy. Expand or separately GET /settings on export and include settingInstances on import; add a sentence distinguishing settings-catalog from the simpler deviceConfigurations case.",
+        "severity": "major",
+        "whoFlagged": "professor"
+      },
+      {
+        "section": "New lessons: Cross-platform & cloud endpoints (macOS/Jamf, iOS/iPadOS/Android MDM+MAM, ABM; Windows 365/Cloud PC and AVD basics)",
+        "reason": "Verified zero hits for Jamf/cross-platform across all lessons. Required by the Parsons Modern Endpoint and Fairfield SCCM/JAMF/Intune JDs; the course is Windows-only, excluding it from a large share of senior endpoint roles.",
+        "severity": "major",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "ht3-l05 hybrid identity - modernize",
+        "reason": "Centres on Entra Connect Sync and treats AD FS as a co-equal option; never mentions Entra Cloud Sync and does not flag Microsoft's steer away from AD FS toward PHS + Conditional Access. Add Cloud Sync as the modern default and reframe AD FS/Federation as legacy.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "ht3-l02 advanced Conditional Access - add token protection and device-bound passkeys",
+        "reason": "Omits token protection (session control) and device-bound passkeys despite the course's own phishing-to-token-theft capstone in ht3-l08. Add both and reference them in the ht3-l08 post-incident hardening step.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "ht4-l08 certification roadmap - add MD-102",
+        "reason": "Roadmap centers MS-102/SC-200/AZ-104/AZ-500/AI-102 but omits MD-102 (Endpoint Administrator), the single most-requested cert for this role. Insert MD-102 as the foundational/first endpoint cert.",
+        "severity": "minor",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "ht2-l07 #Requires example",
+        "reason": "Pins Microsoft.Graph to concrete ModuleVersion 2.0.0 (a real but old build) while teaching reproducibility/stability, modeling a pin to a stale/potentially vulnerable version. Replace with a placeholder and teach how to pin to the current validated build.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "ht2-l04 proactive remediations - prefer v1.0 Graph",
+        "reason": "Uses beta deviceManagement/deviceHealthScripts endpoint while deviceHealthScript is available in v1.0, at odds with the course's own stability emphasis (ht2-l07). Prefer v1.0 for production guidance or annotate why beta is required.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "ht4-l05 'Tools'/guardrails section - add LLM governance note",
+        "reason": "Heavy guardrail framing has a blind spot: no coverage of where the model runs, data-residency/PII exposure of sending endpoint telemetry to an LLM, or model-version pinning. Add a short governance note plus a one-line Security Copilot comparison.",
+        "severity": "minor",
+        "whoFlagged": "professor"
+      },
+      {
+        "section": "Add a Power BI / reporting lesson for device health, compliance, and support metrics (MTTR, compliance %, update success)",
+        "reason": "Reporting/dashboards via Power BI is a recurring JD responsibility ('proactive monitoring and metrics') and is not covered; rounds out the otherwise strong observability track.",
+        "severity": "minor",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "ht1-l04 user-mode hang analysis framing",
+        "reason": "Presents !analyze -v -hang as the primary command; -hang is a heuristic best framed as one technique alongside wait-chain/lock inspection (~*k, !locks). Lesson body already teaches the right method, so this is a minor refinement of framing.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      }
+    ],
+    "accuracyConcerns": [
+      "VERIFIED (both reviewers): ht2-l08:116 New-MgGroupMember -DirectoryObjectId $d.AzureAdDeviceId passes the device deviceId GUID where a directoryObject id is required - the group-add fails or adds the wrong object. Critical because it lives in the month's capstone deliverable run against live tenants and contradicts ht2-l03's own resolve-to-id rule.",
+      "VERIFIED (both reviewers): ht3-l08:119-120 capstone KQL aliases RemoteUrl=InitiatingProcessRemoteSessionDeviceName (a remote-session device-name, not a C2 URL) and joins on DeviceName instead of DeviceId. Should project DeviceNetworkEvents.RemoteUrl/RemoteIP and join on DeviceId per ht3-l03; contradicts the course's own schema guidance in its flagship security lab.",
+      "VERIFIED (both reviewers): ht2-l03:156 retry snippet uses the PS7-only ternary ($wait ? $wait : 10), a parse error in Windows PowerShell 5.1 which ht2-l01 stresses still ships in-box; also reused in ht2-l08. Retry-After extraction via $_.Exception.Response.Headers.RetryAfter.Delta is fragile across current Microsoft.Graph SDK exception shapes.",
+      "Professor-only: ht2-l05 settings-catalog export/import is lossy - the top-level GET returns policy metadata without nested settingInstances, so the idempotent import re-applies an incomplete body. Presented as parity with the simpler deviceConfigurations case, which it is not.",
+      "Both reviewers (minor): ht3-l08 mixes the beta AADSignInEventsBeta XDR table with DeviceProcessEvents while elsewhere referencing SigninLogs (Log Analytics); the lesson never states which query surface it runs on, and the beta table's schema can change.",
+      "Both reviewers (minor): ht1-l04 frames !analyze -v -hang as the primary user-mode hang command; it is a heuristic and reliable hang/deadlock analysis relies on wait-chain/lock inspection (~*k, !locks). Mitigated because the lesson body already teaches the wait-chain method.",
+      "Industry-only (minor): ht3-l07 asserts BitLocker XTS-AES default is flatly 128-bit; this is version/policy-dependent (Intune disk-encryption policy and some modern builds use/recommend XTS-AES-256). Professor judged the existing hedge acceptable, so this is a soft disagreement - qualify the default as policy-dependent."
+    ],
+    "currencyConcerns": [
+      "Both reviewers: ht3-l05 hybrid identity omits Entra Cloud Sync (Microsoft's modern lightweight sync) and presents AD FS as a co-equal option without flagging Microsoft's steer away from AD FS toward PHS + Conditional Access. Lead with PHS + Cloud Sync and mark AD FS as legacy.",
+      "Both reviewers: ht3-l02 advanced Conditional Access omits token protection (require token protection for sign-in sessions) and device-bound passkeys, despite the course's own phishing-to-token-theft capstone in ht3-l08. Add both as modern token-theft/AiTM mitigations.",
+      "Both reviewers: ht2-l04 (and device actions in ht2-l03) use beta Graph endpoints (deviceManagement/deviceHealthScripts) as primary examples though much is in v1.0, conflicting with the course's own stability emphasis (ht2-l07). Default to v1.0 for production-facing examples.",
+      "Both reviewers: ht2-l07 pins Microsoft.Graph to a hardcoded ModuleVersion 2.0.0 (a real but old build), modeling a pin to a stale/potentially vulnerable version while teaching reproducibility. Use a placeholder and teach how to select/refresh the current supported version.",
+      "Industry-only: ht4-l08 certification roadmap omits MD-102 (Endpoint Administrator), the most-cited cert for this role in the JDs reviewed, while leading with MS-102/SC-200/AZ-104/AZ-500. Insert MD-102 as the anchor/first endpoint cert.",
+      "Industry-only: the provisioning/lifecycle stack itself (Autopilot, co-management, Win32 packaging, Windows Update for Business, Windows 365/AVD, cross-platform MDM/MAM) is not merely thin but absent - verified zero hits across all 32 lessons - which is the dominant currency-and-coverage gap versus 2025-2026 hiring reality.",
+      "Professor-only: ht4-l05 AI-agent lesson omits LLM data-residency/PII exposure and model-version pinning despite heavy guardrail emphasis; add an LLM-governance note plus a Security Copilot comparison."
+    ]
+  }
+]

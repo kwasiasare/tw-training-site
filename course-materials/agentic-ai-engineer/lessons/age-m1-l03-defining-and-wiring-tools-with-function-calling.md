@@ -120,12 +120,43 @@ A tool is described with JSON Schema. Key fields:
 
 Keep a registry mapping tool names to the actual Python callables.
 
+Tool arguments here are **model-generated**, which means they are untrusted. A tempting shortcut is `eval(expression, {"__builtins__": {}}, {})`, but **restricting `__builtins__` is not a sandbox**: well-documented bypasses recover dangerous callables by walking Python's object graph (e.g. via `().__class__.__base__.__subclasses__()`), so a crafted expression can still read files or run commands. This is exactly the rule the Best Practices section states — *never `eval` untrusted input*. The safe approach for arithmetic is to parse the expression with `ast` and walk the tree, allowing **only** a whitelist of arithmetic nodes. For richer, code-running tools, use a real sandbox (E2B, Modal, or a locked-down container) instead of `eval`.
+
 ```python
+import ast
 import json
+import operator
+
+# Only these binary/unary operators are permitted.
+_BIN_OPS = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.FloorDiv: operator.floordiv,
+    ast.Mod: operator.mod,
+}
+_UNARY_OPS = {
+    ast.UAdd: operator.pos,
+    ast.USub: operator.neg,
+}
+
+def _safe_eval(node):
+    if isinstance(node, ast.Expression):
+        return _safe_eval(node.body)
+    if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
+        return node.value
+    if isinstance(node, ast.BinOp) and type(node.op) in _BIN_OPS:
+        # Pow (**) is intentionally excluded to avoid compute DoS (e.g. 9**9**9).
+        return _BIN_OPS[type(node.op)](_safe_eval(node.left), _safe_eval(node.right))
+    if isinstance(node, ast.UnaryOp) and type(node.op) in _UNARY_OPS:
+        return _UNARY_OPS[type(node.op)](_safe_eval(node.operand))
+    raise ValueError(f"Unsupported expression element: {ast.dump(node)}")
 
 def calculator(expression: str) -> str:
-    # Use a safe evaluator in production!
-    return str(eval(expression, {"__builtins__": {}}, {}))
+    # Safe arithmetic evaluation: parse + whitelist, never eval().
+    tree = ast.parse(expression, mode="eval")
+    return str(_safe_eval(tree))
 
 def web_search(query: str) -> str:
     # Call your real search API here
@@ -133,6 +164,8 @@ def web_search(query: str) -> str:
 
 TOOLS = {"calculator": calculator, "web_search": web_search}
 ```
+
+The parser accepts numbers, `+ - * / // %`, unary `+/-`, and parentheses, and raises a clear `ValueError` on anything else (function calls, attribute access, names, or `**`). Because the grammar contains no way to reach an object or builtin, there is nothing to bypass.
 
 ## The Agent Loop in Code
 
@@ -175,7 +208,7 @@ Note that you must append both the assistant's tool-call message **and** a match
 - **Handle errors gracefully.** Return a clear error string as the tool result so the model can recover or retry rather than crashing.
 - **Keep tools small and focused.** One job per tool yields better selection accuracy.
 - **Limit the number of tools** per request (typically under ~20) to avoid confusing the model.
-- **Never eval untrusted input** — sandbox calculators and code tools.
+- **Never `eval` untrusted input** — tool arguments are model-generated and untrusted. Restricting `__builtins__` does *not* make `eval` safe (the object graph leaks dangerous callables). Parse arithmetic with an `ast` whitelist; for arbitrary code use a real sandbox (E2B, Modal, locked-down container).
 - **Set a max iteration count** on the loop to prevent infinite tool-calling loops.
 
 ## Common Pitfalls

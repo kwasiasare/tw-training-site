@@ -115,6 +115,8 @@ Phones and tablets run their own systems. **Android** is **open source**, made b
 
 There is no single "best" OS — you choose based on the job: Windows for business apps, macOS for Apple-centric creative work, Linux for servers and developers. Just as important is the **vendor lifecycle**: every OS reaches **end of support** (end of life), after which it stops receiving security updates. A technician must track these dates, because an unsupported OS is a security risk that needs upgrading or replacing.
 
+> **A date you should know:** **Windows 10 reached end of support on 14 October 2025.** Microsoft offers paid **Extended Security Updates (ESU)** as a temporary bridge, but those machines should be migrated. **Windows 11 is the current supported client OS.** Lifecycle dates move, so always verify the current dates on Microsoft Learn before you act on them.
+
 ## Your task
 
 On the computer in front of you, open a terminal and find out exactly which OS and version you are running. On Windows, open **PowerShell** and run `Get-ComputerInfo | Select-Object OsName, OsVersion`, then also try `winver`. On macOS or Linux, open the terminal and run `uname -a`. Write down the OS name and version, then look up online whether that version is still in support — and note its end-of-life date if you can find it.

@@ -104,7 +104,7 @@ import asyncio
 async def worker(sem, q):
     async with sem:                 # cap concurrency
         return await aclient.messages.create(
-            model="claude-haiku-4-5-20251001", max_tokens=256,
+            model="claude-haiku-4-5", max_tokens=256,
             messages=[{"role": "user", "content": q}])
 
 async def run(questions, limit=8):
@@ -120,7 +120,7 @@ Some workloads aren't interactive at all: re-running your eval suite, classifyin
 
 ## Pick the right model
 
-Finally, model size *is* a latency lever. A smaller model like Haiku (`claude-haiku-4-5-20251001`) returns faster than a larger one. For a latency-sensitive feature, choose the smallest model that still clears your quality bar — and lean on the routing idea from last lesson to keep heavy models for the requests that truly need them.
+Finally, model size *is* a latency lever. A smaller model like Haiku (`claude-haiku-4-5`) returns faster than a larger one. For a latency-sensitive feature, choose the smallest model that still clears your quality bar — and lean on the routing idea from last lesson to keep heavy models for the requests that truly need them.
 
 ## Your task
 

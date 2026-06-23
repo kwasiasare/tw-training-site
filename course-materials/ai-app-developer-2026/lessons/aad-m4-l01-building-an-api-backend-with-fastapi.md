@@ -122,13 +122,15 @@ If a client sends an empty prompt or a temperature of 5, FastAPI returns a `422`
 
 ## A Basic Chat Endpoint
 
+Because the routes are `async def`, use the **async** OpenAI client and `await` the call — calling the synchronous client here would block the event loop and defeat the point of async.
+
 ```python
-from openai import OpenAI
-client = OpenAI()
+from openai import AsyncOpenAI
+client = AsyncOpenAI()
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
-    completion = client.chat.completions.create(
+    completion = await client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": req.prompt}],
         temperature=req.temperature,
@@ -147,13 +149,13 @@ from fastapi.responses import StreamingResponse
 
 @app.post("/chat/stream")
 async def chat_stream(req: ChatRequest):
-    def event_generator():
-        stream = client.chat.completions.create(
+    async def event_generator():
+        stream = await client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": req.prompt}],
             stream=True,
         )
-        for chunk in stream:
+        async for chunk in stream:
             delta = chunk.choices[0].delta.content
             if delta:
                 yield f"data: {delta}\n\n"
@@ -165,7 +167,7 @@ Key points: set `media_type="text/event-stream"`, prefix lines with `data: `, an
 
 ## Error Handling
 
-Wrap provider calls and translate failures into meaningful HTTP responses. Avoid leaking stack traces or API keys.
+Wrap provider calls and translate failures into meaningful HTTP responses. Avoid leaking stack traces or API keys. Apply this `try/except` pattern *inside* the `/chat` route defined above — don't declare a second `/chat` route, or it would silently override the first.
 
 ```python
 from fastapi import HTTPException
@@ -176,9 +178,10 @@ from fastapi.requests import Request
 async def unhandled(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"error": "internal_error", "detail": "Something went wrong."})
 
-@app.post("/chat")
+# Inside the existing chat() route, guard the provider call:
 async def chat(req: ChatRequest):
     try:
+        completion = await client.chat.completions.create(...)
         ...
     except TimeoutError:
         raise HTTPException(status_code=504, detail="Upstream model timed out")
