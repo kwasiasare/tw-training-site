@@ -1,0 +1,186 @@
+{
+  "slug": "dsc-m5-l04-evaluating-llms-and-when-not-to-use-one",
+  "title": "Evaluating LLMs and When NOT to Use One",
+  "month": 5,
+  "monthTitle": "Generative AI and LLM Foundations for Data Scientists",
+  "lesson": 4,
+  "video": "dsc-m5-l04-evaluating-llms-and-when-not-to-use-one.mp4",
+  "summary": "Ship LLM features the way you ship any model: with a labeled eval set and real metrics, not vibes. This capstone lesson teaches you to build an evaluation harness with scikit-learn, recognize and mitigate hallucination, and apply a clear decision framework for when classical ML beats an LLM. You finish by building both an LLM classifier and a classical baseline, evaluating them on the same holdout, and recommending which to ship.",
+  "objectives": [
+    "Build an evaluation harness for an LLM feature using a labeled holdout set",
+    "Score LLM outputs with scikit-learn metrics (accuracy, precision, recall, F1) reused from Module 3",
+    "Explain why hallucination happens and apply grounding, citations, and abstention to reduce it",
+    "Apply a decision framework that chooses classical ML over an LLM for structured tabular prediction",
+    "Compare cost, latency, determinism, and privacy tradeoffs between LLM and classical approaches",
+    "Deliver a mini-project comparing an LLM classifier and a TF-IDF baseline with a written recommendation"
+  ],
+  "quiz": [
+    {
+      "q": "Why must you build a labeled eval set before shipping an LLM-powered classification feature?",
+      "options": [
+        "LLMs cannot be evaluated with scikit-learn",
+        "Eval sets make the LLM run faster at inference time",
+        "Without ground-truth labels you cannot measure accuracy, precision, recall, or F1 — only guess",
+        "The Anthropic API requires an eval set to return a response"
+      ],
+      "answer": 2,
+      "why": "Evaluation is non-negotiable. A labeled holdout gives you ground truth to compare predictions against, so you can compute real metrics instead of trusting that the output 'looks right'. You would never ship a classical model without test metrics; an LLM feature is no different."
+    },
+    {
+      "q": "A model confidently states a plausible-sounding but factually false citation. What is this called, and which technique most directly reduces it?",
+      "options": [
+        "Hallucination; ground the model in retrieved source text (RAG) and ask it to cite or say 'I don't know'",
+        "Overfitting; add more training epochs",
+        "Data leakage; split the data before scaling",
+        "Class imbalance; use class_weight='balanced'"
+      ],
+      "answer": 0,
+      "why": "Hallucination is fluent, confident output unsupported by fact. Grounding the model on retrieved documents (RAG), instructing it to cite sources, and explicitly permitting abstention ('say you don't know') are the most direct mitigations because they constrain generation to available evidence."
+    },
+    {
+      "q": "You need to predict a numeric customer lifetime value from 40 tabular features, with 200,000 labeled rows. Which tool is the better default and why?",
+      "options": [
+        "An LLM, because it is the most advanced technology available",
+        "Neither — this problem cannot be modeled",
+        "An LLM, because tabular data is unstructured text",
+        "Classical ML (e.g. gradient boosting / regression), because it is cheaper, faster, deterministic, and interpretable on structured data with ample labels"
+      ],
+      "answer": 3,
+      "why": "Structured tabular prediction with plenty of labels is the textbook case for classical ML. It is cheaper per prediction, lower latency, deterministic, interpretable, and typically more accurate than prompting an LLM. Reaching for an LLM here adds cost and non-determinism for no benefit."
+    },
+    {
+      "q": "When using an LLM as a judge to grade other LLM outputs, what is the main caution?",
+      "options": [
+        "The judge model is always more accurate than human labels",
+        "LLM-as-judge can carry systematic bias and inconsistency, so validate it against a sample of human labels before trusting it",
+        "LLM-as-judge cannot produce a numeric score",
+        "You must use the same model as both the judge and the model under test"
+      ],
+      "answer": 1,
+      "why": "An LLM judge is convenient for scoring open-ended outputs, but it can be biased (e.g. favoring verbose or same-family answers) and inconsistent. Always calibrate it against a human-labeled sample before relying on it, and prefer exact metrics where you have ground-truth labels."
+    },
+    {
+      "q": "Which set of tradeoffs correctly describes an LLM API call relative to a local logistic-regression prediction?",
+      "options": [
+        "Cheaper, lower latency, fully deterministic, keeps data local",
+        "Free, instant, deterministic, and private by default",
+        "More expensive per call, higher latency, non-deterministic, and may send sensitive data to a third party",
+        "Identical on every dimension"
+      ],
+      "answer": 2,
+      "why": "An LLM call typically costs money per token, adds network and inference latency, is non-deterministic across runs, and may transmit data off-premises. A local classical model is essentially free per call, fast, deterministic, and keeps data in your environment. These tradeoffs drive the build-vs-LLM decision."
+    },
+    {
+      "q": "In two or three sentences, describe a real task at your organization (or a realistic one) where an LLM is the RIGHT tool, and explain which specific properties of the task justify it over classical ML.",
+      "answer": "A strong answer names an unstructured-text or generation task — e.g. summarizing free-form support tickets, drafting replies, extracting structured fields from messy contracts, or few-shot classification with very few labels — and ties the choice to properties like unstructured input, low/no labeled data, need for flexible reasoning or natural-language output, or rapid prototyping without a training pipeline.",
+      "why": "The point is to articulate the decision framework from the other side: LLMs earn their cost on unstructured text, generation, low-label or few-shot settings, and flexible reasoning, where building a classical model would be slow or impossible. Tying the justification to concrete task properties shows real understanding rather than defaulting to the trendiest tool."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Anthropic: Define your success criteria and create strong empirical evaluations",
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/define-success"
+    },
+    {
+      "label": "Anthropic: Reduce hallucinations",
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations"
+    },
+    {
+      "label": "scikit-learn: Metrics and scoring (classification metrics)",
+      "url": "https://scikit-learn.org/stable/modules/model_evaluation.html"
+    },
+    {
+      "label": "EU AI Act: high-level summary (Future of Life Institute)",
+      "url": "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai"
+    }
+  ],
+  "body_markdown": "## Why Evaluation Is Non-Negotiable\n\nYou would never ship a churn model without a confusion matrix and a held-out test set. An LLM feature deserves the same discipline. The danger is that LLM output is fluent and *looks* correct, which makes 'it seems to work' feel like evidence. It isn't: a demo that impresses on five hand-picked prompts can fail on 30% of real traffic, and only an evaluation will tell you.\n\nThe mental shift: treat the prompt + model as **a classifier (or generator) you must measure**. Define what 'correct' means, collect labeled examples, run the system, and score it — the same workflow as Module 3, only the model changed.\n\n## Building an Eval Harness\n\nStart with a small **labeled eval set**: 50-500 examples with known answers (`y_true`). Run the LLM, parse each prediction defensively, and score with metrics you already know.\n\n```python\nfrom anthropic import Anthropic\nfrom sklearn.metrics import accuracy_score, f1_score, classification_report\n\nclient = Anthropic()\nLABELS = [\"billing\", \"technical\", \"account\", \"other\"]\n\ndef classify(text):\n    msg = client.messages.create(\n        model=\"claude-haiku-4-5\",  # cheap model for high-volume eval runs\n        max_tokens=10,\n        system=f\"Classify the ticket into one of: {LABELS}. Reply with only the label.\",\n        messages=[{\"role\": \"user\", \"content\": text}],\n    )\n    out = msg.content[0].text.strip().lower()\n    return out if out in LABELS else \"other\"  # never eval() model output\n\ny_pred = [classify(t) for t in X_eval]\nprint(accuracy_score(y_eval, y_pred))\nprint(f1_score(y_eval, y_pred, average='macro'))\nprint(classification_report(y_eval, y_pred))\n```\n\nUse `claude-haiku-4-5` for cheap eval loops; reserve `claude-opus-4-8` for genuinely hard tasks. **Never `eval()` raw model output** — parse against a known label set.\n\nFor open-ended outputs (summaries, drafts) with no single right answer, an **LLM-as-judge** can score quality. But judges carry systematic bias (favoring verbose or same-family answers) and can be inconsistent — calibrate against a human-labeled sample before trusting them.\n\n## Hallucination\n\nA **hallucination** is fluent, confident output unsupported by fact — an invented citation, a fabricated API. It happens because an LLM predicts likely-sounding tokens with no built-in sense of what it doesn't know. Mitigations, by impact:\n\n- **Grounding / RAG** (from l03): retrieve real source text and answer *only* from it.\n- **Ask for citations**: require the model to point to the supporting passage.\n- **Permit abstention**: allow 'I don't know' so the model isn't forced to guess.\n- **Verify programmatically**: check claimed URLs, numbers, and IDs against a source of truth.\n\n## The Decision Framework: LLM vs Classical ML\n\nThe most important point in the module: **for structured tabular prediction with plenty of labels, an LLM is usually the wrong tool.**\n\n| Signal | Classical ML | LLM |\n|---|---|---|\n| Input shape | Structured / tabular | Unstructured text |\n| Labeled data | Plenty | Little / none (few-shot) |\n| Task | Fixed prediction | Generation, reasoning |\n| Cost per call | Near zero | Per-token \\$ |\n| Latency | Milliseconds | Hundreds of ms+ |\n| Determinism | Deterministic | Non-deterministic |\n| Interpretability | High (coefficients) | Low |\n\nA gradient-boosted tree on 40 features and 200k rows is cheaper, faster, more accurate, and explainable. An LLM shines only where a classical model is impractical: messy free text, generation, and low-label settings.\n\n## Cost, Latency, Determinism, Privacy\n\nFour tradeoffs to make explicit in any design doc:\n\n- **Cost**: LLM calls cost money per token; a local model is near-free per prediction.\n- **Latency**: network + inference adds hundreds of ms; classical inference is sub-millisecond.\n- **Determinism**: the same prompt can yield different answers; a fitted model is reproducible.\n- **Privacy**: an API call may send data off-premises — check regulations (e.g. the EU AI Act) before routing personal data to a third party.\n\n## Mini-Project Brief: LLM vs Baseline Showdown\n\n**Goal.** Take a text-classification dataset (e.g. the 20 Newsgroups subset, or your own labeled tickets/reviews). Build **two** classifiers, evaluate both on the *same* labeled holdout with the *same* metrics, and recommend which to ship.\n\n```python\nfrom sklearn.feature_extraction.text import TfidfVectorizer\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.pipeline import make_pipeline\n\n# Classical baseline (connects back to earlier modules)\nbaseline = make_pipeline(TfidfVectorizer(), LogisticRegression(max_iter=1000))\nbaseline.fit(X_train, y_train)\nbase_pred = baseline.predict(X_test)\n\nllm_pred = [classify(t) for t in X_test]  # reuse the harness above\n```\n\n**Deliverables:**\n\n1. A prompt-based LLM classifier and a TF-IDF + logistic-regression baseline.\n2. Both evaluated on one holdout with `accuracy_score`, `f1_score`, and `classification_report`.\n3. A results table comparing metrics **and** cost/latency for each approach.\n4. A short written recommendation: which would you ship, and why — citing the decision framework and the measured tradeoffs.\n\nThe honest answer is often 'the baseline,' and being able to defend that is the skill this module teaches.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Evaluating LLMs and When NOT to Use One",
+      "sub": "Eval harnesses, hallucination, and the LLM-vs-classical-ML decision",
+      "narration": "Welcome to the capstone of the Generative AI module. Today we close the loop: how to evaluate an LLM feature with the same rigor you apply to any model, how to handle hallucination, and — most importantly — how to decide when an LLM is the wrong tool. We finish with a mini-project that pits an LLM classifier against a simple classical baseline."
+    },
+    {
+      "type": "content",
+      "title": "Evaluation Is Non-Negotiable",
+      "bullets": [
+        "Fluent output looks correct even when it is wrong",
+        "A five-prompt demo is not evidence of quality",
+        "Treat the prompt + model as a classifier you must measure",
+        "Same discipline as Module 3: labels, holdout, metrics"
+      ],
+      "narration": "The first principle is that you would never ship a churn model without test metrics, and an LLM feature is no different. The trap is that LLM output is fluent, so it looks right even when it is wrong. A demo that wows on five hand-picked prompts can fail on a third of real traffic. The fix is to treat your prompt and model as a classifier or generator you must measure, using the exact same workflow you learned in Module 3."
+    },
+    {
+      "type": "content",
+      "title": "Build an Eval Harness",
+      "bullets": [
+        "Collect 50-500 labeled examples (y_true)",
+        "Run the LLM, parse output defensively — never eval() it",
+        "Score with sklearn: accuracy, F1, classification_report",
+        "Use claude-haiku-4-5 for cheap eval runs"
+      ],
+      "code": "y_pred = [classify(t) for t in X_eval]\nprint(accuracy_score(y_eval, y_pred))\nprint(f1_score(y_eval, y_pred, average='macro'))\nprint(classification_report(y_eval, y_pred))",
+      "narration": "Building a harness is straightforward. Collect a labeled eval set, run the LLM on each input, parse the prediction against a known set of labels, and score it with the scikit-learn metrics you already know. Reach for claude-haiku-4-5 on high-volume eval loops to keep costs down, and save claude-opus-4-8 for genuinely hard tasks. Critically, never call eval or exec on raw model output — always parse defensively."
+    },
+    {
+      "type": "content",
+      "title": "LLM-as-Judge: Use With Caution",
+      "bullets": [
+        "Useful for open-ended outputs with no single right answer",
+        "Judges carry systematic bias (verbosity, same-family preference)",
+        "Judges can be inconsistent run to run",
+        "Calibrate against human labels before trusting it"
+      ],
+      "narration": "When there is no single correct answer — summaries, drafts — you can use an LLM as a judge to score quality. But be careful. Judge models carry systematic bias, often favoring longer answers or answers from their own model family, and they can be inconsistent between runs. Before you trust a judge's scores, calibrate it against a sample of human labels, and prefer exact metrics wherever you actually have ground truth."
+    },
+    {
+      "type": "content",
+      "title": "Hallucination and How to Reduce It",
+      "bullets": [
+        "Fluent, confident output unsupported by fact",
+        "Happens because the model predicts likely tokens, not truth",
+        "Ground with RAG; ask for citations; permit 'I don't know'",
+        "Verify claimed facts (URLs, numbers) programmatically"
+      ],
+      "narration": "A hallucination is confident output that simply isn't true — an invented citation or a fabricated API. It happens because the model predicts plausible-sounding tokens and has no built-in sense of what it doesn't know. The most effective mitigations are grounding the model in retrieved source text, which we covered with RAG in lesson three, requiring it to cite supporting passages, explicitly allowing it to abstain, and verifying any checkable facts in code."
+    },
+    {
+      "type": "content",
+      "title": "The Decision Framework",
+      "bullets": [
+        "Structured + plenty of labels -> classical ML",
+        "Unstructured text, low-label, generation -> LLM",
+        "Classical: cheaper, faster, deterministic, interpretable",
+        "Key message: for tabular prediction, an LLM is usually wrong"
+      ],
+      "code": "# Tabular, 200k rows, 40 features -> NOT an LLM\nmodel = GradientBoostingClassifier().fit(X_train, y_train)",
+      "narration": "This is the heart of the lesson. When your input is structured and you have plenty of labels, use classical machine learning — it is cheaper, faster, deterministic, and interpretable. Reach for an LLM when the input is unstructured text, when you have few or no labels, or when the task is generation or flexible reasoning. The message to internalize is that for structured tabular prediction, the LLM is usually the wrong tool, no matter how advanced it sounds."
+    },
+    {
+      "type": "content",
+      "title": "Cost, Latency, Determinism, Privacy",
+      "bullets": [
+        "Cost: per-token dollars vs near-zero local inference",
+        "Latency: hundreds of ms vs sub-millisecond",
+        "Determinism: variable output vs reproducible model",
+        "Privacy: data may leave premises — check the EU AI Act"
+      ],
+      "narration": "Four tradeoffs belong in every design doc. LLM calls cost money per token while a local model is nearly free per prediction. They add network and inference latency where classical inference is sub-millisecond. They are non-deterministic where a fitted model is reproducible. And they may send sensitive data off-premises, so check your data-handling rules and regulations like the EU AI Act before routing personal data to a third party."
+    },
+    {
+      "type": "content",
+      "title": "Mini-Project: LLM vs Baseline Showdown",
+      "bullets": [
+        "Build an LLM classifier AND a TF-IDF + logistic-regression baseline",
+        "Evaluate both on the same holdout with the same metrics",
+        "Compare metrics plus cost and latency in a results table",
+        "Write a recommendation — often the baseline wins"
+      ],
+      "code": "baseline = make_pipeline(TfidfVectorizer(),\n    LogisticRegression(max_iter=1000))\nbaseline.fit(X_train, y_train)\nbase_pred = baseline.predict(X_test)",
+      "narration": "For the capstone, take a text-classification dataset and build two systems: a prompt-based LLM classifier and a TF-IDF plus logistic-regression baseline that connects right back to earlier modules. Evaluate both on the same labeled holdout with the same metrics, compare not just accuracy but cost and latency, and write a short recommendation on which to ship. Very often the honest answer is the baseline — and being able to defend that decision is exactly the skill this module is teaching."
+    }
+  ]
+}

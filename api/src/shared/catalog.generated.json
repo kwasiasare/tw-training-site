@@ -74,7 +74,11 @@
         "machine learning",
         "data visualization",
         "experiment design",
-        "storytelling"
+        "storytelling",
+        "llm apis",
+        "prompt engineering",
+        "rag",
+        "embeddings"
       ]
     }
   },

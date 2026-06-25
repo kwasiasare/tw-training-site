@@ -3,8 +3,8 @@
   "title": "Data Scientist Career Accelerator: From Python to Production Insights",
   "description": "A project-based course that takes you from programming and statistics fundamentals to building, evaluating, and communicating machine learning models. You'll work with real datasets to build a portfolio of analyses, dashboards, and end-to-end ML projects that prove you're ready for a data scientist role.",
   "audience": "Aspiring data scientists, analysts, or developers with basic computer literacy who want to transition into a data science role through hands-on, portfolio-building work.",
-  "modules": 4,
-  "lessons": 16,
+  "modules": 5,
+  "lessons": 20,
   "layout": {
     "decks": "decks",
     "lessons": "lessons",
@@ -15,7 +15,8 @@
     "1": "Python and Data Wrangling Foundations",
     "2": "Statistics and SQL for Analysis",
     "3": "Machine Learning in Practice",
-    "4": "Experimentation, Visualization, and Capstone"
+    "4": "Experimentation, Visualization, and Capstone",
+    "5": "Generative AI and LLM Foundations for Data Scientists"
   },
   "generated": true,
   "targetRole": "Data Scientist",
@@ -27,6 +28,10 @@
     "machine learning",
     "data visualization",
     "experiment design",
-    "storytelling"
+    "storytelling",
+    "llm apis",
+    "prompt engineering",
+    "rag",
+    "embeddings"
   ]
 }
