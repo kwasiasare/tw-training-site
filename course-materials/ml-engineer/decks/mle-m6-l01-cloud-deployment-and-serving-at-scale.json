@@ -1,0 +1,187 @@
+{
+  "slug": "mle-m6-l01-cloud-deployment-and-serving-at-scale",
+  "title": "Cloud Deployment and Serving at Scale",
+  "month": 6,
+  "monthTitle": "Cloud Deployment, Scaling, and Monitoring",
+  "lesson": 1,
+  "video": "mle-m6-l01-cloud-deployment-and-serving-at-scale.mp4",
+  "summary": "Move beyond running a container on your laptop and learn how to deploy a model to the cloud so it stays available, scales automatically, and rolls out safely. We cover managed ML endpoints, Kubernetes fundamentals for multi-replica serving, purpose-built serving runtimes like KServe and Triton, and how to choose between managed and self-managed approaches.",
+  "objectives": [
+    "Explain why a single local container cannot meet production availability, autoscaling, and rollout needs",
+    "Push a container image to a registry and deploy it to a managed ML endpoint (SageMaker, Vertex AI, or Azure ML)",
+    "Describe the core Kubernetes objects for serving: pods, Deployments, Services, and horizontal autoscaling",
+    "Compare purpose-built serving runtimes (KServe, BentoML, Ray Serve, Triton) and what they add over a hand-rolled API",
+    "Connect a model registry to deployment by pulling and serving an approved model version",
+    "Choose between a managed endpoint and self-managed Kubernetes based on cost, control, and operational burden"
+  ],
+  "quiz": [
+    {
+      "q": "Why is running `docker run` on your laptop inadequate for a production model service?",
+      "options": [
+        "Docker images are always too large to transfer over the network",
+        "Laptops are physically unable to execute Python code",
+        "A single machine offers no high availability, no autoscaling, and only manual, risky rollouts",
+        "Containers cannot expose network ports outside the host"
+      ],
+      "answer": 2,
+      "why": "One laptop is a single point of failure with fixed capacity. Production needs redundancy across machines, automatic scaling under load, and controlled rollouts — none of which a lone `docker run` provides."
+    },
+    {
+      "q": "What is typically the first step when deploying a container image to a managed cloud ML service?",
+      "options": [
+        "Push the built image to a container registry the service can pull from",
+        "Email the image file to the cloud provider's support team",
+        "Rewrite the model in the provider's proprietary serving language",
+        "Delete Docker and upload the raw Python source files instead"
+      ],
+      "answer": 0,
+      "why": "Managed services deploy from an image stored in a registry such as Amazon ECR, Google Artifact Registry, or Azure Container Registry. You push once, then point the endpoint at the image tag."
+    },
+    {
+      "q": "In Kubernetes, which object manages a desired number of identical pod replicas and recreates them if they fail?",
+      "options": [
+        "A ConfigMap",
+        "A Service",
+        "An Ingress",
+        "A Deployment"
+      ],
+      "answer": 3,
+      "why": "A Deployment declares the desired replica count and pod template; its controller continuously reconciles reality to that desired state, replacing crashed pods and enabling rolling updates."
+    },
+    {
+      "q": "What do purpose-built serving runtimes like KServe, BentoML, Ray Serve, and Triton add over a hand-rolled FastAPI app?",
+      "options": [
+        "Nothing useful; they are strictly slower than FastAPI in every case",
+        "Built-in capabilities such as autoscaling, request batching, multi-model serving, and GPU optimization",
+        "They remove the need to containerize the model at all",
+        "They only work for image-classification models and nothing else"
+      ],
+      "answer": 1,
+      "why": "These runtimes bake in concerns you would otherwise build by hand: dynamic batching, scale-to-zero/autoscaling, hosting many models per server, and efficient GPU utilization."
+    },
+    {
+      "q": "What is NVIDIA Triton Inference Server primarily optimized for?",
+      "options": [
+        "Packaging Python applications into pip wheels for distribution",
+        "Provisioning and managing the underlying Kubernetes cluster nodes",
+        "High-throughput GPU inference with dynamic batching across multiple frameworks",
+        "Training large models from scratch on distributed clusters"
+      ],
+      "answer": 2,
+      "why": "Triton is an inference server focused on maximizing GPU throughput — it supports dynamic batching and concurrent model execution across backends like TensorRT, PyTorch, and ONNX. It does not train models."
+    },
+    {
+      "q": "When would you choose a fully managed endpoint (SageMaker, Vertex AI, Azure ML) over self-managing Kubernetes yourself?",
+      "answer": "When you want lower operational burden — the provider handles infrastructure, scaling, patching, and uptime — and you are willing to trade some control and flexibility (and often higher per-hour cost) for speed and simplicity.",
+      "why": "Managed endpoints minimize ops work and are ideal for small teams or when time-to-production matters; self-managed Kubernetes offers more control and potentially lower cost at scale but requires real platform expertise."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Amazon SageMaker: Deploy Models for Inference",
+      "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/deploy-model.html"
+    },
+    {
+      "label": "Kubernetes Docs: Deployments",
+      "url": "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/"
+    },
+    {
+      "label": "KServe: Kubernetes-Native Model Serving",
+      "url": "https://kserve.github.io/website/"
+    },
+    {
+      "label": "Google Cloud Run: Deploying Container Images",
+      "url": "https://cloud.google.com/run/docs/deploying"
+    }
+  ],
+  "body_markdown": "## From `docker run` on Your Laptop to the Cloud\n\nEarlier you containerized a model. Running `docker run -p 8000:8000 my-model` proves the image works — but it is not production. A single container on one machine has three fatal gaps:\n\n- **No high availability:** if the process crashes or the machine reboots, the service is simply down.\n- **No autoscaling:** fixed capacity means spikes cause timeouts while idle periods waste money.\n- **No safe rollout:** shipping a new version means stopping the old one, with no gradual rollout or rollback.\n\nThe cloud solves these by running **many replicas across many machines**, behind a load balancer, managed by a control plane that restarts failures and scales on demand.\n\n## Step 1: Push to a Registry, Run on a Managed Service\n\nCloud services deploy from an **image in a container registry**, not from your local Docker daemon. The flow is: build, tag, push, then point a managed endpoint at the image.\n\n```bash\n# Tag and push to a registry (Amazon ECR shown; GCP Artifact Registry / Azure ACR are analogous)\ndocker build -t my-model:1.0 .\ndocker tag my-model:1.0 123456789.dkr.ecr.us-east-1.amazonaws.com/my-model:1.0\ndocker push 123456789.dkr.ecr.us-east-1.amazonaws.com/my-model:1.0\n```\n\nManaged ML endpoints then take that image and run it for you with autoscaling, health checks, and HTTPS built in. The big-three options:\n\n- **AWS SageMaker** — real-time and serverless inference endpoints.\n- **Google Cloud Vertex AI** — online prediction endpoints from a custom container.\n- **Azure Machine Learning** — managed online endpoints.\n\nThey differ in API, but the mental model is identical: *registry image in, scalable HTTPS endpoint out.*\n\n## Kubernetes Basics for ML Serving\n\nWhen you need more control than a managed endpoint, **Kubernetes (K8s)** is the standard. Four objects matter for serving:\n\n- **Pod** — the smallest unit; one or more containers sharing a network namespace.\n- **Deployment** — declares *how many* identical replicas you want and keeps them running, enabling rolling updates and rollback.\n- **Service** — a stable DNS name that load-balances traffic across the pods.\n- **HorizontalPodAutoscaler (HPA)** — adds or removes replicas based on CPU, memory, or custom metrics.\n\nA minimal Deployment plus Service for our model:\n\n```yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: my-model\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: my-model\n  template:\n    metadata:\n      labels:\n        app: my-model\n    spec:\n      containers:\n        - name: server\n          image: 123456789.dkr.ecr.us-east-1.amazonaws.com/my-model:1.0\n          ports:\n            - containerPort: 8000\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: my-model\nspec:\n  selector:\n    app: my-model\n  ports:\n    - port: 80\n      targetPort: 8000\n```\n\nWith `replicas: 3` you immediately get redundancy and load spreading — the core reason to use K8s for multi-replica serving.\n\n## Horizontal Autoscaling\n\nFixed replicas still waste money or fall over under load. An HPA scales the Deployment automatically:\n\n```yaml\napiVersion: autoscaling/v2\nkind: HorizontalPodAutoscaler\nmetadata:\n  name: my-model\nspec:\n  scaleTargetRef:\n    apiVersion: apps/v1\n    kind: Deployment\n    name: my-model\n  minReplicas: 2\n  maxReplicas: 10\n  metrics:\n    - type: Resource\n      resource:\n        name: cpu\n        target:\n          type: Utilization\n          averageUtilization: 70\n```\n\nNow Kubernetes keeps average CPU near 70%, scaling between 2 and 10 pods as traffic changes.\n\n## Purpose-Built Serving Runtimes\n\nHand-rolling FastAPI is fine for one model, but production serving has recurring needs. **Purpose-built runtimes** provide them out of the box:\n\n- **KServe** — Kubernetes-native model serving with autoscaling (including scale-to-zero), canary rollout, and a standard inference protocol.\n- **BentoML** — focuses on packaging and serving: bundle model, code, and dependencies into a deployable artifact with adaptive batching.\n- **Ray Serve** — scalable Python-first serving; compose multiple models and scale across a Ray cluster.\n- **NVIDIA Triton** — high-throughput GPU inference with **dynamic batching** and concurrent models across TensorRT, PyTorch, and ONNX backends.\n\nThe common wins over a bare API are **continuous/dynamic batching** (grouping concurrent requests to use the GPU efficiently), **multi-model hosting**, and **GPU-aware autoscaling** — work you would otherwise build yourself.\n\n## From Model Registry to Deployment\n\nA **model registry** (MLflow Registry, SageMaker Model Registry, Vertex Model Registry) is the handoff point between training and serving. Training produces and registers versions; deployment pulls the **approved** version and serves it.\n\n```python\nimport mlflow\n\n# Pull the version currently promoted to Production, not a hardcoded path\nmodel = mlflow.pyfunc.load_model(\"models:/fraud-detector@champion\")\nprediction = model.predict(features)\n```\n\nThis decouples *what* is deployed from *how*: the serving config references a version alias, so promoting a new model is a registry action and the same image serves whichever version the registry points to.\n\n## Choosing an Approach\n\nThere is no single right answer — it is a trade-off:\n\n- **Managed endpoint (SageMaker / Vertex AI / Azure ML):** lowest operational burden; the provider handles infra, scaling, and patching. Best for small teams and fast time-to-production. Trade-offs: less control and often higher per-hour cost.\n- **Self-managed Kubernetes (+ KServe/Triton):** maximum control and flexibility, portable across clouds, potentially cheaper at large scale. Trade-off: you own the platform and need real K8s expertise.\n\nStart managed when you can; reach for Kubernetes when scale, cost, custom hardware, or portability demands it.\n",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Cloud Deployment and Serving at Scale",
+      "sub": "From a laptop container to a resilient cloud endpoint",
+      "narration": "Welcome. You can already containerize a model and run it locally. In this lesson we take that container to the cloud so it stays available, scales automatically, and rolls out safely. We'll cover managed endpoints, Kubernetes, and purpose-built serving runtimes."
+    },
+    {
+      "type": "content",
+      "title": "Why Local Doesn't Scale",
+      "bullets": [
+        "One machine is a single point of failure",
+        "Fixed capacity: spikes time out, idle wastes money",
+        "No safe, gradual rollout or instant rollback",
+        "Cloud runs many replicas behind a load balancer"
+      ],
+      "narration": "Running docker run on your laptop proves the image works, but it isn't production. A single container has no high availability, no autoscaling, and only manual, risky rollouts. The cloud fixes this by running many replicas across many machines, fronted by a load balancer and managed by a control plane that restarts failures and scales on demand."
+    },
+    {
+      "type": "content",
+      "title": "Registry to Managed Endpoint",
+      "bullets": [
+        "Build, tag, and push the image to a registry",
+        "Managed endpoint pulls the image and runs it",
+        "SageMaker, Vertex AI, or Azure ML",
+        "Registry image in, scalable HTTPS endpoint out"
+      ],
+      "code": "docker build -t my-model:1.0 .\ndocker tag my-model:1.0 \\\n  123.dkr.ecr.us-east-1.amazonaws.com/my-model:1.0\ndocker push \\\n  123.dkr.ecr.us-east-1.amazonaws.com/my-model:1.0",
+      "narration": "Cloud services deploy from an image in a container registry, not from your local Docker. You build, tag, and push the image, then point a managed endpoint at it. AWS SageMaker, Google Vertex AI, and Azure Machine Learning all follow the same mental model: registry image in, autoscaling HTTPS endpoint out, with health checks handled for you."
+    },
+    {
+      "type": "content",
+      "title": "Kubernetes Building Blocks",
+      "bullets": [
+        "Pod: smallest unit, runs your container",
+        "Deployment: keeps N identical replicas running",
+        "Service: stable address that load-balances pods",
+        "HPA: scales replicas on CPU or custom metrics"
+      ],
+      "narration": "When you need more control than a managed endpoint, Kubernetes is the standard. A pod runs your container. A Deployment declares how many identical replicas you want and keeps them healthy, enabling rolling updates. A Service gives a stable address that load-balances across pods. And a HorizontalPodAutoscaler adds or removes replicas based on load."
+    },
+    {
+      "type": "content",
+      "title": "A Minimal Deployment",
+      "bullets": [
+        "apiVersion: apps/v1, kind: Deployment",
+        "replicas: 3 gives redundancy and load spreading",
+        "Pod template points at your registry image",
+        "Controller recreates pods that crash"
+      ],
+      "code": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: my-model\nspec:\n  replicas: 3\n  selector:\n    matchLabels: { app: my-model }\n  template:\n    metadata:\n      labels: { app: my-model }\n    spec:\n      containers:\n        - name: server\n          image: my-model:1.0\n          ports:\n            - containerPort: 8000",
+      "narration": "Here is a minimal Deployment. apiVersion apps slash v1, kind Deployment, three replicas, and a pod template that runs your registry image on port 8000. With replicas set to three you immediately get redundancy and load spreading, and the controller recreates any pod that crashes. That is the core reason to use Kubernetes for multi-replica serving."
+    },
+    {
+      "type": "content",
+      "title": "Autoscaling with an HPA",
+      "bullets": [
+        "Fixed replicas waste money or fall over",
+        "HPA targets a metric like 70% CPU",
+        "minReplicas / maxReplicas bound the range",
+        "Kubernetes adds or removes pods automatically"
+      ],
+      "code": "apiVersion: autoscaling/v2\nkind: HorizontalPodAutoscaler\nspec:\n  scaleTargetRef:\n    kind: Deployment\n    name: my-model\n  minReplicas: 2\n  maxReplicas: 10\n  metrics:\n    - type: Resource\n      resource:\n        name: cpu\n        target:\n          type: Utilization\n          averageUtilization: 70",
+      "narration": "Fixed replica counts still waste money or fall over under load. A HorizontalPodAutoscaler fixes that by targeting a metric, here 70 percent average CPU, and scaling the Deployment between a minimum and maximum number of pods. Kubernetes then adds replicas under load and removes them when traffic drops, keeping utilization steady."
+    },
+    {
+      "type": "content",
+      "title": "Purpose-Built Serving Runtimes",
+      "bullets": [
+        "KServe: Kubernetes-native serving, scale-to-zero",
+        "BentoML: packaging plus adaptive batching",
+        "Ray Serve: scalable Python-first serving",
+        "Triton: high-throughput GPU, dynamic batching"
+      ],
+      "narration": "Hand-rolling FastAPI works for one model, but production serving has recurring needs. KServe is Kubernetes-native with autoscaling and canary rollout. BentoML focuses on packaging plus adaptive batching. Ray Serve scales Python serving across a cluster. And NVIDIA Triton maximizes GPU throughput with dynamic batching across frameworks. The common wins are batching, multi-model hosting, and GPU-aware autoscaling you'd otherwise build yourself."
+    },
+    {
+      "type": "content",
+      "title": "Registry Handoff and Choosing",
+      "bullets": [
+        "Serving pulls the approved model version from the registry",
+        "Promote a model with a registry action, not a redeploy",
+        "Managed endpoint: least ops, less control, higher cost",
+        "Self-managed K8s: more control and cheaper at scale"
+      ],
+      "code": "import mlflow\nmodel = mlflow.pyfunc.load_model(\n    \"models:/fraud-detector@champion\")\npreds = model.predict(features)",
+      "narration": "The model registry is the handoff between training and serving: deployment pulls the approved version by alias, so promoting a new model is a registry action rather than a code change. Finally, choosing an approach is a trade-off. Managed endpoints minimize operations but cost more and give less control. Self-managed Kubernetes offers control and lower cost at scale but demands real platform expertise. Start managed when you can."
+    }
+  ]
+}

@@ -1,0 +1,187 @@
+{
+  "slug": "mle-m5-l01-transformers-and-the-attention-mechanism",
+  "title": "Transformers and the Attention Mechanism",
+  "month": 5,
+  "monthTitle": "LLM Engineering: Transformers, RAG, and Fine-Tuning",
+  "lesson": 1,
+  "video": "mle-m5-l01-transformers-and-the-attention-mechanism.mp4",
+  "summary": "Understand the transformer architecture that powers every modern large language model. We trace text from raw characters through tokenization, embeddings, and positional encoding into the self-attention mechanism, then build up to multi-head attention, the encoder/decoder block, and how scaling these models turns transformers into LLMs.",
+  "objectives": [
+    "Explain why transformers replaced RNNs for sequence modeling",
+    "Convert text into tokens and integer IDs using subword (BPE) tokenization",
+    "Describe how embeddings and positional encoding represent tokens and order",
+    "Compute scaled dot-product self-attention from Q, K, and V matrices",
+    "Diagram multi-head attention and the encoder/decoder block at a high level",
+    "Connect the transformer architecture to how modern LLMs are pretrained and scaled"
+  ],
+  "quiz": [
+    {
+      "q": "What key advantage do transformers have over recurrent neural networks (RNNs) for processing sequences?",
+      "options": [
+        "They require far less training data than RNNs",
+        "They are guaranteed to never overfit",
+        "They process all tokens in parallel and capture long-range dependencies directly",
+        "They eliminate the need for any matrix multiplication"
+      ],
+      "answer": 2,
+      "why": "RNNs process tokens sequentially, which is slow and tends to lose information across long distances. Transformers attend to all positions at once, enabling parallel computation and direct modeling of long-range dependencies."
+    },
+    {
+      "q": "Why is subword (BPE-style) tokenization preferred over splitting text into whole words?",
+      "options": [
+        "It handles rare and unseen words by composing them from smaller known pieces",
+        "It always produces exactly one token per sentence",
+        "It removes the need for an embedding layer",
+        "It guarantees every language uses the same vocabulary size"
+      ],
+      "answer": 0,
+      "why": "Subword tokenization keeps a fixed vocabulary while representing rare or novel words as sequences of known subword units, avoiding the out-of-vocabulary problem that plagues word-level tokenizers."
+    },
+    {
+      "q": "Why must positional encoding be added to token embeddings before self-attention?",
+      "options": [
+        "Because embeddings are too large to fit in memory otherwise",
+        "To convert the embeddings into integer token IDs",
+        "Because softmax requires positive inputs only",
+        "Because self-attention is permutation-invariant and has no inherent notion of token order"
+      ],
+      "answer": 3,
+      "why": "Self-attention treats its inputs as an unordered set, so without positional information the model could not tell 'dog bites man' from 'man bites dog'. Positional encoding injects order into the representations."
+    },
+    {
+      "q": "In scaled dot-product attention, attention = softmax(Q Kᵀ / sqrt(d_k)) V, what is the role of dividing by sqrt(d_k)?",
+      "options": [
+        "It converts the values matrix V into probabilities",
+        "It scales the dot products so the softmax gradients stay stable for large key dimensions",
+        "It replaces the need for the value matrix V",
+        "It guarantees the attention weights sum to the key dimension"
+      ],
+      "answer": 1,
+      "why": "For large d_k the dot products Q·K grow large in magnitude, pushing softmax into regions with tiny gradients. Dividing by sqrt(d_k) keeps the scores at a reasonable scale so learning remains stable."
+    },
+    {
+      "q": "What does multi-head attention add compared to a single attention computation?",
+      "options": [
+        "It removes the query and key projections entirely",
+        "It forces every head to learn identical weights",
+        "It runs several attention heads in parallel, each in its own subspace, then concatenates their outputs",
+        "It replaces attention with a recurrent loop"
+      ],
+      "answer": 2,
+      "why": "Multi-head attention projects Q, K, and V into several lower-dimensional subspaces and runs attention in each in parallel, letting different heads focus on different relationships, then concatenates and projects the results."
+    },
+    {
+      "q": "In one or two sentences, explain how a base transformer gets scaled into a modern large language model (LLM).",
+      "answer": "By stacking many transformer (typically decoder) blocks with billions of parameters and pretraining on massive text corpora using a self-supervised objective such as next-token prediction.",
+      "why": "LLMs are transformers scaled up in depth, width, and data: many stacked blocks are pretrained with a self-supervised objective (e.g., next-token prediction or masked language modeling) over huge corpora, after which they can be fine-tuned or prompted for downstream tasks."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Attention Is All You Need (Vaswani et al., 2017)",
+      "url": "https://arxiv.org/abs/1706.03762"
+    },
+    {
+      "label": "Hugging Face Transformers Documentation",
+      "url": "https://huggingface.co/docs/transformers/index"
+    },
+    {
+      "label": "The Illustrated Transformer (Jay Alammar)",
+      "url": "https://jalammar.github.io/illustrated-transformer/"
+    },
+    {
+      "label": "Hugging Face: Summary of the Tokenizers",
+      "url": "https://huggingface.co/docs/transformers/tokenizer_summary"
+    }
+  ],
+  "body_markdown": "## Overview\n\nThe transformer is the architecture behind every modern large language model, from BERT to GPT to the latest 2026 frontier systems. We follow a sentence from raw text into a transformer: it is **tokenized**, turned into **embeddings**, given **positional information**, then processed by **self-attention**. This path is the single most important step toward becoming an LLM engineer.\n\n## 1. Why Transformers Replaced RNNs\n\nBefore 2017, sequence models were dominated by recurrent neural networks (RNNs, LSTMs, GRUs). They read text one token at a time, carrying a hidden state forward. This had two weaknesses:\n\n- **No parallelism.** Each step depends on the previous one, so you cannot use a GPU's parallelism across the sequence during training.\n- **Weak long-range memory.** Information from early tokens decays as it is passed through many steps, making it hard to connect words far apart.\n\nThe transformer, introduced in *Attention Is All You Need*, throws out recurrence entirely. Every token can attend to every other token **in a single parallel step**, so long-range dependencies are just one attention hop away and training scales beautifully on modern hardware.\n\n## 2. Tokenization: Text to IDs\n\nA model cannot consume raw characters; it needs integers. **Tokenization** splits text into tokens and maps each to an ID in a fixed vocabulary. Modern LLMs use **subword** tokenization (e.g., Byte-Pair Encoding), representing rare words as combinations of known pieces to avoid the out-of-vocabulary problem.\n\n```python\nfrom transformers import AutoTokenizer\n\ntok = AutoTokenizer.from_pretrained(\"bert-base-uncased\")\nenc = tok(\"Hello world\")\nprint(enc[\"input_ids\"])      # e.g. [101, 7592, 2088, 102]\nprint(tok.tokenize(\"tokenization\"))  # ['token', '##ization']\n```\n\nNotice that 'tokenization' splits into subword pieces. The special IDs 101 and 102 are the [CLS] and [SEP] markers BERT adds automatically.\n\n## 3. Embeddings and Positional Encoding\n\nEach token ID indexes into an **embedding table**, producing a dense vector (say 768 numbers) that the model can learn to shape into meaning. But self-attention treats its inputs as an unordered *set* — it is **permutation-invariant**. Without extra signal, the model could not distinguish 'dog bites man' from 'man bites dog'.\n\nThe fix is **positional encoding**: we add a position-dependent vector to each token embedding so order is baked in. The original paper uses fixed sinusoidal functions; modern models often learn positions or use rotary embeddings (RoPE). The key idea: **token embedding + positional encoding = the input to attention.**\n\n## 4. Self-Attention: The Core Mechanism\n\nSelf-attention lets each token gather information from all others. From every token's embedding we derive three vectors via learned linear projections:\n\n- **Query (Q)** — what this token is looking for.\n- **Key (K)** — what each token offers.\n- **Value (V)** — the actual content to be passed along.\n\nWe score how well each query matches each key with a dot product, scale by `sqrt(d_k)` to keep gradients stable, apply softmax to get weights that sum to 1, and use those weights to average the values:\n\n```text\nattention(Q, K, V) = softmax(Q K^T / sqrt(d_k)) V\n```\n\nHere is a faithful minimal NumPy implementation:\n\n```python\nimport numpy as np\n\ndef attention(Q, K, V):\n    scores = Q @ K.T / np.sqrt(K.shape[-1])\n    weights = np.exp(scores) / np.exp(scores).sum(axis=-1, keepdims=True)  # softmax\n    return weights @ V\n```\n\nThe division by `sqrt(d_k)` matters: for large key dimensions the dot products grow large, pushing softmax into flat regions with vanishing gradients. Scaling keeps training healthy.\n\n## 5. Multi-Head Attention and the Transformer Block\n\nA single attention computation can only focus on one kind of relationship at a time. **Multi-head attention** runs several attention heads **in parallel**, each with its own Q/K/V projections into a smaller subspace. Their outputs are **concatenated** and linearly projected back. One head might track syntax, another coreference — the model learns a rich mix.\n\nThese heads sit inside a **transformer block**, which adds a position-wise feed-forward network plus **residual connections** and **layer normalization** to stabilize deep stacks. The original architecture pairs an **encoder** (bidirectional) with a **decoder** (masked, left-to-right). Encoder-only models like BERT excel at understanding; decoder-only models like GPT excel at generation.\n\n## 6. From Transformers to LLMs\n\nA large language model is, fundamentally, a transformer **scaled up**: stack dozens or hundreds of blocks, widen the layers to billions of parameters, and pretrain on enormous text corpora using a **self-supervised** objective — typically **next-token prediction** for decoder-only models or **masked language modeling** for encoder-only ones. No human labels are required; the text supervises itself.\n\nThis scaling, combined with vast data, produces the emergent capabilities we associate with modern LLMs. Once pretrained, the same model can be **fine-tuned** or **prompted** for countless downstream tasks — the foundation for the rest of this module.\n\n## Key Takeaways\n\nTransformers replaced RNNs by enabling parallelism and direct long-range attention. Text becomes subword tokens, then embeddings plus positional encoding, then flows through self-attention — `softmax(Q K^T / sqrt(d_k)) V` — generalized into multi-head attention inside stacked blocks. Scale that with self-supervised pretraining and you get a large language model.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Transformers and the Attention Mechanism",
+      "sub": "LLM Engineering: Transformers, RAG, and Fine-Tuning",
+      "narration": "Welcome to the LLM engineering module. In this flagship lesson we'll open up the transformer, the architecture behind every modern large language model, and follow a sentence from raw text all the way through the self-attention mechanism that makes it all work."
+    },
+    {
+      "type": "content",
+      "title": "Why Transformers Replaced RNNs",
+      "bullets": [
+        "RNNs read tokens one at a time — no parallelism",
+        "Long-range information decays across many steps",
+        "Transformers attend to all tokens in parallel",
+        "Long-range dependencies become a single attention hop"
+      ],
+      "narration": "Recurrent networks process text sequentially, which blocks GPU parallelism and lets information from early tokens fade away. The transformer removes recurrence entirely: every token attends to every other token in one parallel step, so long-range dependencies are immediate and training scales superbly on modern hardware."
+    },
+    {
+      "type": "content",
+      "title": "Tokenization: Text to IDs",
+      "bullets": [
+        "Models consume integers, not characters",
+        "Tokenizer maps tokens to IDs in a fixed vocabulary",
+        "Subword (BPE) handles rare and unseen words",
+        "Special tokens like [CLS]/[SEP] are added automatically"
+      ],
+      "code": "from transformers import AutoTokenizer\ntok = AutoTokenizer.from_pretrained(\n    \"bert-base-uncased\")\nenc = tok(\"Hello world\")\nprint(enc[\"input_ids\"])\n# [101, 7592, 2088, 102]",
+      "narration": "Before a model can read text it must become integers. The tokenizer splits text into tokens and maps each to an ID. Modern models use subword tokenization, so a rare word breaks into smaller known pieces instead of an unknown token. Here Hugging Face's BERT tokenizer also adds special markers automatically."
+    },
+    {
+      "type": "content",
+      "title": "Embeddings + Positional Encoding",
+      "bullets": [
+        "Each ID indexes a dense embedding vector",
+        "Self-attention is permutation-invariant",
+        "Without order, 'dog bites man' = 'man bites dog'",
+        "Add a positional vector to encode token order"
+      ],
+      "code": "# conceptual\nx = token_embedding[ids]      # (seq, d)\nx = x + positional_encoding    # inject order",
+      "narration": "Every token ID looks up a dense embedding vector. But attention treats its inputs as an unordered set, so it has no notion of sequence. We fix this by adding a position-dependent vector to each embedding, baking word order directly into the representation that attention will see."
+    },
+    {
+      "type": "content",
+      "title": "Self-Attention: Q, K, V",
+      "bullets": [
+        "Query: what this token is looking for",
+        "Key: what each token offers",
+        "Value: the content passed along",
+        "Score = match between queries and keys"
+      ],
+      "narration": "Self-attention lets each token pull information from all the others. From each embedding we project three vectors: a query for what the token seeks, a key for what each token offers, and a value holding the actual content. We compare queries against keys to decide how much each token should contribute."
+    },
+    {
+      "type": "content",
+      "title": "Scaled Dot-Product Attention",
+      "bullets": [
+        "attention = softmax(Q Kᵀ / sqrt(d_k)) V",
+        "Dot products score query-key matches",
+        "Divide by sqrt(d_k) to keep gradients stable",
+        "Softmax weights average the values"
+      ],
+      "code": "import numpy as np\ndef attention(Q, K, V):\n    scores = Q @ K.T / np.sqrt(K.shape[-1])\n    weights = np.exp(scores) / np.exp(scores).sum(\n        axis=-1, keepdims=True)  # softmax\n    return weights @ V",
+      "narration": "This is the heart of the transformer. We dot each query with every key, scale by the square root of the key dimension so the softmax keeps healthy gradients, normalize with softmax into weights that sum to one, and use those weights to average the values. This tiny NumPy function captures the exact formula."
+    },
+    {
+      "type": "content",
+      "title": "Multi-Head Attention and the Block",
+      "bullets": [
+        "Several heads run attention in parallel subspaces",
+        "Outputs are concatenated and projected",
+        "Block adds feed-forward, residuals, layer norm",
+        "Encoder understands; decoder generates"
+      ],
+      "code": "# per head: own Q,K,V projections\nheads = [attention(Qi, Ki, Vi) for i in range(h)]\nout = concat(heads) @ W_o",
+      "narration": "One attention head sees only one type of relationship, so we run several in parallel, each in its own subspace, then concatenate and project the results. These heads live inside a transformer block alongside a feed-forward network, residual connections, and layer normalization. Encoder blocks read bidirectionally to understand; decoder blocks generate left to right."
+    },
+    {
+      "type": "content",
+      "title": "From Transformers to LLMs",
+      "bullets": [
+        "Stack many blocks; scale to billions of parameters",
+        "Pretrain on massive text corpora",
+        "Self-supervised: predict the next (or masked) token",
+        "Then fine-tune or prompt for downstream tasks"
+      ],
+      "narration": "A large language model is a transformer scaled up: stack many blocks, widen to billions of parameters, and pretrain on enormous text using a self-supervised objective like next-token prediction. No labels needed — the text supervises itself. Scale plus data yields the emergent abilities of modern LLMs, which we then fine-tune or prompt throughout this module."
+    }
+  ]
+}

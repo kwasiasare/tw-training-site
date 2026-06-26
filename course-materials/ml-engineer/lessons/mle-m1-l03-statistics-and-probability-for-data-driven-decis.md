@@ -139,12 +139,14 @@ The **p-value** is the probability of observing data at least as extreme as ours
 ```python
 from scipy import stats
 
-# Two-sample t-test: did model B beat model A on accuracy?
-model_a = [0.81, 0.79, 0.82, 0.80, 0.78]
-model_b = [0.84, 0.85, 0.83, 0.86, 0.82]
-t_stat, p = stats.ttest_ind(model_b, model_a)
+# Paired t-test: A vs B scored on the SAME cross-validation folds
+scores_a = [0.81, 0.79, 0.82, 0.80, 0.78]
+scores_b = [0.84, 0.85, 0.83, 0.86, 0.82]
+t_stat, p = stats.ttest_rel(scores_a, scores_b)
 print(f"t={t_stat:.3f}, p={p:.4f}")
 ```
+
+Use a **paired** test (`ttest_rel`) when both models are evaluated on the same folds: pairing cancels fold-to-fold difficulty so you measure the per-fold *difference*, which an independent two-sample test (`ttest_ind`) would miss. Beware that naive resampled / cross-validation t-tests are *optimistic* — overlapping folds violate independence and understate the variance — so for repeated CV prefer the corrected Nadeau–Bengio test.
 
 ## Errors and Pitfalls
 
