@@ -86,7 +86,6 @@ quiz:
     availability but do not by themselves let you recover from malicious deletion or overwrite.
 - q: In 3-4 sentences, explain why moving the storage data plane from account keys to Microsoft Entra ID
     plus Azure RBAC improves security, and name one role you would assign for read-only blob access.
-  options: null
   answer: Account keys are long-lived shared secrets that grant full control of all data in the account
     and can generate SAS tokens, so anyone who obtains a key effectively owns the data and the access is
     hard to attribute or revoke without rotating the key and breaking other consumers. Microsoft Entra ID

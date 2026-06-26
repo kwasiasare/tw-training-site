@@ -88,7 +88,6 @@ quiz:
 - q: In 3-4 sentences, explain why Key Vault is described as the "root of trust" for the storage and
     database protections built earlier in this module, and name one operational risk you accept when you
     move from Microsoft-managed keys to customer-managed keys.
-  options: null
   answer: Key Vault holds the keys that encrypt the storage accounts, Azure SQL databases, and managed
     disks hardened earlier, so the confidentiality of all that data ultimately depends on the keys and
     access controls inside the vault, making it the single root of trust for platform encryption. If the

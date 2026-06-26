@@ -90,7 +90,6 @@ quiz:
     the exposure window to near zero.
 - q: In 3-4 sentences, explain the role of Azure Firewall in a hub-and-spoke topology and how forced
     tunneling or a default route changes traffic flow. Name one Premium-tier capability.
-  options:
   answer: In a hub-and-spoke design, Azure Firewall is deployed in the hub VNet as a central, stateful,
     managed egress and inspection point for all spoke workloads. You attach a user-defined route (UDR)
     with a 0.0.0.0/0 default route whose next hop is the firewall's private IP to the spoke subnets,
