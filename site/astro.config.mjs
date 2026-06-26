@@ -1,8 +1,8 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 
-// Update `site` to your real domain when you deploy to Azure Static Web Apps.
+// Canonical production domain (www is primary; apex salloma.com redirects to it).
 export default defineConfig({
-  site: 'https://maths-to-ai.example.com',
+  site: 'https://www.salloma.com',
   build: { format: 'directory' },
 });
