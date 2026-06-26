@@ -1,0 +1,181 @@
+{
+  "slug": "mlo-m5-l03-scaling-llm-serving-on-kubernetes",
+  "title": "Scaling LLM Serving on Kubernetes",
+  "month": 5,
+  "monthTitle": "LLMOps & GPU Serving",
+  "lesson": 3,
+  "video": "mlo-m5-l03-scaling-llm-serving-on-kubernetes.mp4",
+  "summary": "Learn how to schedule and scale large language model workloads on Kubernetes GPUs. This lesson covers requesting GPUs with nvidia.com/gpu, the NVIDIA device plugin and GPU Operator, taints/tolerations and node affinity, GPU sharing via time-slicing and MPS, deploying an LLM behind a KServe InferenceService with autoscaling and scale-to-zero, autoscaling on GPU or queue/concurrency metrics, and multi-GPU scheduling for tensor- and pipeline-parallel models.",
+  "objectives": [
+    "Schedule GPU pods using nvidia.com/gpu resource requests, the NVIDIA device plugin/GPU Operator, and taints, tolerations, and node affinity",
+    "Share a single GPU across smaller LLM workloads using time-slicing and MPS, and explain their trade-offs versus MIG",
+    "Deploy an LLM behind a KServe InferenceService with request-based autoscaling and scale-to-zero",
+    "Configure autoscaling driven by GPU utilization or queue/concurrency metrics using KEDA, the Prometheus Adapter, or Knative concurrency",
+    "Compare KServe, BentoML, and Ray Serve and select the right stack for tensor/pipeline-parallel multi-GPU models"
+  ],
+  "quiz": [
+    {
+      "q": "How do you request a GPU for a pod in Kubernetes?",
+      "options": [
+        "Add nvidia.com/gpu under resources.requests only",
+        "Add nvidia.com/gpu under resources.limits (requests defaults to the same value)",
+        "Set a GPU=true environment variable on the container",
+        "Label the pod with accelerator=gpu"
+      ],
+      "answer": 1,
+      "why": "GPUs are an extended resource and may only be set in limits. If you omit requests, Kubernetes copies the limit into requests; you cannot oversubscribe a whole GPU, so request always equals limit."
+    },
+    {
+      "q": "How does GPU time-slicing differ from Multi-Instance GPU (MIG)?",
+      "options": [
+        "Time-slicing gives each replica hardware memory and fault isolation",
+        "Time-slicing physically partitions the GPU into separate instances",
+        "Time-slicing oversubscribes one GPU with no memory or fault isolation between replicas",
+        "Time-slicing needs no device plugin or GPU Operator"
+      ],
+      "answer": 2,
+      "why": "Time-slicing interleaves workloads on an oversubscribed GPU with no memory or fault isolation between replicas, unlike MIG which physically partitions the GPU into isolated instances with dedicated memory."
+    },
+    {
+      "q": "How do you enable scale-to-zero for a KServe InferenceService serving on GPUs?",
+      "options": [
+        "Set replicas: 0 on the underlying Deployment",
+        "Set minReplicas: 0 so Knative scales pods to zero when idle",
+        "Manually delete the InferenceService when traffic stops",
+        "Move the model to a CPU-only node pool"
+      ],
+      "answer": 1,
+      "why": "With minReplicas set to 0, KServe's Knative-backed autoscaler scales the InferenceService down to zero pods when there is no traffic and cold-starts a GPU pod on the next request, freeing expensive GPUs."
+    },
+    {
+      "q": "A model is deployed with tensorParallelSize: 2 and pipelineParallelSize: 2. How many GPUs does one replica need?",
+      "options": [
+        "2",
+        "4",
+        "8",
+        "1"
+      ],
+      "answer": 1,
+      "why": "Total GPUs per replica equals tensorParallelSize multiplied by pipelineParallelSize, so 2 x 2 = 4 GPUs, which must be schedulable together (ideally on one node or across nodes with fast interconnect)."
+    },
+    {
+      "q": "Why is plain GPU utilization often a poor autoscaling signal for an LLM server, and what works better?",
+      "answer": "A single in-flight request can pin GPU utilization near 100% while the server still has spare batching capacity, so utilization hides real load. Queue/concurrency signals (number of waiting/running requests, KV-cache utilization, or in-flight concurrency) reflect saturation far better and are exposed by vLLM and consumed by KEDA, the Prometheus Adapter, or Knative concurrency.",
+      "why": "LLM servers batch continuously, so utilization saturates early; scaling on waiting requests, KV-cache usage, or concurrency tracks actual capacity and latency much more accurately."
+    },
+    {
+      "q": "When would you pick Ray Serve over KServe or BentoML for LLM serving?",
+      "answer": "Choose Ray Serve when you need programmatic, Python-native composition of multi-stage pipelines (e.g., RAG with retrieval + rerank + generation), fractional/multi-GPU scheduling, or multi-node tensor/pipeline parallelism orchestrated by the Ray cluster. Pick KServe for a declarative, Kubernetes-native InferenceService with built-in Knative scale-to-zero, and BentoML/OpenLLM when you want to package a Bento and deploy it as a container or to BentoCloud with minimal infra.",
+      "why": "Each tool targets a different need. KServe is declarative and Kubernetes-native with scale-to-zero, BentoML is packaging-first, and Ray Serve is a programmable framework strong at composition and distributed multi-GPU serving."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Schedule GPUs (Kubernetes official docs)",
+      "url": "https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/"
+    },
+    {
+      "label": "Time-Slicing GPUs in Kubernetes (NVIDIA GPU Operator)",
+      "url": "https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-sharing.html"
+    },
+    {
+      "label": "KServe Generative Inference (LLM serving)",
+      "url": "https://kserve.github.io/website/docs/model-serving/generative-inference/overview"
+    },
+    {
+      "label": "Ray Serve LLM APIs",
+      "url": "https://docs.ray.io/en/latest/serve/llm/index.html"
+    }
+  ],
+  "body_markdown": "## Why GPU-Aware Scaling Is Different\n\nEarlier in this course you deployed CPU model APIs with Deployments, Services, HPA, and probes (Module 3), and in this module you served LLMs with vLLM (lesson 1) and squeezed them with quantization, Triton, and TensorRT-LLM (lesson 2). Scaling LLMs on a cluster adds a new constraint: **GPUs are scarce, expensive, and indivisible by default**. A single A100/H100 can cost more per hour than a rack of CPU nodes, and one large model may not even fit on one GPU. So the scheduling and scaling rules change.\n\nThis lesson is about getting LLM pods onto the right GPUs, sharing GPUs when models are small, scaling on signals that actually reflect LLM load, and splitting giant models across multiple GPUs.\n\n## Scheduling GPU Pods\n\nKubernetes does not understand GPUs natively. A **device plugin** from the hardware vendor advertises GPUs as an *extended resource* named `nvidia.com/gpu`. In practice you install the **NVIDIA GPU Operator**, which deploys and manages the driver, container toolkit, device plugin, and DCGM metrics exporter for you, instead of wiring each component by hand.\n\nOnce GPUs are advertised, you request them like any resource — but with two rules: **GPUs may only appear in `limits`** (Kubernetes copies the limit into `requests`), and you **cannot oversubscribe a whole GPU**, so request always equals limit.\n\n```yaml\nresources:\n  limits:\n    nvidia.com/gpu: 1   # request == limit; whole GPUs only\n    cpu: \"4\"\n    memory: 24Gi\n```\n\n### Taints, Tolerations, and Affinity\n\nGPU nodes are precious, so you keep CPU-only pods off them. The common pattern is to **taint** GPU nodes and have GPU pods **tolerate** that taint, then use **node affinity** to target a specific GPU type.\n\n```yaml\nspec:\n  tolerations:\n    - key: \"nvidia.com/gpu\"\n      operator: \"Exists\"\n      effect: \"NoSchedule\"\n  affinity:\n    nodeAffinity:\n      requiredDuringSchedulingIgnoredDuringExecution:\n        nodeSelectorTerms:\n          - matchExpressions:\n              - key: nvidia.com/gpu.product\n                operator: In\n                values: [\"NVIDIA-H100-80GB-HBM3\"]\n```\n\nTaints repel everything that does not tolerate them; affinity *attracts* the pod to the right hardware. Use both: the toleration earns entry to GPU nodes, and affinity pins the workload to GPUs with enough memory for the model.\n\n## GPU Sharing: Time-Slicing and MPS\n\nA 7B model in INT8 might use only a fraction of an 80 GB GPU. Running one pod per GPU wastes money. The GPU Operator lets you **oversubscribe** a GPU so several pods share it:\n\n- **Time-slicing**: the GPU rapidly interleaves work from multiple replicas. You define how many replicas a GPU is split into; each is handed to a pod as a normal `nvidia.com/gpu` unit. There is **no memory or fault isolation** between replicas — one pod can OOM the GPU and affect neighbors.\n- **MPS (Multi-Process Service)**: NVIDIA's CUDA MPS runs kernels from multiple processes concurrently, giving better throughput than pure time-slicing and optional memory limits per client.\n- **MIG (Multi-Instance GPU)**: on A100/H100, physically partitions the GPU into isolated instances with dedicated memory and fault isolation — the strongest isolation, but fixed profiles.\n\nEnable time-slicing by giving the GPU Operator a config map and labeling nodes. The node then advertises multiple GPU replicas and gets a `-SHARED` product suffix:\n\n```yaml\n# ConfigMap consumed by the GPU Operator / device plugin\nsharing:\n  timeSlicing:\n    resources:\n      - name: nvidia.com/gpu\n        replicas: 4   # 1 physical GPU advertised as 4 schedulable units\n```\n\nRule of thumb: **time-slicing/MPS for many small models that trust each other; MIG when you need hard isolation; a whole GPU (or several) for a large model.**\n\n## Deploying an LLM with KServe\n\n**KServe** turns a model into a declarative `InferenceService` (ISVC) and, in Knative mode, gives you request-based autoscaling and **scale-to-zero** for free. Its generative-inference runtime auto-maps the **vLLM** backend for Hugging Face LLM tasks, so you get continuous batching without writing a server.\n\n```yaml\napiVersion: serving.kserve.io/v1beta1\nkind: InferenceService\nmetadata:\n  name: llama3-8b\nspec:\n  predictor:\n    minReplicas: 0          # scale-to-zero when idle\n    maxReplicas: 5\n    scaleTarget: 10         # target concurrent requests per pod\n    scaleMetric: concurrency\n    model:\n      modelFormat:\n        name: huggingface   # served by the vLLM runtime\n      storageUri: \"hf://meta-llama/Meta-Llama-3-8B-Instruct\"\n      resources:\n        limits:\n          nvidia.com/gpu: \"1\"\n          cpu: \"4\"\n          memory: 24Gi\n```\n\nWith `minReplicas: 0`, Knative drops the deployment to zero GPU pods when traffic stops and cold-starts one on the next request — the single biggest GPU cost saver for spiky workloads. The trade-off is cold-start latency: loading multi-GB weights takes time, so pair scale-to-zero with a generous **startup probe** (`/health`) so the pod is not killed mid-load, and keep **readiness** (`/ready`) gating traffic until weights are loaded — the same probe convention you used in Module 3.\n\n## Autoscaling on the Right Signal\n\nCPU and even GPU utilization are poor LLM scaling signals: a single in-flight request can pin a GPU near 100% while the server still has batching headroom, so utilization saturates long before the server is actually full. **Scale on load, not utilization.** Better signals:\n\n- **Knative concurrency** — in-flight requests per pod (`scaleMetric: concurrency`), the simplest queue-based signal and the KServe default for generative inference.\n- **vLLM queue metrics via KEDA** — KEDA scales on external metrics such as the number of **waiting requests** or **KV-cache utilization** that vLLM exports to Prometheus.\n- **Prometheus Adapter** — exposes any Prometheus metric (e.g., `requests_per_second`, queue depth) as a Kubernetes custom metric an HPA can target.\n\n```yaml\n# KEDA: scale on vLLM's pending-request queue\napiVersion: keda.sh/v1alpha1\nkind: ScaledObject\nmetadata:\n  name: llama3-scaler\nspec:\n  scaleTargetRef:\n    name: llama3-8b-predictor\n  minReplicaCount: 0\n  maxReplicaCount: 8\n  triggers:\n    - type: prometheus\n      metadata:\n        serverAddress: http://prometheus.monitoring:9090\n        query: sum(vllm:num_requests_waiting)\n        threshold: \"5\"\n```\n\nWhatever signal you pick, tune scale-up to be fast and scale-down to be slow (stabilization windows) so GPU pods do not flap — a cold start is far more expensive than holding a warm pod a little longer.\n\n## Multi-GPU Scheduling for Large Models\n\nWhen a model is too big for one GPU, split it:\n\n- **Tensor parallelism (TP)** shards each layer's matrices across GPUs — needs fast interconnect (NVLink) and is usually kept **within one node**.\n- **Pipeline parallelism (PP)** splits the model into stages across GPUs/nodes — tolerates slower links between stages.\n\nTotal GPUs per replica = **TP x PP**. KServe expresses this with a `workerSpec` for multi-node/multi-GPU serving:\n\n```yaml\nspec:\n  predictor:\n    model:\n      modelFormat:\n        name: huggingface\n      storageUri: pvc://llama-70b-pvc/Meta-Llama-3-70B-Instruct\n    workerSpec:                   # sibling of model, under predictor\n      tensorParallelSize: 4       # 4 GPUs per node (NVLink)\n      pipelineParallelSize: 2     # 2 nodes -> 8 GPUs total\n```\n\nThe scheduler must place all TP shards on GPUs with fast interconnect; spreading a tensor-parallel group across nodes will cripple throughput. Ray Serve handles the same split with `engine_kwargs={\"tensor_parallel_size\": 4, \"pipeline_parallel_size\": 2}`, using Ray placement groups to co-locate workers.\n\n## Choosing a Serving Stack\n\n- **KServe** — declarative, Kubernetes-native `InferenceService`. Best when you want GitOps-style manifests, Knative scale-to-zero, and a managed vLLM runtime. Pick it as the default for k8s-centric platforms.\n- **BentoML / OpenLLM** — packaging-first. You bundle code, weights, and dependencies into a **Bento**, containerize it, and run it anywhere (Kubernetes or BentoCloud). Best when you want a portable artifact and a simple Python service API.\n- **Ray Serve** — a programmable Python framework. Best for **composing multi-stage pipelines** (RAG: retrieve, rerank, generate), **fractional GPUs** for many small models, and **distributed multi-GPU** serving orchestrated by the Ray cluster. Note fractional-GPU deployments work best with fixed replica counts rather than autoscaling.\n\nYou can also combine them — for example, package with BentoML and deploy onto KServe — but for a single LLM endpoint, start with KServe.\n\n## Common Pitfalls\n\n- Putting `nvidia.com/gpu` in `requests` instead of `limits`, or setting unequal values — the pod will fail to schedule.\n- Missing tolerations on GPU pods, so they stay `Pending` while CPU pods squat on GPU nodes without affinity.\n- Scale-to-zero with no startup probe — slow weight loading gets killed by the liveness probe before the model is ready.\n- Autoscaling on CPU/GPU utilization instead of queue/concurrency, so the server saturates without ever triggering a scale-up.\n- Spreading a tensor-parallel group across nodes without NVLink-class interconnect, tanking throughput.\n- Forgetting the Cluster Autoscaler (or a warm GPU node pool), so HPA/KEDA scale-ups sit `Pending` with no GPU node to land on.\n",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Scaling LLM Serving on Kubernetes",
+      "narration": "Welcome. You have already deployed CPU model APIs on Kubernetes and served LLMs with vLLM. In this lesson we focus on the part that makes LLMs hard to run at scale: the GPU. We will schedule GPU pods, share GPUs when models are small, deploy an LLM with KServe, autoscale on signals that actually reflect LLM load, and split giant models across many GPUs."
+    },
+    {
+      "type": "content",
+      "title": "Why GPU-Aware Scaling Is Different",
+      "bullets": [
+        "GPUs are scarce, expensive, and indivisible by default",
+        "One large model may not fit on a single GPU",
+        "Scheduling and scaling rules differ from CPU services",
+        "Goal: right pod on right GPU, scaled on real load"
+      ],
+      "narration": "Scaling LLMs adds a constraint CPU services never had. A single H100 can cost more per hour than a rack of CPU nodes, and a large model may not fit on one GPU at all. So you cannot just bump replicas like a stateless web app. You have to get pods onto the right GPUs, share GPUs when models are small, scale on signals that reflect LLM load, and split giant models across multiple GPUs."
+    },
+    {
+      "type": "content",
+      "title": "Scheduling GPU Pods",
+      "bullets": [
+        "NVIDIA device plugin advertises GPUs as nvidia.com/gpu",
+        "Install the NVIDIA GPU Operator to manage driver, toolkit, plugin, metrics",
+        "GPUs go in limits only; request equals limit",
+        "You cannot oversubscribe a whole GPU"
+      ],
+      "code": "resources:\n  limits:\n    nvidia.com/gpu: 1   # request == limit; whole GPUs only\n    cpu: \"4\"\n    memory: 24Gi",
+      "narration": "Kubernetes does not understand GPUs natively. A vendor device plugin advertises them as an extended resource called nvidia.com/gpu. In practice you install the NVIDIA GPU Operator, which manages the driver, container toolkit, device plugin, and metrics exporter for you. You then request GPUs with two rules: they may only appear in limits, where Kubernetes copies the limit into requests, and you cannot oversubscribe a whole GPU, so request always equals limit."
+    },
+    {
+      "type": "content",
+      "title": "Taints, Tolerations, and Affinity",
+      "bullets": [
+        "Taint GPU nodes to repel CPU-only pods",
+        "GPU pods carry a matching toleration to earn entry",
+        "Node affinity targets a specific GPU product/memory",
+        "Use both: toleration for entry, affinity to pin hardware"
+      ],
+      "code": "tolerations:\n  - key: \"nvidia.com/gpu\"\n    operator: \"Exists\"\n    effect: \"NoSchedule\"\naffinity:\n  nodeAffinity:\n    requiredDuringSchedulingIgnoredDuringExecution:\n      nodeSelectorTerms:\n        - matchExpressions:\n            - key: nvidia.com/gpu.product\n              operator: In\n              values: [\"NVIDIA-H100-80GB-HBM3\"]",
+      "narration": "GPU nodes are precious, so you keep CPU-only pods off them. The common pattern is to taint GPU nodes and have GPU pods tolerate that taint, then use node affinity to target a specific GPU type. Taints repel everything that does not tolerate them, while affinity attracts the pod to the right hardware. Use both together: the toleration earns entry to GPU nodes, and affinity pins the workload to GPUs that have enough memory for the model."
+    },
+    {
+      "type": "content",
+      "title": "GPU Sharing: Time-Slicing and MPS",
+      "bullets": [
+        "Time-slicing: interleave replicas, no memory or fault isolation",
+        "MPS: concurrent kernels, better throughput, optional memory caps",
+        "MIG: physical partitions with hard isolation (A100/H100)",
+        "Small trusted models share; large models get whole GPUs"
+      ],
+      "code": "# ConfigMap consumed by the GPU Operator / device plugin\nsharing:\n  timeSlicing:\n    resources:\n      - name: nvidia.com/gpu\n        replicas: 4   # 1 GPU advertised as 4 schedulable units",
+      "narration": "A small quantized model might use only a fraction of an 80 gigabyte GPU, so one pod per GPU wastes money. The GPU Operator lets you oversubscribe. Time-slicing rapidly interleaves work from several replicas with no memory or fault isolation between them. MPS runs kernels from multiple processes concurrently for better throughput and optional per-client memory limits. MIG physically partitions A100 or H100 GPUs into isolated instances. Rule of thumb: time-slicing or MPS for many small trusting models, MIG for hard isolation, and whole GPUs for large models."
+    },
+    {
+      "type": "content",
+      "title": "Deploying an LLM with KServe",
+      "bullets": [
+        "InferenceService is a declarative LLM endpoint",
+        "Hugging Face model format is served by the vLLM runtime",
+        "minReplicas: 0 gives Knative scale-to-zero on GPUs",
+        "Pair with a startup probe so cold loads are not killed"
+      ],
+      "code": "apiVersion: serving.kserve.io/v1beta1\nkind: InferenceService\nmetadata:\n  name: llama3-8b\nspec:\n  predictor:\n    minReplicas: 0          # scale-to-zero when idle\n    maxReplicas: 5\n    scaleTarget: 10\n    scaleMetric: concurrency\n    model:\n      modelFormat:\n        name: huggingface   # served by vLLM\n      storageUri: \"hf://meta-llama/Meta-Llama-3-8B-Instruct\"\n      resources:\n        limits:\n          nvidia.com/gpu: \"1\"",
+      "narration": "KServe turns a model into a declarative InferenceService and, in Knative mode, gives you request-based autoscaling and scale-to-zero for free. Its generative runtime auto-maps the vLLM backend for Hugging Face LLM tasks, so you get continuous batching without writing a server. With minReplicas set to zero, Knative drops to zero GPU pods when traffic stops and cold-starts one on the next request. The trade-off is cold-start latency, so pair scale-to-zero with a generous startup probe on slash-health and keep readiness on slash-ready gating traffic until the weights load."
+    },
+    {
+      "type": "content",
+      "title": "Autoscale on the Right Signal",
+      "bullets": [
+        "GPU utilization saturates early and hides real load",
+        "Knative concurrency: in-flight requests per pod",
+        "KEDA on vLLM queue: waiting requests, KV-cache usage",
+        "Prometheus Adapter exposes any metric to an HPA"
+      ],
+      "code": "apiVersion: keda.sh/v1alpha1\nkind: ScaledObject\nmetadata:\n  name: llama3-scaler\nspec:\n  scaleTargetRef:\n    name: llama3-8b-predictor\n  minReplicaCount: 0\n  maxReplicaCount: 8\n  triggers:\n    - type: prometheus\n      metadata:\n        query: sum(vllm:num_requests_waiting)\n        threshold: \"5\"",
+      "narration": "CPU and even GPU utilization are poor LLM scaling signals. A single in-flight request can pin a GPU near one hundred percent while the server still has batching headroom, so utilization saturates long before the server is full. Scale on load instead: Knative concurrency counts in-flight requests per pod, KEDA can scale on vLLM's waiting-request queue or KV-cache utilization, and the Prometheus Adapter exposes any metric to an HPA. Whatever you choose, scale up fast and scale down slowly so expensive GPU pods do not flap."
+    },
+    {
+      "type": "content",
+      "title": "Multi-GPU and Choosing a Stack",
+      "bullets": [
+        "Tensor parallelism shards layers; keep within a node (NVLink)",
+        "Pipeline parallelism splits stages across nodes",
+        "GPUs per replica = tensorParallelSize x pipelineParallelSize",
+        "KServe: declarative; BentoML: packaging; Ray Serve: composition + distributed"
+      ],
+      "code": "workerSpec:\n  tensorParallelSize: 4     # 4 GPUs per node (NVLink)\n  pipelineParallelSize: 2   # 2 nodes -> 8 GPUs total",
+      "narration": "When a model is too big for one GPU, split it. Tensor parallelism shards each layer across GPUs and needs fast NVLink interconnect, so keep it within a node. Pipeline parallelism splits the model into stages and tolerates slower links between nodes. Total GPUs per replica is tensor times pipeline parallel size. For the stack itself: KServe is the default for declarative, Kubernetes-native endpoints with scale-to-zero; BentoML is packaging-first, bundling code and weights into a portable Bento; and Ray Serve shines at composing multi-stage pipelines and distributed multi-GPU serving. Avoid spreading a tensor-parallel group across nodes, and remember the Cluster Autoscaler or a warm GPU pool so scale-ups have a node to land on."
+    }
+  ]
+}

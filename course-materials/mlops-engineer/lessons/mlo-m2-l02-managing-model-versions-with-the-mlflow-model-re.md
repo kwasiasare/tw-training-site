@@ -94,7 +94,7 @@ with mlflow.start_run() as run:
     model = RandomForestClassifier().fit(X_train, y_train)
     mlflow.sklearn.log_model(
         model,
-        artifact_path="model",
+        name="model",  # MLflow 3.x: 'name' replaces the deprecated 'artifact_path'
         registered_model_name="fraud-detector"  # registers automatically
     )
 ```
