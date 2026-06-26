@@ -8986,6 +8986,310 @@
       }
     ]
   },
+  "dsc-m5-l01-calling-llm-apis-from-python": {
+    "course": "data-scientist",
+    "title": "Calling LLM APIs from Python: The LLM as a Data Science Tool",
+    "objectives": [
+      "Explain where LLMs complement tabular models by handling unstructured text and few-shot tasks",
+      "Call an LLM from Python using the Anthropic Messages API and read the response",
+      "Steer output deterministically with system prompts, temperature, max_tokens, and stop sequences",
+      "Produce structured JSON output and parse it safely without ever calling eval()",
+      "Select a model by matching task difficulty and token cost to a cheap or frontier model",
+      "Identify the points in a data science workflow where an LLM adds the most value"
+    ],
+    "body": "## Why LLMs Matter for a Data Scientist\n\nMost of your work is **structured** data: rows and columns of numbers and categories, modeled with regression, gradient boosting, or clustering. Those tools are accurate, cheap, and interpretable, and nothing here replaces them. But a large fraction of real-world signal lives in **unstructured text** — support tickets, reviews, emails, notes. Classical ML struggles here unless you have a large, labeled training set.\n\nA large language model (LLM) fills exactly this gap:\n\n- **Unstructured text** — it reads and reasons over free text directly.\n- **Few-shot tasks** — it generalizes from a handful of in-prompt examples, with no model training.\n- **Generation** — it writes summaries, rewrites, and explanations on demand.\n\nThink of the LLM as a function you call from Python: text in, text out. It **complements** your tabular models — use gradient boosting on the numeric features, and an LLM to convert messy text into features or labels those models can consume.\n\n## The Messages API: The Canonical Call\n\nEvery interaction is a single call to the Messages API. Install the SDK (`pip install anthropic`), set `ANTHROPIC_API_KEY` in your environment, and call `client.messages.create`. The same patterns apply to other providers, but we keep the examples concrete with the Anthropic SDK.\n\n```python\nfrom anthropic import Anthropic\n\nclient = Anthropic()  # reads ANTHROPIC_API_KEY from the environment\n\nmsg = client.messages.create(\n    model=\"claude-haiku-4-5\",\n    max_tokens=1024,\n    system=\"You are a precise data-labeling assistant.\",\n    messages=[{\"role\": \"user\", \"content\": \"Classify the sentiment of: 'The app keeps crashing.'\"}],\n)\n\ntext = msg.content[0].text\nprint(text)\n```\n\nThe response is a list of content blocks; the generated text lives in `msg.content[0].text`. The `messages` list is the conversation — each item has a `role` (`user` or `assistant`) and `content`.\n\n## Steering the Output\n\nA raw call gives you the model's default behavior. Four levers tighten it for data work:\n\n- **`system`** — sets the persona and rules (\"Reply with only one word: positive, negative, or neutral.\").\n- **`temperature`** — controls randomness from `0.0` (deterministic, best for extraction/classification) to `1.0` (creative).\n- **`max_tokens`** — caps output length; keep it small for short labels to save cost and time.\n- **`stop_sequences`** — strings that halt generation early once produced.\n\n```python\nmsg = client.messages.create(\n    model=\"claude-haiku-4-5\",\n    max_tokens=10,\n    temperature=0.0,\n    system=\"Reply with exactly one word: positive, negative, or neutral.\",\n    messages=[{\"role\": \"user\", \"content\": \"I love the new dashboard.\"}],\n)\nprint(msg.content[0].text.strip())  # -> positive\n```\n\nLow temperature plus a strict system prompt turns the LLM into a stable, repeatable labeling function.\n\n## Structured (JSON) Output\n\nFor a pipeline you need machine-readable output, not prose. Instruct the model to return JSON, then **parse it safely**. Never call `eval()` on model output — it is untrusted text and `eval` would execute arbitrary code.\n\n```python\nimport json\n\nmsg = client.messages.create(\n    model=\"claude-haiku-4-5\",\n    max_tokens=256,\n    temperature=0.0,\n    system=\"Extract fields and return ONLY valid JSON with keys: sentiment, urgency (1-5).\",\n    messages=[{\"role\": \"user\", \"content\": \"My subscription was charged twice and support won't reply!\"}],\n)\n\nraw = msg.content[0].text\ntry:\n    data = json.loads(raw)\n    assert \"sentiment\" in data and \"urgency\" in data  # validate the shape\nexcept (json.JSONDecodeError, AssertionError):\n    data = None  # handle the bad response: retry, log, or skip\n\nprint(data)\n```\n\nPrompting-for-JSON works, but the model can still drift. For a stronger guarantee, use **tool use / structured outputs**, where you declare a JSON schema and the API enforces it — the model's response is constrained to match your shape, removing most parse failures.\n\n## Model Selection and Cost\n\nYou pay per **token** (input and output), so cost scales with how much text flows through. Match the model to the task:\n\n- **Cheap, small model** (e.g. `claude-haiku-4-5`) for high-volume, simple work: bulk classification, short extraction, tagging.\n- **Frontier model** (e.g. `claude-opus-4-8`) for genuinely hard reasoning: multi-step analysis, nuanced judgment, tricky edge cases.\n\nNever hard-pin one model as \"the\" model. Profile a sample, see which tier meets your quality bar, and route accordingly.\n\n```python\ndef classify(text, hard=False):\n    model = \"claude-opus-4-8\" if hard else \"claude-haiku-4-5\"\n    msg = client.messages.create(\n        model=model,\n        max_tokens=20,\n        temperature=0.0,\n        system=\"Reply with one label: bug, billing, feature, or other.\",\n        messages=[{\"role\": \"user\", \"content\": text}],\n    )\n    return msg.content[0].text.strip()\n```\n\nRunning the cheap model on the easy 95% and escalating only the hard cases is a common, large cost saving.\n\n## Where LLMs Fit in a DS Workflow\n\nLLMs slot into stages where text dominates:\n\n- **Data prep** — clean, normalize, and de-duplicate messy free-text fields.\n- **Feature engineering** — turn text into structured columns (sentiment, topic, urgency) that feed a tabular model.\n- **Labeling** — produce few-shot labels to bootstrap a supervised dataset, then train a cheap classical model on them.\n- **Communication** — draft summaries and plain-language explanations of results for stakeholders.\n\nThe LLM is one tool among many. The skill is knowing when text-shaped problems call for it and when a tabular model is still the right answer.",
+    "quiz": [
+      {
+        "q": "You have 50,000 free-text customer reviews and almost no labels. Which approach fits an LLM best?",
+        "options": [
+          "Train a logistic regression from scratch on the raw text",
+          "Compute the mean review length and threshold it",
+          "Use a few-shot LLM prompt to classify sentiment without labeled training data",
+          "Drop the reviews because there are no labels"
+        ],
+        "answer": 2,
+        "why": "LLMs excel at unstructured text and few-shot tasks where classical ML would need a large labeled training set. A few-shot prompt classifies each review with no model training required."
+      },
+      {
+        "q": "In the Anthropic Messages API, how do you read the model's generated text from the response object `msg`?",
+        "options": [
+          "msg.content[0].text",
+          "msg.choices[0].message.content",
+          "msg.text",
+          "msg.output"
+        ],
+        "answer": 0,
+        "why": "The Messages API returns a list of content blocks. The generated text is in the first block's .text attribute: msg.content[0].text."
+      },
+      {
+        "q": "Which parameter should you set to make an extraction task as deterministic and repeatable as possible?",
+        "options": [
+          "A high temperature like 1.0",
+          "A longer system prompt only",
+          "A larger max_tokens",
+          "A low temperature like 0.0"
+        ],
+        "answer": 3,
+        "why": "Temperature controls randomness. A low temperature (near 0.0) makes the model pick the most likely tokens, giving stable, repeatable output that is ideal for extraction and classification."
+      },
+      {
+        "q": "After prompting a model to return JSON, what is the safe way to turn its text output into a Python object?",
+        "options": [
+          "eval(text) so any Python literal is accepted",
+          "json.loads(text) inside a try/except, then validate the shape",
+          "Assume it is already a dict and index into it",
+          "Use a regex to pull out values one by one"
+        ],
+        "answer": 1,
+        "why": "Model output is untrusted text, so never use eval(). Parse with json.loads() inside try/except to handle malformed JSON, then validate that the expected keys and types are present. Tool use / structured outputs give a stronger guarantee."
+      },
+      {
+        "q": "You must classify millions of short, simple snippets cheaply. Which model choice is most appropriate?",
+        "options": [
+          "Always use the largest frontier model for every call",
+          "Avoid LLMs entirely because volume is high",
+          "Use a small, cheap model like claude-haiku-4-5 for the bulk simple work",
+          "Pick a model at random per request"
+        ],
+        "answer": 2,
+        "why": "Cost scales with tokens, so match the model to the task. A small, cheap model such as claude-haiku-4-5 handles high-volume simple classification economically; reserve a frontier model for genuinely hard reasoning."
+      },
+      {
+        "q": "In one or two sentences, explain why an LLM complements rather than replaces a tabular model like gradient boosting in a churn-prediction pipeline.",
+        "options": null,
+        "answer": "A tabular model is best for structured numeric and categorical features (usage counts, tenure, plan), where it is accurate, cheap, and interpretable. An LLM complements it by turning unstructured inputs the tabular model cannot use, such as free-text support tickets, into features or labels; you use each tool where it is strongest rather than swapping one for the other.",
+        "why": "The key idea is fit-for-purpose: tabular models own structured features and LLMs own unstructured text. Combining them beats forcing either to do the other's job."
+      }
+    ]
+  },
+  "dsc-m5-l02-prompt-engineering-for-data-tasks": {
+    "course": "data-scientist",
+    "title": "Prompt Engineering for Data Tasks",
+    "objectives": [
+      "Decompose a good data prompt into role, task, explicit constraints, a fixed output format, and a fixed label set",
+      "Classify a text column in a DataFrame with few-shot prompting and a cheap, fast model",
+      "Extract messy text into structured JSON and parse it safely without eval",
+      "Build a small labeled eval set and measure accuracy, precision, recall, and F1 with scikit-learn",
+      "Iterate on a prompt using the same eval loop you use to iterate on a model",
+      "Add guardrails for fixed label sets, an unknown option, parse failures, and batch cost"
+    ],
+    "body": "## Why a Prompt Is a Data Component\n\nIn earlier modules you trained models that map inputs to outputs. A prompt does the same thing: it maps a row of text to a label or a structured record, except you write the mapping in natural language instead of fitting parameters. So a prompt can be **built, measured, versioned, and improved** with the same discipline you apply to a model. The biggest mistake is to write one prompt, eyeball a few outputs, and ship it. Instead, define the task crisply, run it on a labeled sample, and score it.\n\n## Anatomy of a Good Data Prompt\n\nA reliable data prompt has four parts:\n\n- **Role and task**: tell the model what it is and exactly what to do.\n- **Explicit constraints**: what to include, what to ignore, edge cases.\n- **A fixed output format**: one label, or strict JSON. No prose.\n- **A fixed label set**: the allowed answers, plus an escape hatch.\n\n```python\nfrom anthropic import Anthropic\nclient = Anthropic()\n\ndef classify(text, labels):\n    msg = client.messages.create(\n        model=\"claude-haiku-4-5\", max_tokens=10,\n        system=f\"Classify into exactly one of: {labels}. Reply with only the label.\",\n        messages=[{\"role\": \"user\", \"content\": text}],\n    )\n    return msg.content[0].text.strip()\n```\n\nThe `system` prompt fixes the task and format; the user turn carries the row. `max_tokens=10` keeps it cheap because a label is short.\n\n## Few-Shot Classification Over a DataFrame\n\nReal work means a whole column, not one string. Add a few labeled examples to steer the model, then map over the column with a cheap model.\n\n```python\nimport pandas as pd\n\nLABELS = [\"billing\", \"bug\", \"feature_request\", \"other\"]\ndf = pd.DataFrame({\"ticket\": [\"App crashes on login\",\n                               \"Charge me yearly instead\"]})\n\ndf[\"pred\"] = df[\"ticket\"].apply(lambda t: classify(t, LABELS))\n```\n\nFor thousands of rows, batch with `claude-haiku-4-5` for speed and cost, and reserve `claude-opus-4-8` for the rows your eval flags as ambiguous. Don't hard-pin a date-suffixed model ID; pick the model that fits the difficulty.\n\n## Extraction to Structured JSON\n\nClassification picks one label; extraction pulls many fields from messy text. Ask for strict JSON and parse it safely.\n\n```python\nimport json\n\ndef extract(text):\n    msg = client.messages.create(\n        model=\"claude-haiku-4-5\", max_tokens=200,\n        system=(\"Extract fields as JSON with keys \"\n                \"company, amount, due_date. Use null if missing. \"\n                \"Output only JSON.\"),\n        messages=[{\"role\": \"user\", \"content\": text}],\n    )\n    raw = msg.content[0].text\n    try:\n        return json.loads(raw)\n    except json.JSONDecodeError:\n        return {\"company\": None, \"amount\": None, \"due_date\": None}\n```\n\nNever call `eval()` on model output. For hard guarantees, use tool use or structured outputs so the response is schema-validated, not hand-parsed.\n\n## Evaluate a Prompt Like a Model\n\nThis is the heart of the lesson. Build a small **labeled** eval set, run the prompt, and measure it with scikit-learn, connecting back to Module 3 metrics.\n\n```python\nfrom sklearn.metrics import (accuracy_score, f1_score,\n                             classification_report)\n\neval_df = pd.DataFrame({\n    \"text\": [\"App crashes\", \"Refund please\", \"Add dark mode\"],\n    \"true\": [\"bug\", \"billing\", \"feature_request\"],\n})\neval_df[\"pred\"] = eval_df[\"text\"].apply(lambda t: classify(t, LABELS))\n\nprint(accuracy_score(eval_df[\"true\"], eval_df[\"pred\"]))\nprint(f1_score(eval_df[\"true\"], eval_df[\"pred\"], average=\"macro\"))\nprint(classification_report(eval_df[\"true\"], eval_df[\"pred\"]))\n```\n\nAccuracy, precision, recall, F1, and the confusion matrix mean exactly what they did for a classifier. Iterating on a prompt is the same loop as iterating on a model: change the wording, re-run, keep the higher-scoring version.\n\n## Guardrails for Reliable Pipelines\n\nProduction prompts fail in predictable ways:\n\n- **Constrain to a fixed label set** so outputs map cleanly to your classes and confusion matrix.\n- **Give an explicit `unknown`/`other` option** so the model parks ambiguous rows instead of guessing wrong.\n- **Handle parse failures** with `try/except` and a fallback label, so one bad response never crashes a batch.\n\n```python\ndef safe_label(text, labels):\n    out = classify(text, labels).lower()\n    return out if out in labels else \"other\"\n```\n\n## Cost and Latency of Batch Prompting\n\nEach row is an API call, so cost and latency scale with the data. Use `claude-haiku-4-5` for the bulk, keep `max_tokens` tight for labels, and escalate only flagged rows to `claude-opus-4-8`. Where supported, batch processing trades latency for a lower per-call price on large, non-interactive jobs.",
+    "quiz": [
+      {
+        "q": "Which set of elements best describes the anatomy of a reliable data-task prompt?",
+        "options": [
+          "A friendly greeting, a long backstory, and an open-ended question",
+          "The highest possible temperature and a very large max_tokens",
+          "A clear role/task, explicit constraints, a fixed output format, and a fixed label set",
+          "A single example and a request to be creative"
+        ],
+        "answer": 2,
+        "why": "Reliable data prompts pin down the role and task, state constraints, force a fixed output format, and restrict outputs to a known label set so results are parseable and comparable across rows."
+      },
+      {
+        "q": "Why should you evaluate a classification prompt on a small LABELED set before running it over the whole DataFrame?",
+        "options": [
+          "Because it lets you measure accuracy and F1 and iterate on the prompt the same way you iterate on a model",
+          "Because the API refuses unlabeled data",
+          "Because labeled data makes the model run faster",
+          "Because evaluation is only possible on the training split"
+        ],
+        "answer": 0,
+        "why": "A labeled eval set turns prompt iteration into the familiar measure-then-improve loop: you compute accuracy, precision, recall, and F1 on known answers and keep the prompt version that scores best."
+      },
+      {
+        "q": "Which scikit-learn function gives you per-class precision, recall, and F1 in a single readable summary?",
+        "options": [
+          "train_test_split",
+          "StandardScaler",
+          "predict_proba",
+          "classification_report"
+        ],
+        "answer": 3,
+        "why": "classification_report(y_true, y_pred) prints per-class precision, recall, F1, and support, which is exactly what you want when comparing prompt versions against true labels."
+      },
+      {
+        "q": "What is the safest way to turn a model's JSON-looking string output into a Python object?",
+        "options": [
+          "Call eval() on the string",
+          "Use json.loads() inside a try/except and handle parse failures",
+          "Trust the string and index into it directly",
+          "Concatenate it into another prompt"
+        ],
+        "answer": 1,
+        "why": "Never eval() model output. Parse with json.loads() wrapped in try/except so malformed responses are caught and routed to a fallback (such as 'unknown') instead of crashing the pipeline."
+      },
+      {
+        "q": "For bulk classification of thousands of rows where each call is a simple label, which model choice is most appropriate as a default?",
+        "options": [
+          "A date-suffixed pinned model ID for reproducibility",
+          "claude-opus-4-8 for every single row regardless of difficulty",
+          "claude-haiku-4-5 for cheap, fast bulk work, escalating only hard cases to claude-opus-4-8",
+          "The most expensive model available, to be safe"
+        ],
+        "answer": 2,
+        "why": "Match the model to the job: claude-haiku-4-5 is cheap and fast for high-volume simple labels, and you reserve claude-opus-4-8 for the genuinely hard or ambiguous cases. Avoid hard-pinning date-suffixed IDs."
+      },
+      {
+        "q": "Explain why guardrails like a fixed label set and an explicit 'unknown'/'other' option improve a classification prompt, and how they connect to the Module 3 confusion matrix.",
+        "options": null,
+        "answer": "A fixed label set constrains the model to outputs you can map to known classes, so every prediction lines up with a column or row of the confusion matrix instead of producing free-text you cannot score. An explicit 'unknown' or 'other' option gives the model a safe place to put genuinely ambiguous rows rather than guessing a wrong concrete label, which keeps false positives and false negatives honest. Together they make predicted-vs-true comparison clean, so accuracy, precision, recall, and F1 computed from the confusion matrix reflect real performance rather than parsing noise.",
+        "why": "Guardrails align the model's output space with the evaluation's label space. That is what makes a confusion matrix and the metrics derived from it (accuracy, precision, recall, F1) trustworthy."
+      }
+    ]
+  },
+  "dsc-m5-l03-embeddings-and-retrieval-augmented-generation": {
+    "course": "data-scientist",
+    "title": "Embeddings and Retrieval-Augmented Generation (RAG)",
+    "objectives": [
+      "Explain what text embeddings are and why semantic similarity maps to geometric closeness",
+      "Generate document and query embeddings using the Voyage AI client",
+      "Implement semantic search with cosine similarity using only numpy",
+      "Build a minimal RAG pipeline that retrieves top-k chunks and grounds an LLM answer in them",
+      "Choose when to scale from in-memory search to a vector database like Chroma or pgvector",
+      "Evaluate when RAG helps, when retrieval quality limits it, and how the pattern stays provider-agnostic"
+    ],
+    "body": "## What Embeddings Are\n\nAn **embedding** turns a piece of text into a **dense vector** of floating-point numbers, often hundreds or thousands of dimensions. The key property: the model is trained so that texts with similar *meaning* land close together in this space, while unrelated texts land far apart. Semantic similarity becomes **geometric closeness**.\n\nThat is what makes embeddings useful. Instead of matching keywords, you ask \"which document is most like this query?\" and answer with arithmetic. \"How do I reset my password?\" and \"I forgot my login credentials\" share almost no words, yet their embeddings sit near each other because they mean nearly the same thing.\n\n## Generating Embeddings\n\nA crucial accuracy point: **Anthropic does not offer an embeddings API.** For embeddings, Anthropic officially recommends **Voyage AI**. Newer Voyage models may exist, so check the docs.\n\n```python\nimport voyageai\n\nvo = voyageai.Client()  # reads VOYAGE_API_KEY\n\nresult = vo.embed(documents, model=\"voyage-3.5\",\n                  input_type=\"document\")\nvectors = result.embeddings  # list[list[float]]\n```\n\nUse `input_type=\"document\"` for your corpus and `input_type=\"query\"` for a user's search query. The pattern is **provider-agnostic** — open-source models such as **BGE** or **E5** produce comparable vectors, and the retrieval logic does not change.\n\n## Semantic Search with Cosine Similarity\n\nOnce text is vectors, finding the closest matches is just math. **Cosine similarity** measures the angle between two vectors — the normalized dot product — so it captures directional (semantic) alignment regardless of magnitude. Pure numpy is enough:\n\n```python\nimport numpy as np\n\ndef cosine(a, b):\n    a, b = np.array(a), np.array(b)\n    return a @ b / (np.linalg.norm(a) * np.linalg.norm(b))\n\ndef top_k(query_vec, doc_vecs, k=3):\n    scores = [cosine(query_vec, d) for d in doc_vecs]\n    ranked = sorted(enumerate(scores),\n                    key=lambda x: x[1], reverse=True)\n    return ranked[:k]  # [(index, score), ...]\n```\n\nEmbed the query with `input_type=\"query\"`, score it against the stored vectors, and take the highest few. This dependency-light approach is perfect for learning and small corpora.\n\n## From Search to RAG\n\n**Retrieval-Augmented Generation** joins that search step to a language model: **retrieve** the top-k relevant chunks, **augment** the prompt by inserting them as context, and **generate** an answer grounded in them.\n\n```python\nfrom anthropic import Anthropic\n\nclient = Anthropic()\nq = vo.embed([question], model=\"voyage-3.5\",\n             input_type=\"query\").embeddings[0]\ncontext = \"\\n\".join(docs[i] for i, _ in top_k(q, vectors))\n\nmsg = client.messages.create(\n    model=\"claude-opus-4-8\", max_tokens=1024,\n    system=(\"Answer ONLY using the provided context. \"\n            \"If it's not there, say you don't know.\"),\n    messages=[{\"role\": \"user\",\n               \"content\": f\"Context:\\n{context}\\n\\nQuestion: {question}\"}])\nanswer = msg.content[0].text\n```\n\nWe use the stable Anthropic Messages API for generation. The system instruction is doing real work: it tells the model to stay inside the retrieved context and admit ignorance rather than invent an answer. Default to Claude, but learn model selection for your latency and cost needs. Never `eval()` model output.\n\n## Scaling Up with Vector Databases\n\nThe numpy scan recomputes cosine similarity against *every* vector each query — fine for hundreds of chunks, but it breaks down as the corpus grows. A **vector database** adds persistence, indexing, and approximate nearest-neighbor search so queries stay fast at scale.\n\n```python\nimport chromadb\n\ncollection = chromadb.Client().create_collection(\"docs\")\ncollection.add(ids=ids, embeddings=vectors,\n               documents=documents)\nhits = collection.query(query_embeddings=[q], n_results=3)\n```\n\n**Chroma** is a lightweight place to start; **pgvector** keeps vectors right inside Postgres alongside your relational data. The retrieval interface changes, but the RAG pattern is identical.\n\n## When RAG Helps — and Its Limits\n\nRAG shines when you need answers **grounded in your own data**: private knowledge bases, fresh information past the model's training cutoff, or domains where hallucination is costly. By forcing the model to answer from retrieved context, you make responses traceable and far more trustworthy.\n\nBut RAG has a ceiling: **retrieval quality.** If the relevant chunk is never retrieved, no model can recover it. Raising that ceiling means better chunking, a stronger embedding model, query rewriting, re-ranking, and good corpus coverage. Build the retrieval well, and the generation takes care of itself.",
+    "quiz": [
+      {
+        "q": "What does a text embedding actually represent?",
+        "options": [
+          "A compressed copy of the original text that can be decoded back to words",
+          "A hash that is identical only for identical strings",
+          "A dense vector of numbers positioning the text in a space where similar meanings sit close together",
+          "The model's final answer to a question about the text"
+        ],
+        "answer": 2,
+        "why": "An embedding is a dense numeric vector. Semantically similar texts land near each other geometrically, which is exactly what makes vector-based semantic search work. It is not a reversible compression or a hash."
+      },
+      {
+        "q": "Which provider does this lesson use for embeddings, and why not Anthropic?",
+        "options": [
+          "Voyage AI, because Anthropic offers no embeddings API and recommends Voyage",
+          "Anthropic, via its dedicated embeddings endpoint",
+          "Anthropic, by asking Claude to output a vector",
+          "Any LLM, since every chat model also returns embeddings"
+        ],
+        "answer": 0,
+        "why": "Anthropic does not provide an embeddings API; it officially recommends Voyage AI. You call vo.embed(...) with VOYAGE_API_KEY. Chat models like Claude generate text, not embedding vectors."
+      },
+      {
+        "q": "In semantic search, why is cosine similarity a natural choice for comparing two embedding vectors?",
+        "options": [
+          "It counts how many words two texts share",
+          "It only works after the vectors are sorted",
+          "It requires the vectors to be integers",
+          "It measures the angle between vectors, so it captures directional (semantic) similarity regardless of magnitude"
+        ],
+        "answer": 3,
+        "why": "Cosine similarity is the normalized dot product: it measures the angle between vectors, capturing how aligned their directions are independent of length. That aligns with how embedding models encode meaning as direction."
+      },
+      {
+        "q": "In a RAG pipeline, what is the role of the retrieved top-k chunks?",
+        "options": [
+          "They are used to fine-tune the model's weights at request time",
+          "They are inserted into the prompt as context so the model answers grounded in them",
+          "They replace the user's question entirely",
+          "They are discarded after retrieval and only the scores are sent to the model"
+        ],
+        "answer": 1,
+        "why": "RAG retrieves the most relevant chunks and places them in the prompt as context. The model is then instructed to answer using that context, which grounds the response in your data and reduces hallucination. No weights are updated."
+      },
+      {
+        "q": "When should you move from in-memory numpy cosine search to a vector database such as Chroma or pgvector?",
+        "options": [
+          "As soon as you have more than one document",
+          "Only when you switch embedding providers",
+          "When the corpus grows large enough that scanning every vector per query becomes too slow or memory-heavy",
+          "Never, because numpy always outperforms a vector database"
+        ],
+        "answer": 2,
+        "why": "A brute-force numpy scan is fine for small corpora but recomputes similarity against every vector each query. Vector databases add indexing, persistence, and approximate nearest-neighbor search that scale to large corpora."
+      },
+      {
+        "q": "Open-ended: Describe the limits of RAG. Why is retrieval quality often called the ceiling of a RAG system, and name two things you could change to raise that ceiling.",
+        "options": null,
+        "answer": "Retrieval quality is the ceiling because the LLM can only ground its answer in the chunks retrieval actually surfaces — if the relevant chunk is never retrieved, no amount of model capability recovers it. Two things you could change to raise that ceiling: improve the chunking strategy and use a stronger or domain-tuned embedding model (other options: query rewriting, re-ranking or increasing top-k, and improving corpus coverage/freshness).",
+        "why": "RAG end-to-end quality is capped by what retrieval finds — the generator cannot use information it never receives."
+      }
+    ]
+  },
+  "dsc-m5-l04-evaluating-llms-and-when-not-to-use-one": {
+    "course": "data-scientist",
+    "title": "Evaluating LLMs and When NOT to Use One",
+    "objectives": [
+      "Build an evaluation harness for an LLM feature using a labeled holdout set",
+      "Score LLM outputs with scikit-learn metrics (accuracy, precision, recall, F1) reused from Module 3",
+      "Explain why hallucination happens and apply grounding, citations, and abstention to reduce it",
+      "Apply a decision framework that chooses classical ML over an LLM for structured tabular prediction",
+      "Compare cost, latency, determinism, and privacy tradeoffs between LLM and classical approaches",
+      "Deliver a mini-project comparing an LLM classifier and a TF-IDF baseline with a written recommendation"
+    ],
+    "body": "## Why Evaluation Is Non-Negotiable\n\nYou would never ship a churn model without a confusion matrix and a held-out test set. An LLM feature deserves the same discipline. The danger is that LLM output is fluent and *looks* correct, which makes 'it seems to work' feel like evidence. It isn't: a demo that impresses on five hand-picked prompts can fail on 30% of real traffic, and only an evaluation will tell you.\n\nThe mental shift: treat the prompt + model as **a classifier (or generator) you must measure**. Define what 'correct' means, collect labeled examples, run the system, and score it — the same workflow as Module 3, only the model changed.\n\n## Building an Eval Harness\n\nStart with a small **labeled eval set**: 50-500 examples with known answers (`y_true`). Run the LLM, parse each prediction defensively, and score with metrics you already know.\n\n```python\nfrom anthropic import Anthropic\nfrom sklearn.metrics import accuracy_score, f1_score, classification_report\n\nclient = Anthropic()\nLABELS = [\"billing\", \"technical\", \"account\", \"other\"]\n\ndef classify(text):\n    msg = client.messages.create(\n        model=\"claude-haiku-4-5\",  # cheap model for high-volume eval runs\n        max_tokens=10,\n        system=f\"Classify the ticket into one of: {LABELS}. Reply with only the label.\",\n        messages=[{\"role\": \"user\", \"content\": text}],\n    )\n    out = msg.content[0].text.strip().lower()\n    return out if out in LABELS else \"other\"  # never eval() model output\n\ny_pred = [classify(t) for t in X_eval]\nprint(accuracy_score(y_eval, y_pred))\nprint(f1_score(y_eval, y_pred, average='macro'))\nprint(classification_report(y_eval, y_pred))\n```\n\nUse `claude-haiku-4-5` for cheap eval loops; reserve `claude-opus-4-8` for genuinely hard tasks. **Never `eval()` raw model output** — parse against a known label set.\n\nFor open-ended outputs (summaries, drafts) with no single right answer, an **LLM-as-judge** can score quality. But judges carry systematic bias (favoring verbose or same-family answers) and can be inconsistent — calibrate against a human-labeled sample before trusting them.\n\n## Hallucination\n\nA **hallucination** is fluent, confident output unsupported by fact — an invented citation, a fabricated API. It happens because an LLM predicts likely-sounding tokens with no built-in sense of what it doesn't know. Mitigations, by impact:\n\n- **Grounding / RAG** (from l03): retrieve real source text and answer *only* from it.\n- **Ask for citations**: require the model to point to the supporting passage.\n- **Permit abstention**: allow 'I don't know' so the model isn't forced to guess.\n- **Verify programmatically**: check claimed URLs, numbers, and IDs against a source of truth.\n\n## The Decision Framework: LLM vs Classical ML\n\nThe most important point in the module: **for structured tabular prediction with plenty of labels, an LLM is usually the wrong tool.**\n\n| Signal | Classical ML | LLM |\n|---|---|---|\n| Input shape | Structured / tabular | Unstructured text |\n| Labeled data | Plenty | Little / none (few-shot) |\n| Task | Fixed prediction | Generation, reasoning |\n| Cost per call | Near zero | Per-token \\$ |\n| Latency | Milliseconds | Hundreds of ms+ |\n| Determinism | Deterministic | Non-deterministic |\n| Interpretability | High (coefficients) | Low |\n\nA gradient-boosted tree on 40 features and 200k rows is cheaper, faster, more accurate, and explainable. An LLM shines only where a classical model is impractical: messy free text, generation, and low-label settings.\n\n## Cost, Latency, Determinism, Privacy\n\nFour tradeoffs to make explicit in any design doc:\n\n- **Cost**: LLM calls cost money per token; a local model is near-free per prediction.\n- **Latency**: network + inference adds hundreds of ms; classical inference is sub-millisecond.\n- **Determinism**: the same prompt can yield different answers; a fitted model is reproducible.\n- **Privacy**: an API call may send data off-premises — check regulations (e.g. the EU AI Act) before routing personal data to a third party.\n\n## Mini-Project Brief: LLM vs Baseline Showdown\n\n**Goal.** Take a text-classification dataset (e.g. the 20 Newsgroups subset, or your own labeled tickets/reviews). Build **two** classifiers, evaluate both on the *same* labeled holdout with the *same* metrics, and recommend which to ship.\n\n```python\nfrom sklearn.feature_extraction.text import TfidfVectorizer\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.pipeline import make_pipeline\n\n# Classical baseline (connects back to earlier modules)\nbaseline = make_pipeline(TfidfVectorizer(), LogisticRegression(max_iter=1000))\nbaseline.fit(X_train, y_train)\nbase_pred = baseline.predict(X_test)\n\nllm_pred = [classify(t) for t in X_test]  # reuse the harness above\n```\n\n**Deliverables:**\n\n1. A prompt-based LLM classifier and a TF-IDF + logistic-regression baseline.\n2. Both evaluated on one holdout with `accuracy_score`, `f1_score`, and `classification_report`.\n3. A results table comparing metrics **and** cost/latency for each approach.\n4. A short written recommendation: which would you ship, and why — citing the decision framework and the measured tradeoffs.\n\nThe honest answer is often 'the baseline,' and being able to defend that is the skill this module teaches.",
+    "quiz": [
+      {
+        "q": "Why must you build a labeled eval set before shipping an LLM-powered classification feature?",
+        "options": [
+          "LLMs cannot be evaluated with scikit-learn",
+          "Eval sets make the LLM run faster at inference time",
+          "Without ground-truth labels you cannot measure accuracy, precision, recall, or F1 — only guess",
+          "The Anthropic API requires an eval set to return a response"
+        ],
+        "answer": 2,
+        "why": "Evaluation is non-negotiable. A labeled holdout gives you ground truth to compare predictions against, so you can compute real metrics instead of trusting that the output 'looks right'. You would never ship a classical model without test metrics; an LLM feature is no different."
+      },
+      {
+        "q": "A model confidently states a plausible-sounding but factually false citation. What is this called, and which technique most directly reduces it?",
+        "options": [
+          "Hallucination; ground the model in retrieved source text (RAG) and ask it to cite or say 'I don't know'",
+          "Overfitting; add more training epochs",
+          "Data leakage; split the data before scaling",
+          "Class imbalance; use class_weight='balanced'"
+        ],
+        "answer": 0,
+        "why": "Hallucination is fluent, confident output unsupported by fact. Grounding the model on retrieved documents (RAG), instructing it to cite sources, and explicitly permitting abstention ('say you don't know') are the most direct mitigations because they constrain generation to available evidence."
+      },
+      {
+        "q": "You need to predict a numeric customer lifetime value from 40 tabular features, with 200,000 labeled rows. Which tool is the better default and why?",
+        "options": [
+          "An LLM, because it is the most advanced technology available",
+          "Neither — this problem cannot be modeled",
+          "An LLM, because tabular data is unstructured text",
+          "Classical ML (e.g. gradient boosting / regression), because it is cheaper, faster, deterministic, and interpretable on structured data with ample labels"
+        ],
+        "answer": 3,
+        "why": "Structured tabular prediction with plenty of labels is the textbook case for classical ML. It is cheaper per prediction, lower latency, deterministic, interpretable, and typically more accurate than prompting an LLM. Reaching for an LLM here adds cost and non-determinism for no benefit."
+      },
+      {
+        "q": "When using an LLM as a judge to grade other LLM outputs, what is the main caution?",
+        "options": [
+          "The judge model is always more accurate than human labels",
+          "LLM-as-judge can carry systematic bias and inconsistency, so validate it against a sample of human labels before trusting it",
+          "LLM-as-judge cannot produce a numeric score",
+          "You must use the same model as both the judge and the model under test"
+        ],
+        "answer": 1,
+        "why": "An LLM judge is convenient for scoring open-ended outputs, but it can be biased (e.g. favoring verbose or same-family answers) and inconsistent. Always calibrate it against a human-labeled sample before relying on it, and prefer exact metrics where you have ground-truth labels."
+      },
+      {
+        "q": "Which set of tradeoffs correctly describes an LLM API call relative to a local logistic-regression prediction?",
+        "options": [
+          "Cheaper, lower latency, fully deterministic, keeps data local",
+          "Free, instant, deterministic, and private by default",
+          "More expensive per call, higher latency, non-deterministic, and may send sensitive data to a third party",
+          "Identical on every dimension"
+        ],
+        "answer": 2,
+        "why": "An LLM call typically costs money per token, adds network and inference latency, is non-deterministic across runs, and may transmit data off-premises. A local classical model is essentially free per call, fast, deterministic, and keeps data in your environment. These tradeoffs drive the build-vs-LLM decision."
+      },
+      {
+        "q": "In two or three sentences, describe a real task at your organization (or a realistic one) where an LLM is the RIGHT tool, and explain which specific properties of the task justify it over classical ML.",
+        "options": null,
+        "answer": "A strong answer names an unstructured-text or generation task — e.g. summarizing free-form support tickets, drafting replies, extracting structured fields from messy contracts, or few-shot classification with very few labels — and ties the choice to properties like unstructured input, low/no labeled data, need for flexible reasoning or natural-language output, or rapid prototyping without a training pipeline.",
+        "why": "The point is to articulate the decision framework from the other side: LLMs earn their cost on unstructured text, generation, low-label or few-shot settings, and flexible reasoning, where building a classical model would be slow or impossible. Tying the justification to concrete task properties shows real understanding rather than defaulting to the trendiest tool."
+      }
+    ]
+  },
   "hd1-l01-how-a-computer-works": {
     "course": "helpdesk-tier1-2",
     "title": "How a computer works: hardware, software & the boot process",

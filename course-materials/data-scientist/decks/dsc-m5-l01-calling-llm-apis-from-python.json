@@ -1,0 +1,187 @@
+{
+  "slug": "dsc-m5-l01-calling-llm-apis-from-python",
+  "title": "Calling LLM APIs from Python: The LLM as a Data Science Tool",
+  "month": 5,
+  "monthTitle": "Generative AI and LLM Foundations for Data Scientists",
+  "lesson": 1,
+  "video": "dsc-m5-l01-calling-llm-apis-from-python.mp4",
+  "summary": "Learn to treat a large language model as another tool in your data science toolkit, called from Python with a few lines of code. This lesson covers the Messages API, steering output with system prompts and parameters, getting reliable structured (JSON) output, and choosing models by cost so you can add unstructured-text capabilities to workflows that classical ML handles poorly.",
+  "objectives": [
+    "Explain where LLMs complement tabular models by handling unstructured text and few-shot tasks",
+    "Call an LLM from Python using the Anthropic Messages API and read the response",
+    "Steer output deterministically with system prompts, temperature, max_tokens, and stop sequences",
+    "Produce structured JSON output and parse it safely without ever calling eval()",
+    "Select a model by matching task difficulty and token cost to a cheap or frontier model",
+    "Identify the points in a data science workflow where an LLM adds the most value"
+  ],
+  "quiz": [
+    {
+      "q": "You have 50,000 free-text customer reviews and almost no labels. Which approach fits an LLM best?",
+      "options": [
+        "Train a logistic regression from scratch on the raw text",
+        "Compute the mean review length and threshold it",
+        "Use a few-shot LLM prompt to classify sentiment without labeled training data",
+        "Drop the reviews because there are no labels"
+      ],
+      "answer": 2,
+      "why": "LLMs excel at unstructured text and few-shot tasks where classical ML would need a large labeled training set. A few-shot prompt classifies each review with no model training required."
+    },
+    {
+      "q": "In the Anthropic Messages API, how do you read the model's generated text from the response object `msg`?",
+      "options": [
+        "msg.content[0].text",
+        "msg.choices[0].message.content",
+        "msg.text",
+        "msg.output"
+      ],
+      "answer": 0,
+      "why": "The Messages API returns a list of content blocks. The generated text is in the first block's .text attribute: msg.content[0].text."
+    },
+    {
+      "q": "Which parameter should you set to make an extraction task as deterministic and repeatable as possible?",
+      "options": [
+        "A high temperature like 1.0",
+        "A longer system prompt only",
+        "A larger max_tokens",
+        "A low temperature like 0.0"
+      ],
+      "answer": 3,
+      "why": "Temperature controls randomness. A low temperature (near 0.0) makes the model pick the most likely tokens, giving stable, repeatable output that is ideal for extraction and classification."
+    },
+    {
+      "q": "After prompting a model to return JSON, what is the safe way to turn its text output into a Python object?",
+      "options": [
+        "eval(text) so any Python literal is accepted",
+        "json.loads(text) inside a try/except, then validate the shape",
+        "Assume it is already a dict and index into it",
+        "Use a regex to pull out values one by one"
+      ],
+      "answer": 1,
+      "why": "Model output is untrusted text, so never use eval(). Parse with json.loads() inside try/except to handle malformed JSON, then validate that the expected keys and types are present. Tool use / structured outputs give a stronger guarantee."
+    },
+    {
+      "q": "You must classify millions of short, simple snippets cheaply. Which model choice is most appropriate?",
+      "options": [
+        "Always use the largest frontier model for every call",
+        "Avoid LLMs entirely because volume is high",
+        "Use a small, cheap model like claude-haiku-4-5 for the bulk simple work",
+        "Pick a model at random per request"
+      ],
+      "answer": 2,
+      "why": "Cost scales with tokens, so match the model to the task. A small, cheap model such as claude-haiku-4-5 handles high-volume simple classification economically; reserve a frontier model for genuinely hard reasoning."
+    },
+    {
+      "q": "In one or two sentences, explain why an LLM complements rather than replaces a tabular model like gradient boosting in a churn-prediction pipeline.",
+      "answer": "A tabular model is best for structured numeric and categorical features (usage counts, tenure, plan), where it is accurate, cheap, and interpretable. An LLM complements it by turning unstructured inputs the tabular model cannot use, such as free-text support tickets, into features or labels; you use each tool where it is strongest rather than swapping one for the other.",
+      "why": "The key idea is fit-for-purpose: tabular models own structured features and LLMs own unstructured text. Combining them beats forcing either to do the other's job."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Anthropic Messages API Documentation",
+      "url": "https://docs.claude.com/en/api/messages"
+    },
+    {
+      "label": "Anthropic Python SDK (anthropics/anthropic-sdk-python)",
+      "url": "https://github.com/anthropics/anthropic-sdk-python"
+    },
+    {
+      "label": "Anthropic Prompt Engineering Overview",
+      "url": "https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview"
+    },
+    {
+      "label": "Anthropic Tool Use (Structured Outputs)",
+      "url": "https://docs.claude.com/en/docs/agents-and-tools/tool-use/overview"
+    }
+  ],
+  "body_markdown": "## Why LLMs Matter for a Data Scientist\n\nMost of your work is **structured** data: rows and columns of numbers and categories, modeled with regression, gradient boosting, or clustering. Those tools are accurate, cheap, and interpretable, and nothing here replaces them. But a large fraction of real-world signal lives in **unstructured text** — support tickets, reviews, emails, notes. Classical ML struggles here unless you have a large, labeled training set.\n\nA large language model (LLM) fills exactly this gap:\n\n- **Unstructured text** — it reads and reasons over free text directly.\n- **Few-shot tasks** — it generalizes from a handful of in-prompt examples, with no model training.\n- **Generation** — it writes summaries, rewrites, and explanations on demand.\n\nThink of the LLM as a function you call from Python: text in, text out. It **complements** your tabular models — use gradient boosting on the numeric features, and an LLM to convert messy text into features or labels those models can consume.\n\n## The Messages API: The Canonical Call\n\nEvery interaction is a single call to the Messages API. Install the SDK (`pip install anthropic`), set `ANTHROPIC_API_KEY` in your environment, and call `client.messages.create`. The same patterns apply to other providers, but we keep the examples concrete with the Anthropic SDK.\n\n```python\nfrom anthropic import Anthropic\n\nclient = Anthropic()  # reads ANTHROPIC_API_KEY from the environment\n\nmsg = client.messages.create(\n    model=\"claude-haiku-4-5\",\n    max_tokens=1024,\n    system=\"You are a precise data-labeling assistant.\",\n    messages=[{\"role\": \"user\", \"content\": \"Classify the sentiment of: 'The app keeps crashing.'\"}],\n)\n\ntext = msg.content[0].text\nprint(text)\n```\n\nThe response is a list of content blocks; the generated text lives in `msg.content[0].text`. The `messages` list is the conversation — each item has a `role` (`user` or `assistant`) and `content`.\n\n## Steering the Output\n\nA raw call gives you the model's default behavior. Four levers tighten it for data work:\n\n- **`system`** — sets the persona and rules (\"Reply with only one word: positive, negative, or neutral.\").\n- **`temperature`** — controls randomness from `0.0` (deterministic, best for extraction/classification) to `1.0` (creative).\n- **`max_tokens`** — caps output length; keep it small for short labels to save cost and time.\n- **`stop_sequences`** — strings that halt generation early once produced.\n\n```python\nmsg = client.messages.create(\n    model=\"claude-haiku-4-5\",\n    max_tokens=10,\n    temperature=0.0,\n    system=\"Reply with exactly one word: positive, negative, or neutral.\",\n    messages=[{\"role\": \"user\", \"content\": \"I love the new dashboard.\"}],\n)\nprint(msg.content[0].text.strip())  # -> positive\n```\n\nLow temperature plus a strict system prompt turns the LLM into a stable, repeatable labeling function.\n\n## Structured (JSON) Output\n\nFor a pipeline you need machine-readable output, not prose. Instruct the model to return JSON, then **parse it safely**. Never call `eval()` on model output — it is untrusted text and `eval` would execute arbitrary code.\n\n```python\nimport json\n\nmsg = client.messages.create(\n    model=\"claude-haiku-4-5\",\n    max_tokens=256,\n    temperature=0.0,\n    system=\"Extract fields and return ONLY valid JSON with keys: sentiment, urgency (1-5).\",\n    messages=[{\"role\": \"user\", \"content\": \"My subscription was charged twice and support won't reply!\"}],\n)\n\nraw = msg.content[0].text\ntry:\n    data = json.loads(raw)\n    assert \"sentiment\" in data and \"urgency\" in data  # validate the shape\nexcept (json.JSONDecodeError, AssertionError):\n    data = None  # handle the bad response: retry, log, or skip\n\nprint(data)\n```\n\nPrompting-for-JSON works, but the model can still drift. For a stronger guarantee, use **tool use / structured outputs**, where you declare a JSON schema and the API enforces it — the model's response is constrained to match your shape, removing most parse failures.\n\n## Model Selection and Cost\n\nYou pay per **token** (input and output), so cost scales with how much text flows through. Match the model to the task:\n\n- **Cheap, small model** (e.g. `claude-haiku-4-5`) for high-volume, simple work: bulk classification, short extraction, tagging.\n- **Frontier model** (e.g. `claude-opus-4-8`) for genuinely hard reasoning: multi-step analysis, nuanced judgment, tricky edge cases.\n\nNever hard-pin one model as \"the\" model. Profile a sample, see which tier meets your quality bar, and route accordingly.\n\n```python\ndef classify(text, hard=False):\n    model = \"claude-opus-4-8\" if hard else \"claude-haiku-4-5\"\n    msg = client.messages.create(\n        model=model,\n        max_tokens=20,\n        temperature=0.0,\n        system=\"Reply with one label: bug, billing, feature, or other.\",\n        messages=[{\"role\": \"user\", \"content\": text}],\n    )\n    return msg.content[0].text.strip()\n```\n\nRunning the cheap model on the easy 95% and escalating only the hard cases is a common, large cost saving.\n\n## Where LLMs Fit in a DS Workflow\n\nLLMs slot into stages where text dominates:\n\n- **Data prep** — clean, normalize, and de-duplicate messy free-text fields.\n- **Feature engineering** — turn text into structured columns (sentiment, topic, urgency) that feed a tabular model.\n- **Labeling** — produce few-shot labels to bootstrap a supervised dataset, then train a cheap classical model on them.\n- **Communication** — draft summaries and plain-language explanations of results for stakeholders.\n\nThe LLM is one tool among many. The skill is knowing when text-shaped problems call for it and when a tabular model is still the right answer.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Calling LLM APIs from Python",
+      "sub": "The LLM as a data science tool: unstructured text, few-shot tasks, and generation",
+      "narration": "Welcome to the Generative AI module. In this lesson we treat a large language model not as magic, but as another tool you call from Python, just like scikit-learn. We'll make the canonical API call, steer its output, get reliable JSON back, and choose models by cost. The goal is to add unstructured-text capabilities to the structured workflows you already know."
+    },
+    {
+      "type": "content",
+      "title": "Why LLMs Complement Tabular Models",
+      "bullets": [
+        "Classical ML owns structured numeric and categorical data",
+        "LLMs own unstructured text, few-shot tasks, and generation",
+        "No large labeled training set needed for few-shot prompts",
+        "Use each tool where it is strongest — they combine, not compete"
+      ],
+      "narration": "Your regression and gradient-boosting models are excellent on rows and columns of numbers, and nothing here replaces them. But a lot of real signal lives in free text: tickets, reviews, notes. Classical methods struggle there without many labels. An LLM reads text directly and generalizes from a few examples, so you use it for the text and keep your tabular models for the numbers."
+    },
+    {
+      "type": "content",
+      "title": "The Messages API: The Canonical Call",
+      "bullets": [
+        "pip install anthropic and set ANTHROPIC_API_KEY",
+        "Call client.messages.create with model, max_tokens, messages",
+        "Conversation is a list of role/content message objects",
+        "Read generated text from msg.content[0].text"
+      ],
+      "code": "from anthropic import Anthropic\nclient = Anthropic()\nmsg = client.messages.create(\n    model=\"claude-haiku-4-5\",\n    max_tokens=1024,\n    messages=[{\"role\": \"user\",\n               \"content\": \"Classify: 'The app keeps crashing.'\"}],\n)\ntext = msg.content[0].text",
+      "narration": "Every interaction is one call to the Messages API. You install the SDK, set your API key as an environment variable, and call messages dot create. You pass the model, a max-tokens cap, and the conversation as a list of messages. The response comes back as content blocks, and the text you want sits in content index zero dot text. That's the whole pattern."
+    },
+    {
+      "type": "content",
+      "title": "Steering the Output",
+      "bullets": [
+        "system prompt sets the persona and the rules",
+        "temperature: 0.0 for deterministic extraction, higher for creative",
+        "max_tokens caps length — keep small for short labels",
+        "stop_sequences halt generation early"
+      ],
+      "code": "msg = client.messages.create(\n    model=\"claude-haiku-4-5\",\n    max_tokens=10,\n    temperature=0.0,\n    system=\"Reply with one word: positive, negative, neutral.\",\n    messages=[{\"role\": \"user\", \"content\": \"I love the dashboard.\"}],\n)",
+      "narration": "The default call gives default behavior. To make the model behave like a tool, you steer it. The system prompt sets rules and persona. Temperature controls randomness: set it near zero for stable extraction and classification. Max-tokens caps the length so short labels stay cheap and fast. A strict system prompt plus low temperature turns the LLM into a repeatable labeling function."
+    },
+    {
+      "type": "content",
+      "title": "Structured (JSON) Output",
+      "bullets": [
+        "Prompt the model to return ONLY valid JSON",
+        "Parse with json.loads inside try/except — never eval()",
+        "Validate the shape: check expected keys and types",
+        "Tool use / structured outputs give a stronger guarantee"
+      ],
+      "code": "import json\nraw = msg.content[0].text\ntry:\n    data = json.loads(raw)\n    assert \"sentiment\" in data\nexcept (json.JSONDecodeError, AssertionError):\n    data = None  # retry, log, or skip",
+      "narration": "For a pipeline you need machine-readable output. Ask the model to return only JSON, then parse it safely. Model output is untrusted text, so never use eval, which would execute arbitrary code. Use json dot loads inside a try-except to catch malformed output, then validate that the expected keys are present. For a hard guarantee, declare a schema with tool use or structured outputs and let the API enforce the shape."
+    },
+    {
+      "type": "content",
+      "title": "Model Selection and Cost",
+      "bullets": [
+        "You pay per token — cost scales with text volume",
+        "Cheap small model (claude-haiku-4-5) for bulk, simple work",
+        "Frontier model (claude-opus-4-8) for hard reasoning",
+        "Never hard-pin one model — route by task difficulty"
+      ],
+      "code": "model = \"claude-opus-4-8\" if hard else \"claude-haiku-4-5\"\nmsg = client.messages.create(\n    model=model, max_tokens=20, temperature=0.0,\n    system=\"Reply with one label: bug, billing, feature, other.\",\n    messages=[{\"role\": \"user\", \"content\": text}],\n)",
+      "narration": "Cost is driven by tokens, both input and output, so you match the model to the task. Use a small, cheap model like Haiku for high-volume simple work such as bulk classification. Reserve a frontier model like Opus for genuinely hard reasoning. Don't hard-pin one model as the model. A common big saving is to run the cheap model on the easy majority and escalate only the hard cases."
+    },
+    {
+      "type": "content",
+      "title": "Where LLMs Fit in a DS Workflow",
+      "bullets": [
+        "Data prep: clean and normalize messy free-text fields",
+        "Feature engineering: text into structured columns for tabular models",
+        "Labeling: few-shot labels to bootstrap a supervised dataset",
+        "Communication: summarize results for stakeholders"
+      ],
+      "narration": "LLMs slot into the stages where text dominates. In data prep they clean messy free-text fields. In feature engineering they turn text into structured columns like sentiment or urgency that feed a tabular model. They can produce few-shot labels to bootstrap a training set you then learn a cheap classical model from. And they draft plain-language summaries for stakeholders. The skill is recognizing which problems are text-shaped."
+    },
+    {
+      "type": "content",
+      "title": "Key Takeaways",
+      "bullets": [
+        "An LLM is a Python function: text in, text out",
+        "Steer with system, temperature, max_tokens, stop_sequences",
+        "Always parse JSON safely; prefer structured outputs",
+        "Pick the cheapest model that clears your quality bar"
+      ],
+      "narration": "To recap: the LLM is just another tool you call from Python, complementing rather than replacing your tabular models. You make one Messages API call and read content index zero dot text. You steer behavior with the system prompt and parameters, you parse JSON safely and never with eval, and you choose the cheapest model that meets your quality bar. In the next lessons we build on this foundation to do prompt design and evaluation."
+    }
+  ]
+}
