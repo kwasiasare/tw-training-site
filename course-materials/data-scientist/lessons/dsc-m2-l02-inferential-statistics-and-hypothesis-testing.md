@@ -116,7 +116,7 @@ Use t-tests when comparing means and the population standard deviation is unknow
 - **Two-sample (independent) t-test:** do two groups have different means? (e.g., A/B test)
 - **Paired t-test:** compare two measurements on the same subjects (before/after).
 
-Assumptions: roughly normal data (or large n via CLT), independent observations, and reasonably comparable variances (use Welch's t-test if variances differ).
+Assumptions: roughly normal data (or large n via CLT), independent observations, and reasonably comparable variances (use Welch's t-test if variances differ). For two-sample comparisons, prefer **Welch's t-test (`equal_var=False`) as the safer default** — it does not assume equal variances and matches the code below.
 
 ```python
 from scipy import stats

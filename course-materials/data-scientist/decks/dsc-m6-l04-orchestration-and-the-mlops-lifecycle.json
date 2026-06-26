@@ -1,0 +1,185 @@
+{
+  "slug": "dsc-m6-l04-orchestration-and-the-mlops-lifecycle",
+  "title": "Orchestrating the ML Lifecycle (Capstone)",
+  "month": 6,
+  "monthTitle": "Productionization and MLOps",
+  "lesson": 4,
+  "video": "dsc-m6-l04-orchestration-and-the-mlops-lifecycle.mp4",
+  "summary": "This capstone ties the module together by treating MLOps as a continuous loop: data, train, track, serve, monitor, and retrain. You'll learn why orchestration matters, build a minimal pipeline as a DAG, add CI/CD that tests and deploys on merge, then complete a mini-project that productionizes your Module 3 predictive model end to end.",
+  "objectives": [
+    "Describe the MLOps lifecycle as a continuous loop connecting serving, tracking, and monitoring",
+    "Explain why orchestration is needed to schedule and automate pipeline steps",
+    "Model a pipeline as a Directed Acyclic Graph (DAG) using a modern orchestrator API",
+    "Build a minimal, readable Airflow TaskFlow or Prefect pipeline that retrains and re-deploys",
+    "Set up a CI/CD workflow that runs pytest and deploys on merge with GitHub Actions",
+    "Productionize an existing model end to end: serve, track, monitor for drift, and schedule retraining"
+  ],
+  "quiz": [
+    {
+      "q": "Which statement best describes the MLOps lifecycle?",
+      "options": [
+        "A continuous loop: data, train, track, serve, monitor, then retrain",
+        "A one-time linear process that ends the moment the model is deployed",
+        "Only the model-training step in isolation",
+        "A technique for avoiding version control"
+      ],
+      "answer": 0,
+      "why": "MLOps is a loop, not a one-shot deployment. Data flows into training, runs are tracked, the model is served, production is monitored, and drift or new data triggers retraining, closing the loop."
+    },
+    {
+      "q": "What is the primary purpose of an orchestrator such as Apache Airflow or Prefect?",
+      "options": [
+        "To replace your machine learning model with a rules engine",
+        "To automatically label your training data",
+        "To schedule and automate the steps of a pipeline expressed as a DAG",
+        "To store model artifacts and nothing else"
+      ],
+      "answer": 2,
+      "why": "An orchestrator schedules, runs, retries, and monitors the dependent steps of a workflow. Those steps are expressed as a DAG so the engine knows the order and dependencies."
+    },
+    {
+      "q": "In a CI/CD pipeline for ML, what should run automatically on every push or pull request?",
+      "options": [
+        "A full retrain on the entire production dataset",
+        "Automated tests such as pytest against the code and the pipeline",
+        "A manual code review with no automation",
+        "Deletion of the held-out test set"
+      ],
+      "answer": 1,
+      "why": "CI runs your automated tests on every change so broken code or a broken pipeline is caught before merge. Heavy retraining and deployment are separate, often gated steps."
+    },
+    {
+      "q": "What does a DAG (Directed Acyclic Graph) guarantee about a pipeline?",
+      "options": [
+        "That every task always runs at the same time in parallel",
+        "That tasks may form cycles and loop back on themselves",
+        "That no task will ever fail at runtime",
+        "That tasks run in a defined order with no circular dependencies"
+      ],
+      "answer": 3,
+      "why": "A DAG is directed and acyclic: edges define dependencies and order, and the absence of cycles means a task can never depend on itself, directly or transitively."
+    },
+    {
+      "q": "Why add a scheduled drift check as a step in the lifecycle?",
+      "options": [
+        "To make model training run faster",
+        "To replace the need for a held-out test set",
+        "To detect when incoming data diverges from training data and trigger retraining",
+        "To reduce the number of input features automatically"
+      ],
+      "answer": 2,
+      "why": "Data drift degrades a deployed model silently. A scheduled drift check (Lesson 3) flags divergence between live and training data so the pipeline can alert or retrain before performance collapses."
+    },
+    {
+      "q": "Name the experiment-tracking tool from Lesson 2 you would use to log parameters, metrics, and model artifacts during each automated training run.",
+      "answer": "MLflow",
+      "why": "MLflow records parameters, metrics, and artifacts per run and provides a model registry, so every orchestrated retrain is reproducible and comparable to past runs."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Apache Airflow: TaskFlow API tutorial",
+      "url": "https://airflow.apache.org/docs/apache-airflow/stable/tutorial/taskflow.html"
+    },
+    {
+      "label": "GitHub Actions: Building and testing Python (CI)",
+      "url": "https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python"
+    },
+    {
+      "label": "Google Cloud: MLOps — Continuous delivery and automation pipelines in ML",
+      "url": "https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning"
+    },
+    {
+      "label": "ml-ops.org: MLOps Principles",
+      "url": "https://ml-ops.org/content/mlops-principles"
+    }
+  ],
+  "body_markdown": "## The MLOps Lifecycle Is a Loop\n\nEverything in this module clicks together when you stop seeing deployment as the finish line and start seeing it as one stop on a **continuous loop**:\n\n```\ndata -> train -> track -> serve -> monitor -> retrain -> (back to data)\n```\n\n- **Data**: fresh data arrives from your warehouse or stream.\n- **Train**: you fit the model (Module 3).\n- **Track**: you log params, metrics, and artifacts with **MLflow** (Lesson 2).\n- **Serve**: you expose predictions behind **FastAPI + Docker** (Lesson 1).\n- **Monitor**: you watch for **data drift** and performance decay (Lesson 3).\n- **Retrain**: drift or a schedule triggers a new run, and the loop closes.\n\nThe job of MLOps is to make this loop **automated, reproducible, and observable** instead of a sequence of manual notebook runs.\n\n## Why Orchestration?\n\nThe steps above have **dependencies**: you cannot serve a model you have not trained, and you should not retrain before validating new data. Running them by hand does not scale and is not reproducible.\n\nAn **orchestrator** (Apache Airflow, Prefect, Dagster) lets you declare the steps and dependencies once, then **schedule** them, **retry** failures, **backfill** history, and **alert** on errors. You express the workflow as a **DAG** — a Directed Acyclic Graph — where each node is a task and each edge is a dependency. \"Acyclic\" means no task can loop back onto itself, so the engine can always compute a valid run order.\n\n## A Minimal Pipeline as a DAG\n\nModern Airflow uses the **TaskFlow API** (`@dag` / `@task` decorators), which is far cleaner than the legacy operator style. Each `@task` function becomes a node; calling one with another's return value creates the dependency edge.\n\n```python\nfrom datetime import datetime\nfrom airflow.decorators import dag, task\n\n@dag(schedule='@daily', start_date=datetime(2026, 1, 1), catchup=False)\ndef churn_pipeline():\n    @task\n    def extract() -> str:\n        # pull fresh data, return a path/URI\n        return 'data/churn_latest.parquet'\n\n    @task\n    def check_drift(path: str) -> bool:\n        # compare live vs training distribution (Lesson 3)\n        return True  # drift detected\n\n    @task\n    def train_and_track(path: str) -> str:\n        # fit model, log to MLflow, return run/model URI\n        return 'models:/churn/Staging'\n\n    @task\n    def deploy(model_uri: str):\n        # promote + redeploy the FastAPI service (Lesson 1)\n        print(f'Deploying {model_uri}')\n\n    p = extract()\n    if_drift = check_drift(p)\n    model = train_and_track(p)\n    deploy(model)\n\nchurn_pipeline()\n```\n\nThe graph reads top to bottom: extract feeds drift-check and training; training feeds deploy. Airflow schedules it daily and retries any failed task.\n\n## CI/CD for ML\n\nOrchestration automates the *runtime* loop; **CI/CD** automates *shipping the code* behind it. On every push or pull request, **Continuous Integration** runs your tests so a broken pipeline never reaches production. On merge, **Continuous Delivery** deploys.\n\nHere is a minimal, valid GitHub Actions workflow that runs `pytest`, then deploys only on the main branch:\n\n```yaml\nname: ml-ci\non: [push, pull_request]\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-python@v5\n        with:\n          python-version: '3.12'\n      - run: pip install -r requirements.txt\n      - run: pytest -q\n  deploy:\n    needs: test\n    if: github.ref == 'refs/heads/main'\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run: ./scripts/deploy.sh\n```\n\nTests should cover your code **and** your pipeline: schema checks, a tiny end-to-end run on sample data, and a check that the model meets a minimum metric threshold before promotion.\n\n## Putting It All Together\n\nThe full lifecycle: code lives in Git; **CI** tests every change; on merge, **CD** ships the pipeline and serving image; the **orchestrator** runs the DAG on schedule; each run **trains** and **tracks** to MLflow; the best model is **served** via FastAPI; **monitoring** watches drift; and drift or the schedule **retrains**. Humans stay in the loop only for approvals and incidents.\n\n## Mini-Project Brief: Productionize Your Module 3 Model\n\nTake the predictive model from the **Module 3 mini-project (dsc-m3-l04)** and productionize it end to end using everything in this module. Keep it small but complete.\n\n1. **Serve it** — wrap the saved pipeline in a **FastAPI** app with a `/predict` endpoint and containerize it with a **Dockerfile** (Lesson 1).\n2. **Track training** — refactor training into a script that logs params, metrics, and the model artifact to **MLflow** and registers it (Lesson 2).\n3. **Add a drift check** — write a function that compares a recent data batch against the training distribution and returns a drift flag (Lesson 3).\n4. **Wire a pipeline** — connect extract -> drift-check -> train+track -> deploy as an Airflow TaskFlow (or Prefect) DAG on a daily schedule.\n5. **Write a runbook** — a one-page Markdown doc: how to deploy, how to roll back, what the alerts mean, and who to page.\n\n## Deliverables\n\n- `app/main.py` (FastAPI) + `Dockerfile` that serves the model.\n- `train.py` that logs a run to MLflow and registers the model.\n- `monitoring/drift.py` with a drift-detection function and threshold.\n- `pipeline.py` defining the scheduled DAG (TaskFlow `@dag`/`@task` or Prefect `@flow`/`@task`).\n- `.github/workflows/ml-ci.yml` running `pytest` on push and deploying on merge.\n- `tests/` with at least one pipeline test and one API test.\n- `RUNBOOK.md` covering deploy, rollback, alerts, and on-call.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Orchestrating the ML Lifecycle (Capstone)",
+      "sub": "Tying serving, tracking, and monitoring into one automated loop",
+      "narration": "Welcome to the capstone for Productionization and MLOps. In this lesson we connect everything from the module, serving, experiment tracking, and monitoring, into a single automated lifecycle. You'll see why orchestration matters, build a minimal pipeline as a DAG, add CI/CD, and finish by productionizing your Module 3 model end to end."
+    },
+    {
+      "type": "content",
+      "title": "The MLOps Lifecycle Is a Loop",
+      "bullets": [
+        "Not a finish line: data, train, track, serve, monitor, retrain",
+        "Serve with FastAPI + Docker (Lesson 1)",
+        "Track runs with MLflow (Lesson 2)",
+        "Monitor for drift, then retrain to close the loop (Lesson 3)"
+      ],
+      "narration": "The core mindset shift is that deployment is not the finish line. Data flows into training, every run is tracked in MLflow, the model is served behind FastAPI and Docker, production is monitored for drift, and drift or new data triggers a retrain. That brings us right back to data. MLOps exists to make this loop automated, reproducible, and observable."
+    },
+    {
+      "type": "content",
+      "title": "Why Orchestration?",
+      "bullets": [
+        "Steps have dependencies: train before serve, validate before retrain",
+        "Manual notebook runs do not scale or reproduce",
+        "Orchestrators schedule, retry, backfill, and alert",
+        "Workflows are expressed as DAGs"
+      ],
+      "narration": "The lifecycle steps depend on each other, so order matters. Running them by hand is neither scalable nor reproducible. An orchestrator like Airflow or Prefect lets you declare the steps once, then schedule them, retry failures, backfill history, and alert on errors. You express the whole workflow as a directed acyclic graph."
+    },
+    {
+      "type": "content",
+      "title": "A Pipeline Is a DAG",
+      "bullets": [
+        "Nodes are tasks; edges are dependencies",
+        "Directed and acyclic: a defined order, no loops back",
+        "The engine computes a valid run order automatically",
+        "Failures retry without rerunning everything"
+      ],
+      "narration": "A DAG, a directed acyclic graph, models your pipeline. Each node is a task and each edge is a dependency. Directed means edges point one way; acyclic means no task can ever loop back onto itself. Because of that, the engine can always compute a valid order to run the tasks, retry a failed step, and skip work that already succeeded."
+    },
+    {
+      "type": "content",
+      "title": "A Minimal Airflow TaskFlow DAG",
+      "bullets": [
+        "Modern TaskFlow API: @dag and @task decorators",
+        "Each @task function becomes a node",
+        "Passing a return value creates the dependency edge",
+        "schedule='@daily' runs it on a timer"
+      ],
+      "code": "@dag(schedule='@daily', start_date=..., catchup=False)\ndef churn_pipeline():\n    @task\n    def extract(): ...\n    @task\n    def train_and_track(path): ...\n    deploy(train_and_track(extract()))",
+      "narration": "Modern Airflow uses the TaskFlow API with @dag and @task decorators, which is much cleaner than the legacy operator style. Each decorated function becomes a node in the graph. When you call one task with the return value of another, Airflow automatically wires up the dependency edge. Set schedule to daily and the whole pipeline runs on a timer with retries."
+    },
+    {
+      "type": "content",
+      "title": "CI/CD for ML",
+      "bullets": [
+        "CI: run pytest on every push and pull request",
+        "CD: deploy on merge to main",
+        "Test the code and the pipeline, not just functions",
+        "Gate promotion on a minimum metric threshold"
+      ],
+      "code": "on: [push, pull_request]\njobs:\n  test:\n    steps:\n      - run: pip install -r requirements.txt\n      - run: pytest -q",
+      "narration": "Orchestration automates the runtime loop; CI/CD automates shipping the code behind it. Continuous integration runs your tests on every push or pull request, so a broken pipeline never reaches production. Continuous delivery deploys on merge. Crucially, test your pipeline too, schema checks, a tiny end-to-end run, and a check that the model clears a minimum metric before it gets promoted."
+    },
+    {
+      "type": "content",
+      "title": "Putting It All Together",
+      "bullets": [
+        "Git holds the code; CI tests every change",
+        "On merge, CD ships pipeline and serving image",
+        "Orchestrator runs the DAG; each run trains and tracks",
+        "Monitoring watches drift; drift or schedule retrains"
+      ],
+      "narration": "Here is the whole machine. Code lives in Git and CI tests every change. On merge, CD ships the updated pipeline and serving image. The orchestrator runs the DAG on schedule. Each run trains the model and logs to MLflow, the best model is served via FastAPI, monitoring watches for drift, and drift or the schedule triggers a retrain. Humans step in only for approvals and incidents."
+    },
+    {
+      "type": "content",
+      "title": "Mini-Project: Productionize Your Model",
+      "bullets": [
+        "Take your Module 3 predictive model end to end",
+        "Serve (FastAPI+Docker), track (MLflow), drift-check (monitoring)",
+        "Wire a scheduled DAG and write a one-page runbook",
+        "Deliver app, train.py, drift.py, pipeline, CI yaml, tests, RUNBOOK"
+      ],
+      "narration": "Your capstone project: take the predictive model from the Module 3 mini-project and productionize it end to end. Serve it with FastAPI and Docker, refactor training to log and register in MLflow, add a drift-detection function, and wire extract, drift-check, train, and deploy into a scheduled DAG. Finish with a one-page runbook. Deliver the app, training script, drift module, pipeline, a GitHub Actions workflow, tests, and the runbook. That is a production-ready ML system."
+    }
+  ]
+}

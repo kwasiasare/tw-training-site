@@ -1,0 +1,186 @@
+{
+  "slug": "dsc-m6-l03-monitoring-models-drift-and-performance",
+  "title": "Monitoring Models in Production: Drift and Performance",
+  "month": 6,
+  "monthTitle": "Productionization and MLOps",
+  "lesson": 3,
+  "video": "dsc-m6-l03-monitoring-models-drift-and-performance.mp4",
+  "summary": "A model that scored well offline can silently decay once it meets the real world. This lesson teaches you to detect data drift and concept drift statistically, build a concrete drift report with Evidently, track live performance with the same scikit-learn metrics from Module 3, and wire up alerts and retraining triggers so problems surface before they hurt the business.",
+  "objectives": [
+    "Explain why production models decay and why offline metrics are not enough",
+    "Define and distinguish data drift from concept drift with concrete examples",
+    "Detect drift statistically using the KS test and the Population Stability Index",
+    "Build a reference-vs-current drift report with Evidently and read its output",
+    "Monitor live performance by recomputing Module 3 metrics as labels arrive",
+    "Design alerting thresholds and retraining triggers that respond to drift"
+  ],
+  "quiz": [
+    {
+      "q": "A spam classifier's input email distribution looks unchanged, but spammers have invented new tactics so the SAME features now imply 'spam' less often. What is this called?",
+      "options": [
+        "Data drift",
+        "Sampling bias",
+        "Label leakage",
+        "Concept drift"
+      ],
+      "answer": 3,
+      "why": "Concept drift is a change in the relationship between features and the target P(y|X). The inputs look stable but the meaning of those inputs has shifted, so the learned mapping is now wrong."
+    },
+    {
+      "q": "Which statistical test is a natural choice for detecting drift in a single CONTINUOUS feature by comparing a reference window to a current window?",
+      "options": [
+        "Two-sample Kolmogorov-Smirnov (KS) test",
+        "Pearson correlation",
+        "Linear regression t-test",
+        "One-way ANOVA on the target"
+      ],
+      "answer": 0,
+      "why": "scipy.stats.ks_2samp compares two empirical distributions of a continuous variable and returns a statistic and p-value, making it a dependency-light way to flag distribution shift in one feature."
+    },
+    {
+      "q": "Why is monitoring input drift valuable even BEFORE ground-truth labels arrive?",
+      "options": [
+        "Drift metrics replace the need for labels permanently",
+        "Input distributions never change in production",
+        "Labels are often delayed, so drift is an early proxy warning that performance MAY be degrading",
+        "Drift only matters for regression models"
+      ],
+      "answer": 2,
+      "why": "Ground truth often lags by days or weeks. Input and prediction drift can be measured immediately, giving an early signal to investigate before delayed labels confirm a performance drop."
+    },
+    {
+      "q": "A Population Stability Index (PSI) of 0.30 between the reference and current distribution of a feature most likely indicates:",
+      "options": [
+        "A significant, actionable population shift worth investigating",
+        "No meaningful change; ignore it",
+        "A data type error in the column",
+        "Perfect stability between the two windows"
+      ],
+      "answer": 0,
+      "why": "By common rule of thumb, PSI below 0.1 is stable, 0.1-0.2 is moderate, and above 0.2-0.25 signals a major shift. A PSI of 0.30 is a strong signal to investigate."
+    },
+    {
+      "q": "Which tool can ESTIMATE a model's performance in production WITHOUT immediately available ground-truth labels?",
+      "options": [
+        "matplotlib",
+        "NannyML",
+        "StandardScaler",
+        "train_test_split"
+      ],
+      "answer": 1,
+      "why": "NannyML provides performance-estimation algorithms (such as CBPE for classification) that estimate metrics like ROC-AUC from model confidence and drift before labels arrive, complementing label-based monitoring."
+    },
+    {
+      "q": "Describe a sensible alerting and retraining policy for a model whose input drift report fires but whose labels have not yet arrived. What checks would you run and what would trigger an actual retrain?",
+      "answer": "open",
+      "why": "A strong answer: first confirm the drift is real and not a pipeline bug (schema change, nulls, unit change); quantify it (which features, how large the PSI/KS shift); estimate performance impact with a label-free method like NannyML; alert the owning team rather than auto-retraining on a single noisy signal; and trigger a retrain only when a sustained threshold is crossed or, once labels arrive, when a live metric (e.g., ROC-AUC or recall) drops below an agreed SLO, retraining on fresh representative data and validating before promotion."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Evidently AI Documentation",
+      "url": "https://docs.evidentlyai.com/"
+    },
+    {
+      "label": "NannyML Documentation",
+      "url": "https://nannyml.readthedocs.io/en/stable/"
+    },
+    {
+      "label": "Evidently: Data Drift vs Concept Drift (ML Monitoring guide)",
+      "url": "https://www.evidentlyai.com/ml-in-production/data-drift"
+    },
+    {
+      "label": "scikit-learn Model Evaluation: Metrics",
+      "url": "https://scikit-learn.org/stable/modules/model_evaluation.html"
+    }
+  ],
+  "body_markdown": "## Why Models Decay in Production\n\nA model is a snapshot of the world at training time, but the world keeps moving. Customer behavior shifts, competitors launch products, fraudsters change tactics, an upstream team renames a column. None of these events touch your code, yet each can quietly erode accuracy. This is **model decay**, and it is the default outcome, not the exception.\n\nThe trap is trusting your **offline metrics**. A 0.92 ROC-AUC on a held-out test set tells you how the model did on data that looks like the past; it says nothing about next month. Production monitoring closes that gap by continuously asking two questions: *has the incoming data changed?* and *is the model still right?*\n\n## Data Drift vs. Concept Drift\n\nThese two terms are constantly confused, so define them precisely.\n\n- **Data drift** (covariate shift): the distribution of the **inputs** `P(X)` changes. Example: your loan model was trained mostly on applicants aged 30-45, but a new marketing campaign brings in mostly 18-25 year-olds. The features look different from what the model saw in training.\n- **Concept drift**: the **relationship** between inputs and target `P(y | X)` changes. The inputs may look identical, but their meaning has shifted. Example: a spam filter's emails look statistically the same, but spammers invent new tricks, so the same words now imply spam far less reliably. The learned mapping is simply wrong now.\n\nWhy it matters: data drift is detectable **without labels** because you only need the inputs. Concept drift usually requires **ground truth** to confirm, because you must observe that the same `X` now yields a different `y`. In practice you monitor input drift as an early warning and performance metrics as confirmation.\n\n## Detecting Drift Statistically\n\nDrift detection compares a **reference window** (often the training or a known-good period) against a **current window** (recent production data), feature by feature.\n\nFor a single continuous feature, the two-sample **Kolmogorov-Smirnov (KS) test** compares the two empirical distributions and needs nothing beyond SciPy:\n\n```python\nfrom scipy.stats import ks_2samp\n\nstat, p_value = ks_2samp(ref_df[\"income\"], cur_df[\"income\"])\nif p_value < 0.05:\n    print(f\"Drift suspected in 'income' (KS={stat:.3f}, p={p_value:.4f})\")\n```\n\nThe **Population Stability Index (PSI)** is the classic credit-risk metric. It bins a feature and sums `(cur% - ref%) * ln(cur% / ref%)` across bins. Rule of thumb: **< 0.1 stable, 0.1-0.2 moderate, > 0.2 significant shift**. Both KS and PSI are dependency-light and easy to run on a schedule.\n\n## A Concrete Drift Report with Evidently\n\nHand-rolling a test per column does not scale to hundreds of features. **Evidently** automates this: you pass a reference and a current dataframe, and a preset picks an appropriate test per column and renders an HTML report.\n\n```python\nfrom evidently import Report\nfrom evidently.presets import DataDriftPreset\n\nreport = Report(metrics=[DataDriftPreset()])\nresult = report.run(reference_data=ref_df, current_data=cur_df)\nresult.save_html(\"drift.html\")\n```\n\nThe report shows, per feature, the test used, the drift score, and whether drift was detected, plus an overall dataset drift share. Note that **Evidently's API has evolved across versions** (the modern 0.4+/0.6+ pattern uses `Report` with presets); always check the current docs at https://docs.evidentlyai.com/ for the exact imports your installed version expects.\n\nAn important complement is **NannyML**, which can **estimate performance without labels** using algorithms like CBPE, giving an estimated ROC-AUC before ground truth lands. Use Evidently for drift and NannyML for label-free performance estimation to cover the gap while labels are delayed.\n\n## Monitoring Live Performance Once Labels Arrive\n\nDrift is a leading indicator; the lagging, ground-truth indicator is **actual performance**. When labels finally arrive (a user churns, a loan defaults, a ticket is resolved), recompute the **exact same scikit-learn metrics from Module 3** over rolling windows so the numbers are comparable to your offline baseline.\n\n```python\nfrom sklearn.metrics import roc_auc_score, recall_score, classification_report\n\n# y_true: labels that just arrived; probs/labels: stored predictions\nwindow_auc = roc_auc_score(y_true, probs)\nwindow_recall = recall_score(y_true, labels)\nprint(classification_report(y_true, labels))\n\nif window_auc < 0.80:            # agreed SLO threshold\n    raise_alert(\"ROC-AUC below SLO\", window_auc)\n```\n\nLog these per window into a time series and plot the trend. A slow downward slope in recall or ROC-AUC is decay in action, and it lets you connect a performance drop back to the drift you already flagged.\n\n## Alerting and Retraining Triggers\n\nDetection is useless without a response policy. Build a tiered playbook:\n\n1. **Validate first.** Rule out a pipeline bug: a schema change, a flood of nulls, or a unit change (dollars to cents) often masquerades as drift.\n2. **Alert, don't auto-fire.** A single noisy window should notify the owning team, not trigger a retrain. Require a **sustained** breach (drift share above threshold for N consecutive windows).\n3. **Retrain on real evidence.** Trigger retraining when a live metric falls below its **SLO** (e.g., recall < 0.80) or when sustained, confirmed drift coincides with a falling label-free performance estimate.\n4. **Retrain safely.** Train on fresh, representative data, validate against the current production model, promote only if it wins, and keep the old model for rollback.\n\nNever wire `eval()` or arbitrary code execution into an alerting pipeline; keep triggers as explicit, reviewable thresholds. Monitoring is a control loop: detect, confirm, decide, act, and verify the fix held.\n\nA complete stack has three layers: **input drift** (Evidently/PSI/KS, available immediately), **estimated performance** (NannyML, available before labels), and **measured performance** (Module 3 sklearn metrics, available once labels land). Wire each into dashboards and alerts, and your models stop decaying in silence.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Monitoring Models in Production: Drift and Performance",
+      "sub": "Detect drift, track live metrics, and trigger retraining before decay hurts",
+      "narration": "Welcome. Shipping a model is the start, not the finish. In this lesson we'll learn why models decay once they meet the real world, how to tell data drift apart from concept drift, how to detect drift with both simple statistics and the Evidently library, and how to monitor live performance so you know exactly when to retrain."
+    },
+    {
+      "type": "content",
+      "title": "Why Models Decay",
+      "bullets": [
+        "A model is a snapshot of the world at training time",
+        "Behavior, markets, fraud tactics, and pipelines all change",
+        "Offline metrics describe the past, not next month",
+        "Monitoring asks: did the data change, and is the model still right?"
+      ],
+      "narration": "Every model is frozen at the moment you trained it, but the world keeps moving. Customers change, competitors launch, fraudsters adapt, an upstream column gets renamed. A great offline ROC-AUC only tells you how the model did on data that looks like the past. Monitoring continuously asks whether the incoming data has changed and whether the model is still correct."
+    },
+    {
+      "type": "content",
+      "title": "Data Drift vs. Concept Drift",
+      "bullets": [
+        "Data drift: the input distribution P(X) changes",
+        "Concept drift: the relationship P(y|X) changes",
+        "Example: new young applicants (data) vs new spam tricks (concept)",
+        "Data drift needs no labels; concept drift usually does"
+      ],
+      "narration": "These two get confused constantly. Data drift means your inputs shift, like a campaign bringing in much younger applicants. Concept drift means the inputs may look the same, but their meaning changed, like spammers inventing new tactics so the same words no longer signal spam. Crucially, you can spot data drift without labels, but confirming concept drift usually needs ground truth."
+    },
+    {
+      "type": "content",
+      "title": "Detecting Drift Statistically",
+      "bullets": [
+        "Compare a reference window against a current window",
+        "KS test compares two continuous distributions (SciPy only)",
+        "PSI bins a feature and sums the weighted log-ratio",
+        "PSI rule: <0.1 stable, 0.1-0.2 moderate, >0.2 significant"
+      ],
+      "code": "from scipy.stats import ks_2samp\nstat, p = ks_2samp(ref_df[\"income\"],\n                   cur_df[\"income\"])\nif p < 0.05:\n    print(\"Drift suspected\", stat, p)",
+      "narration": "Drift detection always compares a known-good reference window to a recent current window, feature by feature. For one continuous feature, the two-sample KS test needs nothing but SciPy and returns a statistic and p-value. The Population Stability Index is the credit-risk classic: bin the feature and sum the weighted log ratio. Below 0.1 is stable, above 0.2 is a real shift."
+    },
+    {
+      "type": "content",
+      "title": "A Drift Report with Evidently",
+      "bullets": [
+        "Pass a reference and a current dataframe to a preset",
+        "Evidently picks a test per column and renders HTML",
+        "Shows per-feature drift scores and overall drift share",
+        "API evolves across versions, always check the current docs"
+      ],
+      "code": "from evidently import Report\nfrom evidently.presets import DataDriftPreset\nreport = Report(metrics=[DataDriftPreset()])\nres = report.run(reference_data=ref_df,\n                 current_data=cur_df)\nres.save_html(\"drift.html\")",
+      "narration": "Testing hundreds of columns by hand does not scale. Evidently takes a reference and a current dataframe, chooses an appropriate test per column, and renders an HTML report with per-feature scores and an overall drift share. One caution: Evidently's API has changed across versions, so the modern Report-plus-preset pattern shown here may differ in your install, always check the current docs."
+    },
+    {
+      "type": "content",
+      "title": "Estimating Performance Without Labels",
+      "bullets": [
+        "Ground truth is often delayed by days or weeks",
+        "NannyML estimates metrics like ROC-AUC before labels arrive",
+        "Algorithms such as CBPE use model confidence and drift",
+        "Use Evidently for drift, NannyML for label-free performance"
+      ],
+      "narration": "Labels rarely arrive instantly. A loan default or a churn event can take weeks to confirm. NannyML fills that gap by estimating performance metrics like ROC-AUC before the ground truth lands, using algorithms such as CBPE that lean on model confidence and observed drift. Pair it with Evidently: one watches the inputs, the other estimates the outcome while you wait for real labels."
+    },
+    {
+      "type": "content",
+      "title": "Monitoring Live Performance",
+      "bullets": [
+        "When labels arrive, recompute the Module 3 sklearn metrics",
+        "Use rolling windows so numbers match your offline baseline",
+        "Log ROC-AUC, recall, and the full report as a time series",
+        "A slow downward slope is decay you can act on"
+      ],
+      "code": "from sklearn.metrics import roc_auc_score, recall_score\nauc = roc_auc_score(y_true, probs)\nrec = recall_score(y_true, labels)\nif auc < 0.80:\n    raise_alert(\"AUC below SLO\", auc)",
+      "narration": "Once labels finally arrive, recompute the exact same scikit-learn metrics you used in Module 3, over rolling windows, so the numbers are directly comparable to your offline baseline. Log ROC-AUC and recall into a time series and plot the trend. A gentle downward slope is model decay made visible, and it lets you tie a performance drop back to the drift you already flagged."
+    },
+    {
+      "type": "content",
+      "title": "Alerting and Retraining Triggers",
+      "bullets": [
+        "Validate first: rule out schema changes, nulls, unit bugs",
+        "Alert the owning team; don't auto-retrain on one noisy window",
+        "Retrain when a live metric breaches its SLO or drift is sustained",
+        "Retrain safely, validate against production, keep a rollback"
+      ],
+      "narration": "Detection is useless without a response. First rule out a pipeline bug, because schema changes and unit errors masquerade as drift. Then alert the owning team rather than auto-retraining on a single noisy window. Trigger a retrain only on a sustained breach or when a live metric falls below its agreed SLO. Finally retrain on fresh data, validate against the current model, and keep the old one for rollback."
+    }
+  ]
+}

@@ -91,6 +91,8 @@ pip freeze > requirements.txt
 
 Use JupyterLab or VS Code for interactive exploration. Commit your `requirements.txt` so teammates can rebuild the exact environment.
 
+**Modern tooling:** Many teams now use `uv`, a fast drop-in for venv and pip (e.g. `uv venv`, `uv pip install pandas`). It's also common to declare your *direct* dependencies in a `pyproject.toml` and keep a separate locked file for the exact, fully-pinned versions.
+
 ## Core Data Types
 
 - **int / float** — numeric values for measurements and counts
