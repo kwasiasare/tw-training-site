@@ -151,7 +151,7 @@ Prove it safely. On a dedicated pilot device, trigger a benign detection (e.g., 
 
 ```powershell
 # Generates a harmless EICAR detection to exercise the pipeline
-$e = 'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
+$e = 'X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
 Set-Content -Path "$env:TEMP\\eicar.com" -Value $e
 ```
 

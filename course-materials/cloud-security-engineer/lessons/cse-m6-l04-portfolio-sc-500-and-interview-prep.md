@@ -33,19 +33,20 @@ quiz:
   why: Hiring managers buy outcomes and judgment, not click-paths. A project that states the business
     problem, shows the architecture, proves it works, and explains why you chose this design over alternatives
     demonstrates exactly the engineering judgment the role requires.
-- q: Which set best reflects the SC-500 exam's domain structure that your three projects map to?
+- q: Which set best reflects the four SC-500 skills-measured domains?
   options:
   - Only Windows Server administration and on-prem Active Directory
-  - Managing security operations (Sentinel/Defender), securing identity and access (Entra/Conditional
-    Access), securing Microsoft 365 / collaboration and threat protection, and managing security and governance
-    of data (Purview)
+  - Manage identity, access, and governance; secure storage, databases, and networking; secure compute
+    (including AI security); and manage and monitor security posture
   - Networking, cabling, and physical security only
   - Power BI reporting and Excel modeling
   answer: 1
-  why: SC-500 (Microsoft Cybersecurity Architect-adjacent administrator exam) centers on security operations,
-    identity and access security, securing Microsoft 365/threat protection, and data security and governance.
-    The endpoint-isolation, Purview audit, and Sentinel projects cover identity, data, and operations
-    directly.
+  why: 'SC-500 (Implementing End-to-End Security Controls for Cloud and AI Workloads, which earns the
+    Cloud and AI Security Engineer Associate certification) measures four domains: manage identity, access,
+    and governance (20-25%); secure storage, databases, and networking (25-30%); secure compute, including
+    AI security (20-25%); and manage and monitor security posture (20-25%). This course maps strongly
+    to the identity/access/governance, AI-security, and posture domains; the Azure storage, database,
+    and networking domain is the main area to study separately.'
 - q: Which is the strongest, most hireable resume bullet?
   options:
   - Used Microsoft Sentinel and wrote some KQL queries
@@ -95,10 +96,11 @@ quiz:
     to automated response, and proactively raises false positives and tuning, which is exactly the judgment
     interviewers look for.
 resources:
-- label: 'Exam SC-500: Microsoft Certified - Information Security Administrator (skills measured)'
-  url: https://learn.microsoft.com/en-us/credentials/certifications/exams/sc-500/
-- label: 'Microsoft Certified: Information Security Administrator Associate'
-  url: https://learn.microsoft.com/en-us/credentials/certifications/information-security-administrator/
+- label: 'Exam SC-500: Implementing End-to-End Security Controls for Cloud and AI Workloads (study guide
+    / skills measured)'
+  url: https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/sc-500
+- label: 'Microsoft Certified: Cloud and AI Security Engineer Associate'
+  url: https://learn.microsoft.com/en-us/credentials/certifications/cloud-and-ai-security-engineer-associate/
 - label: Zero Trust deployment guidance
   url: https://learn.microsoft.com/en-us/security/zero-trust/deploy/overview
 - label: Microsoft Learn training catalog (free, role-based)
@@ -122,14 +124,14 @@ Pin the GitHub repos, link the videos, and write a short portfolio landing page 
 
 ## Mapping to SC-500
 
-**SC-500 (Microsoft Certified: Information Security Administrator)** validates exactly what you built. Its skill domains line up with your projects:
+Exam **SC-500, *Implementing End-to-End Security Controls for Cloud and AI Workloads*, earns the **Microsoft Certified: Cloud and AI Security Engineer Associate** certification (the successor to AZ-500). It measures four domains; this course maps strongly to three of them, and you should plan to supplement the fourth:
 
-- **Manage security operations** (Microsoft Sentinel, Defender XDR, KQL, incident response) -> your **Sentinel threat-hunting** capstone.
-- **Secure identity and access** (Entra ID, Conditional Access, PIM, identity protection) -> your **Zero Trust endpoint-isolation** capstone (and Module 1).
-- **Secure Microsoft 365 / threat protection** (Defender for Endpoint, Defender for Office, collaboration security) -> Modules 2 and your isolation project.
-- **Manage security and governance of data** (Microsoft Purview: labels, DLP, insider risk, securing Copilot) -> your **pre-AI Purview audit** capstone.
+- **Manage identity, access, and governance (20-25%)** — Entra ID, Conditional Access, PIM, MFA/passwordless, managed identities, Azure Policy, RBAC, and Defender for Cloud regulatory compliance -> your **Zero Trust endpoint-isolation** capstone, Module 1, and the security-as-code work in Module 5.
+- **Secure compute, including AI security (20-25%)** — the AI-security objectives (SharePoint overexposure, Copilot/AI risk via Purview DSPM, securing Logic Apps) -> your **pre-AI Purview audit** capstone and Module 3. (The server/VM and container objectives in this domain are study-separately items.)
+- **Manage and monitor security posture (20-25%)** — Defender for Cloud CSPM, multicloud AWS/GCP connectors, Microsoft Sentinel (connectors, automation rules, playbooks, retention), and Security Copilot -> your **Sentinel threat-hunting** capstone and Modules 4-5.
+- **Secure storage, databases, and networking (25-30%)** — Azure Storage, Azure SQL, NSGs, Azure Firewall, Private Link, and VPN. This is the one domain the course does **not** cover, and it is the largest, so budget dedicated study here.
 
-Plan: review the official *skills measured* list, fill gaps with free **Microsoft Learn** paths, take a practice assessment, and schedule the exam. Your hands-on projects mean you are studying to confirm knowledge, not memorize it cold, which is the fastest route to passing.
+A naming note: SC-500 is an *engineer*-level associate cert, not the architect exam — the architect credential is **SC-100 (Cybersecurity Architect)**, a sensible next step. Plan: review the official *skills measured* study guide, close the storage/database/networking gap and the server/VM/container objectives with free **Microsoft Learn** paths and a hands-on Azure subscription, take a practice assessment, and schedule the exam. Because you built the identity, AI, and posture work hands-on, you are confirming knowledge there rather than memorizing it cold.
 
 ## Resume Bullets That Quantify Impact
 

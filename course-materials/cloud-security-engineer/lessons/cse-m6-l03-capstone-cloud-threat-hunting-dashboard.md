@@ -100,7 +100,7 @@ resources:
 - label: Create custom analytics rules to detect threats (Sentinel)
   url: https://learn.microsoft.com/en-us/azure/sentinel/detect-threats-custom
 - label: Automate threat response with playbooks in Microsoft Sentinel
-  url: https://learn.microsoft.com/en-us/azure/sentinel/automate-responses-with-playbooks
+  url: https://learn.microsoft.com/en-us/azure/sentinel/automation/automate-responses-with-playbooks
 - label: Connect Sentinel to Amazon Web Services to ingest AWS service log data
   url: https://learn.microsoft.com/en-us/azure/sentinel/connect-aws
 ---

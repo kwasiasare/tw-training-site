@@ -166,7 +166,7 @@ Use these to build a precise, least-privilege scope list instead of guessing.
 
 ## Reading Users, Groups, and Sign-Ins (Pagination and Throttling)
 
-Graph returns large collections in **pages** linked by `@odata.nextLink`. The `-All` switch makes the SDK follow every page automatically. Always select only the properties you need, and request beta-only fields like `signInActivity` explicitly.
+Graph returns large collections in **pages** linked by `@odata.nextLink`. The `-All` switch makes the SDK follow every page automatically. Always select only the properties you need, and request non-default properties like `signInActivity` explicitly (it is GA on the v1.0 endpoint but is not returned unless you select it, and it requires `AuditLog.Read.All`).
 
 ```powershell
 # All members - note -All to page through the whole tenant
