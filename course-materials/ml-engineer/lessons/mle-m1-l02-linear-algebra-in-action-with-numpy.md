@@ -158,20 +158,22 @@ values, vectors = np.linalg.eig(A)
 **Singular Value Decomposition (SVD)** factors any matrix `A = U S Vᵀ`. It underpins PCA, recommender systems, and data compression.
 
 ```python
-U, S, Vt = np.linalg.svd(X)
+Xc = X - X.mean(axis=0)          # PCA requires centered data
+U, S, Vt = np.linalg.svd(Xc, full_matrices=False)
+# columns of Vt.T are principal directions; S**2/(n-1) are the explained variances
 ```
 
-The largest singular values capture the most variance—keeping only the top ones gives dimensionality reduction.
+The largest singular values capture the most variance—keeping only the top ones gives dimensionality reduction. Note: the variance interpretation only holds after mean-centering (sklearn's `PCA` centers the data internally for exactly this reason).
 
 ## Putting It Together: Linear Regression
 
 ```python
-# Normal equation: w = (XᵀX)^-1 Xᵀ y
-Xt = X.T
-w = np.linalg.solve(Xt @ X, Xt @ y)
+# Least squares with an intercept (no need to form XᵀX explicitly)
+Xb = np.hstack([np.ones((X.shape[0], 1)), X])   # add intercept
+w, *_ = np.linalg.lstsq(Xb, y, rcond=None)       # QR/SVD-based; more stable than solving Xt@X
 ```
 
-This single line trains a linear regression model—pure linear algebra.
+Forming XᵀX squares the condition number; `lstsq` (QR/SVD) is numerically preferable. This trains a linear regression model—pure linear algebra.
 
 ## Key Takeaways
 

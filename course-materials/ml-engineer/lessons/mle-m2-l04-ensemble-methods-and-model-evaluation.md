@@ -108,7 +108,14 @@ Key hyperparameters:
 - `max_depth`: usually small (3-6) for boosting (weak learners).
 - `subsample`: fraction of rows sampled per tree (stochastic gradient boosting).
 
-Libraries like **XGBoost**, **LightGBM**, and **CatBoost** are fast, regularized implementations widely used in production and competitions.
+**`HistGradientBoostingClassifier` is the modern scikit-learn boosting default** — a histogram-based implementation that natively handles missing values (NaNs) and categorical features and is far faster than the legacy `GradientBoostingClassifier` on large datasets. **XGBoost**, **LightGBM**, and **CatBoost** are popular external libraries built on similar ideas, with extra regularization and tuning options widely used in production and competitions.
+
+```python
+from sklearn.ensemble import HistGradientBoostingClassifier
+
+clf = HistGradientBoostingClassifier(max_iter=200, learning_rate=0.1)
+clf.fit(X_train, y_train)
+```
 
 ## Cross-Validation
 
@@ -137,9 +144,8 @@ Choose metrics that match the business goal, especially with imbalanced classes:
 6. Report final performance on a held-out test set.
 
 ```python
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier, HistGradientBoostingClassifier
 from sklearn.model_selection import StratifiedKFold, cross_val_score
-from sklearn.metrics import roc_auc_score
 
 cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
@@ -147,9 +153,10 @@ rf = RandomForestClassifier(n_estimators=300, max_features='sqrt', random_state=
 rf_auc = cross_val_score(rf, X, y, cv=cv, scoring='roc_auc')
 print('RF ROC-AUC:', rf_auc.mean())
 
-gb = GradientBoostingClassifier(n_estimators=200, learning_rate=0.05, max_depth=3, random_state=42)
-gb_auc = cross_val_score(gb, X, y, cv=cv, scoring='roc_auc')
-print('GB ROC-AUC:', gb_auc.mean())
+# HistGradientBoosting is the modern, histogram-based sklearn default (fast, handles NaNs)
+hgb = HistGradientBoostingClassifier(max_iter=200, learning_rate=0.05, max_depth=3, random_state=42)
+hgb_auc = cross_val_score(hgb, X, y, cv=cv, scoring='roc_auc')
+print('HGB ROC-AUC:', hgb_auc.mean())
 ```
 
 ## Key Takeaways

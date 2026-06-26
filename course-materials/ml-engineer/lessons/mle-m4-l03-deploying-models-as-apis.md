@@ -97,12 +97,22 @@ A minimal but solid serving service has:
 4. **A health endpoint** — lets orchestrators (Kubernetes, load balancers) know the service is alive.
 
 ```python
-from fastapi import FastAPI
-from pydantic import BaseModel
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Request
+from pydantic import BaseModel, ConfigDict
 import joblib
 
-app = FastAPI(title="Iris Classifier")
-model = joblib.load("model.pkl")  # loaded once at import
+MODEL_VERSION = "1.0.0"
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Load the model once at startup into app.state, not at import time.
+    app.state.model = joblib.load("model.joblib")
+    yield
+
+
+app = FastAPI(title="Iris Classifier", lifespan=lifespan)
 
 class IrisRequest(BaseModel):
     sepal_length: float
@@ -111,19 +121,24 @@ class IrisRequest(BaseModel):
     petal_width: float
 
 class IrisResponse(BaseModel):
+    # Allow the model_version field (Pydantic v2 protects the "model_" prefix).
+    model_config = ConfigDict(protected_namespaces=())
     prediction: int
     label: str
+    model_version: str
 
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
 @app.post("/predict", response_model=IrisResponse)
-def predict(req: IrisRequest):
+def predict(req: IrisRequest, request: Request):
+    model = request.app.state.model
     features = [[req.sepal_length, req.sepal_width,
                  req.petal_length, req.petal_width]]
     pred = int(model.predict(features)[0])
-    return IrisResponse(prediction=pred, label=str(pred))
+    return IrisResponse(prediction=pred, label=str(pred),
+                        model_version=MODEL_VERSION)
 ```
 
 Run it locally with:
@@ -156,11 +171,14 @@ Containers package your code, dependencies, and runtime into a single portable i
 Pin dependencies in `requirements.txt`:
 
 ```
-fastapi==0.111.0
-uvicorn[standard]==0.30.0
-scikit-learn==1.5.0
-joblib==1.4.0
+fastapi>=0.115,<0.116
+uvicorn[standard]>=0.34,<0.35
+gunicorn>=23.0,<24.0
+scikit-learn>=1.6,<1.7
+joblib>=1.4,<1.5
 ```
+
+These are compatible-release ranges; regenerate and pin exact versions into a lockfile (e.g. `pip freeze > requirements.lock` or `pip-compile`) so production builds stay reproducible.
 
 A clean `Dockerfile`:
 
@@ -174,7 +192,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 EXPOSE 8000
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["gunicorn", "app:app", "-k", "uvicorn.workers.UvicornWorker", \
+     "--workers", "4", "--bind", "0.0.0.0:8000"]
 ```
 
 Build and run:
@@ -188,7 +207,7 @@ docker run -p 8000:8000 iris-api
 
 ## Production Concerns
 
-- **Concurrency:** run multiple workers (e.g., `uvicorn --workers 4` or Gunicorn) to handle parallel requests.
+- **Concurrency:** run multiple workers to handle parallel requests — in production use Gunicorn with Uvicorn workers (e.g., `gunicorn app:app -k uvicorn.workers.UvicornWorker --workers 4`), matching the Dockerfile `CMD`. The bare `uvicorn` command above is fine for local development. N workers each hold their own copy of the model in memory — size workers against model footprint and host RAM.
 - **Latency:** keep models warm, batch where possible, and avoid heavy per-request I/O.
 - **Monitoring:** log request counts, latency, and prediction distributions to detect drift.
 - **Versioning:** include a model version in responses so you can trace which model produced a prediction.

@@ -1,0 +1,188 @@
+{
+  "slug": "mle-m6-l02-testing-and-ci-cd-for-ml-systems",
+  "title": "Testing and CI/CD for ML Systems",
+  "month": 6,
+  "monthTitle": "Cloud Deployment, Scaling, and Monitoring",
+  "lesson": 2,
+  "video": "mle-m6-l02-testing-and-ci-cd-for-ml-systems.mp4",
+  "summary": "Learn to test machine learning systems the way employers expect: unit tests for pipeline code, API tests for your serving layer, data and schema validation, and model-quality gates. Then wire it all into a GitHub Actions CI/CD pipeline that runs your tests on every change and deploys automatically when you merge to main.",
+  "objectives": [
+    "Explain why ML systems need code tests plus data tests and model tests",
+    "Write deterministic unit tests for pipeline and feature-engineering functions with pytest",
+    "Test a FastAPI prediction service using TestClient and assert status codes and response schema",
+    "Validate incoming data for ranges, nulls, and types using Great Expectations or pandera",
+    "Add a model-quality gate that fails the build when an evaluation metric drops below a threshold",
+    "Build a GitHub Actions workflow that installs dependencies, runs pytest, and deploys on merge to main"
+  ],
+  "quiz": [
+    {
+      "q": "Compared with a traditional software project, what extra categories of tests does an ML system require?",
+      "options": [
+        "Only slower integration tests",
+        "Data tests and model tests, on top of code tests",
+        "Manual tests only, since ML cannot be automated",
+        "Just more unit tests for the same code"
+      ],
+      "answer": 1,
+      "why": "ML systems fail not only from buggy code but from bad data and degraded models, so you add data-validation tests and model-quality tests in addition to ordinary code unit tests."
+    },
+    {
+      "q": "When unit-testing a feature-engineering function with pytest, what property makes the test reliable?",
+      "options": [
+        "It calls a live production database",
+        "It trains a full model first",
+        "It depends on the current system clock",
+        "It is deterministic: the same input always gives the same expected output"
+      ],
+      "answer": 3,
+      "why": "Good unit tests are deterministic. You feed a known input and assert an exact expected output, so the test passes or fails for a clear reason rather than flaking on randomness or external state."
+    },
+    {
+      "q": "How do you test a FastAPI prediction endpoint inside pytest without running a live server?",
+      "options": [
+        "Wrap the app in fastapi.testclient.TestClient and call it in-process",
+        "Deploy to production and curl it",
+        "Open the browser at /docs manually",
+        "Disable validation and skip the endpoint"
+      ],
+      "answer": 0,
+      "why": "TestClient from fastapi.testclient drives the ASGI app in-process, letting you POST a request and assert on the status code and JSON body without binding a network port or starting uvicorn."
+    },
+    {
+      "q": "What is the purpose of a data-validation test using a tool like Great Expectations or pandera?",
+      "options": [
+        "To make training run faster",
+        "To replace the need for unit tests",
+        "To catch bad input early by asserting ranges, nulls, and types before it reaches the model",
+        "To automatically label the dataset"
+      ],
+      "answer": 2,
+      "why": "Data-validation tools declare a schema or set of expectations (value ranges, non-null columns, expected dtypes) and fail loudly when data violates them, catching corruption before it silently degrades predictions."
+    },
+    {
+      "q": "In a CI pipeline, what should a model-quality gate do when the evaluation metric falls below the agreed threshold?",
+      "options": [
+        "Fail the build so the regression is not merged or deployed",
+        "Silently log a warning and continue",
+        "Automatically lower the threshold to pass",
+        "Delete the test so the pipeline goes green"
+      ],
+      "answer": 0,
+      "why": "A quality gate is an assertion: if accuracy (or another metric) drops below the threshold the test fails, the CI run goes red, and the regression is blocked from merging or deploying."
+    },
+    {
+      "q": "Why is it important to gate the deploy job on the branch (for example, only run it when the ref is refs/heads/main)?",
+      "answer": "So that tests run on every push and pull request for fast feedback, but deployment only happens for trusted, reviewed code merged into the main branch rather than on every feature branch or PR.",
+      "why": "Running tests broadly gives early feedback on all branches, while restricting deploys to main ensures only reviewed, merged code reaches production, preventing accidental deployments from feature branches."
+    }
+  ],
+  "resources": [
+    {
+      "label": "pytest Official Documentation",
+      "url": "https://docs.pytest.org/en/stable/"
+    },
+    {
+      "label": "GitHub Actions: Building and Testing Python",
+      "url": "https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python"
+    },
+    {
+      "label": "Made With ML: Testing Machine Learning Systems",
+      "url": "https://madewithml.com/courses/mlops/testing/"
+    },
+    {
+      "label": "pandera: Data Validation for DataFrames",
+      "url": "https://pandera.readthedocs.io/en/stable/"
+    }
+  ],
+  "body_markdown": "## Why ML Systems Need Testing and CI/CD\n\nAlmost every machine learning engineer job description asks for \"clean, versioned, tested code\" and experience with **CI/CD**. The reason is simple: an ML system is software, and software that is not tested breaks in production. But ML adds two failure modes that traditional apps do not have. Your code can be correct while the **data** that flows through it is corrupt, or while the **model** has silently degraded. So an ML test suite has three layers: code tests, data tests, and model tests.\n\n**CI/CD** stands for Continuous Integration and Continuous Delivery. CI runs your test suite automatically on every change so bugs are caught in minutes, not after release. CD automatically ships code that passes the tests. Together they turn \"it worked on my laptop\" into a repeatable, trustworthy pipeline.\n\n## Unit-Testing Pipeline Functions with pytest\n\n`pytest` is the standard Python testing framework. A test is just a function whose name starts with `test_`, containing `assert` statements. The golden rule is to make tests **deterministic**: feed a known input and assert an exact expected output.\n\n```python\n# features.py\ndef normalize(values):\n    lo, hi = min(values), max(values)\n    return [(v - lo) / (hi - lo) for v in values]\n\n# test_features.py\nfrom features import normalize\n\ndef test_normalize_scales_to_unit_range():\n    out = normalize([0, 5, 10])\n    assert out == [0.0, 0.5, 1.0]\n\ndef test_normalize_handles_negatives():\n    out = normalize([-10, 0, 10])\n    assert out[0] == 0.0 and out[-1] == 1.0\n```\n\nRun the whole suite with `pytest -q`. Test the deterministic transforms and feature logic that your pipeline depends on; that is where subtle bugs hide.\n\n## Testing the Prediction API\n\nYour serving layer is code too, so test it. FastAPI ships a `TestClient` (built on httpx) that drives your app **in-process** with no running server. You assert both the HTTP status code and the response schema.\n\n```python\nfrom fastapi.testclient import TestClient\nfrom app import app\n\nclient = TestClient(app)\n\ndef test_predict_returns_valid_schema():\n    payload = {\"sepal_length\": 5.1, \"sepal_width\": 3.5,\n               \"petal_length\": 1.4, \"petal_width\": 0.2}\n    resp = client.post(\"/predict\", json=payload)\n    assert resp.status_code == 200\n    body = resp.json()\n    assert \"prediction\" in body\n    assert isinstance(body[\"prediction\"], int)\n\ndef test_predict_rejects_bad_input():\n    resp = client.post(\"/predict\", json={\"sepal_length\": \"oops\"})\n    assert resp.status_code == 422\n```\n\nThe second test confirms that invalid input is rejected with a 422, exactly the contract Pydantic enforces.\n\n## Data and Schema Validation Tests\n\nModels are only as good as their inputs. A data-validation test asserts that incoming data has the right **ranges, nullability, and types** before it reaches the model. Tools like **pandera** and **Great Expectations** let you declare these expectations as a schema.\n\n```python\nimport pandera as pa\nfrom pandera import Column, Check\n\nschema = pa.DataFrameSchema({\n    \"age\": Column(int, Check.in_range(0, 120)),\n    \"income\": Column(float, Check.greater_than(0), nullable=False),\n    \"country\": Column(str, nullable=False),\n})\n\ndef test_input_data_matches_schema(sample_df):\n    schema.validate(sample_df)  # raises SchemaError if data is invalid\n```\n\nIf a new batch contains negative ages or null incomes, validation fails fast with a clear error instead of producing garbage predictions.\n\n## Model-Quality Gates\n\nA model-quality gate is a test that **fails the build** when an evaluation metric drops below an agreed threshold. It protects you from merging a model that looks fine but quietly lost accuracy.\n\n```python\nfrom sklearn.metrics import accuracy_score\nimport joblib\n\nMIN_ACCURACY = 0.85\n\ndef test_model_meets_accuracy_threshold():\n    model = joblib.load(\"model.pkl\")\n    X_test, y_test = load_holdout()\n    acc = accuracy_score(y_test, model.predict(X_test))\n    assert acc >= MIN_ACCURACY, f\"accuracy {acc:.3f} below {MIN_ACCURACY}\"\n```\n\nBecause it is an ordinary `assert`, the gate runs in the same `pytest` command as everything else, and a regression turns CI red.\n\n## The CI/CD Pipeline with GitHub Actions\n\nGitHub Actions runs your tests in the cloud on every push and pull request. A workflow is a YAML file in `.github/workflows/`. Below, the **test** job installs dependencies and runs pytest; the **deploy** job runs only after tests pass and only on the `main` branch.\n\n```yaml\nname: ML CI/CD\non: [push, pull_request]\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-python@v5\n        with:\n          python-version: '3.11'\n      - run: pip install -r requirements.txt\n      - run: pytest -q\n\n  deploy:\n    needs: test\n    if: github.ref == 'refs/heads/main'\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run: ./deploy.sh\n```\n\nThe `needs: test` line makes deploy wait for green tests, and the `if` condition restricts deployment to merges into `main`. Pull requests get full test feedback but never deploy.\n\n## Key Takeaways\n\nTest ML systems in three layers: code, data, and model. Keep unit tests deterministic, drive your API with `TestClient`, validate data with pandera or Great Expectations, and gate merges on a model-quality assertion. Let GitHub Actions run it all and deploy only reviewed code on `main`. That is what \"clean, versioned, tested code\" looks like.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Testing and CI/CD for ML Systems",
+      "sub": "Code tests, data tests, model gates, and automated pipelines",
+      "narration": "Welcome. Job descriptions for ML engineers keep asking for clean, versioned, tested code and CI/CD experience. In this lesson we'll make that concrete: we'll test pipeline code, the prediction API, the data, and the model itself, then wire everything into an automated GitHub Actions pipeline."
+    },
+    {
+      "type": "content",
+      "title": "Why ML Needs More Than Code Tests",
+      "bullets": [
+        "ML systems are software, so untested code breaks in production",
+        "Code can be correct while the data is corrupt",
+        "A model can silently degrade over time",
+        "Three layers of tests: code, data, and model"
+      ],
+      "narration": "An ML system is software, so all the usual reasons to test apply. But ML adds two failure modes. Your code can be perfectly correct while the data flowing through it is corrupt, and your model can silently lose accuracy. That's why an ML test suite has three layers: code tests, data tests, and model tests, all run automatically by CI."
+    },
+    {
+      "type": "content",
+      "title": "Unit Tests with pytest",
+      "bullets": [
+        "A test is a function named test_ with assert statements",
+        "Make tests deterministic: known input, exact expected output",
+        "Target transforms and feature-engineering logic",
+        "Run the whole suite with pytest -q"
+      ],
+      "code": "from features import normalize\n\ndef test_normalize_scales_to_unit_range():\n    out = normalize([0, 5, 10])\n    assert out == [0.0, 0.5, 1.0]",
+      "narration": "pytest is the standard. A test is just a function whose name starts with test underscore, containing assert statements. The golden rule is determinism: feed a known input and assert an exact expected output. Focus on the deterministic transforms and feature logic in your pipeline, because that's where subtle bugs hide. Run everything with pytest dash q."
+    },
+    {
+      "type": "content",
+      "title": "Testing the Prediction API",
+      "bullets": [
+        "FastAPI ships TestClient for in-process testing",
+        "No running server or network port needed",
+        "Assert the status code and the response schema",
+        "Confirm bad input is rejected with 422"
+      ],
+      "code": "from fastapi.testclient import TestClient\nfrom app import app\n\nclient = TestClient(app)\n\ndef test_predict_schema():\n    r = client.post(\"/predict\", json=payload)\n    assert r.status_code == 200\n    assert \"prediction\" in r.json()",
+      "narration": "Your serving layer is code too, so test it. FastAPI's TestClient drives the app in-process, with no running server. We POST a request and assert two things: the HTTP status code and the shape of the JSON response. A second test sends bad input and confirms it's rejected with a 422, the exact contract Pydantic enforces."
+    },
+    {
+      "type": "content",
+      "title": "Data and Schema Validation",
+      "bullets": [
+        "Models are only as good as their inputs",
+        "Assert ranges, nullability, and types",
+        "Declare expectations with pandera or Great Expectations",
+        "Fail fast on bad data instead of predicting garbage"
+      ],
+      "code": "schema = pa.DataFrameSchema({\n    \"age\": Column(int, Check.in_range(0, 120)),\n    \"income\": Column(float, nullable=False),\n})\nschema.validate(df)  # raises on bad data",
+      "narration": "Models are only as good as their inputs. A data-validation test asserts that data has the right ranges, nullability, and types before it ever reaches the model. Tools like pandera and Great Expectations let you declare these expectations as a schema. If a batch has negative ages or null incomes, validation fails fast with a clear error."
+    },
+    {
+      "type": "content",
+      "title": "Model-Quality Gates",
+      "bullets": [
+        "A test that fails the build if a metric drops too low",
+        "Protects against silently regressed models",
+        "Just an ordinary assert on an evaluation metric",
+        "Runs in the same pytest command as everything else"
+      ],
+      "code": "MIN_ACCURACY = 0.85\n\ndef test_model_accuracy():\n    acc = accuracy_score(y_test,\n                         model.predict(X_test))\n    assert acc >= MIN_ACCURACY",
+      "narration": "A model-quality gate is a test that fails the build when an evaluation metric drops below an agreed threshold. It stops you from merging a model that looks fine but quietly lost accuracy. Because it's just an ordinary assert, it runs in the same pytest command as your other tests, and any regression turns CI red."
+    },
+    {
+      "type": "content",
+      "title": "CI/CD with GitHub Actions",
+      "bullets": [
+        "Workflow YAML lives in .github/workflows/",
+        "Runs on every push and pull request",
+        "Test job: checkout, setup-python, install, pytest",
+        "Deploy job: needs test and only on main"
+      ],
+      "code": "on: [push, pull_request]\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-python@v5\n      - run: pip install -r requirements.txt\n      - run: pytest -q\n  deploy:\n    needs: test\n    if: github.ref == 'refs/heads/main'",
+      "narration": "GitHub Actions runs your tests in the cloud on every push and pull request. The test job checks out the code, sets up Python, installs dependencies, and runs pytest. The deploy job uses needs-colon-test so it waits for green tests, and an if condition restricts it to the main branch. Pull requests get full test feedback but never deploy."
+    },
+    {
+      "type": "content",
+      "title": "Recap",
+      "bullets": [
+        "Test in three layers: code, data, and model",
+        "Keep unit tests deterministic; test the API with TestClient",
+        "Validate data with pandera or Great Expectations",
+        "Automate with GitHub Actions; deploy only reviewed main"
+      ],
+      "narration": "To recap: test ML systems in three layers, code, data, and model. Keep unit tests deterministic, drive your API with TestClient, validate data with pandera or Great Expectations, and gate merges on a model-quality assertion. Then let GitHub Actions run it all automatically and deploy only reviewed code on main. That's what clean, versioned, tested code looks like in practice."
+    }
+  ]
+}

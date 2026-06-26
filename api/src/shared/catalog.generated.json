@@ -127,7 +127,14 @@
         "feature engineering",
         "model training",
         "evaluation",
-        "data pipelines"
+        "data pipelines",
+        "transformers",
+        "llms",
+        "rag",
+        "fine-tuning",
+        "cloud deployment",
+        "model monitoring",
+        "ci-cd"
       ]
     }
   },
