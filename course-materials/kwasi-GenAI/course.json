@@ -4,7 +4,7 @@
   "description": "A deliverable-driven roadmap that turns a cloud/DevOps/security engineer into an interview-ready Applied / Generative AI Engineer: API fluency, RAG, agents, and production engineering.",
   "audience": "Engineers with cloud, automation, and security experience moving into applied GenAI.",
   "modules": 6,
-  "lessons": 35,
+  "lessons": 37,
   "layout": {
     "decks": "decks",
     "lessons": "lessons",

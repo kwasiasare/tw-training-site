@@ -1,0 +1,183 @@
+{
+  "slug": "mle-m7-l02-building-your-ml-engineering-portfolio",
+  "title": "Building Your ML Engineering Portfolio",
+  "month": 7,
+  "monthTitle": "Capstone & Career Launch",
+  "lesson": 2,
+  "video": "mle-m7-l02-building-your-ml-engineering-portfolio.mp4",
+  "summary": "One capstone proves you can ship; a portfolio proves it was not luck. This lesson shows you how to assemble two to three projects that, together, cover the modern ML Engineer skill surface: one LLM project using RAG or fine-tuning from Module 5, and one classic model that is deployed and served from Module 6, alongside your flagship capstone. For each project you will produce the same four artifacts, a clean repo, an architecture diagram, a demo, and a design doc, and frame all of them under one coherent story. The aim is a portfolio a hiring manager can verify in minutes and a narrative that says you build production ML systems, not just notebooks.",
+  "objectives": [
+    "Select two to three portfolio projects that together cover modeling, LLMs, and production serving",
+    "Include at least one LLM project (RAG or LoRA/PEFT fine-tuning) and one deployed, served model",
+    "Produce a consistent artifact set per project: repo, architecture diagram, demo, and design doc",
+    "Write READMEs that follow a problem, architecture, run, and results structure",
+    "Frame all projects under one narrative that matches your target role",
+    "Make every project reproducible and verifiable so a reviewer trusts the work in minutes"
+  ],
+  "quiz": [
+    {
+      "q": "Why include both an LLM project and a deployed classic model in an ML Engineering portfolio?",
+      "options": [
+        "Because together they cover the modern ML Engineer surface: applied LLM work and production serving, which different employers weight differently",
+        "To make the portfolio look longer regardless of content",
+        "Because classic models are obsolete and only included for history",
+        "Because LLM projects do not require any evaluation"
+      ],
+      "answer": 0,
+      "why": "ML Engineer roles in 2026 split between applied-LLM work (RAG, fine-tuning) and traditional model deployment. Showing both proves range and lets you match whichever a given employer emphasizes, instead of betting your whole portfolio on one flavor."
+    },
+    {
+      "q": "What makes a RAG project genuinely demonstrate engineering skill rather than a toy demo?",
+      "options": [
+        "It uses the largest possible language model",
+        "It hides the prompts so they cannot be copied",
+        "It includes chunking and retrieval choices, a vector database, and an evaluation harness that measures answer quality and grounding",
+        "It returns answers without citing retrieved sources"
+      ],
+      "answer": 2,
+      "why": "A toy RAG demo just wires an LLM to a vector store. A credible one documents chunking and embedding choices, uses a real vector database, cites retrieved context, and, crucially, evaluates retrieval and answer quality so you can show it actually works and where it fails."
+    },
+    {
+      "q": "For a LoRA/PEFT fine-tuning project, what evidence best proves the fine-tune was worthwhile?",
+      "options": [
+        "The training loss curve alone",
+        "A before-and-after comparison on a held-out task set showing the fine-tuned model beats the base model, with the adapter size and training cost reported",
+        "The number of GPUs used during training",
+        "A screenshot of the model loading successfully"
+      ],
+      "answer": 1,
+      "why": "LoRA/PEFT trains small adapters cheaply, so the case for it rests on a measured lift. Comparing the fine-tuned model against the base model on a held-out evaluation, while reporting the small adapter size and modest training cost, shows both the benefit and the efficiency."
+    },
+    {
+      "q": "What is the single most important property shared by every strong portfolio project?",
+      "options": [
+        "It uses a trendy framework released in the last month",
+        "It avoids documentation so the code speaks for itself",
+        "It contains thousands of lines of code",
+        "It is reproducible and verifiable: a reviewer can clone it, understand it, and confirm the claims quickly"
+      ],
+      "answer": 3,
+      "why": "Reviewers trust what they can verify. A pinned-dependency repo with a clear README, a diagram, and a runnable demo lets a hiring manager confirm your claims in minutes; unverifiable projects, however clever, are discounted."
+    },
+    {
+      "q": "Why frame two or three separate projects under one narrative?",
+      "options": [
+        "To hide that they are different projects",
+        "Because a coherent story (e.g., 'I build and ship ML systems from data to served endpoint') makes the whole portfolio read as a deliberate skill set, not scattered experiments",
+        "Because hiring managers only ever read one project",
+        "Because a narrative lets you skip writing READMEs"
+      ],
+      "answer": 1,
+      "why": "Three unrelated labs read as dabbling. The same three framed under one positioning line, that you design, build, and deploy ML systems across classic and LLM workloads, read as an intentional, hireable skill set, which is the impression that earns a screen."
+    },
+    {
+      "q": "In two to four sentences, outline the README structure you would use for every portfolio project and why it works.",
+      "answer": "I would open with the problem and the outcome metric in one or two sentences, then show an architecture diagram so the reader sees the whole system at a glance. Next I would give exact run instructions, clone, install pinned dependencies, and a single command to reproduce, followed by a results section that states the metric against a baseline plus latency and cost where relevant. I would close with limitations and next steps. This structure works because it answers a reviewer's questions in the order they ask them, what is this, how is it built, how do I run it, and does it actually work.",
+      "why": "A problem, architecture, run, results, limitations structure mirrors the reviewer's decision path, lets them verify claims fast, and signals that you communicate like an engineer who has shipped real systems."
+    }
+  ],
+  "resources": [
+    {
+      "label": "GitHub Docs: About READMEs",
+      "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes"
+    },
+    {
+      "label": "Hugging Face PEFT (LoRA) Documentation",
+      "url": "https://huggingface.co/docs/peft/index"
+    },
+    {
+      "label": "LangChain: Retrieval-Augmented Generation",
+      "url": "https://python.langchain.com/docs/concepts/rag/"
+    },
+    {
+      "label": "Google: Model Cards for Model Reporting",
+      "url": "https://modelcards.withgoogle.com/about"
+    }
+  ],
+  "body_markdown": "## One Project Proves You Can Ship; A Portfolio Proves It Wasn't Luck\n\nYour capstone is the centerpiece, but a single project leaves a reviewer wondering whether you got lucky once. A **portfolio of two to three projects** removes that doubt and lets you cover the breadth of the modern ML Engineer role. The goal is not volume, three polished projects beat seven half-finished ones. The goal is **coverage and credibility**: each project demonstrates a different competency, all of them are reproducible, and together they tell one story about the engineer you are.\n\n## The Three-Project Shape\n\nAim for this combination, anchored by your Module 7 capstone:\n\n1. **A deployed, served classic model (Module 6).** A tabular or vision/NLP model behind a real endpoint, containerized, with latency and throughput measured, ideally on Kubernetes or a managed endpoint with autoscaling. This proves you can run ML in production.\n2. **An LLM project: RAG or fine-tuning (Module 5).** Either a retrieval-augmented generation system over a real document set, or a LoRA/PEFT fine-tune of an open model for a specific task. This proves you can build with modern language-model tooling, the fastest-growing part of the role.\n3. **Your flagship capstone (Module 7).** The full end-to-end system from the previous lesson, your deepest, most complete piece.\n\nIf you only have time for two, keep the served classic model and one LLM project, they cover the widest hiring surface. Match the emphasis to your target role: applied-scientist and LLM-heavy roles weight the RAG or fine-tuning project; ML platform and infrastructure roles weight the served, scaled model.\n\n## Making the LLM Project Credible\n\nThe most common portfolio mistake in 2026 is a **toy RAG demo**, an LLM wired to a vector store with no evaluation. Avoid it by treating retrieval as an engineering problem:\n\n- **Document the data and chunking.** What corpus, what chunk size and overlap, what embedding model. These choices drive quality.\n- **Use a real vector database.** FAISS for a local project, or a managed store such as pgvector, Pinecone, or Weaviate. Explain why.\n- **Cite retrieved context.** Return sources so answers are grounded and auditable.\n- **Evaluate.** Build a small evaluation set and measure retrieval quality (hit rate, recall) and answer quality (faithfulness/groundedness, correctness), with a framework like Ragas or a hand-built harness. Show where it fails.\n\nFor a **fine-tuning** project, use **LoRA/PEFT** with Hugging Face Transformers, the efficient, standard approach. The persuasive evidence is a **before-and-after comparison** on a held-out task set: the fine-tuned model beats the base model, and you report the small adapter size and the modest training cost (often a few dollars of GPU time). That pairing, a measured lift at low cost, is exactly the engineering judgment the technique is meant to show.\n\n## Making the Deployed Model Credible\n\nFor the served model, the evidence is **production fluency**:\n\n- A versioned, input-validated endpoint (FastAPI, or a serving runtime like KServe, Triton, or Ray Serve).\n- A Dockerfile and, ideally, a Kubernetes manifest or managed-endpoint config.\n- A small **load test** with reported **p95 latency** and **throughput**, plus an estimated cost per 1,000 predictions.\n- Basic monitoring: logging and a drift check with Evidently or NannyML.\n\nThese numbers turn \"I deployed a model\" into \"I served a model at 200 requests per second per replica with 90 ms p95 latency,\" which is the language ML Engineers are hired in.\n\n## Four Artifacts Per Project\n\nUse the **same artifact set** for every project so the portfolio feels deliberate:\n\n- **A clean repo** with pinned dependencies, a seed for reproducibility, and a README that runs from problem to results.\n- **An architecture diagram** in a consistent visual style across all projects.\n- **A demo**, two to five minutes, showing the system working, the endpoint answering, the RAG app citing a source, the model serving a request.\n- **A design doc** (it can live in the README) that defends your decisions and names the alternatives you rejected.\n\nConsistency is itself a signal: a reviewer who sees the same clean structure three times concludes you work this way by habit.\n\n## The README That Reviewers Trust\n\nEvery README should follow the reviewer's decision path:\n\n1. **Problem and outcome** in one or two sentences.\n2. **Architecture diagram** so the system is legible at a glance.\n3. **How to run**, clone, install pinned dependencies, a single reproduce command.\n4. **Results**, the metric against a baseline, plus latency and cost where relevant.\n5. **Limitations and next steps**, which signal maturity, not weakness.\n\nThis order answers \"what is this, how is it built, how do I run it, does it work\" in the sequence reviewers actually ask. A README that buries the result or omits run instructions gets the repo closed.\n\n## Frame It Under One Story\n\nDo not present three disconnected labs. Choose a **positioning line** and frame every project under it, for example: *I design, build, and deploy ML systems across classic and LLM workloads, from data to a served, monitored endpoint.* Then each project becomes evidence for that claim: the served model is production, the RAG or fine-tune is modern LLM engineering, the capstone is the full loop. Pin the repos, link the demos, and add a short portfolio landing page (even a profile README) that states the story and links the three projects beneath it.\n\n## Match Projects to Your Target Role\n\nNot every employer weights the same skills, so tilt your portfolio toward the roles you actually want. If you are aiming at **Applied Scientist** or LLM-heavy product teams, make the RAG or fine-tuning project your centerpiece: deepen the evaluation, add an ablation comparing chunking strategies or embedding models, and write up what moved the metric. If you are aiming at **ML Platform** or **MLOps Engineer** roles, make the served model your centerpiece: add a CI/CD pipeline that tests and ships the image, autoscaling on Kubernetes, a canary rollout, and a monitoring dashboard with a documented retraining trigger. For generalist **ML Engineer** roles, balance the two and let the capstone show the full loop. A short line at the top of your portfolio landing page, naming the role you target, tells a reviewer how to read the projects and signals that you understand what the job actually requires. This small act of curation is the difference between a pile of projects and a deliberate case for a specific role. It also makes interviews easier: when every project obviously points at the job you are interviewing for, the conversation naturally flows toward your strengths instead of forcing you to explain why you built something unrelated.\n\n## Keep It Reproducible and Honest\n\nThe one property every strong project shares is **verifiability**. Pin your dependencies, set seeds, include sample data or a tiny synthetic subset when real data cannot be shared, and make sure a stranger can reproduce your headline numbers. Never overstate, a claim a reviewer cannot reproduce damages you more than a modest result honestly reported. The payoff of this lesson is a small, coherent set of projects that a hiring manager can verify in minutes and that, together, say clearly: this person ships production ML. That portfolio is what the resume and LinkedIn lessons will point to.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Building Your ML Engineering Portfolio",
+      "sub": "Two to three projects that prove range and production skill",
+      "narration": "One capstone proves you can ship; a portfolio proves it was not luck. In this lesson we assemble two to three projects that together cover the modern ML Engineer surface: one LLM project using retrieval or fine-tuning, one classic model that is deployed and served, alongside your flagship capstone. For each you will produce the same four artifacts and frame all of them under one coherent story. The aim is a portfolio a hiring manager can verify in minutes and a narrative that says you build production ML systems, not just notebooks."
+    },
+    {
+      "type": "content",
+      "title": "The Three-Project Shape",
+      "bullets": [
+        "A deployed, served classic model from Module 6",
+        "An LLM project: RAG or LoRA/PEFT fine-tuning from Module 5",
+        "Your flagship end-to-end capstone from Module 7",
+        "If only two: keep the served model and one LLM project"
+      ],
+      "narration": "Aim for three projects anchored by your capstone. First, a deployed, served classic model, containerized with latency and throughput measured, which proves you can run ML in production. Second, an LLM project, either retrieval-augmented generation over real documents or a LoRA fine-tune of an open model, which proves you build with modern language-model tooling. Third, your flagship capstone, the deepest piece. If you only have time for two, keep the served model and one LLM project, because together they cover the widest hiring surface."
+    },
+    {
+      "type": "content",
+      "title": "Make the RAG Project Credible",
+      "bullets": [
+        "Document corpus, chunking, and embedding choices",
+        "Use a real vector database; cite retrieved sources",
+        "Evaluate retrieval and answer quality with a harness",
+        "Show where it fails, not just where it works"
+      ],
+      "narration": "The most common portfolio mistake in 2026 is a toy RAG demo, an LLM wired to a vector store with no evaluation. Avoid it by treating retrieval as engineering. Document your corpus, chunk size, and embedding model, because those choices drive quality. Use a real vector database like FAISS or pgvector, and cite retrieved sources so answers are grounded. Most importantly, build a small evaluation set and measure retrieval and answer quality with a framework like Ragas. Showing where it fails is what makes it credible."
+    },
+    {
+      "type": "content",
+      "title": "Make the Fine-Tune Credible",
+      "bullets": [
+        "Use LoRA/PEFT with Hugging Face Transformers",
+        "Compare fine-tuned vs. base on a held-out task set",
+        "Report the small adapter size and training cost",
+        "A measured lift at low cost is the whole point"
+      ],
+      "narration": "For a fine-tuning project, use LoRA or PEFT with Hugging Face Transformers, the efficient, standard approach in 2026. The persuasive evidence is a before-and-after comparison on a held-out task set: the fine-tuned model beats the base model, and you report the small adapter size and the modest training cost, often just a few dollars of GPU time. That pairing, a measured lift at low cost, is exactly the engineering judgment the technique exists to demonstrate. A loss curve alone proves nothing about real-world value."
+    },
+    {
+      "type": "content",
+      "title": "Make the Deployed Model Credible",
+      "bullets": [
+        "Versioned, input-validated endpoint; Dockerfile and manifest",
+        "Load test with p95 latency and throughput",
+        "Estimated cost per 1,000 predictions",
+        "Basic monitoring: logging plus a drift check"
+      ],
+      "narration": "For the served model, the evidence is production fluency. Ship a versioned, input-validated endpoint with a Dockerfile and ideally a Kubernetes manifest or managed-endpoint config. Run a small load test and report p95 latency and throughput, plus an estimated cost per thousand predictions. Add basic monitoring with logging and a drift check using Evidently or NannyML. These numbers turn I deployed a model into I served a model at two hundred requests per second per replica with ninety millisecond p95 latency, which is the language ML Engineers are hired in."
+    },
+    {
+      "type": "content",
+      "title": "Four Artifacts, Every Project",
+      "bullets": [
+        "Clean repo: pinned dependencies, seed, problem-to-results README",
+        "Architecture diagram in a consistent visual style",
+        "A 2-5 minute demo of the system working",
+        "A design doc that names the alternatives you rejected"
+      ],
+      "narration": "Use the same artifact set for every project so the portfolio feels deliberate. A clean repo with pinned dependencies, a seed, and a README that runs from problem to results. An architecture diagram in a consistent style across all projects. A two-to-five minute demo showing the system working, the endpoint answering or the RAG app citing a source. And a design doc, which can live in the README, that defends your decisions by naming the alternatives you rejected. Consistency is itself a signal: a reviewer who sees the same clean structure three times concludes you work this way by habit."
+    },
+    {
+      "type": "content",
+      "title": "The README Reviewers Trust",
+      "bullets": [
+        "Problem and outcome in one or two sentences",
+        "Architecture diagram, then exact run instructions",
+        "Results: metric vs. baseline, plus latency and cost",
+        "Limitations and next steps signal maturity"
+      ],
+      "narration": "Every README should follow the reviewer's decision path. Open with the problem and outcome in one or two sentences. Show the architecture diagram so the system is legible at a glance. Give exact run instructions, clone, install pinned dependencies, and a single reproduce command. Then a results section with the metric against a baseline plus latency and cost where relevant. Close with limitations and next steps, which signal maturity, not weakness. This order answers what is this, how is it built, how do I run it, and does it work, in the sequence reviewers ask."
+    },
+    {
+      "type": "content",
+      "title": "Frame It Under One Story",
+      "bullets": [
+        "Choose a positioning line and frame every project under it",
+        "'I build and deploy ML systems across classic and LLM workloads'",
+        "Pin repos, link demos, add a portfolio landing page",
+        "Keep everything reproducible and honest"
+      ],
+      "narration": "Do not present three disconnected labs. Choose a positioning line, such as I design, build, and deploy ML systems across classic and LLM workloads from data to a served endpoint, and frame every project as evidence for it. Pin the repos, link the demos, and add a short portfolio landing page or profile README that states the story. Above all keep everything reproducible and honest: pin dependencies, set seeds, and make sure a stranger can reproduce your headline numbers. A claim a reviewer cannot verify hurts you more than a modest result honestly reported."
+    }
+  ]
+}

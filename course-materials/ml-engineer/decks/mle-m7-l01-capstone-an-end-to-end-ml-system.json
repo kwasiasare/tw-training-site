@@ -1,0 +1,183 @@
+{
+  "slug": "mle-m7-l01-capstone-an-end-to-end-ml-system",
+  "title": "Capstone: An End-to-End ML System as Portfolio Evidence",
+  "month": 7,
+  "monthTitle": "Capstone & Career Launch",
+  "lesson": 1,
+  "video": "mle-m7-l01-capstone-an-end-to-end-ml-system.mp4",
+  "summary": "Earlier in the course you learned to build a pipeline, evaluate rigorously, serve a model, and monitor it in production. This capstone turns those skills into one flagship portfolio project that proves you can ship an ML system, not just train a notebook model. You will scope a defensible problem, build the full loop from data to monitoring, and hold the work to an explicit rubric and a clear definition of done. The deliverable is a public, reproducible repository with an architecture diagram, a model card, a live or recorded demo, and a written design doc that explains your decisions and trade-offs. This is the single project a hiring manager will look at first, so we engineer it to be unmistakably hireable.",
+  "objectives": [
+    "Scope an end-to-end ML problem with a metric tied to a real user or business outcome and a baseline you must beat",
+    "Build the full system loop: data ingestion, reproducible pipeline, training, evaluation, serving, and monitoring",
+    "Apply an explicit capstone rubric and a written definition of done to judge whether the project is portfolio-ready",
+    "Produce the four core artifacts: a clean repo with README, an architecture diagram, a model card, and a demo",
+    "Quantify results against the baseline and report latency, throughput, and cost alongside model metrics",
+    "Write a design doc that defends your decisions and names the alternatives you rejected"
+  ],
+  "quiz": [
+    {
+      "q": "What distinguishes a portfolio-grade capstone from a strong Kaggle-style notebook?",
+      "options": [
+        "The capstone uses a larger dataset and more model parameters",
+        "The capstone avoids using any pre-built libraries",
+        "The capstone is a deployed, reproducible system with data ingestion, serving, and monitoring, not just a trained model in a notebook",
+        "The capstone reports only accuracy instead of multiple metrics"
+      ],
+      "answer": 2,
+      "why": "A notebook proves you can train a model; a capstone proves you can ship a system. Hiring managers for ML Engineer roles look for the full loop from data to a served, monitored endpoint, packaged so someone else can run it. That systems-level evidence is what separates an engineer from a hobbyist."
+    },
+    {
+      "q": "Why should your capstone define a baseline before any modeling?",
+      "options": [
+        "Baselines are required by scikit-learn before training",
+        "A trivial baseline (majority class, mean, or simple heuristic) sets the floor your model must beat and makes your results interpretable",
+        "Baselines remove the need for a test set",
+        "Baselines guarantee the model will generalize"
+      ],
+      "answer": 1,
+      "why": "Without a baseline, an F1 of 0.82 means nothing. A trivial predictor or simple heuristic defines the minimum any real model must exceed and turns your headline metric into a credible, contextualized claim a reviewer can trust."
+    },
+    {
+      "q": "Which set of numbers makes a capstone result most credible to an ML hiring manager?",
+      "options": [
+        "The model metric versus the baseline, plus serving latency, throughput, and an estimated cost per 1,000 predictions",
+        "Only the final validation accuracy",
+        "The number of lines of code written",
+        "The number of epochs trained and the GPU brand used"
+      ],
+      "answer": 0,
+      "why": "ML Engineers are judged on systems, not just model quality. Reporting the metric lift over baseline together with p95 latency, throughput, and a cost estimate demonstrates that you think about production trade-offs, which is exactly the judgment the role requires."
+    },
+    {
+      "q": "What belongs in the 'definition of done' for a portfolio capstone?",
+      "options": [
+        "The model achieves 100% accuracy on the training set",
+        "The model is the largest architecture you could fit in memory",
+        "The notebook runs once on your laptop without errors",
+        "A reproducible repo, a metric that beats the baseline, a served endpoint with input validation and versioning, basic monitoring, and the four documentation artifacts"
+      ],
+      "answer": 3,
+      "why": "Done is an explicit bar, not a feeling. It means another person can clone and run the project, the model beats the baseline, the endpoint validates inputs and returns a model version, monitoring is wired up, and the diagram, README, model card, and demo all exist."
+    },
+    {
+      "q": "Why save the entire fitted pipeline (preprocessing plus model) as one artifact for the capstone?",
+      "options": [
+        "It reduces the model file size",
+        "It guarantees serving applies identical transformations to training, preventing train/serve skew",
+        "It allows skipping input validation at serving time",
+        "It automatically improves the model's accuracy"
+      ],
+      "answer": 1,
+      "why": "If preprocessing is re-implemented separately at serving time, subtle differences create train/serve skew and silent errors. Persisting the fitted preprocessing and model together ensures the exact same feature transformations run in production as in training."
+    },
+    {
+      "q": "In two to four sentences, describe how you would present your capstone's results so they read as credible engineering rather than a lucky score.",
+      "answer": "I would open with the problem and the metric that matters, then state my result next to the baseline so the lift is visible, for example F1 0.84 against a 0.61 majority-class baseline. I would add the production numbers, p95 latency around 90 milliseconds, roughly 200 requests per second per replica, and an estimated cost per thousand predictions, so the reviewer sees I thought about serving, not just accuracy. Then I would show a slice-based breakdown and a short error analysis to prove I understand where the model fails. Finally I would point to the reproducible repo and demo so every claim can be verified.",
+      "why": "A credible presentation pairs the headline metric with a baseline, adds production trade-offs (latency, throughput, cost), surfaces weaknesses through slices and error analysis, and links to reproducible evidence, which together signal engineering judgment rather than a single lucky number."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Google: Model Cards for Model Reporting",
+      "url": "https://modelcards.withgoogle.com/about"
+    },
+    {
+      "label": "MLflow Documentation",
+      "url": "https://mlflow.org/docs/latest/index.html"
+    },
+    {
+      "label": "scikit-learn: Pipelines and composite estimators",
+      "url": "https://scikit-learn.org/stable/modules/compose.html"
+    },
+    {
+      "label": "Evidently: Open-source ML monitoring",
+      "url": "https://docs.evidentlyai.com/"
+    }
+  ],
+  "body_markdown": "## The One Project That Gets You Hired\n\nBy now you have built pipelines, evaluated models rigorously, deployed an inference API, and wired up monitoring. This capstone is where those pieces become a single, presentable system that a hiring manager will open first. The earlier Module 4 capstone taught you the *mechanics* of building the loop; this lesson is about producing **portfolio evidence**: a flagship project so clearly engineered that it argues, on its own, that you can do the job. The difference between a learner and a hire is rarely raw modeling skill. It is the ability to ship a system end to end and explain why you built it that way.\n\n## Scope a Problem You Can Defend\n\nStart with a one-page brief, written before any code.\n\n- **Pick a task with a real outcome.** Classification, regression, ranking, forecasting, or a retrieval/LLM task from Module 5. Choose data you can legally use and a problem you can explain to a non-expert in two sentences.\n- **Choose the metric that matters.** Do not default to accuracy. Use F1, AUC, RMSE, recall at a fixed precision, or a business KPI such as the cost of a false positive. Tie it to the decision the model informs.\n- **Set a baseline.** A majority-class predictor, a mean, or a simple heuristic. This is the floor your model must beat, and it makes every later number interpretable.\n- **State constraints.** Latency budget, data freshness, interpretability, and a rough cost ceiling. Constraints are what make the project read like real engineering.\n\nA capstone that picks a sharp, modest problem and nails the full loop beats an ambitious project that only half-works.\n\n## Build the Full Loop\n\nThe capstone must demonstrate the complete system, not a single stage.\n\n1. **Data ingestion.** Pull from a source (CSV, API, or database) and store an immutable raw copy. Validate schema, null rates, and ranges, and fail loudly on bad data.\n2. **Reproducible pipeline.** Encapsulate all feature engineering in a `Pipeline` or `ColumnTransformer` so the same logic runs in training and serving. Respect time order in splits to avoid leakage.\n3. **Training with tracking.** Log parameters, metrics, and artifacts with MLflow or Weights & Biases. Tune with cross-validation; never touch the test set until the end. Save the **fitted pipeline** as one artifact.\n4. **Rigorous evaluation.** Compare against the baseline on held-out data, run error analysis on the worst predictions, and report **slice-based** metrics to catch hidden underperformance.\n5. **Serving.** Wrap the saved pipeline behind a FastAPI `/predict` endpoint (or a serving runtime such as KServe, Triton, or Ray Serve for a Module 6 flavor). Validate inputs with a Pydantic schema and return the prediction plus a **model version**. Containerize with Docker.\n6. **Monitoring.** Log inputs, outputs, and latency, and watch for data and prediction drift with a tool like Evidently or NannyML. Decide in advance what triggers a retrain.\n\nIf you completed Module 5 or 6, lean into them: an LLM/RAG capstone with a vector database and an evaluation harness, or a model served on Kubernetes with autoscaling, both make strong, current portfolio pieces for 2026.\n\n## The Capstone Rubric\n\nHold the work to an explicit rubric. Score each row honestly out of the weight shown.\n\n- **Problem framing (15).** Clear task, metric tied to an outcome, baseline, and constraints.\n- **Data and pipeline (20).** Immutable raw data, validation, leakage-safe splits, reproducible transforms.\n- **Modeling and evaluation (20).** Beats the baseline; error analysis and slice metrics present.\n- **Serving (20).** Versioned, input-validated endpoint; containerized; latency and throughput measured.\n- **Monitoring (10).** Drift and latency tracked; a stated retraining trigger.\n- **Documentation (15).** README, architecture diagram, model card, and a design doc with trade-offs.\n\nA project below roughly 80 out of 100 is not yet portfolio-ready. The rubric is not bureaucracy; it is the same checklist a reviewer applies, so applying it first removes their easy reasons to pass.\n\n## The Definition of Done\n\n\"Done\" is a hard bar, not a feeling. Your capstone is done when:\n\n- Another person can **clone the repo and reproduce** your results from the README, with pinned dependencies and a seed.\n- The model **beats the baseline** by a margin you report next to it.\n- The **endpoint validates inputs**, returns a model version, and is containerized.\n- **Monitoring** is wired up and you can name the retraining trigger.\n- The **four artifacts exist**: README, architecture diagram, model card, and a demo.\n\nUntil all five are true, the project is in progress, not in your portfolio.\n\n## Quantify Like an Engineer\n\nML Engineers are judged on systems, so report system numbers next to model numbers. Pair your headline metric with the baseline (\"F1 0.84 versus a 0.61 majority-class baseline\"), then add **p95 latency**, **throughput** (requests per second per replica), and an **estimated cost per 1,000 predictions**. Even in a personal project these are measurable, and they signal that you think about production, not just leaderboard score. A slice table and a short error analysis prove you understand where the model fails, the single clearest sign of maturity.\n\n## Common Capstone Pitfalls\n\nMost capstones fail in predictable ways, and avoiding them is half the battle. Watch for these:\n\n- **Leakage that inflates the score.** Computing scalers, target encodings, or feature selection on the full dataset before splitting leaks the test set into training. Fit every transform inside the pipeline on the training fold only.\n- **A model with no baseline.** A 0.91 AUC sounds great until you learn the majority-class baseline is 0.90. Always report the lift.\n- **Train/serve skew.** Re-implementing preprocessing in the API instead of serving the saved fitted pipeline. Serve the exact artifact you trained.\n- **An endpoint that never proves it works.** No load test, no latency numbers, no example request in the README. Include a runnable `curl` example and a small load test.\n- **Scope creep.** Trying to build five models and shipping none. A narrow problem solved completely beats a broad one half-built.\n- **A repo a stranger cannot run.** Unpinned dependencies, missing data instructions, no seed. If a reviewer cannot reproduce your headline number in ten minutes, the project is not done.\n\nRun this checklist before you call the capstone finished; each item is something a reviewer will probe. A useful test is to hand the repo to a peer with no context and ask them to reproduce your headline number using only the README. If they get stuck, you have found exactly the gap an interviewer would find, and fixing it now costs minutes instead of an offer.\n\n## Package It as Four Artifacts\n\nEvery reviewer wants the same four things:\n\n- **A clean public repo** with a README that states the problem, architecture, how to deploy, how to test, and the results.\n- **An architecture diagram** showing the loop from data to monitoring in one glance.\n- **A model card** summarizing intended use, training data, metrics, slices, and limitations.\n- **A demo**, three to five minutes, showing the endpoint serving a real request and the monitoring updating.\n\nAdd a short **design doc** that defends your choices by naming the alternative you rejected: \"I served with FastAPI rather than a managed endpoint because the project is cost-sensitive and low-traffic, and I can show the Dockerfile and load test.\" That single habit, explaining the road not taken, is what makes the work read as senior. This polished package is the launch pad for the resume, portfolio, and job-search lessons that follow.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Capstone: An End-to-End ML System",
+      "sub": "The one project a hiring manager opens first",
+      "narration": "Welcome to the capstone. By now you can build a pipeline, evaluate a model, serve it, and monitor it. This lesson turns those skills into one flagship portfolio project that proves you can ship an ML system, not just train a notebook model. We will scope a defensible problem, build the full loop from data to monitoring, and hold the work to an explicit rubric and a clear definition of done. The result is the single project that argues, on its own, that you are hireable."
+    },
+    {
+      "type": "content",
+      "title": "Scope a Problem You Can Defend",
+      "bullets": [
+        "Pick a task with a real outcome you can explain in two sentences",
+        "Choose the metric that matters, not default accuracy",
+        "Set a trivial baseline you must beat",
+        "State constraints: latency, freshness, interpretability, cost"
+      ],
+      "narration": "Start with a one-page brief written before any code. Pick a task with a real outcome you can explain to a non-expert in two sentences, using data you can legally use. Choose the metric that actually matters, F1, AUC, RMSE, or a business KPI, not default accuracy. Set a baseline like a majority-class or mean predictor so every later number is interpretable. And state your constraints: latency budget, data freshness, interpretability, and a rough cost ceiling. A sharp, modest problem done fully beats an ambitious one that half-works."
+    },
+    {
+      "type": "content",
+      "title": "Build the Full Loop",
+      "bullets": [
+        "Ingest and validate data; keep an immutable raw copy",
+        "Reproducible pipeline; save the fitted pipeline as one artifact",
+        "Evaluate vs. baseline with error analysis and slice metrics",
+        "Serve a versioned, validated endpoint; monitor for drift"
+      ],
+      "narration": "The capstone must show the complete system. Ingest data and validate it, keeping an immutable raw copy. Encapsulate feature engineering in a pipeline so the same logic runs in training and serving, and save the fitted pipeline as one artifact to prevent train-serve skew. Evaluate against the baseline with error analysis and slice metrics. Then serve the model behind a versioned, input-validated endpoint, containerize it, and wire up monitoring for drift and latency with a tool like Evidently. That full loop is the evidence employers want."
+    },
+    {
+      "type": "content",
+      "title": "Lean Into Modules 5 and 6",
+      "bullets": [
+        "LLM/RAG capstone: vector database plus an evaluation harness",
+        "Served model on Kubernetes with autoscaling",
+        "Both are current, in-demand 2026 portfolio pieces",
+        "Choose the flavor that matches your target role"
+      ],
+      "narration": "If you completed the later modules, lean into them. A retrieval-augmented generation capstone with a vector database and an evaluation harness shows you can build modern LLM systems. A classic model served on Kubernetes with autoscaling shows you can run production infrastructure. Both are current, in-demand portfolio pieces for 2026, and each speaks to a different target role. Pick the flavor that matches the jobs you want, an applied-LLM project for applied-scientist roles, or a serving-and-scaling project for ML platform roles."
+    },
+    {
+      "type": "content",
+      "title": "Hold It to a Rubric",
+      "bullets": [
+        "Problem framing 15, data and pipeline 20",
+        "Modeling and evaluation 20, serving 20",
+        "Monitoring 10, documentation 15",
+        "Below ~80 of 100 is not yet portfolio-ready"
+      ],
+      "narration": "Hold the work to an explicit rubric and score yourself honestly. Problem framing is worth fifteen, data and pipeline twenty, modeling and evaluation twenty, serving twenty, monitoring ten, and documentation fifteen. A project below roughly eighty out of a hundred is not yet portfolio-ready. This is not bureaucracy. It is the same checklist a reviewer applies in their head, so applying it first removes their easy reasons to pass you over. Fix the weakest row before you ship."
+    },
+    {
+      "type": "content",
+      "title": "The Definition of Done",
+      "bullets": [
+        "Someone else can clone and reproduce your results",
+        "The model beats the baseline by a reported margin",
+        "Endpoint validates inputs, returns a version, is containerized",
+        "Monitoring wired up; four artifacts exist"
+      ],
+      "narration": "Done is a hard bar, not a feeling. Your capstone is done when another person can clone the repo and reproduce your results from the README, with pinned dependencies and a seed. The model beats the baseline by a margin you report next to it. The endpoint validates inputs, returns a model version, and is containerized. Monitoring is wired up and you can name the retraining trigger. And the four artifacts exist: README, architecture diagram, model card, and demo. Until all five are true, it is in progress, not in your portfolio."
+    },
+    {
+      "type": "content",
+      "title": "Quantify Like an Engineer",
+      "bullets": [
+        "Report the metric next to the baseline",
+        "Add p95 latency, throughput, and cost per 1,000 predictions",
+        "Show a slice table and a short error analysis",
+        "Numbers plus a reproducible repo make claims credible"
+      ],
+      "narration": "ML Engineers are judged on systems, so report system numbers next to model numbers. Pair your headline metric with the baseline, then add p95 latency, throughput in requests per second per replica, and an estimated cost per thousand predictions. Even in a personal project these are measurable, and they prove you think about production, not just leaderboard score. Add a slice table and a short error analysis to show where the model fails. Numbers plus a reproducible repo make every claim verifiable."
+    },
+    {
+      "type": "content",
+      "title": "Package It as Four Artifacts",
+      "bullets": [
+        "Clean public repo with a problem-to-results README",
+        "One architecture diagram of the whole loop",
+        "A model card: intended use, metrics, slices, limitations",
+        "A 3-5 minute demo plus a design doc with trade-offs"
+      ],
+      "narration": "Every reviewer wants the same four things. A clean public repo with a README that runs from problem to results. One architecture diagram of the whole loop. A model card describing intended use, metrics, slices, and limitations. And a three-to-five minute demo of the endpoint serving a real request. Add a short design doc that defends your choices by naming the alternative you rejected, because explaining the road not taken is what makes the work read as senior. This polished package launches the resume and job-search lessons that follow."
+    }
+  ]
+}

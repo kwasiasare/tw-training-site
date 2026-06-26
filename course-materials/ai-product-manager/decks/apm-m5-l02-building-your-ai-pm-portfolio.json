@@ -1,0 +1,172 @@
+{
+  "slug": "apm-m5-l02-building-your-ai-pm-portfolio",
+  "title": "Building Your AI PM Portfolio",
+  "month": 5,
+  "monthTitle": "Capstone & Career Launch",
+  "lesson": 2,
+  "video": "apm-m5-l02-building-your-ai-pm-portfolio.mp4",
+  "summary": "Your capstone case study and the artifacts you built across the course, PRDs, AI feature specs, eval plans, roadmaps, and A/B results, are raw material; this lesson turns them into a published portfolio that tells one story. You will choose a home (a simple site or a Notion workspace), curate three to five artifacts that show range rather than dumping everything, and write the connective narrative that frames you as an AI PM who works problem-first and proves impact with metrics. You will learn how to present sensitive or simulated work safely, how to redact confidential details, and how to make each artifact skimmable in under a minute. The goal is a link you can paste into a resume, a LinkedIn Featured section, and an outreach message that converts a profile view into a screen. By the end you will have a live portfolio URL, not just a folder of files.",
+  "objectives": [
+    "Choose a portfolio home (lightweight site or Notion) that is fast to load, easy to update, and link-friendly",
+    "Curate three to five artifacts that show range — strategy, spec, evals, metrics — instead of dumping everything",
+    "Write a connective narrative that frames every artifact under one problem-first, metrics-driven identity",
+    "Structure each artifact case so it is skimmable in under a minute with context, decision, and outcome",
+    "Present simulated and confidential work honestly and safely, redacting sensitive details",
+    "Produce a single shareable portfolio URL ready for a resume, LinkedIn, and outreach"
+  ],
+  "quiz": [
+    {
+      "q": "Why curate three to five artifacts instead of publishing every document you produced?",
+      "options": [
+        "Because hosting more than five files is technically impossible",
+        "Because a curated set shows range and respects the reviewer's time, while a dump forces them to hunt for signal and dilutes your best work",
+        "Because older artifacts are always better than newer ones",
+        "Because recruiters only ever open the first file"
+      ],
+      "answer": 1,
+      "why": "A reviewer spends a minute or two on a portfolio. A curated set of three to five artifacts chosen to show range, strategy, spec, evals, metrics, lets them see your span quickly and keeps every piece strong. Dumping everything buries your best work and signals you cannot prioritize, which is itself a PM red flag."
+    },
+    {
+      "q": "What is the role of the connective narrative in a portfolio?",
+      "options": [
+        "It is optional filler between the real artifacts",
+        "It frames every artifact under one identity so the reviewer reads a coherent professional, not a pile of unrelated files",
+        "It should list your hobbies and unrelated jobs in detail",
+        "It replaces the artifacts so they do not need to be shown"
+      ],
+      "answer": 1,
+      "why": "The narrative is what turns a folder into a portfolio. A short positioning line plus framing around each artifact tells the reviewer who you are, an AI PM who works problem-first and proves impact with metrics, so the individual pieces reinforce one story instead of reading as disconnected homework."
+    },
+    {
+      "q": "How should you present a capstone or course project that was simulated rather than shipped at a company?",
+      "options": [
+        "Disguise it as real shipped work to look more senior",
+        "Hide it entirely because only employer work counts",
+        "Label it honestly as a self-directed or simulated project and let the quality of the thinking carry it",
+        "Add fake production metrics to make it look launched"
+      ],
+      "answer": 2,
+      "why": "Self-directed and simulated projects are legitimate, demonstrable experience, especially for a career-changer, but only when labeled honestly. Faking shipped status or inventing production metrics is easily exposed in an interview and destroys credibility; transparent framing plus rigorous thinking is what earns trust."
+    },
+    {
+      "q": "What makes an individual artifact case skimmable in under a minute?",
+      "options": [
+        "A wall of unbroken text with no headings",
+        "A short context line, the key decision and why, and the outcome or result up top, with the full document linked below",
+        "Only the final document with no explanation at all",
+        "As many screenshots as possible with no captions"
+      ],
+      "answer": 1,
+      "why": "Reviewers skim. Leading each artifact with a one-line context, the core decision and its rationale, and the outcome lets them grasp the value in seconds, then drill into the full PRD, eval plan, or roadmap only if they want depth. Raw documents with no framing make them do the interpretive work."
+    },
+    {
+      "q": "How should you handle confidential details from real work you want to feature?",
+      "options": [
+        "Publish everything verbatim; NDAs do not apply to portfolios",
+        "Redact or anonymize sensitive specifics — company names, real numbers, proprietary data — and present the reasoning and your role instead",
+        "Refuse to mention the work at all under any circumstances",
+        "Ask the reviewer to keep it secret in the caption"
+      ],
+      "answer": 1,
+      "why": "You can showcase real work without breaching confidentiality by anonymizing the company, replacing exact figures with ranges or indexed values, and stripping proprietary data, while still conveying the problem, your decisions, and the impact. This protects you legally and signals professional judgment to a hiring manager."
+    },
+    {
+      "q": "In two to four sentences, describe how you would choose a portfolio home and what trade-offs you would weigh between a custom site and a Notion workspace.",
+      "answer": "I would pick the option I can publish fastest and keep updated, because an unfinished portfolio helps no one. A Notion workspace is quick to build, easy to organize into pages, and link-friendly, which suits artifact-heavy PM work, while a lightweight custom site (or a simple page builder) gives more polish and control over branding at the cost of more setup and maintenance. I would weigh speed-to-publish and ease of updating against polish and ownership of the domain. For most career-changers I would start with Notion or a simple site to ship this week, then upgrade later if the search warrants it.",
+      "why": "A strong answer prioritizes shipping a working, updatable portfolio over perfect polish, and names the real trade-offs: Notion is fast and link-friendly; a custom site offers polish and control but more upkeep. The judgment being tested is bias toward shipping plus a clear-eyed cost comparison."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Notion — workspaces and shareable pages for portfolios",
+      "url": "https://www.notion.so/"
+    },
+    {
+      "label": "GitHub Pages — free static hosting for a custom portfolio site",
+      "url": "https://pages.github.com/"
+    },
+    {
+      "label": "Lenny's Newsletter — product management craft, examples, and templates",
+      "url": "https://www.lennysnewsletter.com/"
+    },
+    {
+      "label": "Google PAIR — People + AI Guidebook (frameworks to reference in your write-ups)",
+      "url": "https://pair.withgoogle.com/guidebook/"
+    }
+  ],
+  "body_markdown": "## From Artifacts to a Portfolio\n\nAcross this course you produced a stack of real PM artifacts: opportunity assessments, an AI product strategy and one-page vision, roadmaps under uncertainty, AI PRDs with guardrails, prompt designs, eval frameworks and results, metric trees, and the capstone case study. Most candidates leave these as a folder of files. A portfolio is different: it is a **published, curated, narrated** selection that a hiring manager can open from a link and understand in two minutes. This lesson turns your raw material into that published asset, the thing you will paste into a resume, a LinkedIn Featured section, and every outreach message.\n\nThe distinction matters because a portfolio is a product, and you are the PM. It has a user (a busy hiring manager), a job-to-be-done (decide quickly whether to interview you), and a success metric (it converts a view into a screen). Treat it with the same discipline you would any product: know the user, cut scope, and lead with value.\n\n## Choose a Home\n\nPick the option you can publish this week and keep updated, an unfinished portfolio helps no one.\n\n- **Notion** is the fastest path for artifact-heavy PM work. You get pages, sub-pages, embeds, and a public share link in minutes, and updating is trivial. The trade-off is less control over branding and domain.\n- **A lightweight site** (a static-site host such as GitHub Pages, or a simple page builder) gives more polish, a custom domain, and full control, at the cost of more setup and maintenance.\n- **A single linkable doc** is acceptable as a stopgap, but a structured home reads as more professional.\n\nFor most career-changers, start with Notion or a simple site to ship now, then upgrade if the search warrants it. The worst choice is the perfect portfolio that never goes live.\n\n## Curate, Do Not Dump\n\nThe instinct to show everything is a trap. A reviewer spends a minute or two; a dump of fifteen documents buries your best work and signals you cannot prioritize, which is itself a PM red flag. Choose **three to five artifacts that show range**:\n\n- A **strategy or opportunity** piece (problem framing, why-AI-why-now, positioning).\n- An **AI PRD or feature spec** (behavior contract, guardrails, edge cases, non-goals).\n- An **eval plan and results** (golden sets, thresholds, what you learned).\n- A **roadmap** (phased, tied to learning milestones) or a **metric tree**.\n- An **A/B test or experiment write-up** (hypothesis, design, result, decision).\n\nThe capstone case study is your anchor; the other pieces are evidence of specific muscles. Together they should let a reviewer say, 'this person can do strategy, specs, evals, and metrics.'\n\nWhen you are unsure whether a piece earns a slot, ask what it *proves* that the others do not. If two artifacts demonstrate the same skill, keep the stronger one and cut the other; redundancy spends the reviewer's attention without adding signal. And bias toward recency and relevance: a sharp eval write-up that matches the roles you want beats an older, off-target project even if you are fond of it. Curation is a product decision, and ruthless scoping is exactly the muscle a hiring manager is hoping to see.\n\n## Write the Connective Narrative\n\nA pile of files is not a portfolio; the narrative is what makes it one. Three layers:\n\n1. **A positioning line** at the top: who you are and how you work. For example, *'AI Product Manager. I work problem-first, specify AI behavior and guardrails carefully, and prove impact with evals and metrics.'* This is the lens through which everything else is read.\n2. **A one-paragraph framing per artifact**: the context, the decision you made, and the outcome, before the reader ever opens the full document.\n3. **Transitions that imply range**: order the artifacts so they tell a lifecycle story, from spotting an opportunity to specifying, evaluating, and measuring it.\n\nThe test: a reviewer who reads only your positioning line and the three framing paragraphs should already understand your value, with the documents there for those who want to verify the depth.\n\n## Make Each Artifact Skimmable\n\nLead every artifact case with a compact header a reviewer can absorb in seconds:\n\n- **Context** — one line: the user, the problem, the setting (and whether it was shipped or simulated).\n- **Decision** — the core choice you made and the one-sentence reason.\n- **Outcome** — the result or, for simulated work, the projected impact and your reasoning.\n- **Artifact** — the link to the full PRD, eval plan, roadmap, or case study.\n\nUse headings, short paragraphs, and one diagram where it earns its place (a metric tree, a roadmap, a user flow). Nobody reads a wall of text; everybody skims a well-structured page.\n\nA useful pattern is the **two-layer page**: the framing (context, decision, outcome) lives on the visible page, and the full artifact sits one click away as a linked document or an expandable section. This respects two different readers, the recruiter who needs the gist in thirty seconds and the hiring manager who wants to inspect your actual PRD before an interview, without forcing either to scroll past the other's content. Keep the visible layer tight and let depth live behind the link.\n\n## Present Simulated and Confidential Work Honestly\n\nTwo situations need care, and both reward transparency.\n\n**Simulated or course projects.** Label them plainly as self-directed or simulated. They are legitimate, demonstrable experience, especially for a career-changer, and the quality of your thinking carries them. What destroys credibility is disguising a simulation as shipped work or inventing production metrics; an interviewer will probe, and the gap will show. Honest framing plus rigorous reasoning beats a fake launch every time.\n\n**Confidential real work.** You can feature work done under an NDA without breaching it. Anonymize the company, replace exact figures with ranges or indexed values ('cut handle time by ~30%' rather than raw internal numbers), and strip proprietary data and screenshots. Present the problem, your role, the decisions, and the impact, the parts that demonstrate judgment, not the parts that are secret. Doing this well is itself a signal of professional maturity.\n\n## Polish and Publish\n\nBefore you share the link, run a final pass. Check that the positioning line is sharp, every artifact has context-decision-outcome framing, every number is sourced or labeled an estimate, links work, simulated work is labeled, and confidential details are redacted. Read it on a phone, many reviewers will. Confirm the share settings are actually public (a link that asks the reviewer to request access is a silent conversion killer), and add a one-line way to contact you. Then make the page public, copy the URL, and you have the asset the next two lessons depend on.\n\nFinally, treat the portfolio as living, not finished. As you complete the resume and LinkedIn lessons you will sharpen your positioning, and the search itself will teach you which artifacts resonate; fold those lessons back in. A small habit, refreshing one artifact or adding one new write-up every couple of weeks, keeps the page current and gives you a fresh reason to re-share it with your network. A portfolio that visibly improves signals momentum, and momentum is attractive to hiring managers.\n\nThe deliverable of this lesson is a **live portfolio URL**: a home, three to five curated artifacts with framing, one connective narrative, and clean presentation of simulated and confidential work. That link is what turns the work you already did into interviews.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Building Your AI PM Portfolio",
+      "sub": "Turn PRDs, specs, evals, and metrics into one narrated, shareable story",
+      "narration": "You have produced a stack of real PM artifacts across this course: strategies, AI PRDs, eval plans, roadmaps, and A/B write-ups, plus your capstone case study. Most candidates leave these as a folder of files. In this lesson you will turn them into a published, curated, narrated portfolio that a hiring manager can open from a link and understand in two minutes. The deliverable is a live URL you will paste into your resume, your LinkedIn Featured section, and every outreach message."
+    },
+    {
+      "type": "content",
+      "title": "Your Portfolio Is a Product",
+      "bullets": [
+        "User: a busy hiring manager with a minute or two",
+        "Job-to-be-done: decide quickly whether to interview you",
+        "Success metric: it converts a profile view into a screen",
+        "So apply PM discipline: know the user, cut scope, lead with value"
+      ],
+      "narration": "Treat your portfolio as a product, and you are the PM. Its user is a busy hiring manager with a minute or two. Its job is to help them decide quickly whether to interview you. Its success metric is conversion: does a view become a screen? Once you frame it this way, the design choices follow from PM discipline you already know. Know the user, ruthlessly cut scope, and lead with value rather than making the reviewer hunt for it."
+    },
+    {
+      "type": "content",
+      "title": "Choose a Home You Can Ship",
+      "bullets": [
+        "Notion: fastest for artifact-heavy work, easy to update, link-friendly",
+        "Lightweight site (e.g. GitHub Pages): more polish and a custom domain",
+        "A single linkable doc works as a stopgap, but a structured home reads better",
+        "The worst choice is the perfect portfolio that never goes live"
+      ],
+      "narration": "Pick the home you can publish this week and keep updated. Notion is the fastest path for artifact-heavy PM work: pages, embeds, and a public link in minutes, with trivial updates. A lightweight static site gives more polish and a custom domain at the cost of setup and maintenance. A single linkable doc is an acceptable stopgap. For most career-changers, start with Notion or a simple site now and upgrade later. The worst possible choice is the perfect portfolio that never goes live."
+    },
+    {
+      "type": "content",
+      "title": "Curate for Range, Do Not Dump",
+      "bullets": [
+        "Pick three to five artifacts, not everything you made",
+        "Show span: strategy, an AI PRD, an eval plan, a roadmap or metric tree",
+        "Add an A/B or experiment write-up: hypothesis, design, result, decision",
+        "The capstone case study is your anchor piece"
+      ],
+      "narration": "Showing everything is a trap. A dump of fifteen documents buries your best work and signals you cannot prioritize, which is itself a red flag for a PM. Instead, curate three to five artifacts that show range: a strategy or opportunity piece, an AI PRD, an eval plan and results, and a roadmap or metric tree, plus an experiment write-up if you have one. Your capstone case study is the anchor, and the others are evidence of specific muscles. Together they prove you can do strategy, specs, evals, and metrics."
+    },
+    {
+      "type": "content",
+      "title": "Write the Connective Narrative",
+      "bullets": [
+        "A positioning line: who you are and how you work",
+        "One framing paragraph per artifact: context, decision, outcome",
+        "Order the pieces so they tell a lifecycle story",
+        "Test: the framing alone should convey your value"
+      ],
+      "narration": "A pile of files is not a portfolio; the narrative makes it one. Open with a positioning line, for example, AI Product Manager who works problem-first and proves impact with evals and metrics. Then frame each artifact in one paragraph: the context, the decision you made, and the outcome, before the reader opens the document. Order the pieces so they tell a lifecycle story from opportunity to measurement. The test is simple: a reviewer who reads only your positioning line and the framing paragraphs should already grasp your value."
+    },
+    {
+      "type": "content",
+      "title": "Make Each Artifact Skimmable",
+      "bullets": [
+        "Context — one line: user, problem, setting, shipped or simulated",
+        "Decision — the core choice and a one-sentence reason",
+        "Outcome — the result or projected impact with reasoning",
+        "Artifact — the link to the full PRD, eval plan, or roadmap"
+      ],
+      "narration": "Lead every artifact with a compact header a reviewer absorbs in seconds. One line of context: the user, the problem, the setting, and whether it shipped or was simulated. The core decision and a one-sentence reason. The outcome, or for simulated work the projected impact and your reasoning. Then the link to the full document for anyone who wants depth. Use headings, short paragraphs, and one diagram where it earns its place. Nobody reads a wall of text, but everybody skims a well-structured page."
+    },
+    {
+      "type": "content",
+      "title": "Be Honest About Simulated and Confidential Work",
+      "bullets": [
+        "Label simulated and course projects plainly — they are real experience",
+        "Never disguise a simulation as shipped or invent production metrics",
+        "Anonymize confidential work: company, exact numbers, proprietary data",
+        "Show the reasoning and impact, not the secrets"
+      ],
+      "narration": "Two situations need care, and both reward transparency. Label simulated and course projects plainly; they are legitimate experience for a career-changer, and the quality of your thinking carries them. Never disguise a simulation as shipped work or invent production metrics, because an interviewer will probe and the gap will show. For confidential real work, anonymize the company, replace exact figures with ranges, and strip proprietary data, while still conveying the problem, your decisions, and the impact. Doing this well is itself a signal of professional maturity. Then publish, copy the URL, and you are ready for the next lessons."
+    }
+  ]
+}

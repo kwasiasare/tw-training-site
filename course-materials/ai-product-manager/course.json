@@ -3,8 +3,8 @@
   "title": "AI Product Management: From Fundamentals to Shipping AI Products",
   "description": "A hands-on, project-based course that prepares you to lead AI and LLM-powered products end to end. You'll build AI literacy, master LLM capabilities and limits, craft product strategy and roadmaps, design evaluation frameworks and prompts, manage cross-functional stakeholders, and define metrics that prove impact. By the end, you'll have a portfolio-ready AI product spec, roadmap, eval suite, and launch plan.",
   "audience": "Aspiring and transitioning product managers, technical PMs, founders, and analysts who want to lead AI/LLM products and need practical, portfolio-building experience to land an AI Product Manager role.",
-  "modules": 4,
-  "lessons": 16,
+  "modules": 5,
+  "lessons": 20,
   "layout": {
     "decks": "decks",
     "lessons": "lessons",
@@ -15,7 +15,8 @@
     "1": "AI Literacy and LLM Foundations for PMs",
     "2": "AI Product Strategy and Roadmapping",
     "3": "Building, Evaluating, and Prompting AI Features",
-    "4": "Stakeholders, Metrics, and Launch Capstone"
+    "4": "Stakeholders, Metrics, and Launch Capstone",
+    "5": "Capstone & Career Launch"
   },
   "generated": true,
   "targetRole": "AI Product Manager",
