@@ -15,30 +15,191 @@
     "Talk confidently about your troubleshooting methodology in an interview"
   ],
   "quiz": [
-    {"q": "Which certification is the best fit for a tech whose target role is administering Microsoft 365 tenants — users, licensing, Exchange Online, and security?", "options": ["CompTIA A+", "Microsoft MS-102", "Microsoft AI-900", "CompTIA Network+"], "answer": 1, "why": "MS-102 (Microsoft 365 Administrator) is purpose-built for managing M365 tenants — identity, licensing, Exchange Online, and security and compliance — which is exactly the role described."},
-    {"q": "You are brand new with no IT experience. Which certification is the recommended foundation to start with?", "options": ["CompTIA A+", "Microsoft MS-102", "Microsoft MD-102", "Microsoft AI-900"], "answer": 0, "why": "CompTIA A+ is the entry-level foundation covering hardware, operating systems, and core troubleshooting — it is the standard starting point before more specialised exams."},
-    {"q": "Which certification best validates managing and securing physical and virtual Windows devices with Intune (endpoint/device administration)?", "options": ["CompTIA Network+", "Microsoft AI-900", "Microsoft MD-102", "CompTIA A+"], "answer": 2, "why": "MD-102 (Endpoint Administrator) focuses on deploying, configuring, and securing Windows endpoints with Microsoft Intune — the device-admin specialisation."},
-    {"q": "A candidate wants a low-effort credential that signals AI literacy as a differentiator, not a deep specialism. Which fits best?", "options": ["Microsoft MS-102", "CompTIA Network+", "CompTIA A+", "Microsoft AI-900"], "answer": 3, "why": "AI-900 (Azure AI Fundamentals) is a fundamentals-level exam that demonstrates AI literacy — a quick, modern differentiator on a helpdesk or admin resume."},
-    {"q": "Why should you tailor your resume to each job description rather than sending one generic version?", "answer": "Because mirroring the job description's key skills and keywords shows you fit the specific role, helps you pass automated applicant-tracking-system (ATS) filters, and lets the hiring manager see your most relevant experience first.", "why": "Generic resumes get filtered out by ATS keyword matching and fail to highlight the experience that matters for that particular role; tailoring directly raises your callback rate."},
-    {"q": "What does the STAR method stand for, and why is it useful in interviews?", "answer": "STAR stands for Situation, Task, Action, Result. It is useful because it structures a behavioral answer into a clear story — the context, what you needed to do, what you specifically did, and the measurable outcome — so the interviewer can follow your thinking and see your impact.", "why": "Behavioral questions ('Tell me about a time...') reward concrete, structured stories; STAR keeps you from rambling and ensures you end on a result that proves your value."}
+    {
+      "q": "Which certification is the best fit for a tech whose target role is administering Microsoft 365 tenants — users, licensing, Exchange Online, and security?",
+      "options": [
+        "CompTIA A+",
+        "Microsoft MS-102",
+        "Microsoft AI-900",
+        "CompTIA Network+"
+      ],
+      "answer": 1,
+      "why": "MS-102 (Microsoft 365 Administrator) is purpose-built for managing M365 tenants — identity, licensing, Exchange Online, and security and compliance — which is exactly the role described."
+    },
+    {
+      "q": "You are brand new with no IT experience. Which certification is the recommended foundation to start with?",
+      "options": [
+        "CompTIA A+",
+        "Microsoft MS-102",
+        "Microsoft MD-102",
+        "Microsoft AI-900"
+      ],
+      "answer": 0,
+      "why": "CompTIA A+ is the entry-level foundation covering hardware, operating systems, and core troubleshooting — it is the standard starting point before more specialised exams."
+    },
+    {
+      "q": "Which certification best validates managing and securing physical and virtual Windows devices with Intune (endpoint/device administration)?",
+      "options": [
+        "CompTIA Network+",
+        "Microsoft AI-900",
+        "Microsoft MD-102",
+        "CompTIA A+"
+      ],
+      "answer": 2,
+      "why": "MD-102 (Endpoint Administrator) focuses on deploying, configuring, and securing Windows endpoints with Microsoft Intune — the device-admin specialisation."
+    },
+    {
+      "q": "A candidate wants a low-effort credential that signals AI literacy as a differentiator, not a deep specialism. Which fits best?",
+      "options": [
+        "Microsoft MS-102",
+        "CompTIA Network+",
+        "CompTIA A+",
+        "Microsoft AI-900"
+      ],
+      "answer": 3,
+      "why": "AI-900 (Azure AI Fundamentals) is a fundamentals-level exam that demonstrates AI literacy — a quick, modern differentiator on a helpdesk or admin resume."
+    },
+    {
+      "q": "Why should you tailor your resume to each job description rather than sending one generic version?",
+      "answer": "Because mirroring the job description's key skills and keywords shows you fit the specific role, helps you pass automated applicant-tracking-system (ATS) filters, and lets the hiring manager see your most relevant experience first.",
+      "why": "Generic resumes get filtered out by ATS keyword matching and fail to highlight the experience that matters for that particular role; tailoring directly raises your callback rate."
+    },
+    {
+      "q": "What does the STAR method stand for, and why is it useful in interviews?",
+      "answer": "STAR stands for Situation, Task, Action, Result. It is useful because it structures a behavioral answer into a clear story — the context, what you needed to do, what you specifically did, and the measurable outcome — so the interviewer can follow your thinking and see your impact.",
+      "why": "Behavioral questions ('Tell me about a time...') reward concrete, structured stories; STAR keeps you from rambling and ensures you end on a result that proves your value."
+    }
   ],
   "resources": [
-    {"label": "CompTIA A+ — official certification page", "url": "https://www.comptia.org/certifications/a"},
-    {"label": "Microsoft MD-102 — Endpoint Administrator", "url": "https://learn.microsoft.com/en-us/credentials/certifications/modern-desktop/"},
-    {"label": "Microsoft MS-102 — Microsoft 365 Administrator exam", "url": "https://learn.microsoft.com/en-us/credentials/certifications/exams/ms-102/"},
-    {"label": "Microsoft AI-900 — Azure AI Fundamentals", "url": "https://learn.microsoft.com/en-us/credentials/certifications/azure-ai-fundamentals/"}
+    {
+      "label": "CompTIA A+ — official certification page",
+      "url": "https://www.comptia.org/certifications/a"
+    },
+    {
+      "label": "Microsoft MD-102 — Endpoint Administrator",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/modern-desktop/"
+    },
+    {
+      "label": "Microsoft MS-102 — Microsoft 365 Administrator exam",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/exams/ms-102/"
+    },
+    {
+      "label": "Microsoft AI-900 — Azure AI Fundamentals",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/azure-ai-fundamentals/"
+    }
   ],
-  "body_markdown": "## The certification ladder, and why order matters\n\nCertifications are not a checklist — they are a **ladder** that signals a story to employers. Each rung proves a capability the next role expects. The trick is to climb in an order that matches the job you actually want, not to collect badges for their own sake.\n\nHere is the ladder this course points you toward:\n\n```text\n  AI-900  (AI literacy differentiator — bolt on anytime)\n     ^\n  MS-102  (Microsoft 365 Administrator)  <-- your current target\n     ^\n  MD-102  (Endpoint / device admin with Intune)\n     ^\n  Network+  (networking foundations)\n     ^\n  A+  (hardware, OS, core troubleshooting — the base)\n```\n\n## Which cert to chase, and when\n\n**CompTIA A+** is the foundation. If you are brand new, start here: hardware, operating systems, and the troubleshooting mindset every helpdesk role assumes. **CompTIA Network+** is the natural second step — DNS, DHCP, subnets, and the network knowledge that turns \"it's broken\" into \"it's a DNS issue.\"\n\nFrom there you specialise. **Microsoft MD-102 (Endpoint Administrator)** validates deploying and securing Windows devices with **Intune** — ideal if you want a device-management or modern-desktop role. **Microsoft MS-102 (Microsoft 365 Administrator)** is your current target: tenant identity, licensing, Exchange Online, and security and compliance. It maps directly to the Tier 2 / M365 admin work you have practiced all month.\n\n**Microsoft AI-900 (Azure AI Fundamentals)** is the differentiator. It is a fundamentals exam, not a deep specialism, but on a 2026 resume it signals **AI literacy** — and it is a quick win you can bolt on at any point.\n\n## Resume and CV: prove it, don't claim it\n\nA resume that says \"good at troubleshooting\" is invisible. A resume that **quantifies** is hired. Tailor every application to the **job description (JD)**: mirror its keywords so you pass the **applicant-tracking system (ATS)**, and list your certifications near the top.\n\nUse this bullet template:\n\n```text\n[Action verb] + [what you did] + [tool/tech] + [measurable result]\n\nExamples:\n- Resolved 40+ Tier 1 tickets per week in Microsoft 365,\n  maintaining a 96% first-contact-resolution rate.\n- Migrated 120 mailboxes to Exchange Online with zero data loss.\n- Cut onboarding time 30% by automating user setup in Intune.\n```\n\n## Build a portfolio that backs it up\n\nCerts say you can pass an exam; a **portfolio** shows you can do the work. Build a **home lab** — a free Microsoft 365 developer tenant, a couple of test users, an Intune policy or two. Document each project: the problem, your steps, screenshots, the result. The labs and tickets from this course are portfolio pieces already — write them up. A simple repo or one-page site that says \"here is what I built and how\" beats a wall of buzzwords.\n\n## Interview prep: methodology over memorisation\n\nExpect two flavours of question. **Behavioral** questions (\"Tell me about a time a user was frustrated\") want a story — answer with **STAR**: Situation, Task, Action, Result, ending on a measurable outcome. **Technical** questions (\"A user can't reach a network share — walk me through it\") want your **troubleshooting methodology**: gather information, establish a theory, test it, fix, verify, document. They care less about the single right answer and more about how you *think*.\n\nPractice saying out loud: \"First I'd reproduce it, then check what changed, then isolate the layer — user, device, network, or service.\" That sentence wins interviews.\n\n## Your task\n\nThree steps. First, **pick your next certification** and write one sentence on why it fits your target role. Second, **draft three quantified resume bullets** using the template above, drawn from real work or your course labs. Third, **outline a portfolio** — list three projects you could document this month, each with a one-line problem statement.",
+  "body_markdown": "## The certification ladder, and why order matters\n\nCertifications are not a checklist — they are a **ladder** that signals a story to employers. Each rung proves a capability the next role expects. The trick is to climb in an order that matches the job you actually want, not to collect badges for their own sake.\n\nHere is the ladder this course points you toward:\n\n```text\n  AI-900  (AI literacy differentiator — bolt on anytime)\n     ^\n  MS-102  (Microsoft 365 Administrator)  <-- your current target\n     ^\n  MD-102  (Endpoint / device admin with Intune)\n     ^\n  Network+  (networking foundations)\n     ^\n  A+  (hardware, OS, core troubleshooting — the base)\n```\n\n## Which cert to chase, and when\n\n**CompTIA A+** is the foundation. If you are brand new, start here: hardware, operating systems, and the troubleshooting mindset every helpdesk role assumes. **CompTIA Network+** is the natural second step — DNS, DHCP, subnets, and the network knowledge that turns \"it's broken\" into \"it's a DNS issue.\"\n\nFrom there you specialise. **Microsoft MD-102 (Endpoint Administrator)** validates deploying and securing Windows devices with **Intune** — ideal if you want a device-management or modern-desktop role. **Microsoft MS-102 (Microsoft 365 Administrator)** is your current target: tenant identity, licensing, Exchange Online, and security and compliance. It maps directly to the Tier 2 / M365 admin work you have practiced all month.\n\n**Microsoft AI-900 (Azure AI Fundamentals)** is the differentiator. It is a fundamentals exam, not a deep specialism, but on a 2026 resume it signals **AI literacy** — and it is a quick win you can bolt on at any point.\n\n## Resume and CV: prove it, don't claim it\n\nA resume that says \"good at troubleshooting\" is invisible. A resume that **quantifies** is hired. Tailor every application to the **job description (JD)**: mirror its keywords so you pass the **applicant-tracking system (ATS)**, and list your certifications near the top.\n\nUse this bullet template:\n\n```text\n[Action verb] + [what you did] + [tool/tech] + [measurable result]\n\nExamples:\n- Resolved 40+ Tier 1 tickets per week in Microsoft 365,\n  maintaining a 96% first-contact-resolution rate.\n- Migrated 120 mailboxes to Exchange Online with zero data loss.\n- Cut onboarding time 30% by automating user setup in Intune.\n```\n\n## Build a portfolio that backs it up\n\nCerts say you can pass an exam; a **portfolio** shows you can do the work. Build a **home lab** — a Microsoft 365 trial tenant (or a 30-day Microsoft 365 Business Premium/Enterprise trial — the free developer sandbox is now restricted to eligible accounts), a couple of test users, an Intune policy or two. Document each project: the problem, your steps, screenshots, the result. The labs and tickets from this course are portfolio pieces already — write them up. A simple repo or one-page site that says \"here is what I built and how\" beats a wall of buzzwords.\n\n## Interview prep: methodology over memorisation\n\nExpect two flavours of question. **Behavioral** questions (\"Tell me about a time a user was frustrated\") want a story — answer with **STAR**: Situation, Task, Action, Result, ending on a measurable outcome. **Technical** questions (\"A user can't reach a network share — walk me through it\") want your **troubleshooting methodology**: gather information, establish a theory, test it, fix, verify, document. They care less about the single right answer and more about how you *think*.\n\nPractice saying out loud: \"First I'd reproduce it, then check what changed, then isolate the layer — user, device, network, or service.\" That sentence wins interviews.\n\n## Your task\n\nThree steps. First, **pick your next certification** and write one sentence on why it fits your target role. Second, **draft three quantified resume bullets** using the template above, drawn from real work or your course labs. Third, **outline a portfolio** — list three projects you could document this month, each with a one-line problem statement.",
   "slides": [
-    {"type": "title", "title": "Certification roadmap and job-search playbook", "sub": "Month 6 - Microsoft 365 Administration (MS-102)  |  Lesson 10", "narration": "Welcome to lesson ten, the final lesson of the course. You've spent six months going from no experience to a capable Tier Two technician, and now it's time to convert that into a career. In this lesson we'll map the certification ladder, from CompTIA A plus all the way up to Microsoft M S one oh two, and then we'll build your job-search playbook: your resume, your portfolio, and how to walk into an interview and get hired."},
-    {"type": "content", "title": "Certs are a ladder, not a checklist", "bullets": ["Each cert proves a capability the next role expects.", "Climb in the order that matches the job you want.", "Don't collect badges for their own sake.", "Your current target is M S one oh two."], "narration": "Let's start with the big idea. Certifications are not a random checklist to collect. They're a ladder, and each rung tells employers a story about what you can do. The smart move is to climb in the order that matches the job you actually want, not to chase every badge. Right now, your target is Microsoft M S one oh two, the Microsoft three sixty five administrator certification."},
-    {"type": "content", "title": "The foundations: A+ and Network+", "bullets": ["A plus: hardware, operating systems, troubleshooting.", "Start here if you are brand new to I T.", "Network plus: DNS, DHCP, subnets, networking.", "Turns 'it's broken' into 'it's a DNS issue'."], "code": "A+        -> the base\nNetwork+  -> networking foundations", "narration": "At the bottom of the ladder sit the two foundations. CompTIA A plus covers hardware, operating systems, and the core troubleshooting mindset that every helpdesk role assumes. If you're brand new, start there. Then CompTIA Network plus is the natural second step. It teaches you D N S, D H C P, subnets, and the networking knowledge that turns a vague 'it's broken' into a confident 'it's a D N S issue'."},
-    {"type": "content", "title": "Specialise: MD-102 and MS-102", "bullets": ["M D one oh two: endpoint and device admin with Intune.", "Great for modern-desktop and device-management roles.", "M S one oh two: Microsoft 365 tenant administration.", "Identity, licensing, Exchange Online, security."], "code": "MD-102 -> devices (Intune)\nMS-102 -> M365 tenant admin", "narration": "Above the foundations, you specialise. Microsoft M D one oh two, the Endpoint Administrator cert, proves you can deploy and secure Windows devices with Intune. That's ideal for a device-management or modern-desktop role. And Microsoft M S one oh two, your current target, is the Microsoft three sixty five administrator cert. It covers tenant identity, licensing, Exchange Online, and security and compliance. It maps directly to everything you've practiced this month."},
-    {"type": "content", "title": "AI-900: your differentiator", "bullets": ["A I nine hundred: Azure A I Fundamentals.", "A fundamentals exam, not a deep specialism.", "Signals A I literacy on a modern resume.", "A quick win you can bolt on at any point."], "narration": "There's one more worth mentioning: Microsoft A I nine hundred, the Azure A I Fundamentals exam. This one is different. It's a fundamentals-level cert, not a deep specialism, but on a twenty twenty-six resume it signals A I literacy, and that's a genuine differentiator. Best of all, it's a quick win you can bolt on at any point in your journey."},
-    {"type": "content", "title": "Resume: prove it, don't claim it", "bullets": ["'Good at troubleshooting' is invisible — quantify instead.", "Tailor every application to the job description.", "Mirror keywords to pass the A T S filter.", "List your certifications near the top."], "code": "[Verb] + [what] + [tool] + [measurable result]", "narration": "Now the job search. A resume that just says 'good at troubleshooting' is invisible. A resume that quantifies gets hired. Tailor every single application to the job description: mirror its keywords so you pass the applicant tracking system, the A T S filter, and put your certifications near the top. The formula for a great bullet is simple: an action verb, what you did, the tool you used, and a measurable result."},
-    {"type": "content", "title": "Quantified resume bullets", "bullets": ["Numbers turn duties into achievements.", "Tickets resolved, resolution rate, time saved.", "Tie each bullet to the role you want.", "Use real work or your course labs."], "code": "- Resolved 40+ M365 tickets/week, 96% first-contact resolution.\n- Migrated 120 mailboxes to Exchange Online, zero data loss.\n- Cut onboarding time 30% via Intune automation.", "narration": "Here's what that looks like in practice. Notice how each bullet has a number. Resolved forty plus Microsoft three sixty five tickets a week, at a ninety-six percent first-contact resolution rate. Migrated one hundred and twenty mailboxes to Exchange Online with zero data loss. Cut onboarding time by thirty percent through Intune automation. Numbers turn boring duties into real achievements, and you can pull these straight from your course labs."},
-    {"type": "content", "title": "Build a portfolio", "bullets": ["Certs say you passed; a portfolio shows you can do it.", "Build a home lab: a free M365 dev tenant.", "Document each project: problem, steps, result.", "Your course labs and tickets are portfolio pieces."], "narration": "Certifications say you can pass an exam. A portfolio shows you can actually do the work. Build yourself a home lab using a free Microsoft three sixty five developer tenant, add a couple of test users, set up an Intune policy or two. Then document each project: the problem, your steps, a screenshot, and the result. The labs and tickets you've completed in this course are portfolio pieces already, so write them up."},
-    {"type": "content", "title": "Interview: methodology over memorising", "bullets": ["Behavioral questions: answer with STAR.", "Situation, Task, Action, Result — end on impact.", "Technical questions: show your troubleshooting steps.", "They care how you think, not the one right answer."], "code": "STAR: Situation -> Task -> Action -> Result", "narration": "In the interview, expect two kinds of question. Behavioral questions, like 'tell me about a time a user was frustrated,' want a story. Answer with STAR: Situation, Task, Action, Result, and always end on a measurable result. Technical questions, like 'a user can't reach a network share, walk me through it,' want your troubleshooting methodology. Gather information, form a theory, test it, fix it, verify, document. They care far more about how you think than about a single right answer."},
-    {"type": "content", "title": "Recap, your task, and congratulations", "bullets": ["Climb the ladder: A+, Network+, MD-102, MS-102, AI-900.", "Quantify and tailor your resume; mirror the JD.", "Document a portfolio from your home lab and labs.", "Task: pick next cert, write 3 bullets, outline portfolio.", "You finished the course — congratulations!"], "narration": "Let's recap. The certification ladder runs A plus, Network plus, M D one oh two, M S one oh two, with A I nine hundred as your differentiator. Your resume should be quantified and tailored to mirror the job description. And your portfolio, built from your home lab and your course labs, proves you can do the work. Your task: pick your next certification and say why it fits, draft three quantified resume bullets, and outline three portfolio projects. And finally, congratulations. You started this course with no experience, and you're finishing it ready to be hired as a Tier Two technician. Be proud of that, go get the job, and well done."}
+    {
+      "type": "title",
+      "title": "Certification roadmap and job-search playbook",
+      "sub": "Month 6 - Microsoft 365 Administration (MS-102)  |  Lesson 10",
+      "narration": "Welcome to lesson ten, the final lesson of the course. You've spent six months going from no experience to a capable Tier Two technician, and now it's time to convert that into a career. In this lesson we'll map the certification ladder, from CompTIA A plus all the way up to Microsoft M S one oh two, and then we'll build your job-search playbook: your resume, your portfolio, and how to walk into an interview and get hired."
+    },
+    {
+      "type": "content",
+      "title": "Certs are a ladder, not a checklist",
+      "bullets": [
+        "Each cert proves a capability the next role expects.",
+        "Climb in the order that matches the job you want.",
+        "Don't collect badges for their own sake.",
+        "Your current target is M S one oh two."
+      ],
+      "narration": "Let's start with the big idea. Certifications are not a random checklist to collect. They're a ladder, and each rung tells employers a story about what you can do. The smart move is to climb in the order that matches the job you actually want, not to chase every badge. Right now, your target is Microsoft M S one oh two, the Microsoft three sixty five administrator certification."
+    },
+    {
+      "type": "content",
+      "title": "The foundations: A+ and Network+",
+      "bullets": [
+        "A plus: hardware, operating systems, troubleshooting.",
+        "Start here if you are brand new to I T.",
+        "Network plus: DNS, DHCP, subnets, networking.",
+        "Turns 'it's broken' into 'it's a DNS issue'."
+      ],
+      "code": "A+        -> the base\nNetwork+  -> networking foundations",
+      "narration": "At the bottom of the ladder sit the two foundations. CompTIA A plus covers hardware, operating systems, and the core troubleshooting mindset that every helpdesk role assumes. If you're brand new, start there. Then CompTIA Network plus is the natural second step. It teaches you D N S, D H C P, subnets, and the networking knowledge that turns a vague 'it's broken' into a confident 'it's a D N S issue'."
+    },
+    {
+      "type": "content",
+      "title": "Specialise: MD-102 and MS-102",
+      "bullets": [
+        "M D one oh two: endpoint and device admin with Intune.",
+        "Great for modern-desktop and device-management roles.",
+        "M S one oh two: Microsoft 365 tenant administration.",
+        "Identity, licensing, Exchange Online, security."
+      ],
+      "code": "MD-102 -> devices (Intune)\nMS-102 -> M365 tenant admin",
+      "narration": "Above the foundations, you specialise. Microsoft M D one oh two, the Endpoint Administrator cert, proves you can deploy and secure Windows devices with Intune. That's ideal for a device-management or modern-desktop role. And Microsoft M S one oh two, your current target, is the Microsoft three sixty five administrator cert. It covers tenant identity, licensing, Exchange Online, and security and compliance. It maps directly to everything you've practiced this month."
+    },
+    {
+      "type": "content",
+      "title": "AI-900: your differentiator",
+      "bullets": [
+        "A I nine hundred: Azure A I Fundamentals.",
+        "A fundamentals exam, not a deep specialism.",
+        "Signals A I literacy on a modern resume.",
+        "A quick win you can bolt on at any point."
+      ],
+      "narration": "There's one more worth mentioning: Microsoft A I nine hundred, the Azure A I Fundamentals exam. This one is different. It's a fundamentals-level cert, not a deep specialism, but on a twenty twenty-six resume it signals A I literacy, and that's a genuine differentiator. Best of all, it's a quick win you can bolt on at any point in your journey."
+    },
+    {
+      "type": "content",
+      "title": "Resume: prove it, don't claim it",
+      "bullets": [
+        "'Good at troubleshooting' is invisible — quantify instead.",
+        "Tailor every application to the job description.",
+        "Mirror keywords to pass the A T S filter.",
+        "List your certifications near the top."
+      ],
+      "code": "[Verb] + [what] + [tool] + [measurable result]",
+      "narration": "Now the job search. A resume that just says 'good at troubleshooting' is invisible. A resume that quantifies gets hired. Tailor every single application to the job description: mirror its keywords so you pass the applicant tracking system, the A T S filter, and put your certifications near the top. The formula for a great bullet is simple: an action verb, what you did, the tool you used, and a measurable result."
+    },
+    {
+      "type": "content",
+      "title": "Quantified resume bullets",
+      "bullets": [
+        "Numbers turn duties into achievements.",
+        "Tickets resolved, resolution rate, time saved.",
+        "Tie each bullet to the role you want.",
+        "Use real work or your course labs."
+      ],
+      "code": "- Resolved 40+ M365 tickets/week, 96% first-contact resolution.\n- Migrated 120 mailboxes to Exchange Online, zero data loss.\n- Cut onboarding time 30% via Intune automation.",
+      "narration": "Here's what that looks like in practice. Notice how each bullet has a number. Resolved forty plus Microsoft three sixty five tickets a week, at a ninety-six percent first-contact resolution rate. Migrated one hundred and twenty mailboxes to Exchange Online with zero data loss. Cut onboarding time by thirty percent through Intune automation. Numbers turn boring duties into real achievements, and you can pull these straight from your course labs."
+    },
+    {
+      "type": "content",
+      "title": "Build a portfolio",
+      "bullets": [
+        "Certs say you passed; a portfolio shows you can do it.",
+        "Build a home lab: a free M365/Intune trial tenant.",
+        "Document each project: problem, steps, result.",
+        "Your course labs and tickets are portfolio pieces."
+      ],
+      "narration": "Certifications say you can pass an exam. A portfolio shows you can actually do the work. Build yourself a home lab using a Microsoft three sixty five trial tenant, add a couple of test users, set up an Intune policy or two. Then document each project: the problem, your steps, a screenshot, and the result. The labs and tickets you've completed in this course are portfolio pieces already, so write them up."
+    },
+    {
+      "type": "content",
+      "title": "Interview: methodology over memorising",
+      "bullets": [
+        "Behavioral questions: answer with STAR.",
+        "Situation, Task, Action, Result — end on impact.",
+        "Technical questions: show your troubleshooting steps.",
+        "They care how you think, not the one right answer."
+      ],
+      "code": "STAR: Situation -> Task -> Action -> Result",
+      "narration": "In the interview, expect two kinds of question. Behavioral questions, like 'tell me about a time a user was frustrated,' want a story. Answer with STAR: Situation, Task, Action, Result, and always end on a measurable result. Technical questions, like 'a user can't reach a network share, walk me through it,' want your troubleshooting methodology. Gather information, form a theory, test it, fix it, verify, document. They care far more about how you think than about a single right answer."
+    },
+    {
+      "type": "content",
+      "title": "Recap, your task, and congratulations",
+      "bullets": [
+        "Climb the ladder: A+, Network+, MD-102, MS-102, AI-900.",
+        "Quantify and tailor your resume; mirror the JD.",
+        "Document a portfolio from your home lab and labs.",
+        "Task: pick next cert, write 3 bullets, outline portfolio.",
+        "You finished the course — congratulations!"
+      ],
+      "narration": "Let's recap. The certification ladder runs A plus, Network plus, M D one oh two, M S one oh two, with A I nine hundred as your differentiator. Your resume should be quantified and tailored to mirror the job description. And your portfolio, built from your home lab and your course labs, proves you can do the work. Your task: pick your next certification and say why it fits, draft three quantified resume bullets, and outline three portfolio projects. And finally, congratulations. You started this course with no experience, and you're finishing it ready to be hired as a Tier Two technician. Be proud of that, go get the job, and well done."
+    }
   ]
 }

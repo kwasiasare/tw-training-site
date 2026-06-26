@@ -1,0 +1,184 @@
+{
+  "slug": "g6-l05-linkedin-and-the-genai-job-search",
+  "title": "LinkedIn and the GenAI Job Search",
+  "month": 6,
+  "monthTitle": "Capstone & Career",
+  "lesson": 5,
+  "video": "g6-l05-linkedin-and-the-genai-job-search.mp4",
+  "summary": "Your resume and flagship capstone prove you can do the work; this lesson makes recruiters and hiring managers find and believe it. You will rewrite your LinkedIn profile as an Applied GenAI Engineer — a headline that names the role and your edge, an About that tells your build-and-ship story, and a Featured strip that links the flagship project you built in Lesson 1 and wrote up in Lesson 3. Then you will run a deliberate search: targeting the right titles (AI Engineer, Applied GenAI Engineer, LLM Engineer, ML Engineer - LLM), mirroring job-description keywords, reaching out to recruiters and engineers without sounding generic, preparing for the recruiter and technical screens, and running a weekly loop that compounds. The goal is to convert a strong portfolio into interviews.",
+  "objectives": [
+    "Rewrite your LinkedIn headline, About, and Featured sections to position you for Applied GenAI Engineer roles",
+    "Link your flagship capstone in Featured and present it with quantified, defensible language",
+    "Target the right job titles — AI Engineer, Applied GenAI Engineer, LLM Engineer, ML Engineer - LLM — and set saved searches",
+    "Mirror job-description keywords in your profile so recruiter search and the ATS surface and rank you",
+    "Write recruiter and peer outreach that references specifics rather than boilerplate",
+    "Prepare for the recruiter screen and the GenAI technical screen, and run a compounding weekly job-search loop"
+  ],
+  "quiz": [
+    {
+      "q": "What makes a LinkedIn headline work for a GenAI job search?",
+      "options": [
+        "A single word like 'Engineer'",
+        "The target role plus a concrete edge and key tools, e.g. 'Applied GenAI Engineer | RAG, agents & evals on Azure/AWS | LLM APIs, vector DBs, guardrails'",
+        "Your current, unrelated job title only",
+        "A motivational quote with no role or skills"
+      ],
+      "answer": 1,
+      "why": "Recruiters search LinkedIn by keyword and skim headlines first. A headline that names the role you want plus specific tools and an edge is keyword-rich, so you appear in searches, and instantly legible, so a human keeps reading. A one-word or off-target headline is invisible to search and says nothing."
+    },
+    {
+      "q": "How should your About and Featured sections present your flagship capstone?",
+      "options": [
+        "Leave About blank, because recruiters do not read it",
+        "Fill About with a list of certifications and no projects",
+        "Open About with a positioning line, prove it with the flagship capstone in quantified terms, and link the repo and demo video in Featured",
+        "Write your full life story with no link to any work"
+      ],
+      "answer": 2,
+      "why": "A strong About opens with a clear positioning line, then proves it with a specific, quantified flagship project, then points to evidence. Featured is your portfolio strip — linking the repo and a short demo lets a reviewer verify capability in seconds, which is what converts a profile view into a screen."
+    },
+    {
+      "q": "What is the smartest way to choose which job titles to target?",
+      "options": [
+        "Search several titles for the same skill set — AI Engineer, Applied GenAI Engineer, LLM Engineer, ML Engineer - LLM — and set saved searches and alerts",
+        "Search only the exact phrase 'Applied GenAI Engineer' and ignore everything else",
+        "Apply only to titles you have already held",
+        "Avoid setting any alerts so you are not influenced"
+      ],
+      "answer": 0,
+      "why": "The same applied-LLM skill set is posted under many titles. Searching all of them — and setting alerts — widens your funnel without lowering its quality, and reading the postings across titles reveals the recurring keywords you should mirror."
+    },
+    {
+      "q": "Why mirror the language of a specific job description in your profile?",
+      "options": [
+        "To copy the company's confidential information",
+        "Because recruiter searches and applicant tracking systems match on keywords, so using the posting's real terms — RAG, evals, LLM, vector database — makes you findable and ranks you higher, only for skills you actually have",
+        "Because it lets you skip having any real skills",
+        "Because the longest profile always ranks first"
+      ],
+      "answer": 1,
+      "why": "Both human recruiters and the ATS rank candidates on keyword relevance. Mirroring the JD's exact, truthful terms for skills you genuinely have makes you surface in the right searches and pass the keyword screen. It is alignment, not deception — you must still defend every term."
+    },
+    {
+      "q": "What should you expect in a recruiter screen versus a GenAI technical screen?",
+      "options": [
+        "Both are identical deep technical interrogations",
+        "The recruiter screen checks motivation, basic fit, logistics, and clear communication; the technical screen probes depth — RAG design, when to use an agent, how you evaluate quality, and prompt-injection defence",
+        "Neither involves any preparation",
+        "The recruiter screen is where you live-code an agent"
+      ],
+      "answer": 1,
+      "why": "The recruiter screen is a fit-and-communication filter: why this role, salary range, location, notice period, and whether you can explain your work clearly. The technical screen tests depth — the same RAG, agent, eval, and safety reasoning you rehearsed for your capstone. Knowing which conversation you are in lets you pitch your answers correctly."
+    },
+    {
+      "q": "In two to four sentences, write a LinkedIn About opening that positions a cloud engineer moving into applied GenAI, referencing their flagship capstone.",
+      "answer": "I am an Applied GenAI Engineer who builds and ships LLM systems — and, coming from cloud and security engineering, I can secure and deploy what others only prototype. My flagship project is a tool-using, retrieving, multi-step agent: it grounds answers in a RAG store, calls typed tools, and is wrapped by an eval suite and input/output guardrails, deployed as a containerised service behind CI/CD with secrets in a managed vault. On a 200-question eval set it answers at 93% accuracy with a sub-2% hallucination rate, and the repo, architecture diagram, and a three-minute demo are linked in my Featured section. I am looking for an Applied GenAI Engineer, AI Engineer, or LLM Engineer role where I can build and operate production LLM systems.",
+      "why": "A strong About opens with a clear positioning line that names the role and the production-and-safety edge, proves it with one specific quantified flagship project, points to linked evidence, and names the target titles — reading as someone who already does the work."
+    }
+  ],
+  "resources": [
+    {
+      "label": "LinkedIn Help — Featured section (showcase work on your profile)",
+      "url": "https://www.linkedin.com/help/linkedin/answer/a522537"
+    },
+    {
+      "label": "LinkedIn Jobs (search roles and set alerts)",
+      "url": "https://www.linkedin.com/jobs/"
+    },
+    {
+      "label": "Anthropic — Building effective agents (anchor the terms you mirror in JDs)",
+      "url": "https://www.anthropic.com/research/building-effective-agents"
+    },
+    {
+      "label": "Microsoft Learn — training catalog (free, role-based, to close JD gaps)",
+      "url": "https://learn.microsoft.com/en-us/training/"
+    }
+  ],
+  "body_markdown": "## From a strong profile to a full pipeline\n\nThe previous lessons built the proof: a flagship capstone (Lesson 1), a written portfolio and interview story (Lesson 3), and a resume rewritten around quantified impact (Lesson 4). This lesson builds the *distribution*. Most strong candidates lose not on capability but on visibility — their work is real, but no recruiter ever sees it, or the profile recruiters do see says nothing. Your job now is to make your LinkedIn profile a thirty-second argument that you can do this role, then run a deliberate search that puts that argument in front of the right people. Treat it like engineering: a clear interface (the profile), a search strategy, and a repeatable loop. This lesson is about the *profile and the search* — building the portfolio itself was Lesson 3, so here we point at it rather than rebuild it.\n\n## Rewrite the top of your profile\n\n**Headline.** This is the most-searched, most-skimmed field on LinkedIn, so name the role you want, your edge, and the key tools: *Applied GenAI Engineer | RAG, agents & evals on Azure/AWS | LLM APIs, vector DBs, guardrails*. It is keyword-dense, so you surface in recruiter searches, and legible, so a human keeps reading. Do not leave it as an unrelated current job title.\n\n**About.** Open with one positioning line, prove it with your flagship capstone in specific, quantified language, name the target role and titles, and end by pointing at the evidence. For a cloud-to-GenAI changer the strongest first line is the build-and-ship edge: *\"I build LLM systems and — coming from cloud and security — I can secure and deploy what others only prototype.\"* The short-answer question in this lesson is exactly this exercise; write yours.\n\n**Open to Work.** Turn it on (recruiters-only visibility if you are currently employed), set your target titles and locations, and you immediately enter the dedicated recruiter pool.\n\n**Skills.** Add and pin the terms that match real Applied GenAI Engineer postings — LLM APIs, RAG, vector databases, embeddings, agents and orchestration, prompt engineering, evals, guardrails, plus your cloud and CI/CD skills. Skills drive recruiter search and the \"how you match\" panel on applications.\n\n## Featured: link the flagship\n\nThis is your highest-leverage section for a career-changer, and it is where the work from Lessons 1 and 3 finally pays off. Add your **flagship capstone** as a Featured item: the GitHub repo with its README and architecture diagram, and ideally the short demo video. One Featured link to a clean repo and a three-minute demo does more than three paragraphs of self-description — a reviewer who clicks it and sees a deployed, guarded LLM system is most of the way to inviting you to a screen. Add the earlier phase deliverables as secondary Featured links if they are polished. Keep the framing consistent with your write-up: *I build and ship production LLM systems — RAG, agents, evals, and guardrails on AWS/Azure.*\n\n## Target the right titles\n\nThe same applied-LLM skill set is posted under several titles, so search and set alerts for all of them: **AI Engineer**, **Applied GenAI Engineer**, **LLM Engineer**, **ML Engineer - LLM**, and adjacent ones like **GenAI Engineer**, **AI Platform Engineer**, and **Machine Learning Engineer (LLM/NLP)**. Read ten real postings across these titles and note the recurring tools and phrases — that vocabulary is what you mirror (truthfully) in your profile. If six of ten say \"RAG\" and \"evals\" and you have done both, those exact terms belong in your headline, About, and skills.\n\n## Mirror the job description — honestly\n\nBoth LinkedIn Recruiter searches and applicant tracking systems rank you on keyword relevance. For each application, align your profile and resume language to the posting's real terms — *only* for skills you genuinely have and can defend in an interview. This is alignment, not invention. If a JD emphasises \"prompt-injection mitigation\" and you implemented input/output guardrails in your capstone, use that phrase. If it lists a framework you have never touched, that is a gap to learn — the free **Microsoft Learn** catalog and the providers' own docs are good places to close it — not a word to fake. You must be able to defend every term in the technical screen.\n\n## Outreach that gets replies\n\nApplications alone are a low-yield channel; warm outreach multiplies your odds. Keep messages short, specific, and respectful:\n\n- **To a recruiter on a role:** \"Hi NAME, I saw the Applied GenAI Engineer opening on TEAM. I build and ship LLM systems — my flagship is a guarded RAG agent deployed behind CI/CD (links in my profile) — and I come from a cloud/security background. Would you be open to a quick chat about fit?\"\n- **To an engineer on the team:** reference something real — a post they wrote, a tool the team uses — then a one-line fit statement and a small ask (\"any advice on what your team values in a GenAI hire?\").\n\nNever send identical boilerplate to hundreds of people; it reads as spam and burns your name. Ten specific messages beat two hundred generic ones. A quiet third channel is **content**: a short post on an eval result you measured, a guardrail that caught a real attack, or a latency win — written plainly — makes recruiters come to you and gives engineers a reason to reply. You do not need a large following; one useful post a week, tagged with the right terms, slowly turns your profile into a magnet rather than just a destination.\n\n## Prepare for the screens\n\n**Recruiter screen.** A fit-and-communication filter: why this role, your salary range, location/remote, notice period, and whether you can explain your work clearly to a non-expert. Have a crisp two-minute story and a salary range ready.\n\n**Technical screen.** This tests depth, and it is the same reasoning you rehearsed in Lesson 3: how does your RAG system work and how do you know it is good (point to an eval set with measured retrieval and answer quality); when is an agent the right tool versus a simple workflow, and how do you cap runaway loops; how do you defend against prompt injection (untrusted input crossing a trust boundary — input validation, least privilege for tools, output filtering, human-in-the-loop on risky actions); and how you deployed and secured it. Answer with the problem-approach-decisions-results arc and name the alternative you rejected.\n\n## Run a weekly loop\n\nMomentum comes from a routine, not a sprint. A workable weekly loop: apply to five to ten well-matched roles with tailored language; send five to ten specific outreach messages; publish or comment once on a GenAI topic (a short post on an eval result or a guardrail you built keeps you visible and signals expertise); and extend your flagship slightly so Featured keeps improving. Track applications in a simple sheet — role, company, date, contact, status — so you follow up deliberately. The search is a pipeline; keep it full and keep moving candidates through it.\n\n## The deliverable\n\nBy the end of this lesson you should have a rewritten profile (headline, About, Featured with the flagship linked, skills, Open to Work on), a shortlist of target titles with saved searches, a keyword-aligned pass over your top postings, a small set of specific outreach messages sent, and a weekly routine on the calendar. That is the machine that turns the capstone you built into interviews — and then into the offer you accept. Congratulations on reaching the end of the course."
+  ,
+  "slides": [
+    {
+      "type": "title",
+      "title": "LinkedIn and the GenAI Job Search",
+      "sub": "Module 6 - Capstone & Career  |  Lesson 5",
+      "narration": "This is the final lesson. Your resume and flagship capstone prove you can do the work; now we make recruiters and hiring managers find it and believe it. We'll rewrite your LinkedIn profile as an Applied GenAI Engineer, link the flagship project you built earlier in the module, target the right job titles, mirror the language of real job descriptions, write outreach that actually gets replies, and prepare for the recruiter and technical screens. The goal is simple: convert a strong portfolio into interviews, and then into the offer you accept."
+    },
+    {
+      "type": "content",
+      "title": "Rewrite the top of your profile",
+      "bullets": [
+        "Headline: target role + edge + key tools (keyword-rich, legible).",
+        "About: one positioning line, then your flagship in quantified terms.",
+        "Open to Work: set target titles and locations.",
+        "Skills: LLM APIs, RAG, vector DBs, agents, evals, guardrails — pinned."
+      ],
+      "narration": "Start at the top. Your headline is the most-searched field on LinkedIn, so name the role you want, your edge, and the key tools, something like Applied GenAI Engineer, R-A-G, agents and evals on Azure and A-W-S. Your About should open with one positioning line, prove it with your flagship capstone in quantified language, then name your target role. Turn on Open to Work with your target titles and locations so you enter the recruiter pool immediately. And add and pin the skills that match real postings, L-L-M APIs, R-A-G, vector databases, agents, evals, and guardrails, because skills drive recruiter search."
+    },
+    {
+      "type": "content",
+      "title": "Featured: link the flagship",
+      "bullets": [
+        "Your highest-leverage section for a career-changer.",
+        "Add the flagship capstone: repo, diagram, demo video.",
+        "One clean link beats three paragraphs of self-description.",
+        "This is where Lessons 1 and 3 pay off — point, don't rebuild."
+      ],
+      "narration": "The Featured section is your highest-leverage area, and it's where the work from earlier in the module pays off. Add your flagship capstone as a Featured item: the GitHub repo with its README and architecture diagram, and ideally the short demo video. One Featured link to a clean repo and a three-minute demo does more than three paragraphs of self-description. A reviewer who clicks it and sees a deployed, guarded L-L-M system is most of the way to inviting you to a screen. You already built the portfolio in Lesson 3, so here you simply point at it, you don't rebuild it."
+    },
+    {
+      "type": "content",
+      "title": "Target the right titles",
+      "bullets": [
+        "AI Engineer; Applied GenAI Engineer.",
+        "LLM Engineer; ML Engineer - LLM.",
+        "Adjacent: GenAI Engineer, AI Platform Engineer.",
+        "Read ten real postings; note the recurring vocabulary."
+      ],
+      "narration": "The same applied-L-L-M skill set is posted under several titles, so search and set alerts for all of them: A-I Engineer, Applied GenAI Engineer, L-L-M Engineer, and M-L Engineer for L-L-Ms, plus adjacent titles like GenAI Engineer and A-I Platform Engineer. Don't fixate on one exact phrase, you'll miss most of the market. Then read ten real postings across those titles and note the tools and phrases that keep recurring. That vocabulary is what you'll mirror, truthfully, in your headline, About, and skills. If six of ten postings say R-A-G and evals and you've done both, those exact terms belong on your profile."
+    },
+    {
+      "type": "content",
+      "title": "Mirror the JD — honestly",
+      "bullets": [
+        "Recruiter search and ATS rank on keyword relevance.",
+        "Use the posting's real terms — only for skills you have.",
+        "RAG, evals, guardrails, vector DB, prompt-injection mitigation.",
+        "A tool you've never touched is a gap to learn, not a word to fake."
+      ],
+      "narration": "Both LinkedIn Recruiter searches and applicant tracking systems rank you on keyword relevance, so align your profile to each posting's real terms, only for skills you genuinely have and can defend. This is alignment, not invention. If a job description emphasises prompt-injection mitigation and you built input and output guardrails in your capstone, use that exact phrase. If it lists a framework you've never touched, that's a gap to learn, the free Microsoft Learn catalog and the providers' own docs are good places to close it, not a word to fake. Remember, you must defend every term in the technical screen."
+    },
+    {
+      "type": "content",
+      "title": "Outreach that gets replies",
+      "bullets": [
+        "Short, specific, respectful — never mass boilerplate.",
+        "To recruiters: name the role, your flagship, one-line fit, small ask.",
+        "To engineers: reference something real, then a one-line ask.",
+        "Ten specific messages beat two hundred generic ones."
+      ],
+      "narration": "Applications alone are a low-yield channel; warm outreach multiplies your odds. Keep messages short, specific, and respectful. To a recruiter, name the role, point to your flagship project, give a one-line fit statement, and make a small ask for a quick chat, and mention your cloud and security background as the edge. To an engineer on the team, reference something real, a post they wrote or a tool the team uses, then a one-line ask for advice. Never send identical boilerplate to hundreds of people, it reads as spam and burns your name. Ten specific messages beat two hundred generic ones."
+    },
+    {
+      "type": "content",
+      "title": "Prepare for both screens",
+      "bullets": [
+        "Recruiter screen: motivation, fit, salary range, clear communication.",
+        "Technical screen: RAG quality, agent loops, evals, prompt injection.",
+        "Answer with problem → approach → decisions → results.",
+        "Prompt injection = untrusted input crossing a trust boundary."
+      ],
+      "narration": "Know which conversation you're in. The recruiter screen is a fit-and-communication filter, why this role, your salary range, logistics, and whether you can explain your work clearly. The technical screen tests depth, and it's the same reasoning you rehearsed: how your R-A-G system works and how you know it's good, point to an eval set; when an agent is the right tool and how you cap runaway loops; and how you defend against prompt injection, which is just untrusted input crossing a trust boundary. Answer with the problem, approach, decisions, results arc, and name the alternative you rejected. Your security background makes the safety questions your home turf."
+    },
+    {
+      "type": "content",
+      "title": "Run a weekly loop & recap",
+      "bullets": [
+        "Apply to 5-10 well-matched roles with tailored language.",
+        "Send 5-10 specific outreach messages.",
+        "Post or comment once on a GenAI topic; extend your flagship.",
+        "Track everything in a simple sheet and follow up."
+      ],
+      "narration": "Momentum comes from a routine, not a sprint. Each week, apply to five to ten well-matched roles with tailored language, send five to ten specific outreach messages, publish or comment once on a GenAI topic to stay visible, and extend your flagship slightly so Featured keeps improving. Track every application in a simple sheet so you follow up deliberately. That's the machine that turns the capstone you built into interviews, and then into the offer you accept. You've rewritten your profile, targeted the right titles, mirrored the job descriptions, and prepared for both screens. Congratulations on reaching the end of the course, and go land that job."
+    }
+  ]
+}

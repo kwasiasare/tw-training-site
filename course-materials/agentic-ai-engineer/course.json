@@ -3,8 +3,8 @@
   "title": "Agentic AI Engineer: Building Production-Ready LLM Agents",
   "description": "A hands-on, project-based course that takes you from Python-driven LLM API calls to deploying sophisticated multi-agent systems with planning, memory, RAG, and orchestration using LangGraph. You'll build a portfolio of working agents culminating in a deployed capstone application.",
   "audience": "Python developers and ML practitioners who want to transition into building, orchestrating, and deploying autonomous LLM-powered agents in production.",
-  "modules": 4,
-  "lessons": 16,
+  "modules": 5,
+  "lessons": 20,
   "layout": {
     "decks": "decks",
     "lessons": "lessons",
@@ -15,7 +15,8 @@
     "1": "LLM Foundations and Tool-Using Agents",
     "2": "Reasoning, Memory, and Retrieval",
     "3": "Multi-Agent Orchestration with LangGraph",
-    "4": "Evaluation, Deployment, and Capstone"
+    "4": "Evaluation, Deployment, and Capstone",
+    "5": "Capstone & Career Launch"
   },
   "generated": true,
   "targetRole": "Agentic AI Engineer",

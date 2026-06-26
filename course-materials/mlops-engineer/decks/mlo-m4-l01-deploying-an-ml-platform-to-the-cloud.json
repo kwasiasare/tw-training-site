@@ -151,7 +151,7 @@
         "Package with Helm or Kustomize",
         "Add readiness probes for safe rollouts"
       ],
-      "code": "resources:\n  requests: { cpu: \"500m\", memory: \"1Gi\" }\n  limits:   { cpu: \"1\", memory: \"2Gi\" }\nreadinessProbe:\n  httpGet: { path: /health, port: 8080 }",
+      "code": "resources:\n  requests: { cpu: \"500m\", memory: \"1Gi\" }\n  limits:   { cpu: \"1\", memory: \"2Gi\" }\nreadinessProbe:\n  httpGet: { path: /ready, port: 8080 }",
       "narration": "Your serving stack is a Deployment running multiple replicas, a Service exposing them internally, and an Ingress for external HTTPS traffic. Package these with Helm or Kustomize for repeatability. Readiness probes ensure traffic only flows to healthy pods during rollouts."
     },
     {

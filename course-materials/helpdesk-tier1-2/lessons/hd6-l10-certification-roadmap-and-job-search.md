@@ -122,7 +122,7 @@ Examples:
 
 ## Build a portfolio that backs it up
 
-Certs say you can pass an exam; a **portfolio** shows you can do the work. Build a **home lab** — a free Microsoft 365 developer tenant, a couple of test users, an Intune policy or two. Document each project: the problem, your steps, screenshots, the result. The labs and tickets from this course are portfolio pieces already — write them up. A simple repo or one-page site that says "here is what I built and how" beats a wall of buzzwords.
+Certs say you can pass an exam; a **portfolio** shows you can do the work. Build a **home lab** — a Microsoft 365 trial tenant (or a 30-day Microsoft 365 Business Premium/Enterprise trial — the free developer sandbox is now restricted to eligible accounts), a couple of test users, an Intune policy or two. Document each project: the problem, your steps, screenshots, the result. The labs and tickets from this course are portfolio pieces already — write them up. A simple repo or one-page site that says "here is what I built and how" beats a wall of buzzwords.
 
 ## Interview prep: methodology over memorisation
 

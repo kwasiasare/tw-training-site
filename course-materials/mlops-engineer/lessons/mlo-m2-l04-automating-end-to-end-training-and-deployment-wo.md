@@ -118,7 +118,7 @@ def train_and_register(X_train, y_train, X_val, y_val, params, threshold=0.80):
         model = RandomForestClassifier(**params).fit(X_train, y_train)
         f1 = f1_score(y_val, model.predict(X_val))
         mlflow.log_metric("val_f1", f1)
-        mlflow.sklearn.log_model(model, artifact_path="model")
+        mlflow.sklearn.log_model(model, name="model")
 
         # Quality gate
         if f1 >= threshold:

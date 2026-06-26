@@ -1,0 +1,183 @@
+{
+  "slug": "mlo-m6-l02-building-your-mlops-portfolio",
+  "title": "Building Your MLOps Portfolio",
+  "month": 6,
+  "monthTitle": "Capstone & Career Launch",
+  "lesson": 2,
+  "video": "mlo-m6-l02-building-your-mlops-portfolio.mp4",
+  "summary": "A portfolio is not a dump of repositories — it is a small set of curated artifacts that each prove a specific MLOps competency. In this lesson you turn two or three platform artifacts into hireable portfolio pieces: a deploy/CI-CD pipeline, an LLMOps serving stack (vLLM behind KServe), and an infrastructure-as-code repo. For each, you will define the competency it proves, structure the repo so a reviewer can verify it in minutes, write a results-and-trade-offs README, and add a short demo. You will learn to prioritize depth over breadth and to make every piece reproducible, because a reviewer who can run it believes it.",
+  "objectives": [
+    "Select two or three artifacts that each prove a distinct, in-demand MLOps competency",
+    "Structure a portfolio repo so a reviewer can understand and verify it within minutes",
+    "Write a README that leads with the problem, architecture, results, and trade-offs",
+    "Extract a CI/CD pipeline, an LLMOps serving stack, and an IaC repo as standalone portfolio pieces",
+    "Make every piece reproducible with pinned dependencies, seed data, and one-command setup",
+    "Prioritize depth over breadth and avoid the common portfolio anti-patterns"
+  ],
+  "quiz": [
+    {
+      "q": "What is the goal of an MLOps portfolio piece, as opposed to just a code repository?",
+      "options": [
+        "To contain as many files and frameworks as possible",
+        "To prove a specific, in-demand competency with evidence a reviewer can verify quickly — a clear problem, architecture, reproducible code, and quantified results",
+        "To stay private so competitors cannot copy it",
+        "To showcase the longest commit history"
+      ],
+      "answer": 1,
+      "why": "A portfolio piece is an argument that you can do a specific part of the job. It needs a stated problem, a legible architecture, reproducible code, and measurable results — not volume of files. Each piece should map to a competency a job description asks for."
+    },
+    {
+      "q": "Which three artifacts best cover the core competencies an MLOps hiring manager screens for?",
+      "options": [
+        "Three copies of the same model-training notebook",
+        "A deploy/CI-CD pipeline, an LLMOps serving stack (vLLM + KServe), and an infrastructure-as-code repo",
+        "A spreadsheet, a slide deck, and a blog post with no code",
+        "Three unfinished side projects"
+      ],
+      "answer": 1,
+      "why": "These three map to automation (CI/CD), GPU model serving (LLMOps), and reproducible infrastructure (IaC) — the highest-signal competencies for an MLOps role, and each is extractable from the systems you already built."
+    },
+    {
+      "q": "Why prioritize depth over breadth when choosing portfolio pieces?",
+      "options": [
+        "Because more pieces always rank higher in search",
+        "Because reviewers prefer empty repos",
+        "Because two or three deep, reproducible, well-documented pieces demonstrate real ownership, whereas many shallow repos signal tutorials never finished",
+        "Because breadth is illegal on GitHub"
+      ],
+      "answer": 2,
+      "why": "Reviewers can tell the difference between a deep, operable system and a pile of half-finished tutorials. A few polished, reproducible pieces with results and trade-offs prove ownership; breadth without depth dilutes the signal."
+    },
+    {
+      "q": "What should the top of a portfolio repo README contain?",
+      "options": [
+        "A wall of installation logs",
+        "The problem it solves, an architecture diagram, how to run it, the quantified results, and the trade-offs you made",
+        "Only a license file",
+        "A list of every library version with no explanation"
+      ],
+      "answer": 1,
+      "why": "A reviewer skims. Leading with the problem, a diagram, run instructions, quantified results, and trade-offs lets them verify capability in minutes — the structure that converts a repo view into an interview."
+    },
+    {
+      "q": "For an IaC portfolio piece, which detail most signals production maturity?",
+      "options": [
+        "Hardcoding credentials directly in the .tf files so it 'just works'",
+        "A single 2000-line file with every resource",
+        "Provisioning by clicking through the cloud console and screenshotting it",
+        "Remote state, no committed secrets, modular reusable code, and a documented plan/apply/destroy workflow"
+      ],
+      "answer": 3,
+      "why": "Remote state, secret hygiene, modular code, and a clean plan/apply/destroy lifecycle show you treat infrastructure as reviewable, reproducible, and safe — exactly the maturity an MLOps team needs."
+    },
+    {
+      "q": "In two to four sentences, describe how you would extract your Module 5 LLM serving work into a standalone portfolio piece that proves the 'GPU model serving' competency.",
+      "answer": "I would create a focused repo whose README states the use case and the latency and cost SLOs, then shows the architecture: a quantized open model served by vLLM behind an OpenAI-compatible API, deployed as a KServe InferenceService with scale-to-zero and request-based autoscaling. I would include the vLLM serve command, the InferenceService manifest, the Prometheus/Grafana dashboard for TTFT, TPOT, throughput, and cost-per-1k-tokens, and a short load-test script with a one-command setup. The results section would report p95 TTFT and TPOT against target and the cost-per-1k-tokens before and after quantization and batching, and the trade-offs section would explain the cold-start cost of scale-to-zero and the accuracy check that justified quantization. A three-minute demo would show a streamed completion and the dashboard updating under load.",
+      "why": "A strong answer scopes one competency, structures the repo around SLOs and architecture, includes runnable artifacts and dashboards, and reports quantified before/after results with trade-offs — proving GPU serving capability a reviewer can verify."
+    }
+  ],
+  "resources": [
+    {
+      "label": "GitHub Actions Documentation",
+      "url": "https://docs.github.com/en/actions"
+    },
+    {
+      "label": "Terraform Documentation — Infrastructure as Code",
+      "url": "https://developer.hashicorp.com/terraform/docs"
+    },
+    {
+      "label": "Made With ML — MLOps Course (project structure & best practices)",
+      "url": "https://madewithml.com/"
+    },
+    {
+      "label": "Awesome MLOps — curated tools and references",
+      "url": "https://github.com/visenger/awesome-mlops"
+    }
+  ],
+  "body_markdown": "## What a Portfolio Actually Is\n\nA portfolio is not your entire GitHub account. It is a small, curated set of artifacts, each of which proves one specific competency a hiring manager screens for. The previous lesson packaged your two full capstones; this lesson zooms in and extracts **standalone portfolio pieces** from them — each a focused repo that a reviewer can open, understand, and verify in minutes. The mental model is simple: for every competency on a job description, you want exactly one piece that demonstrates it convincingly.\n\nMLOps hiring managers consistently screen for three things: can you **automate** the path to production (CI/CD), can you **serve models reliably and efficiently** (especially GPU/LLM serving in 2026), and can you make **infrastructure reproducible** (IaC). Conveniently, you already built all three inside your Module 4 and Module 5 capstones. Your task now is to lift them out, sharpen them, and present each as its own argument.\n\n## Choose Two or Three Pieces (Depth Over Breadth)\n\nResist the urge to publish ten repos. Two or three deep, reproducible, well-documented pieces beat a dozen shallow ones every time, because a reviewer can instantly tell the difference between an operable system and a half-finished tutorial. Pick pieces that cover distinct competencies rather than three variations of the same thing:\n\n1. **A deploy / CI-CD pipeline** — proves automation and safe delivery.\n2. **An LLMOps serving stack** — proves modern, GPU-aware model serving.\n3. **An infrastructure-as-code repo** — proves reproducible, reviewable infrastructure.\n\nThree is plenty. If you only have time to polish two, choose the CI/CD pipeline and the LLMOps stack, because GPU model serving and automation are the highest-signal competencies for MLOps roles in 2026.\n\n## Piece 1 — The Deploy / CI-CD Pipeline\n\nExtract the CI/CD work from your Module 4 capstone into a focused repo. The story it tells: *I automate testing, building, and safe deployment of an ML service.* Structure it so the workflow file is the centerpiece.\n\n- **What to include:** a `.github/workflows` pipeline that lints, runs unit and integration tests, builds and pushes a container image tagged by commit SHA, and deploys with a **canary or blue-green** rollout; the model **promotion gate** that blocks a worse model; and a rollback path.\n- **README leads with:** the problem (manual deploys are slow and risky), a diagram of the pipeline stages, how to trigger it, and the results — *deploy frequency enabled, rollback/MTTR, and the regression class the promotion gate prevents.*\n- **Make it real:** wire it to a tiny sample model and a throwaway environment so the Actions runs are green and visible in the repo's Actions tab. A reviewer who sees passing CI believes the rest.\n\nKey trade-offs to document: canary vs. blue-green vs. recreate; gating on a metric threshold vs. manual approval; and why secrets live in the secrets manager, never the repo.\n\n## Piece 2 — The LLMOps Serving Stack\n\nExtract your Module 5 serving work into a repo that proves **GPU-aware LLM serving**, the competency in highest demand in 2026. The story: *I serve open LLMs efficiently and operate them to latency and cost SLOs.*\n\n- **What to include:** the **vLLM** serve command (with quantization and KV-cache settings), the **KServe** `InferenceService` manifest with `minReplicas: 0` for scale-to-zero and request-based autoscaling, the Prometheus scrape config and a Grafana dashboard covering **TTFT, TPOT, tokens/sec, GPU/KV-cache utilization, and cost-per-1k-tokens**, and a small load-test script (e.g., locust or a token-rate harness).\n- **README leads with:** the use case, the latency SLOs (p95 TTFT, p95 TPOT) and the cost budget, the architecture diagram, one-command setup, and results — *p95 TTFT/TPOT against target and cost-per-1k-tokens before vs. after quantization and continuous batching.*\n- **Trade-offs to document:** the cold-start cost of scale-to-zero; the accuracy check (an eval pass) that justified quantization; and tensor parallelism if the model exceeded one GPU.\n\nIf you lack a GPU to run it live, document the exact instance type and costs, include the dashboards and a recorded demo, and make the manifests apply cleanly so the engineering is verifiable even without a live endpoint.\n\n## Piece 3 — The Infrastructure-as-Code Repo\n\nExtract the Terraform from your Module 4 capstone into a clean IaC repo. The story: *I provision cloud infrastructure declaratively, reproducibly, and safely.*\n\n- **What to include:** modular Terraform for the container registry, compute (EKS/GKE/ECS or a managed endpoint), networking, and IAM; a **remote state** backend; variables and environments; and a documented `plan` / `apply` / `destroy` workflow. Optionally, a CI job that runs `terraform plan` on pull requests.\n- **README leads with:** what it provisions, a diagram of the resources, how to run it end to end, and the cost to stand it up and tear it down.\n- **Maturity signals:** no committed secrets, modular reusable code instead of one giant file, remote state, and a clean destroy path so a reviewer can run it without leaving orphaned cloud spend.\n\nThis piece is small but disproportionately persuasive: it shows you treat infrastructure as code that is reviewed and versioned, not as console clicks no one can reproduce.\n\n## Structure Every Repo the Same Way\n\nConsistency makes you look like an engineer who ships. Use the same skeleton for each piece:\n\n```\nrepo/\n  README.md          # problem, architecture diagram, run, results, trade-offs\n  architecture.png   # one clean diagram\n  src/ or manifests/ # the actual code/config\n  tests/             # something a reviewer can run\n  Makefile           # `make up`, `make test`, `make down`\n  .env.example       # documents config; never real secrets\n  demo/              # link or short recording\n```\n\nThe README is the highest-leverage file. A reviewer skims, so lead with the **problem**, then the **architecture diagram**, then **how to run it** (one command), then the **quantified results**, then the **trade-offs and what you'd improve**. Everything below that is reference.\n\n## Make It Reproducible\n\nReproducibility is the property that makes a reviewer *believe* a piece. For each repo: pin dependency versions, ship seed data or a tiny sample model so nothing external is required, provide a one-command bring-up, document the exact tool versions, and confirm a clean teardown. Never commit secrets — use `.env.example` and a secrets manager. A piece a reviewer can run in five minutes is worth more than a far more ambitious one they cannot.\n\n## Avoid the Anti-Patterns\n\n- **Tutorial graveyard.** Ten unfinished repos signal abandonment, not skill. Curate to two or three.\n- **No README, or a README that's just install logs.** Lead with problem, architecture, results.\n- **No results.** \"It works\" is not a result; \"p95 TTFT 420ms, cost-per-1k-tokens cut 58% via quantization + batching\" is.\n- **Secrets in the repo.** An instant credibility (and security) failure.\n- **Runs only on your laptop.** If a reviewer can't reproduce it, it doesn't count.\n- **Breadth over depth.** One deep, operable piece outperforms five shallow ones.\n\n## The Deliverable\n\nBy the end of this lesson you should have two or three standalone portfolio repos — a CI/CD pipeline, an LLMOps serving stack, and an IaC repo — each with a consistent structure, a results-and-trade-offs README, a one-command setup, a short demo, and clean reproducibility. Pin them on your GitHub profile under the portfolio landing page from Lesson 1. These are the concrete pieces your resume bullets and LinkedIn profile will point to in the next two lessons.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Building Your MLOps Portfolio",
+      "sub": "Turn platform artifacts into hireable portfolio pieces",
+      "narration": "A portfolio is not a dump of repositories. It is a small set of curated artifacts that each prove a specific MLOps competency. In this lesson you turn two or three platform artifacts into hireable portfolio pieces: a deploy and CI/CD pipeline, an LLMOps serving stack, and an infrastructure-as-code repo. For each, you will define the competency it proves, structure the repo so a reviewer can verify it in minutes, write a results-and-trade-offs README, and add a short demo. Depth over breadth, and everything reproducible."
+    },
+    {
+      "type": "content",
+      "title": "What a Portfolio Actually Is",
+      "bullets": [
+        "Not your whole GitHub — a curated set of focused pieces",
+        "Each piece proves one competency a job description asks for",
+        "Extract standalone pieces from your two capstones",
+        "MLOps managers screen for: automation, serving, reproducible infra"
+      ],
+      "narration": "A portfolio is not your entire GitHub account. It is a small, curated set of artifacts, each proving one competency a hiring manager screens for. The previous lesson packaged your full capstones; here you extract standalone pieces from them, each a focused repo a reviewer can open and verify in minutes. MLOps managers consistently screen for three things: can you automate the path to production, can you serve models reliably and efficiently, and can you make infrastructure reproducible. You already built all three."
+    },
+    {
+      "type": "content",
+      "title": "Choose Two or Three Pieces",
+      "bullets": [
+        "A deploy / CI-CD pipeline — automation and safe delivery",
+        "An LLMOps serving stack (vLLM + KServe) — GPU model serving",
+        "An infrastructure-as-code repo — reproducible infrastructure",
+        "Depth over breadth: two deep pieces beat ten shallow ones"
+      ],
+      "narration": "Resist publishing ten repos. Two or three deep, reproducible, well-documented pieces beat a dozen shallow ones, because a reviewer can instantly tell an operable system from a half-finished tutorial. Pick pieces that cover distinct competencies: a deploy and CI/CD pipeline for automation, an LLMOps serving stack for GPU-aware model serving, and an infrastructure-as-code repo for reproducible infrastructure. If you only polish two, choose the CI/CD pipeline and the LLMOps stack, because serving and automation are the highest-signal competencies in 2026."
+    },
+    {
+      "type": "content",
+      "title": "Piece 1 — The CI/CD Pipeline",
+      "bullets": [
+        "Workflow: lint, test, build/push by SHA, canary or blue-green deploy",
+        "Include the model promotion gate and a rollback path",
+        "README: problem, stage diagram, results (deploy freq, MTTR)",
+        "Wire to a sample model so the Actions runs are green and visible"
+      ],
+      "narration": "Extract the CI/CD work from your Module 4 capstone into a focused repo. The workflow file is the centerpiece: it lints, runs unit and integration tests, builds and pushes an image tagged by commit, and deploys with a canary or blue-green rollout. Include the model promotion gate that blocks a worse model, and a rollback path. Lead the README with the problem, a diagram of the stages, and results: the deploy frequency it enables and the rollback time. Wire it to a tiny sample model so the Actions runs show green."
+    },
+    {
+      "type": "content",
+      "title": "Piece 2 — The LLMOps Serving Stack",
+      "bullets": [
+        "vLLM serve + KServe InferenceService with scale-to-zero",
+        "Grafana dashboard: TTFT, TPOT, tokens/sec, cost-per-1k-tokens",
+        "Results: p95 TTFT/TPOT vs. target; cost before vs. after quantization",
+        "No GPU? Document instance/costs, ship dashboards + recorded demo"
+      ],
+      "narration": "Extract your Module 5 serving work into a repo that proves GPU-aware LLM serving, the competency in highest demand in 2026. Include the vLLM serve command, the KServe InferenceService with scale-to-zero and autoscaling, the Prometheus and Grafana dashboards for time-to-first-token, time-per-output-token, throughput, and cost-per-thousand-tokens, and a small load test. Lead with the use case, the SLOs, and the architecture, and report cost-per-thousand-tokens before and after quantization and batching. No GPU? Document the instance and costs and ship the dashboards with a recorded demo."
+    },
+    {
+      "type": "content",
+      "title": "Piece 3 — The Infrastructure-as-Code Repo",
+      "bullets": [
+        "Modular Terraform: registry, compute, networking, IAM",
+        "Remote state, environments, documented plan/apply/destroy",
+        "Maturity signals: no secrets, modular code, clean teardown",
+        "Optional CI job running terraform plan on pull requests"
+      ],
+      "narration": "Extract the Terraform from your Module 4 capstone into a clean infrastructure-as-code repo. Include modular code for the registry, compute, networking, and IAM, a remote state backend, and a documented plan, apply, and destroy workflow. The maturity signals matter most: no committed secrets, modular reusable code instead of one giant file, remote state, and a clean destroy path so a reviewer runs it without leaving orphaned cloud spend. This piece is small but disproportionately persuasive — it shows infrastructure as reviewed, versioned code, not console clicks."
+    },
+    {
+      "type": "content",
+      "title": "Structure and Reproducibility",
+      "bullets": [
+        "Same skeleton: README, diagram, src/manifests, tests, Makefile, .env.example",
+        "README order: problem, architecture, run, results, trade-offs",
+        "Pin versions, ship seed data, one-command bring-up, clean teardown",
+        "A piece a reviewer can run in 5 minutes beats a grander one they can't"
+      ],
+      "narration": "Use the same skeleton for every piece — README, diagram, code or manifests, tests, a Makefile, and a dot-env example — so you look like an engineer who ships. The README is the highest-leverage file: lead with the problem, then the architecture diagram, then how to run it in one command, then the quantified results, then the trade-offs. And make every piece reproducible: pin versions, ship seed data, provide a one-command bring-up, and confirm a clean teardown. A piece a reviewer can run in five minutes is worth more than a grander one they cannot."
+    },
+    {
+      "type": "content",
+      "title": "Avoid the Anti-Patterns",
+      "bullets": [
+        "Tutorial graveyard: ten unfinished repos signal abandonment",
+        "No results: 'it works' is not a result — give numbers",
+        "Secrets in the repo: an instant credibility and security failure",
+        "Runs only on your laptop: if it can't be reproduced, it doesn't count"
+      ],
+      "narration": "Close by avoiding the common failures. A graveyard of ten unfinished repos signals abandonment, not skill, so curate to two or three. A missing README, or one that is just install logs, wastes the reviewer's skim. No results is fatal: it works is not a result, but p95 time-to-first-token of 420 milliseconds and cost cut 58 percent is. Never commit secrets. And make sure it runs somewhere other than your laptop. Avoid these, pin the pieces on your profile, and your resume and LinkedIn now have concrete evidence to point to."
+    }
+  ]
+}

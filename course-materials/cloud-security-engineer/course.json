@@ -4,7 +4,7 @@
   "description": "A project-based course that bridges the gap between intermediate M365 administration (MD-102/MS-102) and senior security architecture (SC-500). You'll design Zero Trust identity perimeters with Entra ID, unify endpoint security with Intune and Defender for Endpoint, govern data and AI with Microsoft Purview, run a cloud SIEM/SOAR with Microsoft Sentinel and KQL, automate it all with PowerShell, the Microsoft Graph API, and Logic Apps, and harden the Azure platform itself, securing storage, databases, and networks with private endpoints, NSGs, Azure Firewall, and Key Vault. You finish by building the three portfolio-grade projects hiring managers look for.",
   "audience": "M365 administrators, helpdesk/endpoint engineers, and cloud/IT professionals who want to move into a Cloud Security Engineer or M365 Security Architect role and need hands-on, portfolio-building experience aligned to real enterprise job descriptions and the SC-500 exam.",
   "modules": 7,
-  "lessons": 28,
+  "lessons": 29,
   "layout": {
     "decks": "decks",
     "lessons": "lessons",

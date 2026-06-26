@@ -19,6 +19,15 @@ for path in sorted(glob.glob(os.path.join(DECKS, '*.json'))):
     except Exception as e:
         bad.append((slug, f'JSON parse: {e}')); continue
     try:
+        # Short-answer quiz items have no options. The Astro content schema accepts
+        # an array or an omitted field, but NOT options: null — so drop a null/empty
+        # options key entirely (decks sometimes carry "options": null). See TW-81.
+        quiz = []
+        for q in deck.get('quiz', []):
+            q = dict(q)
+            if q.get('options') in (None, []):
+                q.pop('options', None)
+            quiz.append(q)
         fm = {
             'course': COURSE_SLUG,
             'title': deck['title'],
@@ -28,7 +37,7 @@ for path in sorted(glob.glob(os.path.join(DECKS, '*.json'))):
             'summary': deck['summary'],
             'objectives': deck.get('objectives', []),
             'video': deck.get('video', f'{slug}.mp4'),
-            'quiz': deck.get('quiz', []),
+            'quiz': quiz,
             'resources': deck.get('resources', []),
         }
         body = deck.get('body_markdown', '').strip()

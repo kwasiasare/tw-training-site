@@ -1,0 +1,171 @@
+{
+  "slug": "ht5-l04-linkedin-and-the-senior-it-job-search",
+  "title": "LinkedIn and the Senior IT Job Search",
+  "month": 5,
+  "monthTitle": "Capstone & Career Launch",
+  "lesson": 4,
+  "video": "ht5-l04-linkedin-and-the-senior-it-job-search.mp4",
+  "summary": "Your capstone, portfolio, and resume prove you can do the work; this lesson makes recruiters and hiring managers find it and believe it. You will rewrite your LinkedIn profile as a systems engineer, a headline that names the role and your automation edge, an About that tells one story across your projects, and a Featured strip that links the repos and demos. You will target the right titles (Endpoint Engineer, Systems Engineer, IT Automation Engineer, Modern Workplace Engineer), mirror job-description keywords truthfully, and run warm outreach that gets replies. Finally you will prepare for the senior technical interview, RCA, automation design, identity, and system design, and stand up a weekly loop that compounds into offers. The goal is to convert a strong portfolio into interviews and interviews into a senior role.",
+  "objectives": [
+    "Rewrite your LinkedIn headline, About, and Featured sections to position you for senior endpoint/systems roles",
+    "Translate your capstone and portfolio into Projects/Experience entries with quantified impact",
+    "Target the right titles and mirror job-description keywords for recruiter search and ATS",
+    "Write recruiter and engineer outreach that references specifics, not boilerplate",
+    "Prepare for the senior technical interview: RCA, automation design, identity, and system design",
+    "Run a weekly job-search loop that keeps the pipeline full and compounds over time"
+  ],
+  "quiz": [
+    {
+      "q": "What makes a LinkedIn headline work for a senior IT job search?",
+      "options": [
+        "A single word like 'IT'",
+        "Your current unrelated job title only",
+        "The target role plus a concrete edge and key tools, e.g. 'Endpoint / Systems Engineer | PowerShell + Microsoft Graph automation at scale | Intune, Autopilot, Entra ID, KQL'",
+        "A motivational quote with no role or skills"
+      ],
+      "answer": 2,
+      "why": "Recruiters search LinkedIn by keywords and skim headlines first. A headline that names the role you want plus the specific tools and an edge is both keyword-rich, so you appear in searches, and instantly legible, so a human keeps reading. A one-word or off-target headline is invisible to search and says nothing."
+    },
+    {
+      "q": "Which set of target titles best fits a Tier 3 technician moving into senior endpoint/automation work?",
+      "options": [
+        "Graphic Designer, Copywriter, Sales Associate",
+        "Endpoint Engineer, Systems Engineer, IT Automation Engineer, Modern Workplace Engineer",
+        "Only your current Tier 2 helpdesk title",
+        "Chief Information Officer and VP of Engineering"
+      ],
+      "answer": 1,
+      "why": "The same modern-endpoint skill set is posted under several titles, Endpoint Engineer, Systems Engineer, IT Automation Engineer, Modern Workplace Engineer, so searching and setting alerts across all of them widens your pipeline. Off-domain or executive titles do not match the skills you have built."
+    },
+    {
+      "q": "How should your capstone and portfolio appear on your LinkedIn profile?",
+      "options": [
+        "As Featured links and Projects/Experience entries with a one-line problem, the technology, and a quantified result, each linking to the repo and demo",
+        "Hidden, because self-directed projects are not 'real' experience",
+        "As a single line that says 'did some IT projects'",
+        "Only as a PDF emailed after the interview"
+      ],
+      "answer": 0,
+      "why": "Self-directed, portfolio-grade projects are legitimate, demonstrable experience, especially when moving into a senior role. Surfacing them in Featured and as structured Projects/Experience entries lets a recruiter verify capability in seconds, which is what converts a profile view into a screen."
+    },
+    {
+      "q": "What distinguishes effective outreach from a message that gets ignored?",
+      "options": [
+        "Identical boilerplate sent to hundreds of people",
+        "A short, specific message that references the role or something the person worked on, states your fit in one line, and makes a small clear ask",
+        "A demand for an immediate job offer",
+        "Several paragraphs of your life story"
+      ],
+      "answer": 1,
+      "why": "Specific, brief, respectful messages get replies. Referencing the actual role or the person's work shows you did your homework, and a one-line fit statement plus a small ask makes it easy to say yes. Generic mass-messages read as spam and are ignored, ten specific messages beat two hundred generic ones."
+    },
+    {
+      "q": "How should you answer a senior automation-design interview question?",
+      "options": [
+        "List every cmdlet you know from memory",
+        "Avoid mentioning trade-offs so you seem confident",
+        "Say 'it just works' and move on",
+        "Walk the intent, the design (detect-decide-act-verify-report), the guardrails you chose (ShouldProcess, idempotency, least privilege, ring rollout), and the alternative you rejected and why"
+      ],
+      "answer": 3,
+      "why": "Senior interviews probe judgment. Framing an automation by its intent, its staged design, the guardrails that contain blast radius, and the alternative you rejected demonstrates that you design deliberately and understand operational consequences, exactly what separates a senior engineer from a scripter."
+    },
+    {
+      "q": "In two to four sentences, write a LinkedIn About opening that positions a Tier 2 technician for an Endpoint / Systems Engineer role using their capstone and portfolio.",
+      "answer": "I am an endpoint and systems engineer focused on automating and operating modern Windows fleets at scale. I recently built a portfolio of three projects: a Microsoft Graph PowerShell runbook that auto-remediates non-compliant devices across a 4,000-device fleet and cut mean-time-to-remediate from days to under an hour, a zero-touch Autopilot provisioning workflow delivered as configuration-as-code, and an AIOps dashboard with gated, audited remediation. I am studying for MD-102 and MS-102 and I am looking for an Endpoint Engineer, Systems Engineer, or IT Automation Engineer role where I can design and run safe automation. The repos, diagrams, and demo videos are linked in my Featured section.",
+      "why": "A strong About opens with a clear positioning line, proves it with two or three specific quantified projects, states the certification trajectory, names the target titles, and points to evidence. It reads as someone who already does the work, which is the impression that earns a screen."
+    }
+  ],
+  "resources": [
+    {"label": "LinkedIn Help - Featured section: showcase work on your profile", "url": "https://www.linkedin.com/help/linkedin/answer/a522537"},
+    {"label": "Microsoft Learn - Study guide for Exam MD-102: Endpoint Administrator", "url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/md-102"},
+    {"label": "Microsoft Learn training catalog (free, role-based)", "url": "https://learn.microsoft.com/en-us/training/"},
+    {"label": "Microsoft Tech Community - Microsoft Learn", "url": "https://techcommunity.microsoft.com/t5/microsoft-learn/ct-p/MicrosoftLearn"}
+  ],
+  "body_markdown": "## From portfolio to pipeline\n\nThe previous lessons built the proof: a capstone, a portfolio, and a resume written around quantified impact. This lesson builds the distribution. Most strong candidates lose not on capability but on **visibility**, their work is real but no recruiter ever sees it, or the profile recruiters do see says nothing. Your job now is to make your LinkedIn profile a thirty-second argument that you can do the role, then run a deliberate search that puts that argument in front of the right people. Treat it as engineering: a clean interface (the profile), a search strategy, and a repeatable loop.\n\n## Rewrite your profile as a systems engineer\n\n**Headline.** This is the most-searched, most-skimmed field on LinkedIn. Name the role you want, your edge, and the key tools: *\"Endpoint / Systems Engineer | PowerShell + Microsoft Graph automation at scale | Intune, Autopilot, Entra ID, KQL.\"* It is keyword-dense, so you appear in recruiter searches, and legible, so a human keeps reading. Do not leave it as your current Tier 2 title.\n\n**About.** Open with one positioning line, prove it with your capstone and portfolio in specific, quantified language, name your certification trajectory (MD-102, MS-102, with AZ-104/SC-300 adjacent), state your target titles, and end by pointing at the evidence. The aim is that someone finishes the first two sentences already believing you do this work. The short-answer question in this lesson is exactly that exercise, write yours.\n\n**Featured.** This is your portfolio strip and the highest-leverage section for someone stepping up a level. Add your projects as Featured links, each repo and, ideally, the short demo video. A reviewer who clicks Featured and sees a clean repo with an architecture diagram and a three-minute demo is most of the way to inviting you to a screen.\n\n**Experience and Projects.** Use the Projects section (and Experience where it fits) to list each project with the same structure as your resume: a one-line problem, the technology, and a quantified result, *\"a Graph runbook that cut compliance remediation from days to under an hour across 4,000 devices.\"* Self-directed projects are legitimate experience; present them as such.\n\n**Skills.** Add the skills that match real postings and your certs, PowerShell, Microsoft Graph, Intune, Windows Autopilot, Entra ID, Conditional Access, KQL, Azure Automation, Endpoint Analytics, and pin the most important. Skills drive recruiter search and the \"how you match\" panel on applications.\n\n**Open to Work.** Turn it on (recruiters-only visibility if you are currently employed), set your target titles and locations, and you immediately appear in the dedicated recruiter pool.\n\n## Target the right titles\n\nThe same skill set is posted under several titles. Search and set alerts for **Endpoint Engineer**, **Systems Engineer**, **IT Automation Engineer**, **Modern Workplace Engineer**, and related variants like **Device/Intune Engineer**, **Desktop Engineer**, and **Endpoint Administrator**. Read ten real postings for your target titles and note the recurring tools and phrases, that vocabulary is what you mirror, truthfully, in your profile and resume. If most postings say \"Autopilot\" and \"Microsoft Graph,\" those exact terms belong in your profile because you have done them.\n\n## Mirror the job description honestly\n\nBoth LinkedIn Recruiter searches and applicant tracking systems rank you on keyword relevance. For each application, align your profile and resume language to the posting's real terms, *only* for skills you genuinely have and can defend. If a JD emphasizes \"configuration as code\" and you delivered an Autopilot workflow that way, use that phrase. If it lists a tool you have never touched, that is a gap to learn, not a word to fake. This is alignment, not invention, you must defend every term in the interview.\n\n## Outreach that gets replies\n\nApplications alone are a low-yield channel; warm outreach multiplies your odds. Keep messages short, specific, and respectful:\n\n- **To a recruiter on a role:** *\"Hi NAME, I saw the Endpoint Engineer opening on TEAM. I have built a Graph automation that remediates non-compliant devices fleet-wide, an Autopilot provisioning workflow, and an AIOps remediation runbook (links in my profile), and I am studying for MD-102. Would you be open to a quick chat about fit?\"*\n- **To an engineer on the team:** reference something real, a talk they gave, a tool the team uses, then a one-line fit statement and a small ask (*\"any advice on what your team values in an endpoint hire?\"*).\n\nNever send identical boilerplate to hundreds of people; it reads as spam and burns your name. Ten specific messages beat two hundred generic ones.\n\n## Prepare for the senior interview\n\nSenior interviews test depth and judgment, not trivia. Expect four themes, and answer each with the **intent -> design -> trade-offs** arc:\n\n- **Root-cause analysis (RCA).** Walk a real incident: symptom, evidence gathered, hypothesis, the actual root cause (not the symptom), the fix, and the prevention. Show you distinguish cause from coincidence and close the loop with a post-incident change.\n- **Automation design.** Talk through your capstone: the detect-decide-act-verify-report pipeline, the guardrails (ShouldProcess dry runs, idempotency, retry with backoff, least privilege, ring rollout), and the alternative you rejected and why. Be ready to defend every control.\n- **Identity.** Reason about Entra ID, Conditional Access, device compliance, and least privilege, why standing admin is a liability, how compliance gates access, and how you would scope a managed identity for a runbook.\n- **System design.** Sketch how you would build endpoint management or monitoring at scale: sources of truth, provisioning, telemetry, gated remediation, and blast-radius control. Think in components and trade-offs, not clicks.\n\nWhen asked *\"why did you build it this way?\"*, name the **alternative you rejected** and explain why. That is the single clearest signal of seniority.\n\n## Run a weekly loop\n\nMomentum comes from a routine, not a sprint. A workable weekly loop: apply to five to ten well-matched roles with tailored language; send five to ten specific outreach messages; publish or comment once on a technical topic (a short post on an automation you built keeps you visible and signals expertise); and extend one project slightly so your Featured section keeps improving. Track applications in a simple sheet (role, company, date, contact, status) so you follow up deliberately. The search is a pipeline, keep it full and keep moving candidates through it.\n\n## Negotiate and close like an engineer\n\nWhen offers come, handle them with the same deliberateness you brought to the work. Before the first recruiter screen, know your **target range** by checking real market data for the title and location, and state it as a band rather than a single number. When an offer arrives, evaluate the **whole package**, base, bonus, equity if any, learning budget, on-call expectations, and growth path, not just the headline salary, because a role that pays slightly less but lets you keep building automation may compound faster in your career. A polite, evidence-based counter (\"based on the scope and my automation work, I was targeting X\") is expected and rarely rescinds an offer; not asking leaves money and standing on the table. And once you accept, **close the loop** with everyone who helped, thank the engineers who took your outreach call, tell the recruiters you are off the market, and keep those relationships warm, because the senior IT world is small and today's contact is tomorrow's colleague or referral. Treating the close as professionally as the build is part of what makes you a senior hire rather than a lucky one.\n\n## The deliverable\n\nBy the end of this lesson you should have a rewritten profile (headline, About, Featured with projects linked, Projects/Experience entries, skills, Open to Work on), a shortlist of target titles with saved searches, a keyword pass aligning your profile and resume to your top postings, a small set of specific outreach messages sent, rehearsed answers for RCA, automation design, identity, and system design, and a weekly routine on the calendar. That is the machine that turns your portfolio into a senior role.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "LinkedIn and the Senior IT Job Search",
+      "sub": "Month 5 - Capstone & Career Launch  |  Lesson 4",
+      "narration": "Your capstone, portfolio, and resume prove you can do the work. This final lesson makes recruiters and hiring managers find it and believe it. You will rewrite your LinkedIn profile as a systems engineer, target the right titles, mirror job-description keywords truthfully, and run warm outreach that gets replies. Then you will prepare for the senior technical interview, root-cause analysis, automation design, identity, and system design, and stand up a weekly loop that compounds into offers. The goal is simple: convert a strong portfolio into interviews, and interviews into a senior role."
+    },
+    {
+      "type": "content",
+      "title": "From portfolio to pipeline",
+      "bullets": [
+        "Most strong candidates lose on visibility, not capability",
+        "Make your profile a thirty-second argument that you can do the role",
+        "Then run a deliberate search that reaches the right people",
+        "Treat it as engineering: interface, strategy, repeatable loop"
+      ],
+      "narration": "The previous lessons built the proof: a capstone, a portfolio, and a resume around quantified impact. This lesson builds the distribution. Most strong candidates lose not on capability but on visibility, their work is real but no recruiter sees it, or the profile recruiters do see says nothing. Your job now is to make your LinkedIn profile a thirty-second argument that you can do the role, then run a deliberate search that puts that argument in front of the right people. Treat it as engineering: a clean interface, the profile, a search strategy, and a repeatable loop."
+    },
+    {
+      "type": "content",
+      "title": "Rewrite the top of your profile",
+      "bullets": [
+        "Headline: target role + automation edge + key tools",
+        "About: one positioning line, then your capstone and portfolio, then certs and titles",
+        "Featured: link the repos and demo videos - your portfolio strip",
+        "Skills: PowerShell, Graph, Intune, Autopilot, Entra ID, KQL - pin the top ones"
+      ],
+      "narration": "Start at the top. Your headline is the most-searched field, so name the role you want, your edge, and the key tools, something like Endpoint and Systems Engineer, PowerShell and Microsoft Graph automation at scale, Intune, Autopilot, Entra I D, K Q L. Your About should open with one positioning line, prove it with your capstone and portfolio in quantified language, then name your certification path and target titles. The Featured section is your portfolio strip, link the repos and demos there. And add the skills that match real postings and your certs, pinning the most important, because skills drive recruiter search. Turn on Open to Work with your target titles and locations."
+    },
+    {
+      "type": "content",
+      "title": "Target the right titles",
+      "bullets": [
+        "Endpoint Engineer, Systems Engineer, IT Automation Engineer",
+        "Modern Workplace Engineer, Device/Intune Engineer, Endpoint Administrator",
+        "Read ten real postings; note recurring tools and phrases",
+        "That vocabulary is what you mirror, truthfully"
+      ],
+      "narration": "The same skill set is posted under several titles, so search and set alerts for Endpoint Engineer, Systems Engineer, I T Automation Engineer, and Modern Workplace Engineer, plus variants like Device or Intune Engineer and Endpoint Administrator. Read ten real postings for those titles and note the recurring tools and phrases, that vocabulary is what you mirror, truthfully, in your profile and resume. If most postings say Autopilot and Microsoft Graph, those exact terms belong in your profile because you have actually done them. Casting across several titles widens the pipeline without diluting your focus."
+    },
+    {
+      "type": "content",
+      "title": "Outreach that gets replies",
+      "bullets": [
+        "Short, specific, respectful - never mass boilerplate",
+        "To recruiters: name the role, your projects, one-line fit, small ask",
+        "To engineers: reference something real, then a one-line ask",
+        "Ten specific messages beat two hundred generic ones"
+      ],
+      "narration": "Applications alone are a low-yield channel; warm outreach multiplies your odds. Keep messages short, specific, and respectful. To a recruiter, name the role, point to your projects, give a one-line fit statement, and make a small ask for a quick chat. To an engineer on the team, reference something real, a talk they gave or a tool the team uses, then a one-line ask for advice. Never send identical boilerplate to hundreds of people; it reads as spam and burns your name. Ten specific messages beat two hundred generic ones every time."
+    },
+    {
+      "type": "content",
+      "title": "Prepare for the senior interview",
+      "bullets": [
+        "RCA: symptom, evidence, true root cause, fix, prevention",
+        "Automation design: your detect-act-verify pipeline and its guardrails",
+        "Identity: Entra, Conditional Access, compliance, least privilege",
+        "System design: components and trade-offs, not clicks"
+      ],
+      "narration": "Senior interviews test depth and judgment, not trivia. Expect four themes, and answer each with the intent, design, trade-offs arc. For root-cause analysis, walk a real incident from symptom to evidence to the actual root cause, the fix, and the prevention. For automation design, talk through your capstone pipeline and defend every guardrail, Should Process, idempotency, retry, least privilege, ring rollout, and name the alternative you rejected. For identity, reason about Entra, Conditional Access, device compliance, and least privilege. For system design, sketch endpoint management at scale in components and trade-offs, not clicks. Naming the alternative you rejected is the clearest signal of seniority."
+    },
+    {
+      "type": "content",
+      "title": "Run a weekly loop",
+      "bullets": [
+        "Apply to 5-10 well-matched roles with tailored language",
+        "Send 5-10 specific outreach messages",
+        "Post or comment once on a technical topic to stay visible",
+        "Extend one project; track everything in a simple sheet"
+      ],
+      "narration": "Momentum comes from a routine, not a one-time sprint. Each week, apply to five to ten well-matched roles with tailored language, send five to ten specific outreach messages, publish or comment once on a technical topic to stay visible and signal expertise, and extend one project slightly so your Featured section keeps improving. Track every application in a simple sheet so you follow up deliberately. The job search is a pipeline, keep it full and keep moving candidates through it, and the portfolio you built becomes the senior role you accept."
+    },
+    {
+      "type": "content",
+      "title": "Recap & your deliverable",
+      "bullets": [
+        "Rewrite headline, About, Featured, Projects, Skills; Open to Work on",
+        "Shortlist target titles with saved searches; mirror JD keywords",
+        "Send specific outreach; rehearse RCA, automation, identity, system design",
+        "Put the weekly loop on your calendar - that machine turns work into offers"
+      ],
+      "narration": "Let us bring it home, and with it, the course. By the end you should have a rewritten profile, headline, About, Featured with your projects linked, Projects and Experience entries, skills, and Open to Work on. A shortlist of target titles with saved searches, and a keyword pass aligning your profile and resume to your top postings. A small set of specific outreach messages sent. Rehearsed answers for root-cause analysis, automation design, identity, and system design. And a weekly routine on your calendar. That is the machine that turns your portfolio into a senior role. You have built the work and the proof. Now go and launch the career. Congratulations on completing Tier Three."
+    }
+  ]
+}

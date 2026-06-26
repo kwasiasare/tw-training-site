@@ -1,0 +1,183 @@
+{
+  "slug": "aad-m5-l02-building-your-ai-developer-portfolio",
+  "title": "Building Your AI Developer Portfolio",
+  "month": 5,
+  "monthTitle": "Capstone & Career Launch",
+  "lesson": 2,
+  "video": "aad-m5-l02-building-your-ai-developer-portfolio.mp4",
+  "summary": "Hiring for AI application roles is portfolio-first: a reviewer decides in under a minute whether you can build, based on what they can see and click. This lesson turns two or three of your course apps — the RAG document Q&A chatbot, the autonomous research agent, and your production capstone — into hireable artifacts. For each project you will produce a clean public GitHub repo, a README that answers what/how/try-it, an architecture diagram, a live demo link, a short demo video, and a one-page design doc. Then you will frame all of them as a single narrative: 'I design, evaluate, and ship LLM-powered applications.' The output is a portfolio that converts a profile view into an interview.",
+  "objectives": [
+    "Select and package 2-3 course apps as self-contained case studies with consistent artifacts",
+    "Write a README that answers what it does, how it is built, and how to try it in under a minute",
+    "Produce a clear architecture diagram and a one-page design doc per project (problem, design, trade-offs, results)",
+    "Publish a live demo link and a 60-90 second demo video for each project",
+    "Make repos clean and credible: no secrets, an .env.example, a license, and meaningful commits",
+    "Frame all projects as one narrative that positions you for AI developer roles"
+  ],
+  "quiz": [
+    {
+      "q": "A reviewer lands on your project README. What must it answer fastest?",
+      "options": [
+        "What the app does, how it is built, and how to try it right now",
+        "Your full commit history and every dependency version",
+        "Your personal biography and career goals",
+        "A list of every prompt you experimented with"
+      ],
+      "answer": 0,
+      "why": "Portfolio reviewing is fast. A README that immediately answers what it does, how it is built, and 'can I try it now' (a live link) lets a busy reviewer confirm capability in under a minute, which is what converts a click into an interview."
+    },
+    {
+      "q": "What is the single most damaging thing to leave in a public portfolio repo?",
+      "options": [
+        "A detailed architecture diagram",
+        "A committed API key or .env file with real secrets",
+        "A long, thorough README",
+        "An MIT license file"
+      ],
+      "answer": 1,
+      "why": "A leaked API key is a security incident and an instant credibility killer for an AI developer — it suggests you do not understand secret handling. Use environment variables and ship an .env.example with placeholders; the other items are positives."
+    },
+    {
+      "q": "How should two or three projects relate to each other in a portfolio?",
+      "options": [
+        "As unrelated one-offs with no connecting theme",
+        "As identical clones of the same tutorial",
+        "As one narrative — increasing depth across RAG, agents, and a shipped production app",
+        "Hidden until an interviewer specifically asks"
+      ],
+      "answer": 2,
+      "why": "A coherent story is more persuasive than scattered demos. Framing the RAG chatbot, the agent, and the production capstone as increasing depth — 'I design, evaluate, and ship LLM apps' — tells a hiring manager one clear thing about what you can do."
+    },
+    {
+      "q": "Why include a one-page design doc per project, beyond the README?",
+      "options": [
+        "To pad the repo with more files",
+        "To show engineering judgment: the problem, the design, the trade-offs you weighed, and measurable results",
+        "Because READMEs cannot contain images",
+        "To replace the need for any code"
+      ],
+      "answer": 1,
+      "why": "A design doc demonstrates judgment, not just output. Stating the problem, the design, the alternatives you rejected and why, and quantified results is the clearest signal that you think like an engineer rather than a tutorial-follower."
+    },
+    {
+      "q": "What makes a demo video effective for an AI app portfolio?",
+      "options": [
+        "A 20-minute screen recording of you writing all the code",
+        "A voiceover with no visible application",
+        "A static screenshot with no motion",
+        "A 60-90 second clip showing the app doing its one job end to end, including a real result or citation"
+      ],
+      "answer": 3,
+      "why": "Reviewers watch short, focused clips. A 60-90 second video that shows the app performing its core job end to end — a question answered with a citation, a report generated — proves it actually works, which screenshots and long recordings do not."
+    },
+    {
+      "q": "In three to five sentences, write the one-narrative positioning statement for a portfolio built on the RAG chatbot, the research agent, and the production capstone.",
+      "answer": "I am an AI application developer who designs, evaluates, and ships LLM-powered apps. My portfolio shows increasing depth: a RAG document Q&A chatbot that answers with citations grounded in a real corpus, an autonomous research agent that plans, calls web tools, and returns a structured cited report, and a production capstone deployed to a public URL with an evaluation suite, observability, rate limiting, and cost controls. Across all three I work the full path from prompt and retrieval design through tool calling to deployment and evaluation, with quantified results like faithfulness scores and latency. Each project links a clean GitHub repo, an architecture diagram, a live demo, and a short video. Together they say one thing: I can build and operate real AI applications, not just prototypes.",
+      "why": "A strong statement opens with a positioning line, proves it with the three projects framed as increasing depth, names concrete skills (retrieval, tool calling, deployment, evaluation) and quantified results, and points to evidence — exactly the narrative that earns a screen."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Make a README — structure and template for project READMEs",
+      "url": "https://www.makeareadme.com/"
+    },
+    {
+      "label": "GitHub Docs: About READMEs",
+      "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes"
+    },
+    {
+      "label": "diagrams.net (draw.io) — free architecture diagramming",
+      "url": "https://www.drawio.com/"
+    },
+    {
+      "label": "LinkedIn Help: Add and edit the Featured section",
+      "url": "https://www.linkedin.com/help/linkedin/answer/a522537"
+    }
+  ],
+  "body_markdown": "## Why Portfolio-First Hiring Changes Your Job\n\nFor AI application roles in 2026, hiring is **portfolio-first**. There is no single mandatory certification, and a degree is rarely the deciding factor. What decides is whether a reviewer — a recruiter, then an engineer — can look at what you have built and believe you can do the work. That decision happens fast, often in under a minute, and it happens by **clicking**: opening a repo, skimming a README, watching a short video, trying a live link. Your job in this lesson is to make those artifacts so clear and credible that the click ends in 'let's talk.'\n\nYou already have the raw material. Across this course you built a RAG document Q&A chatbot, an autonomous research agent, and — in the previous lesson — a production capstone. This lesson turns **two or three** of them into polished, hireable artifacts and ties them into one story.\n\n## Pick Two or Three, Not Everything\n\nMore projects is not better. Choose the **two or three strongest** that together show range:\n\n- **The RAG document Q&A chatbot** — demonstrates embeddings, chunking, retrieval, and grounded, cited answers.\n- **The autonomous research agent** — demonstrates tool calling, an agent loop, and structured output.\n- **The production capstone** — demonstrates deployment, evaluation, observability, and cost control.\n\nThis trio is deliberate: it shows increasing depth from retrieval, to agency, to shipping and operating. Three excellent case studies beat seven half-finished ones. If one project is weak, cut it rather than dilute the set.\n\n## The Anatomy of a Hireable Case Study\n\nTreat every project as a self-contained case study with the **same five artifacts**, in a consistent style so the set looks intentional:\n\n### 1. A clean GitHub repo\n\nPublic, well-organized, and credible at a glance:\n\n- A logical structure (`/backend`, `/frontend`, `/evals`, `/docs`).\n- **No secrets** — ever. Keys live in environment variables; ship an `.env.example` with placeholders and scan your history so a key never slipped in.\n- A `LICENSE` (MIT is a fine default) and a `.gitignore` that excludes `.env` and build artifacts.\n- **Meaningful commits.** A history of small, descriptive commits reads as a real engineer; one giant 'initial commit' of everything does not.\n- Pin the repo on your GitHub profile.\n\n### 2. A README that answers what / how / try-it\n\nThe README is the highest-traffic file you will ever write. Structure it so the answers are immediate:\n\n- **One-line pitch** at the very top: *'A RAG assistant that answers questions about [corpus] with cited sources.'*\n- **Live demo link** near the top — the 'can I try it now' answer.\n- **Screenshot or GIF** so the reader sees it without running anything.\n- **Architecture** — the diagram plus a few sentences.\n- **Tech stack** — Python, FastAPI, the model provider, the vector DB.\n- **Evaluation results** — your faithfulness/pass-rate number; almost no one else includes this, so it stands out.\n- **Setup** — clone, install, `.env.example`, run.\n- **Known limitations** — naming them signals maturity, not weakness.\n\n### 3. An architecture diagram\n\nOne clean diagram per project, in a consistent visual style across all three (use **diagrams.net/draw.io** or Excalidraw). Show the request flow: browser → API → retrieval → agent/tool loop → model → streamed response. A diagram is the fastest way for a reviewer to understand your system, and it is the first image most people look at.\n\n### 4. A live demo link\n\nA clickable, working URL is the most persuasive artifact you have, because it removes all doubt. Deploy the frontend (Vercel/Netlify) and backend (Render/Railway/Fly), keep keys server-side, and **verify the link in an incognito window**. If hosting a full backend is impractical for a project, a hosted Streamlit or Hugging Face Space is an acceptable fallback — but a live link beats a screenshot every time.\n\n### 5. A short demo video\n\nRecord **60-90 seconds** (Loom or a GIF) showing the app doing its one job end to end: a question typed, a streamed answer with a citation appearing, or a research report generated. Reviewers watch these; they are proof of life that screenshots cannot give. Link it at the top of the README and in your LinkedIn Featured section.\n\n## The One-Page Design Doc\n\nBeyond the README, write a **one-page design doc** per project — this is the artifact that separates an engineer from a tutorial-follower. Four short sections:\n\n1. **Problem** — who is the user and what job does this do?\n2. **Design** — the architecture and the key decisions (which vector DB, which chunking strategy, which model, why streaming).\n3. **Trade-offs** — the alternatives you rejected and **why**. 'I used pgvector over Pinecone because the corpus is small and I wanted one fewer managed service.' This is the single clearest signal of judgment.\n4. **Results** — quantified: faithfulness score, retrieval precision, latency, cost per query, before/after a change you made.\n\nA reviewer who reads this knows you make deliberate decisions and measure their impact — which is exactly what the interview will probe.\n\n## Common Portfolio Mistakes\n\nA few mistakes quietly sink otherwise capable candidates. **Tutorial clones** — three projects that are obviously the same walkthrough everyone else followed — say nothing about you; add a real twist (your own corpus, a new tool, a different evaluation) so each is distinctly yours. **Broken live links** are worse than no link, because a dead demo signals you do not maintain your work; check them before every application. **A wall of unexplained code** with no README forces the reviewer to do your job, and they will simply move on. **Vague results** ('improved accuracy') carry none of the weight of a number ('raised faithfulness from 0.74 to 0.91'). And **inconsistent presentation** — one repo polished, the next a mess — undercuts the whole set, because reviewers judge you by the weakest artifact they happen to open. Treat all three projects to the same standard, or cut the one you cannot bring up to it.\n\n## Tie It Together: One Narrative\n\nDo not present three disconnected demos. Frame them as **one story** about who you are: *'I design, evaluate, and ship LLM-powered applications.'* The chatbot shows you can ground a model in real data; the agent shows you can give a model tools and structure; the capstone shows you can deploy, evaluate, and operate it. Write a short portfolio landing page — even a `README.md` on your GitHub profile — that introduces all three under that single line and links each repo, diagram, demo, and video.\n\nThat narrative is what you will carry into the next two lessons: your **resume** (Lesson 3) turns these case studies into quantified bullets, and your **LinkedIn profile** (Lesson 4) puts the same story and the same Featured links in front of recruiters.\n\n## Portfolio Checklist\n\n- [ ] 2-3 strong projects chosen; weak ones cut\n- [ ] Each repo public, clean, structured, with a LICENSE and no secrets\n- [ ] Meaningful commit history; `.env.example` present\n- [ ] README answers what / how / try-it, with a live link and evals\n- [ ] One consistent-style architecture diagram per project\n- [ ] Working live demo link verified in incognito\n- [ ] 60-90s demo video per project\n- [ ] One-page design doc (problem, design, trade-offs, results) each\n- [ ] A profile landing page framing all three as one narrative",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Building Your AI Developer Portfolio",
+      "sub": "Turn 2-3 course apps into hireable, clickable artifacts",
+      "narration": "Hiring for AI application roles is portfolio-first. There is no single mandatory certification, and a reviewer decides in under a minute whether you can build, based on what they can click. In this lesson you turn two or three of your course apps — the RAG chatbot, the research agent, and your production capstone — into polished, hireable artifacts, and frame them as one narrative. The output is a portfolio that converts a profile view into an interview. Let's make every click end in let's talk."
+    },
+    {
+      "type": "content",
+      "title": "Pick Two or Three, Not Everything",
+      "bullets": [
+        "RAG chatbot: embeddings, chunking, retrieval, cited answers",
+        "Research agent: tool calling, an agent loop, structured output",
+        "Production capstone: deployment, evaluation, observability, cost control",
+        "Three excellent case studies beat seven half-finished ones"
+      ],
+      "narration": "More projects is not better. Choose the two or three strongest that together show range. The RAG document Q and A chatbot demonstrates embeddings, chunking, retrieval, and grounded cited answers. The autonomous research agent demonstrates tool calling, an agent loop, and structured output. The production capstone demonstrates deployment, evaluation, observability, and cost control. This trio is deliberate: it shows increasing depth from retrieval, to agency, to shipping and operating. Three excellent case studies beat seven half-finished ones, so if a project is weak, cut it rather than dilute the set."
+    },
+    {
+      "type": "content",
+      "title": "A Clean, Credible GitHub Repo",
+      "bullets": [
+        "Logical structure: backend, frontend, evals, docs",
+        "No secrets ever — env vars plus an .env.example with placeholders",
+        "A LICENSE, a .gitignore, and meaningful small commits",
+        "Pin the repo on your GitHub profile"
+      ],
+      "narration": "Every project starts with a clean public repo that is credible at a glance. Use a logical structure — backend, frontend, evals, docs. Never commit secrets: keys live in environment variables, you ship an env-example with placeholders, and you scan your history so a key never slipped in. Add a license, an MIT default is fine, and a gitignore that excludes the env file. Use meaningful small commits, because a real history reads as an engineer while one giant initial commit does not. Then pin the repo on your profile. A leaked key is the single most damaging thing you can leave in a public repo."
+    },
+    {
+      "type": "content",
+      "title": "A README That Answers What / How / Try-It",
+      "bullets": [
+        "One-line pitch and a live demo link at the very top",
+        "A screenshot or GIF, the diagram, and the tech stack",
+        "Evaluation results — almost no one includes these, so they stand out",
+        "Setup with .env.example and honest known limitations"
+      ],
+      "narration": "The README is the highest-traffic file you will ever write, so make the answers immediate. Open with a one-line pitch and a live demo link — that is the can I try it now answer. Add a screenshot or GIF so the reader sees it without running anything, then the architecture diagram and the tech stack. Include your evaluation results, your faithfulness or pass-rate number, because almost no one else does and it makes you stand out. Add setup steps with an env-example, and name known limitations. Naming limitations signals maturity, not weakness."
+    },
+    {
+      "type": "content",
+      "title": "Diagram, Live Link, and Demo Video",
+      "bullets": [
+        "One architecture diagram per project in a consistent style",
+        "A working live URL — verify it in an incognito window",
+        "A 60-90 second video of the app doing its one job end to end",
+        "Link the video in the README and in LinkedIn Featured"
+      ],
+      "narration": "Three artifacts make a project feel real. First, one clean architecture diagram per project in a consistent style, showing the request flow from browser to API to retrieval to model. Second, a working live link — the most persuasive artifact you have because it removes all doubt — verified in an incognito window. Third, a sixty to ninety second demo video showing the app doing its one job end to end, a question answered with a citation or a report generated. Reviewers watch these; they are proof of life that screenshots cannot give. Link the video at the top of the README and in your LinkedIn Featured section."
+    },
+    {
+      "type": "content",
+      "title": "The One-Page Design Doc",
+      "bullets": [
+        "Problem: who is the user and what job does it do",
+        "Design: the architecture and key decisions, and why",
+        "Trade-offs: the alternatives you rejected and the reasons",
+        "Results: faithfulness, retrieval precision, latency, cost per query"
+      ],
+      "narration": "Beyond the README, write a one-page design doc per project. This is the artifact that separates an engineer from a tutorial-follower. Four short sections: the problem and who it serves; the design and your key decisions, like which vector database and chunking strategy and why; the trade-offs, naming the alternatives you rejected and the reasons, for example pgvector over Pinecone because the corpus is small. And results, quantified — faithfulness, retrieval precision, latency, cost per query, before and after a change you made. A reviewer who reads this knows you make deliberate decisions and measure their impact, which is exactly what the interview will probe."
+    },
+    {
+      "type": "content",
+      "title": "Tie It Together as One Narrative",
+      "bullets": [
+        "Positioning line: 'I design, evaluate, and ship LLM-powered apps'",
+        "Chatbot grounds a model; agent gives it tools; capstone ships it",
+        "Write a profile landing page that links all three",
+        "This same story feeds your resume and LinkedIn next"
+      ],
+      "narration": "Do not present three disconnected demos. Frame them as one story: I design, evaluate, and ship LLM-powered applications. The chatbot shows you can ground a model in real data, the agent shows you can give a model tools and structure, and the capstone shows you can deploy, evaluate, and operate it. Write a short portfolio landing page, even a README on your GitHub profile, that introduces all three under that single line and links each repo, diagram, demo, and video. That narrative carries into the next two lessons, where your resume turns these case studies into quantified bullets and your LinkedIn puts the same story in front of recruiters."
+    },
+    {
+      "type": "content",
+      "title": "Portfolio Checklist",
+      "bullets": [
+        "2-3 strong projects; weak ones cut; repos clean with no secrets",
+        "READMEs answer what / how / try-it, with live links and evals",
+        "A diagram, a live demo, and a 60-90s video per project",
+        "A one-page design doc each, and a landing page as one narrative"
+      ],
+      "narration": "Run the checklist before you call the portfolio done. Two or three strong projects, weak ones cut, each repo public and clean with a license and no secrets and a meaningful commit history. Each README answers what, how, and try-it, with a live link and your evaluation numbers. Each project has one consistent-style architecture diagram, a working live demo verified in incognito, and a sixty to ninety second video. Each has a one-page design doc covering problem, design, trade-offs, and results. And a profile landing page frames all three as one narrative. When every box is checked, your portfolio is doing the selling for you."
+    }
+  ]
+}

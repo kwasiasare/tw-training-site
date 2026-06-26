@@ -1,0 +1,172 @@
+{
+  "slug": "mlo-m6-l03-resume-and-ats-for-mlops-engineers",
+  "title": "Resume and ATS for MLOps Engineers",
+  "month": 6,
+  "monthTitle": "Capstone & Career Launch",
+  "lesson": 3,
+  "video": "mlo-m6-l03-resume-and-ats-for-mlops-engineers.mp4",
+  "summary": "Your portfolio proves you can do the work; your resume is what gets it read. This lesson shows you how to write an MLOps resume that passes applicant tracking systems and impresses the human behind them. You will convert your two capstones and three portfolio pieces into quantified bullets — deploy frequency, MTTR and rollback time, GPU cost and throughput, and uptime — mirror the keywords real job descriptions use, build a skills section that matches recruiter searches, and map honestly to the certifications that supplement an MLOps role: CKA/CKAD, HashiCorp Terraform Associate, and the AWS Machine Learning Engineer – Associate, while noting that Microsoft's DP-100 retired in 2026 and that certifications change, so you verify the active exam on the issuer's page before listing it. MLOps has no single mandatory cert, so you will present them as helpful supplements, not gatekeepers.",
+  "objectives": [
+    "Write quantified MLOps bullets using deploy frequency, MTTR/rollback, GPU cost and throughput, and uptime",
+    "Format a resume so an applicant tracking system parses it cleanly and ranks you on relevant keywords",
+    "Mirror the truthful keywords and tools from real MLOps job descriptions in your resume and skills section",
+    "Build a skills section that matches recruiter searches without keyword stuffing",
+    "Map your demonstrated skills honestly to CKA/CKAD, Terraform Associate, and the current AWS ML Engineer – Associate, verifying any Azure credential on Microsoft Learn",
+    "Avoid the resume and ATS mistakes that get strong candidates filtered out"
+  ],
+  "quiz": [
+    {
+      "q": "Which is the strongest, most hireable MLOps resume bullet?",
+      "options": [
+        "Worked with Kubernetes and some CI/CD tools",
+        "Built a GitHub Actions CI/CD pipeline with a model-promotion gate and canary rollout that raised deploy frequency from monthly to daily and cut rollback time to under 2 minutes",
+        "Responsible for machine learning deployment",
+        "Familiar with Docker and the cloud"
+      ],
+      "answer": 1,
+      "why": "The strong bullet names the technology, the concrete thing built, and quantified impact (deploy frequency and rollback time). The others are vague, activity-only, or list tools with no measurable result."
+    },
+    {
+      "q": "Why does keyword mirroring from the job description matter for an MLOps resume?",
+      "options": [
+        "Because longer resumes always rank first",
+        "Because it lets you skip having the actual skills",
+        "Because applicant tracking systems and recruiter searches rank candidates on keyword relevance, so using the JD's real, truthful terms (Kubernetes, MLflow, Terraform, CI/CD) makes you findable and rank higher",
+        "Because it hides gaps from interviewers"
+      ],
+      "answer": 2,
+      "why": "Both ATS ranking and recruiter searches match on keywords. Mirroring the exact, truthful terms a posting uses — only for skills you genuinely have — makes you surface in the right searches and pass the keyword screen. It is alignment, not deception."
+    },
+    {
+      "q": "Which resume formatting choice helps an ATS parse your resume correctly?",
+      "options": [
+        "Putting key skills inside images, text boxes, or multi-column tables",
+        "A scanned PDF of a printed page",
+        "Using a heavily designed template where columns interleave content",
+        "A clean single-column layout with standard section headings, real text (not graphics), and a common file format like .docx or text-based PDF"
+      ],
+      "answer": 3,
+      "why": "Many ATS parsers struggle with multi-column layouts, text boxes, tables, and images. A clean single-column resume with standard headings and selectable text parses reliably, so your experience and keywords are actually read."
+    },
+    {
+      "q": "How should certifications be positioned for an MLOps role in 2026?",
+      "options": [
+        "As honest, helpful supplements — MLOps has no single required cert, so CKA/CKAD, the Terraform Associate, and the AWS ML Engineer – Associate validate specific skills but a strong portfolio matters more",
+        "As mandatory gatekeepers without which no one will hire you",
+        "As a replacement for any hands-on projects",
+        "Hidden, because certs never help"
+      ],
+      "answer": 0,
+      "why": "Unlike some fields, MLOps has no single mandatory certification. Certs like CKA, the Terraform Associate, and the AWS ML Engineer – Associate validate specific competencies and help you pass keyword filters, but demonstrated, reproducible work is the stronger signal."
+    },
+    {
+      "q": "Which metric is most appropriate to quantify the reliability of an MLOps system you operated?",
+      "options": [
+        "Number of Slack messages sent",
+        "MTTR (mean time to recovery) and service uptime / availability against an SLO",
+        "Lines of YAML written",
+        "Number of browser tabs open during deploys"
+      ],
+      "answer": 1,
+      "why": "MTTR and uptime/availability against an SLO are standard reliability metrics that hiring managers recognize. They quantify how well you operate a system, which is core to the MLOps role, unlike vanity counts."
+    },
+    {
+      "q": "In two to four sentences, rewrite this weak bullet into a strong quantified MLOps bullet: 'Helped deploy a large language model and set up some monitoring.'",
+      "answer": "Served a quantized open LLM with vLLM behind an OpenAI-compatible API and deployed it on Kubernetes with KServe autoscaling and scale-to-zero, meeting a p95 time-to-first-token SLO under 1 second. Instrumented token-, latency-, and cost-aware dashboards (Prometheus/Grafana) and an offline RAGAS eval gate in CI that blocked quality regressions. Cut inference cost-per-1k-tokens by roughly 55% by combining quantization, continuous batching, and scale-to-zero, while sustaining the throughput target. The result was a monitored, evaluated endpoint operated inside an explicit cost budget.",
+      "why": "The rewrite names the stack (vLLM, KServe, Prometheus/Grafana, RAGAS), ties it to an SLO, and quantifies impact (TTFT target met, ~55% cost reduction), turning a vague activity into evidence of capability and measurable outcome."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Certified Kubernetes Administrator (CKA) — CNCF / Linux Foundation",
+      "url": "https://www.cncf.io/training/certification/cka/"
+    },
+    {
+      "label": "HashiCorp Certified: Terraform Associate",
+      "url": "https://developer.hashicorp.com/certifications/infrastructure-automation"
+    },
+    {
+      "label": "AWS Certified Machine Learning Engineer – Associate",
+      "url": "https://aws.amazon.com/certification/certified-machine-learning-engineer-associate/"
+    },
+    {
+      "label": "Microsoft Learn: browse certifications (verify the current Azure AI/ML credential)",
+      "url": "https://learn.microsoft.com/en-us/credentials/browse/?products=azure&resource_type=certification"
+    }
+  ],
+  "body_markdown": "## The Resume's Job\n\nYour portfolio proves you can do the work. The resume's only job is to get that portfolio read — first by an **applicant tracking system (ATS)** that ranks you on keyword relevance, then by a human recruiter who skims for six seconds. Both filters reward the same thing: specific, truthful, quantified evidence that you do MLOps. This lesson turns your two capstones and three portfolio pieces into a resume that survives the machine and persuades the human.\n\nThe core move is the same one your design docs already make: replace task lists with outcome statements. A recruiter cannot tell whether \"responsible for ML deployment\" means you owned a production platform or watched someone else click deploy. A bullet that says what you built, the technology, and the measured impact removes all doubt.\n\n## The Quantified Bullet Formula\n\nEvery strong bullet follows one pattern: **what you built + the technology + the measurable impact.** The metrics that resonate for MLOps are the operational ones a hiring manager already tracks:\n\n- **Deploy frequency** — \"raised deploy frequency from monthly to daily\" shows you automated the delivery path.\n- **MTTR / rollback time** — \"cut rollback time to under 2 minutes with a canary strategy\" shows you operate safely.\n- **GPU cost and throughput** — \"cut inference cost-per-1k-tokens ~55% via quantization + continuous batching\" and \"sustained N tokens/sec\" show you optimize expensive resources.\n- **Uptime / availability** — \"maintained 99.9% endpoint availability against the SLO\" shows reliability.\n- **Latency** — \"met p95 < 200ms\" (classic) or \"p95 TTFT < 1s, TPOT < 100ms\" (LLM) shows you serve to targets.\n- **Drift / quality** — \"drift detection (PSI/KS) that triggered retraining before predictions degraded\" or \"RAGAS eval gate blocking regressions.\"\n\nExample bullets drawn straight from your capstones:\n\n- *Built an end-to-end MLOps system (Docker, MLflow, Terraform, GitHub Actions, Kubernetes) with a model-promotion gate and canary rollout, raising deploy frequency to daily and cutting rollback to under 2 minutes.*\n- *Served a quantized open LLM with vLLM on KServe with scale-to-zero, meeting a p95 TTFT SLO under 1s and cutting cost-per-1k-tokens ~55% via quantization, continuous batching, and autoscaling.*\n- *Instrumented Prometheus/Grafana monitoring with data-drift detection and alerting that triggered automated retraining, keeping the model within its quality SLO.*\n\nEven from lab projects you can quantify: time-to-recover, cost reduction, throughput, latency percentiles, and availability are all measurable on your own systems. Numbers make claims credible.\n\n## Mirror the Job Description (Truthfully)\n\nBoth ATS ranking and recruiter LinkedIn searches score you on **keyword relevance** to the posting. So for each application, align your resume's vocabulary to the JD's real terms — *only* for skills you genuinely have and can defend. Read ten real MLOps postings for your target title and note the recurring tools and phrases. In 2026 these cluster predictably: **Docker, Kubernetes, CI/CD (GitHub Actions/GitLab CI), MLflow, Terraform/IaC, model serving (KServe/BentoML/Ray Serve/vLLM), GPU scheduling, monitoring (Prometheus/Grafana/Evidently), feature stores, orchestration (Airflow/Kubeflow), and cloud (AWS/GCP/Azure).** If five of ten postings say \"Kubernetes\" and \"Terraform,\" those exact words belong on your resume because you have done them. This is alignment, not invention: every term must survive an interview.\n\n## Format So the Machine Can Read It\n\nA brilliant resume that the ATS cannot parse is invisible. Keep the format clean and machine-readable:\n\n- **Single column.** Multi-column layouts, text boxes, and tables frequently scramble in parsing — your skills can end up interleaved or dropped.\n- **Standard headings.** Use conventional section names: *Summary, Skills, Experience, Projects, Certifications, Education.* Parsers look for these.\n- **Real text, not graphics.** Never put keywords inside images, icons, or charts; an ATS reads text, not pixels. Avoid scanned PDFs.\n- **Safe file type.** A `.docx` or a text-based (selectable-text) PDF parses reliably; confirm by selecting and copying the text.\n- **Plain bullet points** and standard fonts. Save the visual flair for a portfolio site, not the document a parser ingests.\n\n## The Skills Section\n\nThe skills section drives recruiter search and the ATS \"match\" panel, so make it scannable and grouped, not a random word cloud. A useful grouping for MLOps:\n\n- **Containers & Orchestration:** Docker, Kubernetes, Helm\n- **CI/CD & IaC:** GitHub Actions, GitLab CI, Terraform\n- **ML Lifecycle:** MLflow, model registry, data/feature pipelines, Airflow/Kubeflow\n- **Serving:** FastAPI, KServe, BentoML, Ray Serve, vLLM\n- **LLMOps/GPU:** quantization, GPU scheduling, vLLM, token/cost monitoring\n- **Monitoring:** Prometheus, Grafana, Evidently, drift detection\n- **Cloud:** AWS / GCP / Azure (list the one you actually used)\n\nList only what you can defend. Stuffing tools you have never touched fails the moment an interviewer asks a follow-up.\n\n## Mapping to Certifications (Honest Supplements)\n\nUnlike some fields, **MLOps has no single mandatory certification.** A strong, reproducible portfolio outweighs any badge. That said, certifications validate specific competencies, help you pass keyword filters, and give structure to your study. Map them honestly to what you have already demonstrated:\n\n- **CKA / CKAD (Certified Kubernetes Administrator / Application Developer)** — the most relevant to MLOps because Kubernetes is central to serving and scaling. CKA leans toward cluster operations; CKAD toward deploying and configuring applications on a cluster. Your Module 3 and Module 5 Kubernetes/KServe work maps directly here. These are vendor-neutral (CNCF/Linux Foundation) and performance-based (hands-on), which makes them credible.\n- **HashiCorp Certified: Terraform Associate** — validates the infrastructure-as-code skills from your Module 4 capstone and IaC portfolio piece. A practical, widely recognized associate-level credential.\n- **AWS Certified Machine Learning Engineer – Associate** — AWS's current ML credential; the older **Machine Learning – Specialty** was retired in March 2026. It signals cloud ML competency on AWS. (If you built on GCP or Azure, prefer that provider's equivalent.)\n- **Azure (verify on Microsoft Learn)** — Microsoft's Azure Data Scientist Associate (**DP-100**) was retired in June 2026, and its successor leans toward MLOps. If your work is Azure-centered, confirm the current active Azure AI/ML credential on Microsoft Learn before listing it, rather than relying on an old exam code.\n\nA standing caution: **certification programs change often** — exams retire and codes are renumbered every year (the TensorFlow Developer Certificate, for example, has been discontinued). Always confirm an exam is still active on the issuer's official page before you study for it or list it. Present certifications as **supplements that confirm hands-on skills**, listed in a dedicated section (earned, or \"in progress\" with a target date). Never imply a cert substitutes for the projects; the projects are the proof, the cert is the corroboration.\n\n## Structure of the Resume\n\nA clean MLOps resume reads top to bottom as: a two-line **summary** (target role + your edge + headline metric), a grouped **skills** section, **experience** in quantified bullets, a **projects** section featuring your two capstones and three portfolio pieces (each: one-line problem, stack, quantified result, link), then **certifications** and **education**. For a career-changer, put Projects high — your capstones are the strongest evidence you have, and self-directed, reproducible projects are legitimate experience.\n\n## Common Mistakes to Avoid\n\n- **Task lists instead of outcomes** — \"responsible for deployments\" says nothing; quantify.\n- **No numbers** — every bullet should carry a metric where possible.\n- **Keyword stuffing** — listing tools you can't defend collapses in the interview.\n- **Un-parseable formatting** — columns, tables, and images that an ATS drops.\n- **Treating certs as gatekeepers** — they supplement a portfolio; they don't replace it.\n- **One generic resume for every role** — tailor the keywords to each posting.\n\n## The Deliverable\n\nBy the end of this lesson you should have a single-column, ATS-friendly resume with a grouped skills section, experience and project bullets quantified by deploy frequency, MTTR/rollback, GPU cost and throughput, latency, and uptime, keywords mirrored truthfully from your target postings, and a certifications section mapping CKA/CKAD, Terraform Associate, AWS ML, and DP-100 to the skills your capstones already prove. That resume is what gets your portfolio in front of a human.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Resume and ATS for MLOps Engineers",
+      "sub": "Quantified bullets, keyword mirroring, honest cert mapping",
+      "narration": "Your portfolio proves you can do the work; your resume is what gets it read. This lesson shows you how to write an MLOps resume that passes applicant tracking systems and impresses the human behind them. You will convert your two capstones and three portfolio pieces into quantified bullets — deploy frequency, mean time to recovery, GPU cost and throughput, and uptime — mirror the keywords real job descriptions use, build a skills section that matches recruiter searches, and map honestly to the certifications that supplement an MLOps role."
+    },
+    {
+      "type": "content",
+      "title": "The Quantified Bullet Formula",
+      "bullets": [
+        "Formula: what you built + the technology + the measurable impact",
+        "Deploy frequency, MTTR / rollback time",
+        "GPU cost-per-1k-tokens and throughput; uptime / availability",
+        "Latency: p95 < 200ms (classic) or p95 TTFT < 1s, TPOT < 100ms (LLM)"
+      ],
+      "narration": "Every strong bullet follows one pattern: what you built, the technology, and the measurable impact. The metrics that resonate for MLOps are operational ones a hiring manager already tracks. Deploy frequency shows you automated delivery. Mean time to recovery and rollback time show you operate safely. GPU cost-per-thousand-tokens and throughput show you optimize expensive resources. Uptime shows reliability, and latency percentiles show you serve to targets. Even from lab projects you can measure all of these, and numbers make claims credible."
+    },
+    {
+      "type": "content",
+      "title": "Weak vs. Strong Bullets",
+      "bullets": [
+        "Weak: 'Worked with Kubernetes and some CI/CD tools'",
+        "Strong: 'CI/CD pipeline with promotion gate + canary; deploy frequency monthly to daily, rollback under 2 minutes'",
+        "Strong: 'vLLM on KServe; p95 TTFT under 1s; cost-per-1k-tokens cut ~55%'",
+        "Pull bullets straight from your two capstones"
+      ],
+      "narration": "Compare a weak bullet — worked with Kubernetes and some CI/CD tools — with a strong one: built a CI/CD pipeline with a promotion gate and canary rollout that raised deploy frequency from monthly to daily and cut rollback under two minutes. Or: served a quantized LLM with vLLM on KServe, meeting a p95 time-to-first-token under one second and cutting cost-per-thousand-tokens about 55 percent. Only the quantified versions get you the interview, and you can pull them straight from the two capstones you already built."
+    },
+    {
+      "type": "content",
+      "title": "Mirror the Job Description (Truthfully)",
+      "bullets": [
+        "ATS and recruiter searches rank on keyword relevance",
+        "Read ten real postings; note recurring tools and phrases",
+        "2026 cluster: Docker, K8s, CI/CD, MLflow, Terraform, KServe/vLLM, Prometheus",
+        "Use the JD's exact terms — only for skills you can defend"
+      ],
+      "narration": "Both applicant tracking systems and recruiter searches score you on keyword relevance to the posting. So for each application, align your resume's vocabulary to the job description's real terms — only for skills you genuinely have and can defend. Read ten real MLOps postings and note the recurring tools. In 2026 they cluster predictably: Docker, Kubernetes, CI/CD, MLflow, Terraform, model serving with KServe or vLLM, GPU scheduling, and Prometheus and Grafana monitoring. If a posting uses a term and you have done it, that exact word belongs on your resume."
+    },
+    {
+      "type": "content",
+      "title": "Format So the Machine Can Read It",
+      "bullets": [
+        "Single column — multi-column and tables scramble in parsing",
+        "Standard headings: Summary, Skills, Experience, Projects, Certifications",
+        "Real text, never keywords inside images or charts",
+        "Safe file: .docx or a text-based (selectable) PDF"
+      ],
+      "narration": "A brilliant resume the ATS cannot parse is invisible. Keep it single column, because multi-column layouts, text boxes, and tables frequently scramble during parsing. Use standard section headings the parser expects. Never put keywords inside images or icons — an ATS reads text, not pixels — and avoid scanned PDFs. Save as a Word document or a text-based PDF, and confirm the text is selectable. Save the visual flair for your portfolio site, not the document a parser ingests."
+    },
+    {
+      "type": "content",
+      "title": "The Skills Section",
+      "bullets": [
+        "Group, don't dump: Containers, CI/CD & IaC, ML Lifecycle, Serving, Monitoring, Cloud",
+        "LLMOps/GPU: quantization, GPU scheduling, vLLM, token/cost monitoring",
+        "Drives recruiter search and the ATS match panel",
+        "List only what you can defend in an interview"
+      ],
+      "narration": "The skills section drives recruiter search and the ATS match panel, so make it scannable and grouped rather than a random word cloud. Group by containers and orchestration, CI/CD and infrastructure as code, the ML lifecycle, serving, LLMOps and GPU, monitoring, and cloud. Add the LLMOps signals that set you apart in 2026 — quantization, GPU scheduling, vLLM, and token and cost monitoring. But list only what you can defend; stuffing tools you have never touched collapses the moment an interviewer asks a follow-up question."
+    },
+    {
+      "type": "content",
+      "title": "Map to Certifications (Honest Supplements)",
+      "bullets": [
+        "MLOps has no single mandatory cert — portfolio outweighs badges",
+        "CKA/CKAD: most relevant (Kubernetes/KServe), vendor-neutral, hands-on",
+        "Terraform Associate: validates your IaC piece; AWS ML Engineer Associate: cloud ML",
+        "Azure: verify the current credential on Microsoft Learn (DP-100 retired 2026)"
+      ],
+      "narration": "Unlike some fields, MLOps has no single mandatory certification, and a strong reproducible portfolio outweighs any badge. Still, certs validate specific skills and help you pass keyword filters. Map them honestly. CKA and CKAD are the most relevant because Kubernetes is central to serving and scaling, they are vendor-neutral, and they are hands-on. The Terraform Associate validates your infrastructure-as-code piece. The AWS Machine Learning Engineer Associate signals cloud ML, and for Azure-centered work verify the current credential on Microsoft Learn, since DP-100 retired in 2026. Remember certifications change often, so confirm an exam is active before listing it. Present them as supplements that confirm hands-on skills — the projects are the proof, the cert corroborates."
+    }
+  ]
+}

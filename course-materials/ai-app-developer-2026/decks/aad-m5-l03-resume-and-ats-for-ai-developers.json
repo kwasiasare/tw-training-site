@@ -1,0 +1,172 @@
+{
+  "slug": "aad-m5-l03-resume-and-ats-for-ai-developers",
+  "title": "Resume and ATS for AI Developers",
+  "month": 5,
+  "monthTitle": "Capstone & Career Launch",
+  "lesson": 3,
+  "video": "aad-m5-l03-resume-and-ats-for-ai-developers.mp4",
+  "summary": "Your portfolio proves you can build; your resume gets it read. This lesson turns your course projects into a resume that survives applicant tracking systems and persuades a human in ten seconds. You will write quantified-impact bullets using the formula 'what you built + the technology + the measurable result,' build an ATS keyword strategy by mirroring real AI Application Developer job descriptions, structure a skills section around the tools you actually used (Python, OpenAI/Anthropic APIs, RAG, vector DBs, FastAPI, Docker, evaluation), and place certifications honestly — naming the adjacent Microsoft AI-102 while being clear this is a portfolio-first role with no mandatory cert. The deliverable is a one-page resume tailored to your target title.",
+  "objectives": [
+    "Write resume bullets with the formula: what you built + the technology + the measurable result",
+    "Quantify impact from your own projects (faithfulness, latency, cost, retrieval precision) even without a job",
+    "Build an ATS keyword strategy by mirroring the real terms in target job descriptions",
+    "Structure a skills section around tools you can defend, organized by category",
+    "Position certifications honestly: AI-102 as adjacent, portfolio as primary evidence",
+    "Format a clean, single-column, one-page resume that parses correctly in ATS"
+  ],
+  "quiz": [
+    {
+      "q": "Which is the strongest, most hireable resume bullet for an AI developer?",
+      "options": [
+        "Used OpenAI and built a chatbot",
+        "Familiar with AI, LLMs, and prompt engineering",
+        "Built a RAG document Q&A assistant (Python, FastAPI, pgvector, OpenAI) with an evaluation suite that raised answer faithfulness from 0.74 to 0.91 on a 30-question golden set",
+        "Completed an AI course and learned about RAG"
+      ],
+      "answer": 2,
+      "why": "The strong bullet names what you built, the specific technology, and a measurable result. The others are vague or activity-only with no technology and no quantified outcome, so they neither pass keyword screens nor persuade a human."
+    },
+    {
+      "q": "Why mirror the exact wording of a target job description in your resume?",
+      "options": [
+        "To copy the company's confidential information",
+        "Because both ATS keyword matching and human recruiters rank on relevance, so using the JD's real, truthful terms makes you findable and ranked higher",
+        "Because longer resumes always rank first",
+        "So you can list skills you do not actually have"
+      ],
+      "answer": 1,
+      "why": "Applicant tracking systems and recruiters match on keyword relevance. Using the JD's exact terms — for skills you genuinely have and can defend — makes you surface in searches and pass the screen. It is honest alignment, not invention."
+    },
+    {
+      "q": "How should an AI Application Developer position certifications, given the role is portfolio-first?",
+      "options": [
+        "Claim a mandatory certification is required and lead with it",
+        "Lead with the portfolio and projects; list Microsoft AI-102 as a relevant, adjacent credential if pursued",
+        "Omit all certifications and education entirely",
+        "List every unrelated certification to fill space"
+      ],
+      "answer": 1,
+      "why": "There is no single mandatory certification for this role; hiring is portfolio-first. The honest, effective approach leads with demonstrable projects and lists AI-102 (Azure AI Engineer Associate) as an adjacent credential that signals cloud AI fluency — not as a gatekeeper."
+    },
+    {
+      "q": "Which formatting choice most helps your resume parse correctly in an ATS?",
+      "options": [
+        "A clean single-column layout with standard section headings and real text (no text-in-images)",
+        "A multi-column layout with text inside images and tables",
+        "A creative design with graphics, icons, and sidebars full of skills",
+        "A scanned PDF of a printed page"
+      ],
+      "answer": 0,
+      "why": "Many ATS parsers struggle with multi-column layouts, tables, images, and text inside graphics. A single-column layout with standard headings (Experience, Skills, Projects) and selectable text parses reliably, ensuring your keywords are actually read."
+    },
+    {
+      "q": "You built projects in a course but have no AI job title yet. How do you show quantified impact honestly?",
+      "options": [
+        "Invent a former employer and fake metrics",
+        "Claim production traffic you never had",
+        "Leave all numbers off because it was 'just a course'",
+        "Quantify your own project results — faithfulness score, p95 latency, cost per query, retrieval precision — under a Projects section"
+      ],
+      "answer": 3,
+      "why": "Self-directed projects are legitimate, quantifiable experience. Measuring your own results — evaluation scores, latency, cost, precision — and presenting them under a Projects section is honest and credible; inventing employers or traffic is fraud and easily exposed."
+    },
+    {
+      "q": "In three to five sentences, rewrite a weak bullet ('Worked on an AI agent project') into a strong quantified-impact bullet, and explain the formula you applied.",
+      "answer": "Strong version: 'Built an autonomous research agent (Python, OpenAI function calling, LangGraph) that plans a query, calls web search and page-reading tools, and returns a schema-validated cited report, with an iteration cap and retries that cut failed runs to under 2% across a 50-query test set.' I applied the formula what you built plus the technology plus the measurable result: the artifact is the research agent, the technology names the specific stack, and the measurable result is the failure rate on a defined test set. I made the metric honest and self-generated from my own evaluation rather than claiming production scale. This reads as engineering capability and outcome, where 'worked on an AI agent project' conveys neither what I did nor whether it worked.",
+      "why": "A strong answer applies the build + technology + measurable-result formula, names a concrete stack, attaches an honest self-generated metric, and contrasts it with the vague original — demonstrating the exact rewrite skill the lesson teaches."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Microsoft Certified: Azure AI Engineer Associate (AI-102) — certification overview",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/azure-ai-engineer/"
+    },
+    {
+      "label": "Exam AI-102 study guide (skills measured)",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/ai-102"
+    },
+    {
+      "label": "Microsoft Learn training catalog (free, role-based paths)",
+      "url": "https://learn.microsoft.com/en-us/training/"
+    },
+    {
+      "label": "LinkedIn Jobs — read real job descriptions to source keywords",
+      "url": "https://www.linkedin.com/jobs/"
+    }
+  ],
+  "body_markdown": "## What a Resume Is For\n\nYour portfolio proves you can build. Your resume has a narrower job: **get the portfolio read.** It must survive an **applicant tracking system (ATS)** that filters on keywords, and then persuade a human who skims it in roughly ten seconds. Those two readers want different things — the machine wants relevant terms, the human wants evidence of impact — and a good resume satisfies both without lying to either. For an AI Application Developer in 2026, this is very doable, because you now have real, quantifiable projects to draw from.\n\n## The Quantified-Impact Bullet\n\nThe core skill is replacing task lists with **outcome statements**. The formula is:\n\n> **What you built + the technology + the measurable result.**\n\nCompare:\n\n- Weak: *'Used OpenAI to make a chatbot.'*\n- Strong: *'Built a RAG document Q&A assistant (Python, FastAPI, pgvector, OpenAI) with an evaluation suite that raised answer faithfulness from 0.74 to 0.91 on a 30-question golden set.'*\n\nThe strong version names the artifact, the specific stack, and a number. Numbers make claims credible. More examples drawn from this course:\n\n- *'Built an autonomous research agent (OpenAI function calling, LangGraph) that plans, calls web search/fetch tools, and returns a schema-validated cited report, cutting failed runs to under 2% across a 50-query test set via iteration caps and retries.'*\n- *'Shipped a production AI app to a public URL (FastAPI, Docker, Render) with streaming responses, per-IP rate limiting, and structured logging that holds p95 latency under 3s and tracks cost per request.'*\n- *'Reduced LLM cost ~40% by routing easy requests to a smaller model and capping max_tokens, measured against a logged baseline.'*\n\n**Where do the numbers come from if you have no job?** From **your own evaluations.** You built golden sets, measured faithfulness and latency, and tracked cost in the capstone — those are legitimate, honest metrics. Present them under a **Projects** section. Self-directed projects are real experience; the only rule is the numbers must be true and defensible in an interview.\n\n## ATS Keyword Strategy: Mirror Real JDs\n\nBoth the ATS and the recruiter rank you on **keyword relevance** to the specific role. So you tailor per application:\n\n1. **Collect 5-10 real job descriptions** for your target title (AI Engineer, AI Application Developer, LLM Engineer, Software Engineer - AI). Read them in LinkedIn Jobs or company career pages.\n2. **Extract the recurring terms** — the tools and phrases that appear again and again: 'RAG,' 'vector database,' 'embeddings,' 'LangChain/LangGraph,' 'function calling,' 'FastAPI,' 'prompt engineering,' 'evaluation,' 'OpenAI/Anthropic,' 'Docker,' 'Python,' increasingly 'MCP.'\n3. **Mirror the exact wording — truthfully.** If a JD says 'retrieval-augmented generation' and you built RAG, use their phrasing. If five of ten postings say 'vector database,' that term belongs on your resume because you have done it.\n4. **Only claim what you can defend.** A term you have never touched is a gap to learn, not a word to fake — interviewers probe every keyword.\n\nThis is **alignment, not deception.** You are choosing which true things to emphasize based on what each role asks for.\n\n## The Skills Section\n\nRecruiters and ATS both scan a skills section, so make it scannable and grouped by category. Include only tools you can speak to:\n\n- **Languages:** Python, SQL, JavaScript/TypeScript\n- **LLM & AI:** OpenAI API, Anthropic (Claude) API, prompt engineering, structured outputs/function calling, RAG, embeddings, agents, MCP\n- **Data & retrieval:** pgvector, Pinecone, Chroma, PostgreSQL\n- **Frameworks & serving:** FastAPI, LangChain/LangGraph, Streamlit/Next.js\n- **Ops & evaluation:** Docker, ragas/LLM-as-judge, observability (Langfuse/LangSmith), Git, basic CI\n\nKeep it honest and current. Padding the list with buzzwords you cannot discuss backfires the moment an interviewer picks one.\n\n## Certifications: The Honest Picture\n\nBe straight about this, because pretending otherwise hurts you: **AI Application Developer is a portfolio-first role with no single mandatory certification.** A reviewer would far rather see a deployed, evaluated app than a badge. So lead with your projects.\n\nThat said, the **adjacent, credible credential to name is Microsoft AI-102, *Azure AI Engineer Associate*.** It validates building AI solutions on Azure — including Azure OpenAI, Azure AI Search (a managed retrieval/RAG service), language, and vision — and it signals cloud AI fluency that some employers value, especially Microsoft-stack shops. Position it correctly:\n\n- **Primary evidence:** your portfolio of shipped, evaluated apps.\n- **Supporting credential (optional):** AI-102, listed under a short Certifications/Education line, or as 'in progress' if you are studying for it.\n- **Never** claim a cert is required for the role, and never let a badge stand in for projects you do not have.\n\nThis honesty is itself a signal: it shows you understand how the field actually hires.\n\n## Structure and Formatting for ATS\n\nGet the basics right so your keywords are actually parsed:\n\n- **One page**, **single column.** Avoid multi-column layouts, tables, sidebars, and **text inside images** — many ATS parsers drop them.\n- **Standard section headings:** Summary, Skills, Experience, Projects, Education/Certifications.\n- **Real, selectable text** in a clean font; export a **text-based PDF**, not a scanned image.\n- **Order by impact for a career-changer:** a 2-3 line summary, then Skills, then **Projects** (your strongest evidence), then Experience and Education.\n- **Lead each bullet with a strong verb:** Built, Shipped, Designed, Reduced, Automated, Deployed.\n- **Keep it tight** — every line earns its place; cut anything that is not capability or outcome.\n\n## Tailor Per Application, Keep a Master\n\nDo not send the same resume everywhere. Keep one **master resume** with every project, bullet, and skill you can defend, then create a **tailored one-page version per role** by selecting and reordering to match that posting. If a job leans heavily on retrieval, lead with your RAG assistant and surface 'embeddings,' 'chunking,' and 'vector database.' If it emphasizes agents and tool use, lead with the research agent and 'function calling' and 'orchestration.' This takes ten minutes per application once the master exists, and it measurably raises your match score in both the ATS and the recruiter's eyes. A quick summary-line rewrite helps too: open the resume with a one-sentence summary that echoes the role's exact title — *'AI Application Developer who builds and ships LLM-powered apps with RAG, agents, and FastAPI.'* Recruiters skim the summary first, and seeing their own title reflected back signals immediate fit. Save each tailored version with the company name so you know which resume went where when the call comes.\n\n## A Note on AI-Generated Resumes\n\nUse AI to draft and tighten, but **you** own the facts. Every number must be real, every tool must be defensible, and the voice should sound like you. A resume full of impressive claims you cannot back up in an interview is worse than a modest, honest one. A good test before you submit: for every bullet, could you talk for two minutes about how you built it and what you would change? If not, either learn it properly or cut it. The strongest resumes are the ones where every single line survives that question, because the interview is simply that test repeated out loud.\n\n## The Deliverable\n\nBy the end of this lesson you should have a **one-page, single-column, ATS-friendly resume**: a sharp summary, a grouped skills section mirroring your target JDs, three or more quantified-impact bullets per project under a Projects section, an honest certifications line that names AI-102 as adjacent, and clean formatting that parses. That resume is what carries your portfolio into the recruiter's inbox — and the next lesson puts the same story on LinkedIn.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Resume and ATS for AI Developers",
+      "sub": "Turn your projects into a resume that gets read and gets you screened",
+      "narration": "Your portfolio proves you can build. Your resume has a narrower job: get the portfolio read. It must survive an applicant tracking system that filters on keywords, then persuade a human who skims it in about ten seconds. Those two readers want different things, and a good resume satisfies both without lying to either. In this lesson you will write quantified-impact bullets, build a keyword strategy from real job descriptions, structure a skills section, and place certifications honestly. By the end you will have a one-page resume tailored to your target title."
+    },
+    {
+      "type": "content",
+      "title": "The Quantified-Impact Bullet",
+      "bullets": [
+        "Formula: what you built + the technology + the measurable result",
+        "Weak: 'Used OpenAI to make a chatbot'",
+        "Strong: 'Built a RAG assistant (Python, FastAPI, pgvector) raising faithfulness 0.74 to 0.91'",
+        "Numbers come from your own evals — honest and defensible"
+      ],
+      "narration": "The core skill is replacing task lists with outcome statements. The formula is simple: what you built, plus the technology, plus the measurable result. Compare used OpenAI to make a chatbot with built a RAG document Q and A assistant in Python, FastAPI, and pgvector with an evaluation suite that raised faithfulness from point seven four to point nine one on a thirty-question golden set. The strong version names the artifact, the stack, and a number. And where do the numbers come from if you have no job yet? From your own evaluations — the golden sets, latency, and cost you already measured in the capstone. They are legitimate as long as they are true and defensible."
+    },
+    {
+      "type": "content",
+      "title": "ATS Keyword Strategy: Mirror Real JDs",
+      "bullets": [
+        "Collect 5-10 real postings for your target title",
+        "Extract recurring terms: RAG, vector DB, function calling, FastAPI, evaluation",
+        "Mirror the exact wording — only for skills you genuinely have",
+        "Alignment, not deception: you defend every keyword in the interview"
+      ],
+      "narration": "Both the ATS and the recruiter rank you on keyword relevance, so you tailor per application. Collect five to ten real job descriptions for your target title and read them in LinkedIn Jobs or on career pages. Extract the recurring terms — RAG, vector database, embeddings, LangGraph, function calling, FastAPI, prompt engineering, evaluation, OpenAI and Anthropic, Docker, and increasingly MCP. Mirror the exact wording, truthfully, for skills you actually have. If a posting says retrieval-augmented generation and you built RAG, use their phrasing. This is alignment, not deception, and you must be able to defend every keyword in the interview."
+    },
+    {
+      "type": "content",
+      "title": "The Skills Section",
+      "bullets": [
+        "Group by category: Languages; LLM & AI; Data & retrieval; Frameworks; Ops & eval",
+        "Include OpenAI/Anthropic APIs, RAG, agents, function calling, MCP",
+        "List pgvector, Pinecone, Chroma; FastAPI, LangGraph; Docker, ragas",
+        "Only list tools you can actually speak to"
+      ],
+      "narration": "Recruiters and ATS both scan a skills section, so make it scannable and grouped by category. Languages like Python and SQL. LLM and AI: the OpenAI and Anthropic APIs, prompt engineering, structured outputs and function calling, RAG, embeddings, agents, and MCP. Data and retrieval: pgvector, Pinecone, Chroma, Postgres. Frameworks and serving: FastAPI, LangChain or LangGraph, Streamlit or Next.js. Ops and evaluation: Docker, ragas or LLM-as-judge, observability tools, and Git. Keep it honest and current. Padding the list with buzzwords you cannot discuss backfires the moment an interviewer picks one."
+    },
+    {
+      "type": "content",
+      "title": "Certifications: The Honest Picture",
+      "bullets": [
+        "AI app developer is portfolio-first — no single mandatory cert",
+        "Lead with your deployed, evaluated projects",
+        "Name Microsoft AI-102 (Azure AI Engineer Associate) as adjacent",
+        "List it as optional or 'in progress' — never as a gatekeeper"
+      ],
+      "narration": "Be straight about this, because pretending otherwise hurts you. AI Application Developer is a portfolio-first role with no single mandatory certification. A reviewer would far rather see a deployed, evaluated app than a badge, so lead with your projects. That said, the adjacent credible credential to name is Microsoft AI-102, the Azure AI Engineer Associate. It validates building AI solutions on Azure, including Azure OpenAI and Azure AI Search, and signals cloud AI fluency that some employers value. List it as a supporting credential, or as in progress if you are studying, but never claim a cert is required and never let a badge stand in for projects."
+    },
+    {
+      "type": "content",
+      "title": "Format So the ATS Can Read It",
+      "bullets": [
+        "One page, single column — no tables, sidebars, or text in images",
+        "Standard headings: Summary, Skills, Projects, Experience, Education",
+        "Real selectable text in a text-based PDF, not a scan",
+        "Career-changer order: Summary, Skills, Projects first, then Experience"
+      ],
+      "narration": "Get the basics right so your keywords are actually parsed. Keep it to one page, single column. Avoid multi-column layouts, tables, sidebars, and text inside images, because many parsers drop them. Use standard section headings — Summary, Skills, Projects, Experience, Education. Export a text-based PDF with real selectable text, never a scan. As a career-changer, order by impact: a two to three line summary, then Skills, then Projects, your strongest evidence, then Experience and Education. Lead each bullet with a strong verb like Built, Shipped, Reduced, or Deployed, and keep every line earning its place."
+    },
+    {
+      "type": "content",
+      "title": "Own the Facts; Ship the Resume",
+      "bullets": [
+        "Use AI to draft, but every number and tool must be real and defensible",
+        "Quantify from your own project evals — faithfulness, latency, cost",
+        "One narrative across portfolio, resume, and LinkedIn",
+        "Deliverable: a one-page, ATS-friendly, project-led resume"
+      ],
+      "narration": "Use AI to draft and tighten, but you own the facts. Every number must be real, every tool defensible, and the voice should sound like you. A resume full of impressive claims you cannot back up is worse than a modest, honest one. Quantify from your own project evaluations — faithfulness, p95 latency, cost per request, retrieval precision. Keep one consistent narrative across your portfolio, resume, and LinkedIn. The deliverable is a one-page, single-column, ATS-friendly resume led by a Projects section with quantified bullets and an honest certifications line. That resume carries your portfolio into the recruiter's inbox, and next we put the same story on LinkedIn."
+    }
+  ]
+}
