@@ -157,10 +157,17 @@ Report an **effect size** too — statistical significance is not practical sign
 ```python
 import numpy as np
 
+# Simple pooled SD: an approximation valid for roughly equal sample sizes
 pooled_sd = np.sqrt((a.var() + b.var()) / 2)
 cohens_d = (b.mean() - a.mean()) / pooled_sd
 print(f"Cohen's d = {cohens_d:.3f}")
+
+# More accurate for unequal n: the df-weighted pooled SD
+# n1, n2 = len(a), len(b)
+# pooled_sd = np.sqrt(((n1-1)*a.var(ddof=1) + (n2-1)*b.var(ddof=1)) / (n1+n2-2))
 ```
+
+The simple `pooled_sd` above is an approximation that holds when the two groups are similar in size; for unequal samples, use the degrees-of-freedom-weighted pooled SD shown in the comment (with `var(ddof=1)`).
 
 For categorical outcomes (e.g., conversion rate), use a **chi-square test** or a **two-proportion z-test** instead.
 

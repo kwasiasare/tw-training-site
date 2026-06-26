@@ -1,0 +1,188 @@
+{
+  "slug": "dsc-m6-l01-serving-models-with-fastapi-and-docker",
+  "title": "Serving Models with FastAPI and Docker",
+  "month": 6,
+  "monthTitle": "Productionization and MLOps",
+  "lesson": 1,
+  "video": "dsc-m6-l01-serving-models-with-fastapi-and-docker.mp4",
+  "summary": "A saved model file is not a product until something can call it. This lesson turns a trained joblib model into a production-grade prediction service using FastAPI, loading the model once at startup with the lifespan pattern, validating requests and responses with Pydantic v2, and packaging everything in a lean, non-root Docker image. You'll also learn how worker-based concurrency interacts with model memory.",
+  "objectives": [
+    "Explain why a serialized model must be wrapped in an API before it can deliver value",
+    "Build a minimal FastAPI prediction endpoint that returns typed JSON",
+    "Load the model once at startup using the lifespan pattern instead of an import-time global",
+    "Define Pydantic v2 request and response schemas that include a model_version field for traceability",
+    "Containerize the service with a slim base image, a non-root user, and deterministic dependencies",
+    "Reason about uvicorn/gunicorn worker concurrency and its per-worker model memory cost"
+  ],
+  "quiz": [
+    {
+      "q": "Why does training and saving a model with joblib.dump() not, on its own, constitute a deployed product?",
+      "options": [
+        "joblib files are too large to store in production",
+        "The model loses accuracy when serialized to disk",
+        "Nothing can call the model until you expose it behind an interface such as an API",
+        "Pydantic cannot read joblib files"
+      ],
+      "answer": 2,
+      "why": "A .joblib file is just bytes on disk. Other systems and users can only get predictions once you wrap the model in a callable interface, most commonly an HTTP API, which is exactly what FastAPI provides."
+    },
+    {
+      "q": "What is the main advantage of loading the model in a FastAPI lifespan handler rather than as a global at module import time?",
+      "options": [
+        "The model is loaded exactly once when the app starts and is cleanly tied to the app's lifecycle",
+        "The model is reloaded on every incoming request for freshness",
+        "It lets you avoid using Pydantic schemas entirely",
+        "It encrypts the model file automatically"
+      ],
+      "answer": 0,
+      "why": "The lifespan async context manager runs setup code before the app serves traffic and teardown after, loading the model once into app.state and binding it to the application lifecycle, which is cleaner and more testable than an import-time global side effect."
+    },
+    {
+      "q": "Why should the Pydantic response model include a model_version field?",
+      "options": [
+        "It makes predictions run faster",
+        "It is required for FastAPI to return JSON",
+        "It replaces the need for logging",
+        "It gives every prediction traceability, so you can tell which model version produced a given result"
+      ],
+      "answer": 3,
+      "why": "Returning the model_version with each prediction provides traceability and auditability: when results are investigated later, you can map a response back to the exact model that produced it, which is essential for debugging and governance."
+    },
+    {
+      "q": "Which Dockerfile choice best follows production best practice for a model service?",
+      "options": [
+        "Run the container as root so it can write anywhere",
+        "Use a slim base image, create and switch to a non-root user, and install pinned deps with --no-cache-dir",
+        "Install dependencies without a requirements file to stay flexible",
+        "Use the full python image and run pip install with no version pins"
+      ],
+      "answer": 1,
+      "why": "A slim base reduces image size and attack surface, a non-root user limits blast radius if the container is compromised, and pinned dependencies installed with --no-cache-dir give deterministic, lean builds."
+    },
+    {
+      "q": "If you run uvicorn with 4 workers serving a 500 MB model, roughly how much memory do the loaded models consume in total?",
+      "options": [
+        "About 500 MB, because workers share one copy of the model",
+        "About 125 MB, because the model is split across workers",
+        "About 2 GB, because each of the 4 workers holds its own copy of the model",
+        "Zero, because the model lives only on disk"
+      ],
+      "answer": 2,
+      "why": "Each worker is a separate process with its own memory space and loads its own copy of the model via the lifespan handler. Four workers each holding a 500 MB model use roughly 2 GB combined, so you must size worker count against model footprint and host RAM."
+    },
+    {
+      "q": "In two or three sentences, explain why feeding model input through a Pydantic request schema is safer than reading raw values straight from the request body, and give one concrete failure it prevents.",
+      "answer": "A Pydantic schema validates and coerces incoming data against declared types and constraints before your prediction code ever runs, so malformed or missing fields are rejected with a clear 422 error instead of crashing deep in the model call. It documents the exact contract callers must follow and centralizes validation in one place. A concrete failure it prevents is passing a string or null where the model expects a numeric feature, which would otherwise raise an opaque error inside scikit-learn or produce a garbage prediction.",
+      "why": "Pydantic enforces the input contract at the edge of the service, converting validation into predictable, well-typed errors and protecting the model from receiving inputs of the wrong type, shape, or range."
+    }
+  ],
+  "resources": [
+    {
+      "label": "FastAPI Documentation",
+      "url": "https://fastapi.tiangolo.com/"
+    },
+    {
+      "label": "FastAPI Lifespan Events",
+      "url": "https://fastapi.tiangolo.com/advanced/events/"
+    },
+    {
+      "label": "Docker: Build best practices",
+      "url": "https://docs.docker.com/build/building/best-practices/"
+    },
+    {
+      "label": "Pydantic Models Documentation",
+      "url": "https://docs.pydantic.dev/latest/concepts/models/"
+    }
+  ],
+  "body_markdown": "## Why Serving Matters\n\nYou spent weeks engineering features, tuning hyperparameters, and validating metrics. At the end you ran `joblib.dump(model, \"model.joblib\")` and got a file. That file is **not a product**. It is a frozen function sitting on disk that nobody and nothing can call. Value is only created when another system, a web app, a batch job, a mobile client, can send inputs and receive predictions.\n\nThe standard way to expose a model is an **HTTP API**: a small web service that loads the model, accepts JSON requests, runs `model.predict`, and returns JSON. This decouples the model from its consumers. Front-end teams don't need Python or your training environment; they just call an endpoint. **FastAPI** is the modern framework of choice because it is fast, async-friendly, and generates validation and interactive docs automatically.\n\n## A Minimal FastAPI Prediction Service\n\nA prediction service has three jobs: receive a request, run inference, return a response. Here is the skeleton:\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI(title=\"Churn Model API\")\n\n@app.get(\"/health\")\ndef health():\n    return {\"status\": \"ok\"}\n\n@app.post(\"/predict\")\ndef predict(features: list[float]):\n    # placeholder - we will add the model and schemas next\n    return {\"prediction\": 0}\n```\n\nA `/health` endpoint is essential: orchestrators like Kubernetes use it to know the container is alive. But this skeleton has two problems: where does the model come from, and how do we trust the input?\n\n## Load the Model with the Lifespan Pattern\n\nA tempting but wrong approach is to load the model as a module-level global: `model = joblib.load(...)` at the top of the file. This runs as an import side effect, which makes testing awkward, breaks if the file is missing at import, and ties loading to import order rather than the app's actual lifecycle.\n\nThe correct, modern pattern is **lifespan**. FastAPI runs an async context manager once at startup and once at shutdown. Load the model into `app.state` so every request can reach it:\n\n```python\nfrom contextlib import asynccontextmanager\nfrom fastapi import FastAPI\nimport joblib\n\n@asynccontextmanager\nasync def lifespan(app: FastAPI):\n    app.state.model = joblib.load(\"model.joblib\")\n    yield\n    # optional cleanup after yield\n\napp = FastAPI(lifespan=lifespan)\n```\n\nThe model loads **once**, before any traffic is served, and lives for the life of the process. Inside a handler you read it from `request.app.state.model`. This is explicit, testable, and lifecycle-aware.\n\n## Typed Requests and Responses with Pydantic\n\nNever trust raw input. **Pydantic v2** models declare the exact contract: which fields, which types, which constraints. Malformed requests are rejected automatically with a clear `422` before your model code runs. Crucially, the response includes a **`model_version`** field so every prediction is traceable back to the model that produced it.\n\n```python\nfrom pydantic import BaseModel, Field\nfrom fastapi import Request\n\nclass PredictRequest(BaseModel):\n    tenure_months: int = Field(ge=0)\n    monthly_charges: float = Field(ge=0)\n    support_tickets: int = Field(ge=0)\n\nclass PredictResponse(BaseModel):\n    churn_probability: float\n    model_version: str\n\n@app.post(\"/predict\", response_model=PredictResponse)\ndef predict(payload: PredictRequest, request: Request):\n    model = request.app.state.model\n    x = [[payload.tenure_months, payload.monthly_charges, payload.support_tickets]]\n    proba = float(model.predict_proba(x)[0, 1])\n    return PredictResponse(churn_probability=proba, model_version=\"1.4.0\")\n```\n\nFastAPI uses these schemas to validate input, serialize output, and auto-generate OpenAPI docs at `/docs`.\n\n## Containerize with Docker\n\nThe service must run identically on your laptop and in production. Docker packages the code, dependencies, and model into one immutable image. Follow these best practices: a **slim base image** to stay small, **pinned dependencies** for reproducibility, and a **non-root user** to limit damage if the container is breached.\n\n```dockerfile\nFROM python:3.12-slim\n\nWORKDIR /app\n\n# Install dependencies first for better layer caching\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\n\n# Create a non-root user and own the app files\nRUN useradd --create-home appuser\nCOPY --chown=appuser:appuser . .\nUSER appuser\n\nEXPOSE 8000\nCMD [\"uvicorn\", \"app:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"]\n```\n\nPin versions in `requirements.txt` (for example `fastapi==0.115.*`, `uvicorn[standard]`, `scikit-learn`, `joblib`) so a rebuild months later produces the same image. Copying `requirements.txt` before the rest of the code lets Docker cache the dependency layer and rebuild quickly when only code changes.\n\n## Concurrency: Workers and the Memory Caveat\n\nA single uvicorn process handles requests on one event loop, but CPU-bound `predict` calls can saturate it. To use multiple CPU cores you run **multiple workers**, often via gunicorn with uvicorn workers or `uvicorn --workers N`:\n\n```python\n# gunicorn -w 4 -k uvicorn.workers.UvicornWorker app:app\n```\n\nHere is the caveat every MLOps engineer must internalize: **each worker is a separate OS process with its own memory, and each runs the lifespan handler independently, so each loads its own full copy of the model.** Four workers and a 500 MB model means roughly 2 GB of RAM just for models. Size your worker count against the model footprint and the host's available memory, not just CPU count. For large models, prefer fewer workers and horizontal scaling across containers.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Serving Models with FastAPI and Docker",
+      "sub": "Turn a trained model into a production prediction service",
+      "narration": "Welcome to the first lesson of the productionization and MLOps module. A model that only lives in a notebook helps no one. In this lesson we'll take a saved joblib model and turn it into a real, deployable prediction service using FastAPI for the API and Docker for packaging, following the patterns production teams actually use in 2026."
+    },
+    {
+      "type": "content",
+      "title": "Why Serving Matters",
+      "bullets": [
+        "A saved .joblib file is a frozen function, not a product",
+        "Value appears only when other systems can call the model",
+        "An HTTP API decouples the model from its consumers",
+        "FastAPI gives speed, validation, and auto docs out of the box"
+      ],
+      "narration": "When you call joblib dump you get a file on disk. By itself that file does nothing. Other systems, web apps, batch jobs, mobile clients, can only benefit once the model sits behind a callable interface. An HTTP API is the standard choice because consumers don't need your Python environment, they just call an endpoint. FastAPI is our framework because it's fast and validates and documents itself automatically."
+    },
+    {
+      "type": "content",
+      "title": "A Minimal Prediction Service",
+      "bullets": [
+        "Three jobs: receive request, run inference, return response",
+        "A /health endpoint lets orchestrators check liveness",
+        "POST /predict will run the model and return JSON",
+        "Two gaps to close: where's the model, and is input trusted?"
+      ],
+      "code": "app = FastAPI(title=\"Churn Model API\")\n\n@app.get(\"/health\")\ndef health():\n    return {\"status\": \"ok\"}",
+      "narration": "Every prediction service does three things: take a request, run inference, send back a result. We always add a health endpoint so platforms like Kubernetes can confirm the container is alive. But a naive skeleton leaves two questions unanswered: where does the model come from, and can we trust whatever the caller sends us? The next two patterns answer both."
+    },
+    {
+      "type": "content",
+      "title": "Load Once with Lifespan",
+      "bullets": [
+        "Don't load the model as an import-time global",
+        "Use the lifespan async context manager instead",
+        "Model loads once at startup into app.state",
+        "Explicit, testable, and tied to the app lifecycle"
+      ],
+      "code": "@asynccontextmanager\nasync def lifespan(app: FastAPI):\n    app.state.model = joblib.load(\"model.joblib\")\n    yield\n\napp = FastAPI(lifespan=lifespan)",
+      "narration": "Loading the model as a module-level global is a common mistake. It runs as an import side effect, which is hard to test and breaks if the file is missing. The modern pattern is lifespan: FastAPI runs this async context manager once at startup and once at shutdown. We load the model into app dot state, so it loads exactly once and stays available for every request, cleanly bound to the application's lifecycle."
+    },
+    {
+      "type": "content",
+      "title": "Typed I/O with Pydantic",
+      "bullets": [
+        "Pydantic v2 declares the exact request contract",
+        "Bad input is rejected with a clear 422 automatically",
+        "Response carries model_version for traceability",
+        "Schemas also auto-generate OpenAPI docs at /docs"
+      ],
+      "code": "class PredictResponse(BaseModel):\n    churn_probability: float\n    model_version: str",
+      "narration": "Never trust raw input. Pydantic v2 models declare which fields and types you accept, and malformed requests are rejected with a clear 422 before your model code ever runs. Just as important, the response includes a model_version field, so every prediction can be traced back to the exact model that produced it. FastAPI reuses these schemas to validate, serialize, and document the API automatically."
+    },
+    {
+      "type": "content",
+      "title": "Reading the Model in a Handler",
+      "bullets": [
+        "Pull the model from request.app.state.model",
+        "Validate input via the Pydantic request schema",
+        "Run predict_proba, then wrap the result in the response model",
+        "Stamp the version on the way out"
+      ],
+      "code": "@app.post(\"/predict\", response_model=PredictResponse)\ndef predict(payload: PredictRequest, request: Request):\n    model = request.app.state.model\n    proba = float(model.predict_proba(x)[0, 1])\n    return PredictResponse(churn_probability=proba,\n                          model_version=\"1.4.0\")",
+      "narration": "Inside the handler we read the model from request dot app dot state, the same object lifespan loaded at startup. The incoming payload is already validated by the request schema, so we can build the feature row, call predict proba, and return a typed response object. Because we stamp the model version on every response, downstream teams always know which model generated a given prediction."
+    },
+    {
+      "type": "content",
+      "title": "Containerize with Docker",
+      "bullets": [
+        "Slim base image keeps the container small and secure",
+        "Pin dependencies and install with --no-cache-dir",
+        "Create and switch to a non-root user; COPY --chown",
+        "Copy requirements first to cache the dependency layer"
+      ],
+      "code": "FROM python:3.12-slim\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nRUN useradd --create-home appuser\nCOPY --chown=appuser:appuser . .\nUSER appuser\nCMD [\"uvicorn\", \"app:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"]",
+      "narration": "Docker makes the service run identically everywhere. We start from a slim Python base to stay small and reduce attack surface, install pinned dependencies with no cache to keep the image lean and deterministic, and create a dedicated non-root user that owns the files. Copying requirements before the rest of the code lets Docker cache the dependency layer, so code-only changes rebuild fast."
+    },
+    {
+      "type": "content",
+      "title": "Concurrency and the Memory Caveat",
+      "bullets": [
+        "One process runs one event loop; add workers for more cores",
+        "gunicorn with uvicorn workers, or uvicorn --workers N",
+        "Each worker is a separate process with its own memory",
+        "Each worker loads its OWN full copy of the model"
+      ],
+      "narration": "A single process serves requests on one event loop, but CPU-bound predictions can saturate it, so we run multiple workers to use more cores. Here's the caveat every MLOps engineer must remember: each worker is a separate process and loads its own full copy of the model. Four workers and a five hundred megabyte model means about two gigabytes of RAM. Size your worker count against model footprint and host memory, not just CPU count."
+    }
+  ]
+}

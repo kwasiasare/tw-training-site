@@ -122,10 +122,11 @@ The coefficients (`b1...bn`) tell you the expected change in `y` for a one-unit 
 - **R²**: proportion of variance explained (0 to 1; higher is better).
 
 ```python
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import root_mean_squared_error, mean_squared_error, r2_score
 import numpy as np
 
-rmse = np.sqrt(mean_squared_error(y_test, preds))
+rmse = root_mean_squared_error(y_test, preds)   # sklearn >= 1.4
+# equivalent: np.sqrt(mean_squared_error(y_test, preds))
 r2 = r2_score(y_test, preds)
 ```
 
@@ -177,7 +178,7 @@ pipe.fit(X_train, y_train)
 
 ## Interpreting and Communicating Results
 
-A major advantage of linear models is **interpretability**. After scaling, coefficient magnitude indicates relative importance; sign indicates direction. Always translate findings into business language: "Each additional support ticket increases churn odds by 30%." This is what separates a data scientist from a black-box button-pusher.
+A major advantage of linear models is **interpretability**. After scaling, coefficient magnitude indicates relative importance; sign indicates direction. Note that standardized-coefficient magnitude reflects relative importance *only* under low multicollinearity — with correlated features, prefer permutation importance or SHAP. Always translate findings into business language: "Each additional support ticket increases churn odds by 30%." This is what separates a data scientist from a black-box button-pusher.
 
 ## Common Pitfalls
 

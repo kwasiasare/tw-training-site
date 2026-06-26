@@ -84,6 +84,8 @@ Good features:
 - Target/mean encoding for high-cardinality (with cross-fold to avoid leakage)
 - Ordinal encoding when categories have natural order
 
+Rather than hand-rolling the cross-fold target encoding, reach for the built-in `sklearn.preprocessing.TargetEncoder`, which handles the cross-fold internally. As a modern alternative, `HistGradientBoostingClassifier(categorical_features=...)` consumes categoricals natively, so you can often skip explicit encoding altogether.
+
 **Numeric transformations**
 - Scaling (less critical for trees, important for linear/NN models)
 - Log transforms for skewed distributions
