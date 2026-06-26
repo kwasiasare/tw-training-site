@@ -1,10 +1,10 @@
 {
-  "slug": "cse-m6-l02-capstone-pre-ai-data-security-audit",
+  "slug": "cse-m7-l02-capstone-pre-ai-data-security-audit",
   "title": "Capstone: Pre-AI Deployment Data Security Audit (Purview)",
-  "month": 6,
+  "month": 7,
   "monthTitle": "Capstone Projects & Career Launch",
   "lesson": 2,
-  "video": "cse-m6-l02-capstone-pre-ai-data-security-audit.mp4",
+  "video": "cse-m7-l02-capstone-pre-ai-data-security-audit.mp4",
   "summary": "An organization wants Microsoft 365 Copilot but is terrified of data leakage and oversharing. In this capstone you act as the security architect who makes the tenant safe for AI by deploying Microsoft Purview as a control layer in front of Copilot. You will build auto-labeling and classification to find and tag proprietary IP and sensitive financial data, DLP policies that stop labeled content from leaving or being pasted into unapproved public AI tools, and oversharing remediation plus restricted search so Copilot cannot surface what it should not. You will validate the controls with seeded test data, measure Copilot readiness, and package it as a portfolio-grade project. It draws directly on Module 3.",
   "objectives": [
     "Explain why Copilot inherits a tenant's existing permissions and why oversharing is the core AI data-security risk",

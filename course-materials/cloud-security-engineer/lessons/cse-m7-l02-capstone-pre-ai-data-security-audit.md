@@ -1,7 +1,7 @@
 ---
 course: cloud-security-engineer
 title: 'Capstone: Pre-AI Deployment Data Security Audit (Purview)'
-month: 6
+month: 7
 monthTitle: Capstone Projects & Career Launch
 lesson: 2
 summary: An organization wants Microsoft 365 Copilot but is terrified of data leakage and oversharing.
@@ -23,7 +23,7 @@ objectives:
 - Validate the controls with seeded test data and measure tenant readiness before enabling Copilot
 - Assemble the audit report, policy exports, and before/after evidence that make this a hireable portfolio
   artifact
-video: cse-m6-l02-capstone-pre-ai-data-security-audit.mp4
+video: cse-m7-l02-capstone-pre-ai-data-security-audit.mp4
 quiz:
 - q: Why is oversharing the central risk when deploying Microsoft 365 Copilot?
   options:

@@ -1,10 +1,10 @@
 {
   "slug": "cloud-security-engineer",
   "title": "Cloud Security Engineer & M365 Security Architect: Zero Trust to SOC Automation",
-  "description": "A project-based course that bridges the gap between intermediate M365 administration (MD-102/MS-102) and senior security architecture (SC-500). You'll design Zero Trust identity perimeters with Entra ID, unify endpoint security with Intune and Defender for Endpoint, govern data and AI with Microsoft Purview, run a cloud SIEM/SOAR with Microsoft Sentinel and KQL, and automate it all with PowerShell, the Microsoft Graph API, and Logic Apps. You finish by building the three portfolio-grade projects hiring managers look for.",
+  "description": "A project-based course that bridges the gap between intermediate M365 administration (MD-102/MS-102) and senior security architecture (SC-500). You'll design Zero Trust identity perimeters with Entra ID, unify endpoint security with Intune and Defender for Endpoint, govern data and AI with Microsoft Purview, run a cloud SIEM/SOAR with Microsoft Sentinel and KQL, automate it all with PowerShell, the Microsoft Graph API, and Logic Apps, and harden the Azure platform itself, securing storage, databases, and networks with private endpoints, NSGs, Azure Firewall, and Key Vault. You finish by building the three portfolio-grade projects hiring managers look for.",
   "audience": "M365 administrators, helpdesk/endpoint engineers, and cloud/IT professionals who want to move into a Cloud Security Engineer or M365 Security Architect role and need hands-on, portfolio-building experience aligned to real enterprise job descriptions and the SC-500 exam.",
-  "modules": 6,
-  "lessons": 24,
+  "modules": 7,
+  "lessons": 28,
   "layout": {
     "decks": "decks",
     "lessons": "lessons",
@@ -17,7 +17,8 @@
     "3": "Data Security & AI Governance with Microsoft Purview",
     "4": "Cloud SIEM & SOAR Operations with Microsoft Sentinel",
     "5": "Security Automation with PowerShell, Graph API & Logic Apps",
-    "6": "Capstone Projects & Career Launch"
+    "6": "Azure Platform Security: Storage, Databases & Networking",
+    "7": "Capstone Projects & Career Launch"
   },
   "generated": true,
   "targetRole": "Cloud Security Engineer / M365 Security Architect",
@@ -44,6 +45,13 @@
     "powershell",
     "microsoft graph api",
     "logic apps",
+    "azure storage security",
+    "azure sql security",
+    "network security groups",
+    "azure firewall",
+    "private link",
+    "azure key vault",
+    "ddos protection",
     "sc-500"
   ]
 }

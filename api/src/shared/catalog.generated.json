@@ -89,6 +89,13 @@
         "powershell",
         "microsoft graph api",
         "logic apps",
+        "azure storage security",
+        "azure sql security",
+        "network security groups",
+        "azure firewall",
+        "private link",
+        "azure key vault",
+        "ddos protection",
         "sc-500"
       ]
     }

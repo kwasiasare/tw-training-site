@@ -1,7 +1,7 @@
 ---
 course: cloud-security-engineer
 title: 'Capstone: Automated Zero-Trust Endpoint Isolation System'
-month: 6
+month: 7
 monthTitle: Capstone Projects & Career Launch
 lesson: 1
 summary: This capstone wires three Microsoft security services into a single closed-loop control that
@@ -23,7 +23,7 @@ objectives:
 - Safely simulate a high-severity detection and validate that access is revoked end to end
 - Assemble the architecture diagram, policy exports, and demo video that make this a hireable portfolio
   artifact
-video: cse-m6-l01-capstone-zero-trust-endpoint-isolation.mp4
+video: cse-m7-l01-capstone-zero-trust-endpoint-isolation.mp4
 quiz:
 - q: In this system, what is the direct trigger that causes Intune to mark the laptop noncompliant?
   options:
