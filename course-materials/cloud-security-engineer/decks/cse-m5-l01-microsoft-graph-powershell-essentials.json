@@ -1,0 +1,188 @@
+{
+  "slug": "cse-m5-l01-microsoft-graph-powershell-essentials",
+  "title": "Microsoft Graph PowerShell SDK Essentials",
+  "month": 5,
+  "monthTitle": "Security Automation with PowerShell, Graph API & Logic Apps",
+  "lesson": 1,
+  "video": "cse-m5-l01-microsoft-graph-powershell-essentials.mp4",
+  "summary": "Microsoft Graph is the single REST API that fronts almost every M365 and Microsoft Entra ID workload, and the Microsoft Graph PowerShell SDK is the supported way to drive it from scripts. This lesson explains why Graph replaced the retired MSOnline and AzureAD modules, how to connect with least-privilege scopes, and the difference between delegated and application permissions. You will register an app, create a service principal, and authenticate unattended with a certificate or client secret. Finally you will learn to discover cmdlets with Find-MgGraphCommand, map permissions with Find-MgGraphPermission, and read users, groups, and sign-ins while handling pagination and throttling.",
+  "objectives": [
+    "Explain why Microsoft Graph is the unified API for M365 and Microsoft Entra ID and why the SDK replaced MSOnline/AzureAD",
+    "Connect interactively with Connect-MgGraph using least-privilege scopes and review consent",
+    "Distinguish delegated from application permissions and choose the right one for a scenario",
+    "Register an app, create a service principal, and authenticate unattended with a certificate or client secret",
+    "Discover cmdlets and required permissions with Find-MgGraphCommand and Find-MgGraphPermission",
+    "Read users, groups, and sign-in logs while handling pagination with -All and Graph throttling"
+  ],
+  "quiz": [
+    {
+      "q": "Why is the Microsoft Graph PowerShell SDK the recommended tool for M365 and Entra automation in 2026?",
+      "options": [
+        "It is the only module that can run on Windows PowerShell 5.1",
+        "It wraps the unified Microsoft Graph API after the legacy MSOnline and AzureAD modules were retired",
+        "It stores credentials in plain text so scripts never need to re-authenticate",
+        "It bypasses Conditional Access policies for administrators"
+      ],
+      "answer": 1,
+      "why": "Microsoft Graph is the single API surface for Entra ID, Exchange, Teams, Intune and more. The MSOnline and AzureAD PowerShell modules were deprecated and retired, so the Graph SDK is the supported successor and the SDK simply wraps Graph REST calls as cmdlets."
+    },
+    {
+      "q": "You are building an unattended Azure Automation runbook that reads all users nightly. Which permission type should the app use?",
+      "options": [
+        "Delegated permissions, because a signed-in admin is always present",
+        "Application permissions, because the app runs without a signed-in user",
+        "No permissions, because runbooks inherit tenant admin rights automatically",
+        "Both delegated and application permissions are required together"
+      ],
+      "answer": 1,
+      "why": "Application permissions grant the app its own identity and access without a signed-in user, which is exactly what an unattended runbook needs. Delegated permissions act on behalf of a signed-in user and are unsuitable for headless automation."
+    },
+    {
+      "q": "Which command tells you which Graph cmdlet backs a given REST API call such as GET /users?",
+      "options": [
+        "Get-Help GET-users",
+        "Find-MgGraphCommand -Uri '/users' -Method GET",
+        "Resolve-MgGraphEndpoint /users",
+        "Search-MgGraphApi users"
+      ],
+      "answer": 1,
+      "why": "Find-MgGraphCommand maps Graph REST URIs and methods to SDK cmdlets and also lists the permissions each cmdlet requires, making it the primary discovery tool when you know the API but not the cmdlet name."
+    },
+    {
+      "q": "What does the -All switch do on a cmdlet like Get-MgUser?",
+      "options": [
+        "It returns every property of each object including hidden ones",
+        "It automatically follows @odata.nextLink paging to return the full result set",
+        "It elevates the session to Global Administrator",
+        "It disables throttling so the request never gets a 429"
+      ],
+      "answer": 1,
+      "why": "Graph returns results in pages with an @odata.nextLink. The -All switch makes the SDK follow those links and return the complete collection instead of just the first page, which is essential for tenant-wide reporting."
+    },
+    {
+      "q": "When a script sends many Graph requests rapidly and receives HTTP 429 responses, what is the correct handling?",
+      "options": [
+        "Immediately retry in a tight loop until it succeeds",
+        "Stop the script permanently because the tenant is blocked",
+        "Honor the Retry-After header and back off before retrying",
+        "Switch from application to delegated permissions"
+      ],
+      "answer": 2,
+      "why": "HTTP 429 means the request was throttled. Graph returns a Retry-After header telling you how long to wait; well-behaved automation backs off for that duration (the SDK does this automatically) rather than hammering the service, which would only extend the throttling."
+    },
+    {
+      "q": "In two to four sentences, explain the difference between delegated and application permissions in Microsoft Graph and give one concrete example of when you would choose each.",
+      "answer": "Delegated permissions let an application act on behalf of a signed-in user, so the effective access is the intersection of the app's granted scopes and that user's own privileges; you would use them for an interactive admin tool where a human signs in and operates within their own rights. Application permissions give the app its own identity and a fixed set of rights with no signed-in user, so they are appropriate for unattended automation such as a nightly Azure Automation runbook that audits every user in the tenant. The key trade-off is that application permissions are powerful and not bounded by a user's rights, so they must be granted sparingly and protected with a certificate-based credential.",
+      "why": "Delegated permissions are user-context and bounded by the user's own rights; application permissions are app-context, unbounded by any user, and meant for headless scenarios. Choosing correctly is the foundation of least-privilege Graph automation."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Get started with the Microsoft Graph PowerShell SDK",
+      "url": "https://learn.microsoft.com/en-us/powershell/microsoftgraph/get-started"
+    },
+    {
+      "label": "Use app-only authentication with the Microsoft Graph PowerShell SDK",
+      "url": "https://learn.microsoft.com/en-us/powershell/microsoftgraph/app-only"
+    },
+    {
+      "label": "Find Microsoft Graph PowerShell permissions for a command",
+      "url": "https://learn.microsoft.com/en-us/powershell/microsoftgraph/find-mg-graph-command"
+    },
+    {
+      "label": "Microsoft Graph throttling guidance",
+      "url": "https://learn.microsoft.com/en-us/graph/throttling"
+    }
+  ],
+  "body_markdown": "## Why Microsoft Graph Is the Unified API\n\nFor years, administering Microsoft 365 meant juggling a pile of single-purpose PowerShell modules: `MSOnline`, `AzureAD`, separate Exchange and Teams modules, each with its own auth and its own quirks. That era is over. **Microsoft Graph** is now the single REST API that fronts almost every workload, Microsoft Entra ID (users, groups, sign-ins, Conditional Access), Exchange Online, Teams, Intune, SharePoint, and security signals. The legacy `MSOnline` and `AzureAD` modules have been **deprecated and retired**, so new automation must target Graph.\n\nThe **Microsoft Graph PowerShell SDK** is the supported way to call Graph from scripts. It is a set of modules (`Microsoft.Graph.*`) generated directly from the Graph API definition, so each cmdlet is a thin wrapper over a REST endpoint. Install only what you need to keep sessions lean:\n\n```powershell\nInstall-Module Microsoft.Graph.Authentication -Scope CurrentUser\nInstall-Module Microsoft.Graph.Users -Scope CurrentUser\nInstall-Module Microsoft.Graph.Identity.SignIns -Scope CurrentUser\n```\n\n## Connecting with Least-Privilege Scopes\n\nEvery Graph call is gated by **scopes** (permissions). The golden rule is least privilege: ask only for what the script truly needs, and read-only wherever possible. Interactive sign-in uses `Connect-MgGraph` with one or more scopes:\n\n```powershell\nConnect-MgGraph -Scopes \"User.Read.All\", \"AuditLog.Read.All\", \"Group.Read.All\"\n\n# Inspect the current session, including the scopes you actually consented to\nGet-MgContext | Select-Object Account, TenantId, AuthType, Scopes\n```\n\nThe first time you request a scope, Entra ID shows a **consent** prompt. Note `.Read` vs `.ReadWrite`: a reporting script should never request write scopes. When you are done, `Disconnect-MgGraph` ends the session.\n\n## Delegated vs Application Permissions\n\nThis is the single most important concept in Graph automation.\n\n- **Delegated permissions** act *on behalf of a signed-in user*. The effective access is the **intersection** of the app's scopes and the user's own rights. Use them for interactive tools where a human signs in.\n- **Application permissions** give the app *its own identity* with a fixed set of rights and **no signed-in user**. Use them for unattended automation, runbooks, scheduled jobs, Logic Apps.\n\nApplication permissions are powerful precisely because they are not bounded by any user's rights, so grant them sparingly and require admin consent.\n\n## Unattended Auth: App Registration, Service Principal, Certificate\n\nHeadless automation needs an **app registration** in Entra ID, which creates a **service principal** (the identity) in your tenant. Grant it application permissions (for example `User.Read.All`) and **grant admin consent**. For credentials, prefer a **certificate** over a client secret because certificates are not a copyable shared string.\n\n```powershell\n# Create a self-signed cert for the app (store the public key on the app registration)\n$cert = New-SelfSignedCertificate -Subject \"CN=GraphAutomation\" `\n    -CertStoreLocation \"Cert:\\CurrentUser\\My\" `\n    -KeyExportPolicy Exportable -KeySpec Signature\n\n# Connect unattended with app-only auth (no user prompt)\nConnect-MgGraph -ClientId \"00000000-1111-2222-3333-444444444444\" `\n    -TenantId  \"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee\" `\n    -CertificateThumbprint $cert.Thumbprint\n```\n\nIn Azure Automation or a Function, you can skip stored credentials entirely and use a **managed identity**: `Connect-MgGraph -Identity`. The managed identity's service principal still needs the application permissions assigned to it.\n\n## Discovering Cmdlets and Permissions\n\nThe SDK has thousands of cmdlets. Two discovery commands save hours. `Find-MgGraphCommand` maps a REST URI to the cmdlet that calls it and lists the permissions it needs; `Find-MgGraphPermission` searches the permission catalog.\n\n```powershell\n# I know the REST call GET /users - which cmdlet and permissions?\nFind-MgGraphCommand -Uri '/users' -Method GET |\n    Select-Object Command, Permissions -First 1\n\n# Find every permission related to sign-in audit logs\nFind-MgGraphPermission auditlog -PermissionType Application\n```\n\nUse these to build a precise, least-privilege scope list instead of guessing.\n\n## Reading Users, Groups, and Sign-Ins (Pagination and Throttling)\n\nGraph returns large collections in **pages** linked by `@odata.nextLink`. The `-All` switch makes the SDK follow every page automatically. Always select only the properties you need, and request non-default properties like `signInActivity` explicitly (it is GA on the v1.0 endpoint but is not returned unless you select it, and it requires `AuditLog.Read.All`).\n\n```powershell\n# All members - note -All to page through the whole tenant\n$users = Get-MgUser -All -Property \"id,displayName,userPrincipalName,accountEnabled\"\n\n# Last interactive sign-in requires AuditLog.Read.All and the signInActivity property\nGet-MgUser -All -Property \"displayName,signInActivity\" |\n    Select-Object DisplayName,\n        @{N='LastSignIn';E={ $_.SignInActivity.LastSignInDateTime }}\n\n# Group membership\nGet-MgGroup -Filter \"displayName eq 'Finance'\" |\n    ForEach-Object { Get-MgGroupMember -GroupId $_.Id -All }\n```\n\nWhen you send many requests quickly, Graph may return **HTTP 429 (throttled)** with a `Retry-After` header. The SDK honors this and backs off automatically; in custom loops, respect `Retry-After` rather than retrying in a tight loop. Designing for pagination and throttling from the start is what separates a script that works on a 10-user lab from one that survives a 50,000-user tenant.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Microsoft Graph PowerShell SDK Essentials",
+      "sub": "One API, least-privilege scopes, and unattended automation",
+      "narration": "Welcome to Module 5 on security automation. Before we can script audits and SOAR playbooks, we need to master the tool that talks to Microsoft 365 and Entra ID: the Microsoft Graph PowerShell SDK. In this lesson we cover why Graph replaced the old modules, how to connect with least privilege, the crucial delegated versus application permission distinction, and how to authenticate unattended with a certificate or managed identity."
+    },
+    {
+      "type": "content",
+      "title": "Why Microsoft Graph",
+      "bullets": [
+        "Single REST API across Entra ID, Exchange, Teams, Intune, security",
+        "Legacy MSOnline and AzureAD modules are retired",
+        "The SDK wraps Graph REST calls as Microsoft.Graph.* cmdlets",
+        "Install only the sub-modules you need to keep sessions lean"
+      ],
+      "code": "Install-Module Microsoft.Graph.Authentication -Scope CurrentUser\nInstall-Module Microsoft.Graph.Users -Scope CurrentUser",
+      "narration": "Microsoft Graph is the one API that fronts almost every Microsoft 365 workload. The old MSOnline and AzureAD modules have been retired, so all new automation targets Graph. The PowerShell SDK is generated from the Graph definition, so each cmdlet is a thin wrapper over a REST endpoint. Install just the sub-modules you need rather than the whole SDK."
+    },
+    {
+      "type": "content",
+      "title": "Connect with Least-Privilege Scopes",
+      "bullets": [
+        "Every call is gated by scopes; ask only for what you need",
+        "Prefer .Read over .ReadWrite for reporting scripts",
+        "First request triggers an Entra consent prompt",
+        "Get-MgContext shows the scopes you actually hold"
+      ],
+      "code": "Connect-MgGraph -Scopes \"User.Read.All\", \"AuditLog.Read.All\"\nGet-MgContext | Select-Object Account, AuthType, Scopes",
+      "narration": "Graph permissions are called scopes. The golden rule is least privilege: request only what the script truly needs and stay read-only wherever possible. The first time you ask for a scope, Entra shows a consent prompt. Get-MgContext lets you inspect the current session and confirm exactly which scopes you consented to."
+    },
+    {
+      "type": "content",
+      "title": "Delegated vs Application Permissions",
+      "bullets": [
+        "Delegated: acts on behalf of a signed-in user",
+        "Effective access = intersection of app scopes and user rights",
+        "Application: app's own identity, no signed-in user",
+        "Use application permissions for unattended automation"
+      ],
+      "narration": "This is the most important concept in Graph automation. Delegated permissions act on behalf of a signed-in user, so access is the intersection of the app's scopes and that user's own rights. Application permissions give the app its own identity with no user present, ideal for headless runbooks. Application permissions are powerful because they are not bounded by any user, so grant them sparingly."
+    },
+    {
+      "type": "content",
+      "title": "Unattended Auth with a Certificate",
+      "bullets": [
+        "App registration creates a service principal identity",
+        "Grant application permissions and admin consent",
+        "Prefer a certificate over a copyable client secret",
+        "In Azure Automation, use Connect-MgGraph -Identity instead"
+      ],
+      "code": "Connect-MgGraph -ClientId $appId -TenantId $tenantId `\n    -CertificateThumbprint $cert.Thumbprint",
+      "narration": "Headless automation needs an app registration, which creates a service principal in your tenant. Grant it application permissions and admin consent. For credentials, prefer a certificate over a client secret because a certificate is not a copyable shared string. Inside Azure Automation or a Function you can skip stored credentials entirely and connect with a managed identity using the Identity switch."
+    },
+    {
+      "type": "content",
+      "title": "Discover Cmdlets and Permissions",
+      "bullets": [
+        "Find-MgGraphCommand maps a REST URI to its cmdlet",
+        "It also lists the permissions that cmdlet requires",
+        "Find-MgGraphPermission searches the permission catalog",
+        "Use both to build a precise least-privilege scope list"
+      ],
+      "code": "Find-MgGraphCommand -Uri '/users' -Method GET |\n    Select-Object Command, Permissions -First 1",
+      "narration": "With thousands of cmdlets, discovery matters. Find-MgGraphCommand takes a REST URI and method and tells you which cmdlet calls it and which permissions it needs. Find-MgGraphPermission searches the catalog of available scopes. Together they let you assemble an exact, minimal permission list instead of guessing and over-requesting."
+    },
+    {
+      "type": "content",
+      "title": "Reading Users, Groups, and Sign-Ins",
+      "bullets": [
+        "Graph returns large collections in pages via @odata.nextLink",
+        "Use -All so the SDK follows every page automatically",
+        "Select only the properties you need with -Property",
+        "signInActivity needs AuditLog.Read.All and explicit selection"
+      ],
+      "code": "Get-MgUser -All -Property \"displayName,signInActivity\" |\n    Select-Object DisplayName,\n        @{N='LastSignIn';E={ $_.SignInActivity.LastSignInDateTime }}",
+      "narration": "Graph pages large result sets, so always add the All switch to read a whole tenant rather than just the first page. Select only the properties you need to reduce payload size. Sign-in activity, like the last interactive sign-in date, requires the AuditLog.Read.All permission and must be requested explicitly in the property list because it is not returned by default."
+    },
+    {
+      "type": "content",
+      "title": "Handle Throttling Gracefully",
+      "bullets": [
+        "Rapid bursts of requests can return HTTP 429",
+        "Graph includes a Retry-After header telling you how long to wait",
+        "The SDK honors Retry-After and backs off automatically",
+        "In custom loops, respect Retry-After; never retry in a tight loop"
+      ],
+      "narration": "When automation sends many requests quickly, Graph protects itself by returning HTTP 429 throttling responses with a Retry-After header. The SDK backs off automatically for you, and any custom retry logic must do the same. Designing for pagination and throttling from the very start is what makes the difference between a script that works on a ten-user lab and one that survives a fifty-thousand-user tenant."
+    }
+  ]
+}

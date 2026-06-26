@@ -1,0 +1,188 @@
+{
+  "slug": "cse-m4-l03-analytics-rules-and-mitre-attack-mapping",
+  "title": "Analytics Rules and MITRE ATT&CK Mapping",
+  "month": 4,
+  "monthTitle": "Cloud SIEM & SOAR Operations with Microsoft Sentinel",
+  "lesson": 3,
+  "video": "cse-m4-l03-analytics-rules-and-mitre-attack-mapping.mp4",
+  "summary": "A hunting query only finds threats when you run it; an analytics rule finds them automatically and turns matches into incidents your SOC can work. This lesson turns the KQL you wrote in Lesson 2 into production detections: scheduled rules with frequency, lookback, and thresholds; entity mapping so incidents show real users, hosts, and IPs; and alert grouping that collapses related alerts into a single incident. You will also meet near-real-time (NRT) rules for low-latency detection, the built-in Fusion and machine-learning anomaly detections, and disciplined false-positive tuning. Every detection is mapped to MITRE ATT&CK tactics and techniques so you can read the coverage view and find gaps. The centerpiece is a runnable impossible-travel / concurrent-anomalous-login detection, the exact rule used in Capstone 3, plus how watchlists enrich and tune your rules.",
+  "objectives": [
+    "Create a scheduled analytics rule from a KQL query, setting frequency, lookback, and threshold",
+    "Configure entity mapping so incidents surface accounts, hosts, and IP addresses",
+    "Group related alerts into incidents and choose when to use near-real-time (NRT) rules",
+    "Explain Fusion and machine-learning anomaly detections and when to rely on them",
+    "Tune rules to cut false positives using thresholds, exclusions, and watchlists",
+    "Map detections to MITRE ATT&CK tactics/techniques and read the coverage view",
+    "Build and reason about an impossible-travel concurrent-login detection in KQL"
+  ],
+  "quiz": [
+    {
+      "q": "In a scheduled analytics rule, what is the relationship you must respect between query frequency and lookback period?",
+      "options": [
+        "Frequency must always be longer than the lookback",
+        "Lookback should be at least as long as the frequency so no events fall between runs",
+        "They must be exactly equal at all times",
+        "Lookback has no relationship to frequency"
+      ],
+      "answer": 1,
+      "why": "If the lookback window is shorter than how often the rule runs, events occurring in the gap between runs are never evaluated. Setting lookback greater than or equal to frequency (often with a small overlap buffer) ensures continuous coverage; overlap can cause duplicate alerts, which alert grouping helps manage."
+    },
+    {
+      "q": "What is the purpose of entity mapping in an analytics rule?",
+      "options": [
+        "It speeds up the KQL query execution",
+        "It identifies columns as entities (account, host, IP) so incidents support investigation and correlation",
+        "It encrypts the alert payload",
+        "It schedules the rule to run more often"
+      ],
+      "answer": 1,
+      "why": "Entity mapping tells Sentinel which query columns represent real-world entities such as Account, Host, IP, or URL. Mapped entities appear on the incident, power the investigation graph, enable correlation across alerts, and let automation act on them. Without it, an alert is just a row of text with no pivot points."
+    },
+    {
+      "q": "When is a near-real-time (NRT) rule the right choice over a standard scheduled rule?",
+      "options": [
+        "When you need complex multi-table joins over weeks of data",
+        "When you need the lowest possible detection latency on a simple single-table condition",
+        "When you want to run machine-learning anomaly detection",
+        "When you need to query archived logs"
+      ],
+      "answer": 1,
+      "why": "NRT rules run approximately every minute to minimize the delay between an event and its alert, but they are limited (essentially a single source table and no unions/joins of multiple tables). They are ideal for high-priority, simple conditions where speed matters; complex correlation still belongs in scheduled rules."
+    },
+    {
+      "q": "What does Sentinel's Fusion engine primarily do?",
+      "options": [
+        "It merges duplicate workspaces into one",
+        "It correlates multiple lower-fidelity alerts and anomalies into high-confidence, multistage incidents",
+        "It compresses logs to reduce ingestion cost",
+        "It translates KQL into natural language"
+      ],
+      "answer": 1,
+      "why": "Fusion is a built-in, ML-based correlation engine that links seemingly unrelated lower-severity alerts and anomalies across the kill chain into a single high-confidence, multistage attack incident, surfacing attacks that no single rule would flag on its own."
+    },
+    {
+      "q": "Which tuning technique best reduces false positives from a noisy detection without blinding you to real attacks?",
+      "options": [
+        "Disable the rule entirely",
+        "Raise the threshold and exclude known-benign entities using a watchlist of approved sources",
+        "Shorten the lookback so fewer events are seen",
+        "Set the rule severity to Informational"
+      ],
+      "answer": 1,
+      "why": "Raising the threshold filters out low-volume noise, and excluding vetted benign sources (for example known admin jump hosts or sanctioned scanners) via a watchlist removes recurring false positives while keeping the detection live for everything else. Disabling the rule or hiding it as Informational simply loses the detection."
+    },
+    {
+      "q": "Explain in 3-4 sentences how an impossible-travel detection works, why a naive distance check produces false positives, and one enrichment that reduces them.",
+      "answer": "An impossible-travel rule looks for the same account signing in from two different locations within a time window so short that physically traveling between them is impossible, implying at least one session is not the real user. It typically computes the geographic distance between consecutive sign-in locations and divides by the time between them to get an implied speed, alerting when that speed exceeds what air travel allows. A naive version produces false positives because VPNs, corporate proxies, mobile-carrier IP geolocation, and cloud egress can place the same legitimate user in far-apart locations within minutes. Enriching with a watchlist of known corporate VPN and proxy egress IP ranges (or trusted named locations) and excluding those sign-ins removes a large share of the noise while keeping genuine concurrent-location anomalies.",
+      "why": "Impossible travel infers an impossible implied travel speed between two sign-in locations for one account; the main false-positive source is VPN/proxy geolocation, which watchlists of trusted egress IPs and named locations help suppress."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Create scheduled analytics rules in Microsoft Sentinel",
+      "url": "https://learn.microsoft.com/en-us/azure/sentinel/detect-threats-custom"
+    },
+    {
+      "label": "Map data fields to entities in analytics rules",
+      "url": "https://learn.microsoft.com/en-us/azure/sentinel/map-data-fields-to-entities"
+    },
+    {
+      "label": "Advanced multistage attack detection (Fusion)",
+      "url": "https://learn.microsoft.com/en-us/azure/sentinel/fusion"
+    },
+    {
+      "label": "Use watchlists in Microsoft Sentinel",
+      "url": "https://learn.microsoft.com/en-us/azure/sentinel/watchlists"
+    }
+  ],
+  "body_markdown": "## From Hunt to Detection\n\nIn Lesson 2 you wrote hunting queries. A hunt only finds threats **when a human runs it**. An **analytics rule** runs your KQL **on a schedule, automatically**, and converts matches into **alerts and incidents** your SOC works in a queue. This lesson turns your KQL into production detections and maps every one to **MITRE ATT&CK** so you can prove coverage and find gaps.\n\nSentinel offers several rule types: **scheduled** (custom KQL on a timer — your bread and butter), **near-real-time (NRT)** (low-latency, simple conditions), **Microsoft Security** (auto-create incidents from Defender alerts), **Fusion** (ML multistage correlation), and **anomaly** (built-in ML baselines). We focus on scheduled and NRT, then the ML rules.\n\n## Anatomy of a Scheduled Rule: Frequency, Lookback, Threshold\n\nWhen you create a scheduled rule you set:\n\n- **Query frequency** — how often the rule runs (e.g., every 5 minutes, every hour).\n- **Query lookback (period)** — how far back each run looks. **Lookback must be at least as long as frequency**, or events that occur between runs are never evaluated. A small overlap is common; alert grouping then handles any duplicates.\n- **Alert threshold** — generate an alert only when the query returns more than N results (e.g., > 0, or > 5), filtering low-volume noise.\n- **Event/alert grouping** — whether each row is its own alert or all results in a run form one alert, and how alerts roll into incidents.\n- **Severity** and **MITRE technique** tags.\n\n```kusto\n// Detection logic for a scheduled rule: password-spray success\n// Frequency: 1h, Lookback: 1h\nlet failThreshold = 50;\nlet sprayIPs =\n    SigninLogs\n    | where ResultType != 0\n    | summarize Failures = count(), Accounts = dcount(UserPrincipalName) by IPAddress\n    | where Failures > failThreshold and Accounts > 5;\nSigninLogs\n| where ResultType == 0\n| join kind=inner (sprayIPs) on IPAddress\n| project TimeGenerated, UserPrincipalName, IPAddress, Failures, Accounts\n```\n\n## Entity Mapping and Alert Grouping\n\nAn alert is useless if it is just text. **Entity mapping** tells Sentinel which columns are real-world **entities** — `Account`, `Host`, `IP`, `URL`, `FileHash`. Mapped entities appear on the incident, drive the **investigation graph**, allow correlation across alerts, and give automation something to act on (disable *this account*, block *this IP*).\n\nFor the rule above you'd map:\n\n- **Account** identifier → `UserPrincipalName`\n- **IP** address → `IPAddress`\n\n**Alert grouping** then decides how alerts become incidents. Grouping alerts that share the same entities (e.g., the same account) within a time window collapses a storm of related alerts into **one incident**, so analysts see one story instead of fifty rows. This is also how you tame the duplicates that come from overlapping lookback windows.\n\n## NRT, Fusion, and Anomaly Detections\n\n**Near-real-time (NRT)** rules run about **once a minute** to minimize detection latency. The trade-off: they are deliberately simple — essentially a single source table, no multi-table `union`/`join`. Use NRT for high-priority, simple conditions (e.g., a specific high-risk sign-in or a known-bad process) where **speed** beats sophistication.\n\n**Fusion** is a built-in **ML correlation engine**. It links lower-fidelity alerts and anomalies across the kill chain — say an anomalous sign-in followed by mailbox-rule creation followed by mass download — into a **single high-confidence, multistage incident** that no individual rule would raise. You don't write Fusion logic; you enable it and triage what it surfaces.\n\n**Anomaly** rules ship ML baselines (e.g., unusual volume of sign-in failures for an account vs. its own history). You can tune their thresholds and run them in *flighting* mode before enabling.\n\n## Tuning to Reduce False Positives\n\nThe fastest way to lose a SOC's trust is a noisy rule. Tune deliberately:\n\n1. **Raise the threshold** so genuinely low-volume noise drops out.\n2. **Exclude known-benign entities** — sanctioned scanners, admin jump hosts, corporate VPN egress IPs.\n3. **Use a watchlist** to hold those exclusions as data you can update without editing the rule (more below).\n4. **Group alerts** so repeats collapse into one incident.\n5. **Measure** — review the rule's alert volume and true/false-positive ratio, then iterate. Never disable a valuable detection just because it is noisy; tune it.\n\n## Watchlists\n\nA **watchlist** is a small reference table you upload (CSV) and join against in KQL — lists of VIP accounts, terminated employees, trusted VPN/proxy egress IP ranges, or asset inventories. They keep tuning data **out of the query body** so non-developers can maintain it.\n\n```kusto\n// Suppress sign-ins coming from approved corporate VPN egress IPs\nlet TrustedEgress = _GetWatchlist('TrustedVPNIPs') | project IPAddress;\nSigninLogs\n| where TimeGenerated > ago(1h)\n| where IPAddress !in (TrustedEgress)\n```\n\n## The Impossible-Travel Detection (Capstone 3)\n\nNow the centerpiece. **Impossible travel** flags one account signing in from two locations so far apart, so close in time, that the implied travel speed is physically impossible — meaning at least one session is not the real user. The technique: for each account, line up consecutive sign-ins, compute the **geo distance** between their locations and the **time delta**, derive an implied **km/h**, and alert when it exceeds what air travel allows.\n\n```kusto\n// Impossible-travel / concurrent anomalous login\n// Frequency: 1h, Lookback: 1h. MITRE: Initial Access (T1078 Valid Accounts)\nlet lookback = 1h;\nlet maxSpeedKmH = 900.0;          // faster than a commercial jet => impossible\nlet TrustedEgress = _GetWatchlist('TrustedVPNIPs') | project IPAddress;\nSigninLogs\n| where TimeGenerated > ago(lookback)\n| where ResultType == 0                                  // successful sign-ins only\n| where IPAddress !in (TrustedEgress)                    // drop corporate VPN/proxy noise\n| where isnotempty(LocationDetails.geoCoordinates.latitude)\n| extend lat = toreal(LocationDetails.geoCoordinates.latitude),\n         lon = toreal(LocationDetails.geoCoordinates.longitude),\n         City = tostring(LocationDetails.city),\n         Country = tostring(LocationDetails.countryOrRegion)\n| sort by UserPrincipalName asc, TimeGenerated asc\n| serialize\n| extend prevLat = prev(lat), prevLon = prev(lon),\n         prevTime = prev(TimeGenerated), prevCity = prev(City),\n         prevUser = prev(UserPrincipalName), prevIP = prev(IPAddress)\n| where UserPrincipalName == prevUser                    // compare within the same user\n| extend DistanceKm = geo_distance_2points(lon, lat, prevLon, prevLat) / 1000.0\n| extend HoursApart = datetime_diff('second', TimeGenerated, prevTime) / 3600.0\n| where HoursApart > 0\n| extend ImpliedSpeedKmH = DistanceKm / HoursApart\n| where DistanceKm > 500 and ImpliedSpeedKmH > maxSpeedKmH\n| project TimeGenerated, UserPrincipalName,\n          FromCity = prevCity, FromIP = prevIP,\n          ToCity = City, ToIP = IPAddress,\n          DistanceKm = round(DistanceKm, 0),\n          HoursApart = round(HoursApart, 2),\n          ImpliedSpeedKmH = round(ImpliedSpeedKmH, 0)\n```\n\nMap **Account** → `UserPrincipalName` and **IP** → `ToIP` (and optionally `FromIP`). The watchlist of trusted VPN/proxy egress IPs is what keeps this rule from drowning in false positives — the single most important tuning step. Tag it to MITRE **Initial Access / T1078 Valid Accounts**.\n\n## MITRE ATT&CK Mapping and the Coverage View\n\nEvery rule should declare the **tactics** (the attacker's goal — Initial Access, Persistence, Exfiltration) and **techniques** (the how — T1078, T1110) it detects. Sentinel's **MITRE ATT&CK coverage view** then renders the matrix colored by how many active rules cover each technique, so you can **see your blind spots** at a glance: a column with no detections is a tactic an attacker could move through unseen. Use it to prioritize which detections to build next — coverage, not raw rule count, is what protects you.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Analytics Rules and MITRE ATT&CK Mapping",
+      "sub": "Turn KQL hunts into automatic detections and prove your coverage",
+      "narration": "A hunting query only catches a threat when someone runs it. In this lesson we make detection automatic. We turn the KQL from last lesson into scheduled analytics rules that raise incidents, map entities so analysts can investigate, group alerts sensibly, and tune out false positives. We'll meet near-real-time, Fusion, and anomaly detections, build the impossible-travel rule used in Capstone 3, and map everything to MITRE ATT&CK so we can see exactly what we cover and what we don't."
+    },
+    {
+      "type": "content",
+      "title": "From Hunt to Detection",
+      "bullets": [
+        "A hunt finds threats only when a human runs it",
+        "An analytics rule runs your KQL on a schedule and creates incidents",
+        "Rule types: scheduled, NRT, Microsoft Security, Fusion, anomaly",
+        "Scheduled rules are your everyday workhorse"
+      ],
+      "narration": "The difference between a hunt and a detection is automation. A hunt sits in a notebook until someone runs it; an analytics rule runs your KQL on a timer and turns matches into alerts and incidents in the SOC queue. Sentinel offers several rule types, but scheduled rules, custom KQL on a timer, are your bread and butter, with near-real-time and the machine-learning rules filling specific gaps we'll cover shortly."
+    },
+    {
+      "type": "content",
+      "title": "Frequency, Lookback, Threshold",
+      "bullets": [
+        "Frequency: how often the rule runs",
+        "Lookback must be >= frequency, or events slip through the gap",
+        "Threshold: alert only when results exceed N",
+        "Set severity and tag MITRE technique on the rule"
+      ],
+      "code": "let failThreshold = 50;\nlet sprayIPs =\n    SigninLogs | where ResultType != 0\n    | summarize Failures=count(), Accounts=dcount(UserPrincipalName) by IPAddress\n    | where Failures > failThreshold and Accounts > 5;\nSigninLogs | where ResultType == 0\n| join kind=inner (sprayIPs) on IPAddress",
+      "narration": "Three settings define a scheduled rule. Frequency is how often it runs. Lookback is how far back each run looks, and it must be at least as long as the frequency, or events that happen between runs are never evaluated. Threshold raises an alert only when results exceed a number, filtering noise. Here our password-spray logic becomes a rule running hourly over the last hour, alerting when a spray IP also achieves a successful sign-in."
+    },
+    {
+      "type": "content",
+      "title": "Entity Mapping and Alert Grouping",
+      "bullets": [
+        "Map columns to entities: Account, Host, IP, URL, FileHash",
+        "Entities power the investigation graph and correlation",
+        "Automation acts on entities: disable this account, block this IP",
+        "Group alerts sharing entities into a single incident"
+      ],
+      "narration": "An alert that's just text is useless. Entity mapping tells Sentinel which columns are real-world entities like account, host, and IP. Mapped entities appear on the incident, drive the investigation graph, enable correlation across alerts, and give your automation something concrete to act on. Alert grouping then collapses many related alerts, say all those touching the same account, into one incident, so analysts read one story instead of fifty rows, and it tames duplicates from overlapping lookbacks."
+    },
+    {
+      "type": "content",
+      "title": "NRT, Fusion, and Anomaly Rules",
+      "bullets": [
+        "NRT runs about every minute for lowest latency; single table, no joins",
+        "Fusion correlates low-fidelity alerts into multistage incidents",
+        "Anomaly rules ship ML baselines you can tune and flight",
+        "You enable Fusion and anomalies; you don't hand-write their logic"
+      ],
+      "narration": "Three machine-driven options complement scheduled rules. Near-real-time rules run roughly every minute for the lowest latency, but stay simple, one table and no joins, so use them when speed beats sophistication. Fusion is a built-in ML engine that stitches unrelated low-fidelity alerts across the kill chain into a single high-confidence multistage incident no single rule would catch. Anomaly rules bring ML baselines you can tune and run in flighting mode before going live."
+    },
+    {
+      "type": "content",
+      "title": "Tuning and Watchlists",
+      "bullets": [
+        "Raise thresholds; exclude vetted benign sources",
+        "Hold exclusions in a watchlist, not hard-coded in the query",
+        "Group repeated alerts into one incident",
+        "Measure true/false-positive ratio and iterate, don't just disable"
+      ],
+      "code": "let TrustedEgress = _GetWatchlist('TrustedVPNIPs') | project IPAddress;\nSigninLogs\n| where TimeGenerated > ago(1h)\n| where IPAddress !in (TrustedEgress)",
+      "narration": "Nothing destroys SOC trust faster than a noisy rule. Tune deliberately: raise thresholds, exclude vetted benign sources like sanctioned scanners and corporate VPN egress, and keep those exclusions in a watchlist, a small reference table you update without editing the query. Group repeats into one incident, then measure the true-to-false-positive ratio and iterate. The discipline is to tune a valuable detection, never to disable it just because it's loud."
+    },
+    {
+      "type": "content",
+      "title": "The Impossible-Travel Detection",
+      "bullets": [
+        "Same account, two far-apart locations, too little time between",
+        "Compute geo distance and time delta, derive implied km/h",
+        "Alert when implied speed exceeds air travel (impossible)",
+        "Watchlist of trusted VPN/proxy IPs is the key tuning step",
+        "Map Account and IP entities; tag MITRE T1078 Valid Accounts"
+      ],
+      "code": "SigninLogs\n| where ResultType == 0 | where IPAddress !in (TrustedEgress)\n| sort by UserPrincipalName asc, TimeGenerated asc\n| serialize\n| extend DistanceKm = geo_distance_2points(lon, lat, prev(lon), prev(lat))/1000.0,\n         HoursApart = datetime_diff('second', TimeGenerated, prev(TimeGenerated))/3600.0\n| where UserPrincipalName == prev(UserPrincipalName)\n| extend ImpliedSpeedKmH = DistanceKm / HoursApart\n| where DistanceKm > 500 and ImpliedSpeedKmH > 900",
+      "narration": "Here's the Capstone 3 centerpiece. Impossible travel flags one account signing in from two locations so far apart and so close in time that the implied speed is physically impossible, meaning one session isn't the real user. We sort each user's sign-ins, use serialize so we can look at the previous row, compute distance with geo_distance_2points and the time delta, then derive implied kilometers per hour and alert when it beats a jet. The trusted-egress watchlist is what keeps this from drowning in VPN false positives. Map account and IP entities and tag it Initial Access, T1078."
+    },
+    {
+      "type": "content",
+      "title": "MITRE ATT&CK Coverage",
+      "bullets": [
+        "Tag each rule with tactics (the goal) and techniques (the how)",
+        "The coverage view colors the matrix by active detections",
+        "Empty columns are blind spots an attacker can move through",
+        "Prioritize by coverage gaps, not by raw rule count"
+      ],
+      "narration": "Finally, every rule should declare the MITRE tactics and techniques it detects. Sentinel's coverage view then paints the ATT&CK matrix by how many active rules cover each technique, so your blind spots are obvious: a column with no detections is a path an attacker can walk unseen. Use it to decide what to build next. What protects you is coverage across the kill chain, not the sheer number of rules you've written."
+    }
+  ]
+}

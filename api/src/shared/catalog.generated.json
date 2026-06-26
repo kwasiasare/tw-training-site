@@ -60,6 +60,40 @@
     }
   },
   {
+    "slug": "cloud-security-engineer",
+    "title": "Cloud Security Engineer & M365 Security Architect: Zero Trust to SOC Automation",
+    "summary": "A project-based course that bridges the gap between intermediate M365 administration (MD-102/MS-102) and senior security architecture (SC-500). You'll design Zero Trust identity perimeters with Entra ID, unify endpoint security with Intune and Defender for Endpoint, govern data and AI with Microsoft",
+    "targetProfile": {
+      "role": "Cloud Security Engineer / M365 Security Architect",
+      "level": "mid",
+      "skills": [
+        "zero trust architecture",
+        "entra id",
+        "conditional access",
+        "privileged identity management",
+        "identity governance",
+        "microsoft intune",
+        "defender for endpoint",
+        "defender xdr",
+        "attack surface reduction",
+        "microsoft purview",
+        "sensitivity labels",
+        "data loss prevention",
+        "insider risk management",
+        "microsoft 365 copilot security",
+        "microsoft sentinel",
+        "kql",
+        "soar",
+        "defender for cloud",
+        "cspm",
+        "powershell",
+        "microsoft graph api",
+        "logic apps",
+        "sc-500"
+      ]
+    }
+  },
+  {
     "slug": "data-scientist",
     "title": "Data Scientist Career Accelerator: From Python to Production Insights",
     "summary": "A project-based course that takes you from programming and statistics fundamentals to building, evaluating, and communicating machine learning models. You'll work with real datasets to build a portfolio of analyses, dashboards, and end-to-end ML projects that prove you're ready for a data scientist ",

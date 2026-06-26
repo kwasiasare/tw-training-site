@@ -1,0 +1,195 @@
+{
+  "slug": "cse-m3-l03-insider-risk-management-and-compliance",
+  "title": "Insider Risk Management and Communication Compliance",
+  "month": 3,
+  "monthTitle": "Data Security & AI Governance with Microsoft Purview",
+  "lesson": 3,
+  "video": "cse-m3-l03-insider-risk-management-and-compliance.mp4",
+  "summary": "Not every threat comes from outside. Microsoft Purview Insider Risk Management detects risky activity by people who already have legitimate access, the departing employee mass-downloading files, the user emailing data to a personal account, the policy violator. This lesson covers risk indicators and policy templates, sequence detection that strings activities into a story, and cumulative exfiltration anomalies that catch unusual data aggregation and mass downloads by high-risk users. You will learn how pseudonymization and privacy-by-design protect investigated users, how triage and case management work, and why role-based access enforces separation of duties. A short introduction to Communication Compliance rounds out the human side of data governance.",
+  "objectives": [
+    "Explain the insider risk problem and how Purview Insider Risk Management addresses it",
+    "Map risk indicators to policy templates such as data theft by departing users and data leaks",
+    "Describe sequence detection and cumulative exfiltration / mass-download anomaly detection",
+    "Explain pseudonymization and privacy-by-design and why they are on by default",
+    "Walk the alert triage, investigation, and case management lifecycle",
+    "Apply role-based access for separation of duties and summarize Communication Compliance"
+  ],
+  "quiz": [
+    {
+      "q": "What core problem does Insider Risk Management address that perimeter and DLP controls do not fully solve?",
+      "options": [
+        "External hackers brute-forcing passwords",
+        "Risky actions taken by people who already hold legitimate access to the data",
+        "Misconfigured firewalls",
+        "Expired TLS certificates"
+      ],
+      "answer": 1,
+      "why": "Insider Risk Management focuses on trusted insiders, employees, contractors, partners, who already have valid access. DLP can block a specific action, but it does not by itself build a risk picture of a person over time. IRM correlates many signals to surface users whose behaviour suggests data theft, leakage, or policy violation."
+    },
+    {
+      "q": "A user resigns, and over the next two weeks downloads large volumes of SharePoint files and copies them to USB. Which Insider Risk policy template is the best fit?",
+      "options": [
+        "General data leaks only",
+        "Data theft by departing (or leaving) users, which can use HR connector signals to weight activity around the resignation date",
+        "Security policy violations by priority users",
+        "Communication Compliance"
+      ],
+      "answer": 1,
+      "why": "The 'data theft by departing users' template is purpose-built for this: it can ingest a resignation or termination date (often via the HR connector) and raise the weighting of exfiltration activity around that date, exactly the departing-employee mass-download scenario."
+    },
+    {
+      "q": "What does sequence detection add over evaluating individual activities in isolation?",
+      "options": [
+        "It encrypts the user's mailbox",
+        "It links related activities into an ordered story, such as download then rename then exfiltrate, that is riskier than any single step",
+        "It deletes the risky files automatically",
+        "It disables the user's account immediately"
+      ],
+      "answer": 1,
+      "why": "Sequence detection connects a chain of related actions (for example collect, obfuscate or rename, then exfiltrate) into a single narrative. The sequence as a whole signals intent and risk far more strongly than any isolated event, helping analysts see the full exfiltration path."
+    },
+    {
+      "q": "What is cumulative exfiltration detection designed to catch?",
+      "options": [
+        "A single large file shared once",
+        "Unusual aggregation where many smaller exfiltration activities across channels add up to anomalous data movement over time by a user",
+        "Failed sign-in attempts",
+        "Expired sensitivity labels"
+      ],
+      "answer": 1,
+      "why": "Cumulative exfiltration detection looks at the total volume of exfiltration activity a user accumulates across channels and time, surfacing anomalous aggregation and mass downloads that would each look minor in isolation but together indicate elevated risk."
+    },
+    {
+      "q": "Why is pseudonymization enabled by default in Insider Risk Management, and what does it do?",
+      "options": [
+        "It speeds up alert generation by caching results",
+        "It replaces usernames with anonymized identifiers in the investigation experience so analysts assess behaviour without bias, supporting privacy-by-design",
+        "It encrypts the SharePoint sites involved",
+        "It permanently deletes user identity from logs"
+      ],
+      "answer": 1,
+      "why": "Pseudonymization masks user identities (names, emails) with anonymized aliases in the IRM UI so investigators triage based on the activity, not the person, reducing bias and protecting privacy. Identities can be revealed only through a controlled, role-gated action, embodying privacy-by-design."
+    },
+    {
+      "q": "Explain, in two to four sentences, how role-based access in Insider Risk Management enforces separation of duties, and why that matters for a program's credibility.",
+      "answer": "Insider Risk Management ships role groups such as Insider Risk Management Analysts, who can triage and investigate alerts but see pseudonymized data, and Investigators, who can view real identities and manage cases, plus an Admin role that configures policies but does not investigate. Separating policy configuration from investigation from identity reveal means no single person can both define what is monitored and unilaterally act on a named individual. This separation of duties protects employees from misuse of the system, satisfies privacy and works-council requirements, and gives the program legal and ethical credibility. Without it, an insider risk tool could itself become a tool for surveillance abuse.",
+      "why": "A strong answer names the distinct IRM roles, explains that configuration, triage, and identity reveal are split across them, and connects that split to abuse prevention, privacy compliance, and program legitimacy."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Learn about insider risk management",
+      "url": "https://learn.microsoft.com/en-us/purview/insider-risk-management"
+    },
+    {
+      "label": "Insider risk management policy templates",
+      "url": "https://learn.microsoft.com/en-us/purview/insider-risk-management-policies"
+    },
+    {
+      "label": "Investigate insider risk management activities",
+      "url": "https://learn.microsoft.com/en-us/purview/insider-risk-management-activities"
+    },
+    {
+      "label": "Learn about communication compliance",
+      "url": "https://learn.microsoft.com/en-us/purview/communication-compliance"
+    }
+  ],
+  "body_markdown": "## The Threat From Inside\n\nFirewalls, Conditional Access, and DLP are built largely to stop outsiders and to block specific risky actions. But the person most able to steal your data is someone who is *supposed* to have it: the engineer who downloads the codebase before joining a competitor, the salesperson who emails the client list to a personal account, the contractor who copies a project folder to USB on their last day. **Microsoft Purview Insider Risk Management (IRM)** exists to surface exactly these situations. Where DLP blocks one event, IRM builds a **risk picture of a person over time** by correlating many weak signals into a strong one, while carefully protecting the privacy of the people it observes.\n\n## Risk Indicators and Policy Templates\n\nIRM is driven by **indicators**, the signals it watches, and **policy templates**, pre-built scenarios that select relevant indicators and scoring.\n\n**Indicators** include things like: downloading large numbers of files from SharePoint, copying files to USB or personal cloud, printing, emailing to external or personal domains, renaming files in a way that hides content, accessing sites the user does not normally touch, and Defender/endpoint security alerts. Some indicators are **HR-context** signals delivered via the **HR connector**, such as a resignation date or a performance improvement plan.\n\n**Policy templates** assemble indicators into scenarios:\n\n- **Data theft by departing users** - weights exfiltration around a resignation/termination date.\n- **Data leaks** - general unauthorized sharing or exfiltration of sensitive data, optionally tied to DLP policy matches.\n- **Security policy violations** - risky activity from users who trigger Defender alerts or violate security policy, including priority-user variants.\n- Additional templates cover risky browser usage, risky AI usage, and patient data misuse in healthcare.\n\nYou choose a template, scope it to users or groups, set thresholds, and the policy begins scoring activity into **low / medium / high** risk.\n\n## Sequence Detection: Telling the Story\n\nA single download is rarely alarming. What matters is the **chain**. **Sequence detection** links related activities into an ordered narrative, for example:\n\n```text\n1. Collect    -> download 400 files from a SharePoint site\n2. Obfuscate  -> rename / zip / change file extensions\n3. Exfiltrate -> copy the archive to USB or upload to personal cloud\n```\n\nSeeing collect -> obfuscate -> exfiltrate as one sequence signals **intent** far more strongly than any single step, and it gives the analyst the full exfiltration path on a timeline rather than a pile of disconnected events.\n\n## Cumulative Exfiltration and Mass-Download Anomalies\n\nThe other key analytic is **cumulative exfiltration detection**. Insiders often stay quiet per-event, ten files here, an email there, a small upload later, so that no single action trips a threshold. IRM aggregates exfiltration activity **across channels and over time** and flags **anomalous aggregation**: a user whose total data movement is abnormal compared to their own baseline and their peers. This is precisely how you catch the **mass download** and **unusual data aggregation** patterns of a high-risk user who is deliberately staying under per-action limits. Anomaly-based scoring compares a user against historical norms so that 'normal busy' does not generate noise but a genuine spike does.\n\n## Privacy by Design: Pseudonymization\n\nA tool that profiles employees must be built to **prevent its own abuse**. IRM applies **privacy-by-design**:\n\n- **Pseudonymization is on by default** - usernames and emails are replaced with anonymized aliases throughout the investigation UI, so analysts triage **behaviour, not identity**, reducing bias.\n- Revealing a real identity is a **separate, role-gated action** that is itself audited.\n- Policies can be scoped, and many regions require works-council or privacy sign-off before deployment.\n\nThis is not a nice-to-have; it is what makes an insider risk program **legally and ethically defensible**.\n\n## Triage, Investigation, and Case Management\n\nThe operational lifecycle moves an alert from noise to decision:\n\n1. **Alerts** - the policy generates alerts when a user's scored activity crosses thresholds.\n2. **Triage** - an analyst reviews the alert in the (pseudonymized) activity view, looking at the timeline, sequences, and contributing indicators, and marks it **confirmed**, **dismissed**, or needing escalation.\n3. **Cases** - confirmed alerts are escalated into a **case**, a container for deeper investigation that aggregates all of a user's activity, supports notes, and integrates with **eDiscovery** and collaboration for legal/HR.\n4. **Actions** - outcomes include user notifications, escalation to HR or legal, automatic creation of an eDiscovery case, or remediation. All steps are logged in the audit trail.\n\n## Separation of Duties via RBAC\n\nIRM ships distinct **role groups** so that no one person controls the whole pipeline:\n\n- **Insider Risk Management Admins** configure policies but do not investigate.\n- **Analysts** triage and investigate with **pseudonymized** data.\n- **Investigators** can view real identities and manage cases.\n- **Auditors** review the program's own activity.\n\nSplitting *who defines monitoring* from *who investigates* from *who can unmask identities* enforces **separation of duties**, preventing the tool from becoming a surveillance weapon and satisfying privacy regulators.\n\n## A Brief Look at Communication Compliance\n\nWhere IRM watches data movement, **Communication Compliance** watches **communications** for risky or non-compliant content across Exchange, Teams, Viva Engage, and connected third-party channels. It uses policies and classifiers to detect things like harassment, threats, regulatory violations, or potential leakage in messages, then routes flagged items to designated reviewers, again with pseudonymization and role-based access to protect privacy. Together, IRM and Communication Compliance cover the **human side** of data governance: not just what the data is, but how trusted people handle and discuss it.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Insider Risk Management and Communication Compliance",
+      "sub": "Catching risky behaviour by people who already have access",
+      "narration": "Not every threat comes from outside. The person best positioned to steal your data is often someone who is supposed to have it. In this lesson we explore Purview Insider Risk Management: how it builds a risk picture of a person over time, detects exfiltration sequences and mass downloads, and does it all while protecting the privacy of the people it observes. We close with a look at Communication Compliance."
+    },
+    {
+      "type": "content",
+      "title": "The Threat From Inside",
+      "bullets": [
+        "Departing engineer downloads the codebase",
+        "Salesperson emails the client list to a personal account",
+        "DLP blocks one event; IRM profiles risk over time",
+        "Correlates many weak signals into one strong picture"
+      ],
+      "narration": "Perimeter controls and DLP largely stop outsiders or block single actions. But trusted insiders already hold legitimate access. Insider Risk Management exists for the departing engineer, the salesperson exfiltrating a client list, the contractor copying files on their last day. Where DLP blocks a single event, IRM correlates many weak signals into a strong risk picture of a person over time, while protecting privacy."
+    },
+    {
+      "type": "content",
+      "title": "Indicators and Policy Templates",
+      "bullets": [
+        "Indicators: mass download, USB copy, personal-email send, rename",
+        "HR connector adds resignation date and similar context",
+        "Templates: data theft by departing users, data leaks",
+        "Also security policy violations and risky AI usage"
+      ],
+      "narration": "IRM watches indicators, signals like downloading many files, copying to USB, emailing to personal domains, or renaming to hide content, and it can ingest HR context such as a resignation date through the HR connector. Policy templates assemble those indicators into scenarios: data theft by departing users, general data leaks, security policy violations, and newer templates for risky browser and AI usage."
+    },
+    {
+      "type": "content",
+      "title": "Departing-User Data Theft",
+      "bullets": [
+        "Template weights activity around the resignation date",
+        "HR connector supplies the leaving/termination date",
+        "Catches the two-week pre-departure download spree",
+        "Scores activity into low, medium, or high risk"
+      ],
+      "narration": "The data theft by departing users template is purpose-built for the classic case: someone resigns, then over the following weeks downloads large volumes and copies them to USB. By ingesting the resignation date from the HR connector, the policy raises the weighting of exfiltration around that date, so the pre-departure download spree stands out and scores as high risk."
+    },
+    {
+      "type": "content",
+      "title": "Sequence Detection: The Story",
+      "bullets": [
+        "Links related activities into an ordered narrative",
+        "Collect -> obfuscate -> exfiltrate",
+        "The chain signals intent more than any single step",
+        "Gives analysts the full exfiltration path on a timeline"
+      ],
+      "code": "1. Collect    download 400 SharePoint files\n2. Obfuscate  rename / zip / change extensions\n3. Exfiltrate copy to USB or personal cloud",
+      "narration": "A single download is rarely alarming; the chain is what matters. Sequence detection links related actions into an ordered story: collect, then obfuscate, then exfiltrate. Seeing that whole path as one sequence signals intent far more strongly than any isolated event, and it presents the analyst with the complete exfiltration timeline instead of scattered, disconnected logs."
+    },
+    {
+      "type": "content",
+      "title": "Cumulative Exfiltration Anomalies",
+      "bullets": [
+        "Insiders stay quiet per-event to dodge thresholds",
+        "IRM aggregates exfiltration across channels and time",
+        "Flags anomalous aggregation vs the user's own baseline",
+        "Catches mass downloads and unusual data aggregation"
+      ],
+      "narration": "Smart insiders keep each action small so nothing trips a threshold. Cumulative exfiltration detection adds up activity across channels and over time, then flags users whose total data movement is anomalous compared to their own history and their peers. This is how you catch the slow, deliberate mass download and unusual aggregation by a high-risk user who is staying under per-action limits."
+    },
+    {
+      "type": "content",
+      "title": "Privacy by Design: Pseudonymization",
+      "bullets": [
+        "Pseudonymization is on by default",
+        "Usernames replaced with anonymized aliases in the UI",
+        "Analysts assess behaviour, not identity, reducing bias",
+        "Revealing identity is a separate, audited, role-gated action"
+      ],
+      "narration": "A tool that profiles employees must prevent its own abuse. IRM enables pseudonymization by default, masking names and emails with anonymized aliases so analysts triage behaviour rather than a person, which reduces bias. Revealing a real identity is a separate, role-gated, audited action. This privacy-by-design approach is what makes an insider risk program ethically and legally defensible."
+    },
+    {
+      "type": "content",
+      "title": "Triage, Cases, and Separation of Duties",
+      "bullets": [
+        "Alerts -> triage (confirm/dismiss) -> escalate to a case",
+        "Cases aggregate activity and integrate with eDiscovery",
+        "Roles: Admins configure, Analysts triage, Investigators unmask",
+        "Splitting these roles enforces separation of duties"
+      ],
+      "narration": "Operationally, policies raise alerts, analysts triage them in the pseudonymized view, and confirmed alerts escalate into cases that aggregate the user's activity and integrate with eDiscovery for legal and HR. Role groups keep the pipeline honest: admins configure policies, analysts triage with masked data, and investigators can unmask identities. Separating these duties stops the tool from becoming a surveillance weapon."
+    },
+    {
+      "type": "content",
+      "title": "Communication Compliance",
+      "bullets": [
+        "Watches communications, not just data movement",
+        "Exchange, Teams, Viva Engage, and connected channels",
+        "Detects harassment, threats, regulatory violations, leakage",
+        "Same privacy controls: pseudonymization and RBAC"
+      ],
+      "narration": "Where IRM watches data movement, Communication Compliance watches communications across Exchange, Teams, Viva Engage, and connected third-party channels for risky content like harassment, threats, regulatory breaches, or leakage, routing flagged items to reviewers under the same pseudonymization and role-based controls. Together they govern the human side of data: not just what it is, but how trusted people handle and discuss it."
+    }
+  ]
+}
