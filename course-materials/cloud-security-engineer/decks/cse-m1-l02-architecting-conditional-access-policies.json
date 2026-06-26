@@ -1,0 +1,186 @@
+{
+  "slug": "cse-m1-l02-architecting-conditional-access-policies",
+  "title": "Architecting Conditional Access Policies",
+  "month": 1,
+  "monthTitle": "Zero Trust Identity & Entra ID Governance",
+  "lesson": 2,
+  "video": "cse-m1-l02-architecting-conditional-access-policies.mp4",
+  "summary": "Conditional Access is the Zero Trust policy engine for identity — the place where signals become real-time allow, block, or limit decisions. This lesson breaks a policy into its parts: assignments (who and what), conditions/signals (risk, device, location, app), grant controls (require MFA, compliant device, phishing-resistant MFA), and session controls (sign-in frequency, app-enforced restrictions). You'll learn the safe-rollout discipline of report-only mode, why every tenant needs excluded break-glass accounts, and how to assemble a layered baseline. The lesson includes a realistic policy expressed as Microsoft Graph JSON.",
+  "objectives": [
+    "Describe Conditional Access as the policy decision point that enforces Zero Trust 'verify explicitly'",
+    "Decompose a policy into assignments, conditions, grant controls, and session controls",
+    "Select the correct signals — sign-in risk, user risk, device compliance, location, client app — for a given scenario",
+    "Choose appropriate grant controls including require MFA, require compliant device, and require phishing-resistant MFA",
+    "Apply report-only mode and a phased rollout to deploy policies without locking users out",
+    "Design break-glass emergency accounts and exclude them from blocking policies",
+    "Assemble a layered Conditional Access baseline expressed as Microsoft Graph JSON"
+  ],
+  "quiz": [
+    {
+      "q": "In Zero Trust terms, what role does Conditional Access play?",
+      "options": [
+        "It is the data classification engine for files and email",
+        "It is the policy decision point that evaluates signals and enforces access decisions in real time",
+        "It is the endpoint EDR sensor that detects malware",
+        "It is the SIEM that stores and queries long-term logs"
+      ],
+      "answer": 1,
+      "why": "Conditional Access is the identity policy engine: at sign-in it gathers signals (user, risk, device, location, app) and outputs a decision — allow, block, or allow-with-controls. That real-time enforcement is exactly 'verify explicitly'. Classification is Purview, EDR is Defender for Endpoint, and the SIEM is Sentinel."
+    },
+    {
+      "q": "A Conditional Access policy is built from assignments and access controls. Which option lists the assignment (the 'if') components correctly?",
+      "options": [
+        "Users/groups, target resources (apps/actions), and conditions (risk, device, location, client app)",
+        "Sensitivity labels, retention policies, and DLP rules",
+        "Antivirus signatures, firewall rules, and IP allow-lists only",
+        "Mailbox permissions, license SKUs, and group memberships only"
+      ],
+      "answer": 0,
+      "why": "Assignments define WHO and WHAT a policy applies to: users and groups (with exclusions), target resources such as cloud apps or user actions, and conditions like sign-in risk, user risk, device platform/state, locations, and client apps. The access controls (grant and session) then define the THEN."
+    },
+    {
+      "q": "Which grant control gives the strongest protection against real-time phishing and adversary-in-the-middle token theft?",
+      "options": [
+        "Require multifactor authentication using SMS text messages",
+        "Require a password change every 30 days",
+        "Require phishing-resistant MFA (FIDO2 security key, passkey, or Windows Hello for Business)",
+        "Require security questions in addition to a password"
+      ],
+      "answer": 2,
+      "why": "Phishing-resistant MFA — FIDO2/passkeys, Windows Hello for Business, or certificate-based authentication — binds the credential to the legitimate site and device, defeating adversary-in-the-middle proxies that can relay SMS or push approvals. SMS and security questions are phishable; password rotation does nothing against token theft."
+    },
+    {
+      "q": "Why should you deploy a new blocking Conditional Access policy in report-only mode first?",
+      "options": [
+        "Report-only mode encrypts the sign-in logs",
+        "Report-only evaluates the policy and logs what WOULD happen without enforcing it, so you can find impact before locking users out",
+        "Report-only mode automatically excludes all guests",
+        "It is required before you can assign any users"
+      ],
+      "answer": 1,
+      "why": "Report-only mode runs the policy logic against real sign-ins and records the result (would grant / would block / would require control) in the sign-in logs and the What If tool, without affecting users. This lets you validate scope and catch unintended impact — like blocking a service account — before turning the policy On."
+    },
+    {
+      "q": "What is the purpose of break-glass (emergency access) accounts, and how should they relate to Conditional Access?",
+      "options": [
+        "They are everyday admin accounts that should be in every MFA policy",
+        "They are highly-protected, monitored emergency accounts that are EXCLUDED from blocking CA policies so a misconfigured policy or MFA outage can't lock everyone out",
+        "They are guest accounts used for vendor access",
+        "They are disabled accounts kept for auditing only"
+      ],
+      "answer": 1,
+      "why": "Break-glass accounts are a small number of cloud-only, highly-protected accounts excluded from policies that could otherwise cause a tenant-wide lockout (for example if an MFA provider fails or a CA policy is misconfigured). They use long, unique credentials, are tightly monitored with alerts on every sign-in, and are used only in emergencies."
+    },
+    {
+      "q": "In three to five sentences, design a minimal but layered Conditional Access baseline for a mid-sized tenant and explain what each layer enforces and why the order/exclusions matter.",
+      "answer": "Layer one blocks legacy authentication protocols for all users, because legacy auth cannot do MFA and is the most common path for password-spray attacks. Layer two requires MFA (ideally phishing-resistant) for all users accessing all cloud apps, establishing the 'verify explicitly' baseline. Layer three requires a compliant or hybrid-joined device for sensitive or admin applications, tying access to endpoint health from Intune. Layer four uses Identity Protection signals so that high sign-in risk is blocked and high user risk forces a secure password change. Across all of these, a small set of break-glass accounts is excluded so a misconfiguration or MFA outage cannot lock administrators out of the tenant.",
+      "why": "A good baseline layers controls from broad hygiene (block legacy auth, require MFA) to targeted hardening (compliant device for sensitive apps) to adaptive risk response (Identity Protection), always with break-glass exclusions to preserve recoverability."
+    }
+  ],
+  "resources": [
+    {
+      "label": "What is Conditional Access?",
+      "url": "https://learn.microsoft.com/en-us/entra/identity/conditional-access/overview"
+    },
+    {
+      "label": "Conditional Access policy components",
+      "url": "https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-conditional-access-policies"
+    },
+    {
+      "label": "Manage emergency access (break-glass) accounts",
+      "url": "https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/security-emergency-access"
+    },
+    {
+      "label": "Plan a Conditional Access deployment",
+      "url": "https://learn.microsoft.com/en-us/entra/identity/conditional-access/plan-conditional-access"
+    }
+  ],
+  "body_markdown": "## Conditional Access Is the Policy Engine\n\nIn Lesson 1 we said Zero Trust has a central policy engine that turns signals into decisions. In Microsoft Entra ID, that engine is **Conditional Access (CA)**. Think of it as an `if-then` statement evaluated on **every sign-in**: *IF* a particular user, accessing a particular resource, under particular conditions (risk, device, location, app), *THEN* allow, block, or allow only with extra controls.\n\nCA is where 'verify explicitly' becomes real. It does not replace authentication — it sits *after* the first factor and decides what else is required before a token is issued. Because tokens gate access to every Microsoft 365 and integrated app, CA is the single most important identity control you will design. Get it right and a stolen password is nearly useless; get it wrong and you either lock out your company or leave the door open.\n\n## Anatomy of a Policy: Assignments vs. Access Controls\n\nEvery CA policy has two halves.\n\n**Assignments (the IF):**\n- **Users and groups** — who the policy targets, with **exclusions** (this is where break-glass accounts go).\n- **Target resources** — cloud apps, user actions (e.g., *register security info*), or authentication context.\n- **Conditions / signals** — the contextual inputs: sign-in risk, user risk, device platforms, device state (compliant/hybrid-joined), locations, and client apps (browser, mobile/desktop, legacy).\n\n**Access controls (the THEN):**\n- **Grant controls** — block access, or grant *only if* controls are met: require MFA, require **phishing-resistant** MFA, require a **compliant device**, require hybrid-joined device, require approved client app, require app protection policy. Combine with *require all* or *require one*.\n- **Session controls** — shape the session even after access is granted: **sign-in frequency**, **persistent browser**, **app-enforced restrictions** (e.g., limited web-only access to Exchange/SharePoint), and Conditional Access App Control via Defender for Cloud Apps.\n\n## The Signals That Drive Decisions\n\nCA is only as smart as the signals it can read. The key ones:\n\n- **User/group membership** — the baseline scope.\n- **Sign-in risk** (from Microsoft Entra **Identity Protection**) — the probability *this specific sign-in* is not the legitimate user (impossible travel, anonymous IP, malware-linked IP).\n- **User risk** (also Identity Protection) — the probability the *account itself* is compromised (leaked credentials found, atypical behavior over time).\n- **Device compliance / state** — comes from **Microsoft Intune**: is the device enrolled, compliant with policy (encryption, OS version, defender healthy), or hybrid-joined? This is the bridge between the identity and endpoint pillars.\n- **Location** — named locations / trusted IPs or country-based conditions.\n- **Client app** — modern auth browser/desktop vs. **legacy authentication** (POP, IMAP, SMTP, older Office). Legacy auth can't do MFA and should be blocked outright.\n\n## A Realistic Policy as Graph JSON\n\nCA policies are objects you can read and deploy via Microsoft Graph. Below is a policy that **requires phishing-resistant MFA for all users on all apps**, in **report-only** mode, excluding break-glass accounts. Note `grantControls.authenticationStrength` referencing the built-in phishing-resistant strength.\n\n```json\n{\n  \"displayName\": \"CA001 - Require phishing-resistant MFA for all users\",\n  \"state\": \"enabledForReportingButNotEnforced\",\n  \"conditions\": {\n    \"users\": {\n      \"includeUsers\": [\"All\"],\n      \"excludeUsers\": [\n        \"<break-glass-1-objectId>\",\n        \"<break-glass-2-objectId>\"\n      ]\n    },\n    \"applications\": {\n      \"includeApplications\": [\"All\"]\n    },\n    \"clientAppTypes\": [\"all\"]\n  },\n  \"grantControls\": {\n    \"operator\": \"AND\",\n    \"authenticationStrength\": {\n      \"id\": \"00000000-0000-0000-0000-000000000004\"\n    }\n  }\n}\n```\n\nA second policy blocks **legacy authentication**, which cannot satisfy MFA at all:\n\n```json\n{\n  \"displayName\": \"CA002 - Block legacy authentication\",\n  \"state\": \"enabledForReportingButNotEnforced\",\n  \"conditions\": {\n    \"users\": { \"includeUsers\": [\"All\"], \"excludeUsers\": [\"<break-glass-1-objectId>\"] },\n    \"applications\": { \"includeApplications\": [\"All\"] },\n    \"clientAppTypes\": [\"exchangeActiveSync\", \"other\"]\n  },\n  \"grantControls\": { \"operator\": \"OR\", \"builtInControls\": [\"block\"] }\n}\n```\n\nDeploy and inspect policies with Graph PowerShell, for example `Get-MgIdentityConditionalAccessPolicy` and `New-MgIdentityConditionalAccessPolicy -BodyParameter $json`.\n\n## Safe Rollout: Report-Only, What If, and Phasing\n\nNever flip a tenant-wide blocking policy straight to **On**. The discipline:\n\n1. **Report-only mode** (`enabledForReportingButNotEnforced`) — the policy is evaluated on real sign-ins and the result is logged (would-grant / would-block / would-require-control) **without** affecting users. Watch the sign-in logs and the report-only workbook for days.\n2. **What If tool** — simulate a specific user, app, and conditions to see which policies apply and why.\n3. **Phased enforcement** — pilot on a small group, then ring out to the org; keep exclusion groups for users who need temporary relief.\n4. **Monitor after enabling** — confirm no spike in failures or help-desk tickets before declaring success.\n\nThis is the difference between an architect and someone who locks out the CEO on a Friday afternoon.\n\n## Break-Glass Accounts and the Layered Baseline\n\n**Break-glass (emergency access) accounts** are your insurance against a CA mistake or an MFA-provider outage locking everyone out. Best practice: at least **two** cloud-only accounts (`*.onmicrosoft.com`), Global Administrator, with **long unique passphrases** stored offline, **excluded** from blocking CA policies, and wired to **alerts on every sign-in** so any real use is noticed immediately.\n\nWith that safety net, layer the baseline from broad hygiene to adaptive response:\n\n1. **Block legacy authentication** (CA002 above) — kills the easiest password-spray path.\n2. **Require MFA / phishing-resistant MFA for all users** (CA001) — the core 'verify explicitly' control.\n3. **Require a compliant or hybrid-joined device for sensitive/admin apps** — ties access to Intune endpoint health.\n4. **Identity Protection risk policies** — **high sign-in risk → block**; **high user risk → require secure password change** (self-remediation via MFA).\n\nEach layer maps to a Zero Trust principle, and every layer carries the same break-glass exclusion. That is a defensible, portfolio-grade Conditional Access architecture.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Architecting Conditional Access Policies",
+      "sub": "Turning Zero Trust signals into real-time access decisions",
+      "narration": "In the last lesson we said Zero Trust needs a central policy engine. In Microsoft Entra ID, that engine is Conditional Access. This lesson takes it apart piece by piece: the signals it reads, the controls it enforces, and the safe-rollout discipline that keeps you from locking out your own company. By the end you'll be able to design a layered Conditional Access baseline and express it as Microsoft Graph JSON."
+    },
+    {
+      "type": "content",
+      "title": "CA Is an If-Then on Every Sign-In",
+      "bullets": [
+        "Evaluated at every sign-in, after the first factor",
+        "IF user + resource + conditions, THEN allow/block/limit",
+        "Decides what's required before a token is issued",
+        "This is 'verify explicitly' made operational"
+      ],
+      "narration": "Think of Conditional Access as an if-then statement run on every single sign-in. If a given user, reaching a given resource, under given conditions like risk or device state, then allow, block, or allow only with extra controls. It runs after the first factor and decides what else is needed before a token is issued. Because tokens gate every connected app, this is the most important identity control you'll design."
+    },
+    {
+      "type": "content",
+      "title": "Anatomy: Assignments vs Controls",
+      "bullets": [
+        "Assignments (IF): users/groups, target resources, conditions",
+        "Grant controls (THEN): require MFA, compliant device, block",
+        "Session controls: sign-in frequency, app-enforced restrictions",
+        "Exclusions live in assignments — this is where break-glass goes"
+      ],
+      "narration": "Every policy has two halves. Assignments are the if: which users and groups, which apps or actions, and under which conditions. The access controls are the then. Grant controls require things like MFA, a compliant device, or block outright. Session controls shape the session afterward, things like sign-in frequency and app-enforced restrictions. And note: exclusions live in the assignment half, which is exactly where your emergency accounts belong."
+    },
+    {
+      "type": "content",
+      "title": "The Signals That Drive Decisions",
+      "bullets": [
+        "Sign-in risk and user risk from Identity Protection",
+        "Device compliance / state from Microsoft Intune",
+        "Location (named locations, country)",
+        "Client app — block legacy authentication outright"
+      ],
+      "narration": "Conditional Access is only as smart as its signals. Identity Protection feeds two: sign-in risk, the chance this login is not the real user, and user risk, the chance the account itself is compromised. Intune feeds device compliance, the bridge to the endpoint pillar. Location and client app round it out. The client-app signal matters a lot, because legacy authentication can't do MFA and should simply be blocked."
+    },
+    {
+      "type": "content",
+      "title": "Require Phishing-Resistant MFA (JSON)",
+      "bullets": [
+        "Authentication strength references a built-in phishing-resistant policy",
+        "FIDO2 / passkeys / Windows Hello / certificate auth",
+        "Defeats adversary-in-the-middle token theft",
+        "Note state: enabledForReportingButNotEnforced = report-only"
+      ],
+      "code": "{\n  \"displayName\": \"CA001 - Phishing-resistant MFA for all\",\n  \"state\": \"enabledForReportingButNotEnforced\",\n  \"conditions\": {\n    \"users\": { \"includeUsers\": [\"All\"],\n      \"excludeUsers\": [\"<break-glass-objectId>\"] },\n    \"applications\": { \"includeApplications\": [\"All\"] },\n    \"clientAppTypes\": [\"all\"]\n  },\n  \"grantControls\": {\n    \"operator\": \"AND\",\n    \"authenticationStrength\": {\n      \"id\": \"00000000-0000-0000-0000-000000000004\"\n    }\n  }\n}",
+      "narration": "Here's a real policy as Graph JSON. It requires phishing-resistant MFA for all users on all apps. The authentication strength id points at the built-in phishing-resistant strength, which means FIDO2 keys, passkeys, Windows Hello, or certificate auth, credentials bound to the real site that defeat adversary-in-the-middle proxies. Notice the state: enabled for reporting but not enforced. That's report-only, and it's how we start."
+    },
+    {
+      "type": "content",
+      "title": "Block Legacy Authentication",
+      "bullets": [
+        "Legacy auth (POP, IMAP, SMTP, old Office) can't do MFA",
+        "It's the top path for password-spray attacks",
+        "Target clientAppTypes: exchangeActiveSync and other",
+        "Grant control: block"
+      ],
+      "code": "{\n  \"displayName\": \"CA002 - Block legacy authentication\",\n  \"state\": \"enabledForReportingButNotEnforced\",\n  \"conditions\": {\n    \"users\": { \"includeUsers\": [\"All\"],\n      \"excludeUsers\": [\"<break-glass-objectId>\"] },\n    \"applications\": { \"includeApplications\": [\"All\"] },\n    \"clientAppTypes\": [\"exchangeActiveSync\", \"other\"]\n  },\n  \"grantControls\": {\n    \"operator\": \"OR\", \"builtInControls\": [\"block\"]\n  }\n}",
+      "narration": "This companion policy blocks legacy authentication. Old protocols like POP, IMAP, SMTP, and legacy Office can't perform MFA at all, so they're the favorite path for password-spray attacks. We scope the client app types to exchange active sync and other, then simply block. This one policy closes a door that no amount of MFA elsewhere can protect."
+    },
+    {
+      "type": "content",
+      "title": "Safe Rollout Discipline",
+      "bullets": [
+        "Start in report-only — logs impact without enforcing",
+        "Use the What If tool to simulate specific users",
+        "Phase: pilot group, then ring out to the org",
+        "Monitor sign-in logs before declaring success"
+      ],
+      "narration": "Never flip a tenant-wide block straight to on. Start in report-only so the policy is evaluated against real sign-ins and logged, but nobody is affected. Use the What If tool to simulate a specific user, app, and condition. Then phase enforcement from a pilot group outward, and watch the sign-in logs for a spike in failures. This discipline is what separates an architect from someone who locks out the CEO on a Friday."
+    },
+    {
+      "type": "content",
+      "title": "Break-Glass + The Layered Baseline",
+      "bullets": [
+        "2+ cloud-only Global Admin accounts, excluded from blocking policies",
+        "Long offline passphrases, alert on every sign-in",
+        "Layer 1-2: block legacy auth, require MFA for all",
+        "Layer 3-4: compliant device for sensitive apps; risk-based block/reset"
+      ],
+      "narration": "Finally, your insurance: at least two cloud-only Global Admin break-glass accounts with long offline passphrases, excluded from blocking policies, and alerting on every use. With that net in place, layer the baseline from broad to adaptive: block legacy auth, require MFA for everyone, require a compliant device for sensitive and admin apps, and use Identity Protection so high sign-in risk is blocked and high user risk forces a secure password reset. That's a defensible, portfolio-grade design."
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "slug": "cloud-security-engineer",
+  "title": "Cloud Security Engineer & M365 Security Architect: Zero Trust to SOC Automation",
+  "description": "A project-based course that bridges the gap between intermediate M365 administration (MD-102/MS-102) and senior security architecture (SC-500). You'll design Zero Trust identity perimeters with Entra ID, unify endpoint security with Intune and Defender for Endpoint, govern data and AI with Microsoft Purview, run a cloud SIEM/SOAR with Microsoft Sentinel and KQL, and automate it all with PowerShell, the Microsoft Graph API, and Logic Apps. You finish by building the three portfolio-grade projects hiring managers look for.",
+  "audience": "M365 administrators, helpdesk/endpoint engineers, and cloud/IT professionals who want to move into a Cloud Security Engineer or M365 Security Architect role and need hands-on, portfolio-building experience aligned to real enterprise job descriptions and the SC-500 exam.",
+  "modules": 6,
+  "lessons": 24,
+  "layout": {
+    "decks": "decks",
+    "lessons": "lessons",
+    "videos": "videos",
+    "studyPacks": "study-packs"
+  },
+  "moduleTitles": {
+    "1": "Zero Trust Identity & Entra ID Governance",
+    "2": "Modern Endpoint Security & Threat Protection",
+    "3": "Data Security & AI Governance with Microsoft Purview",
+    "4": "Cloud SIEM & SOAR Operations with Microsoft Sentinel",
+    "5": "Security Automation with PowerShell, Graph API & Logic Apps",
+    "6": "Capstone Projects & Career Launch"
+  },
+  "generated": true,
+  "targetRole": "Cloud Security Engineer / M365 Security Architect",
+  "targetSkills": [
+    "zero trust architecture",
+    "entra id",
+    "conditional access",
+    "privileged identity management",
+    "identity governance",
+    "microsoft intune",
+    "defender for endpoint",
+    "defender xdr",
+    "attack surface reduction",
+    "microsoft purview",
+    "sensitivity labels",
+    "data loss prevention",
+    "insider risk management",
+    "microsoft 365 copilot security",
+    "microsoft sentinel",
+    "kql",
+    "soar",
+    "defender for cloud",
+    "cspm",
+    "powershell",
+    "microsoft graph api",
+    "logic apps",
+    "sc-500"
+  ]
+}

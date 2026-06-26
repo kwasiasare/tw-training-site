@@ -1,0 +1,184 @@
+{
+  "slug": "cse-m2-l03-risk-based-automated-device-isolation",
+  "title": "Risk-Based Automated Device Isolation",
+  "month": 2,
+  "monthTitle": "Modern Endpoint Security & Threat Protection",
+  "lesson": 3,
+  "video": "cse-m2-l03-risk-based-automated-device-isolation.mp4",
+  "summary": "This is the heart of Project 1: a fully closed, human-free containment loop. You will connect three controls so they react to each other automatically. Microsoft Defender for Endpoint detects malicious activity and raises a device's machine risk level; an Intune compliance policy that requires the threat level to be at most Medium then flips that device to noncompliant; and a Conditional Access policy requiring a compliant device immediately blocks the device from Exchange Online, SharePoint, and SaaS apps. You will configure every link, then layer on MDE's manual and automated device isolation and 'restrict app execution' actions for deeper containment.",
+  "objectives": [
+    "Trace the end-to-end risk-based isolation loop from MDE detection to Conditional Access block.",
+    "Configure the Intune compliance rule that maps the MDE machine risk level to a noncompliant state.",
+    "Build the Conditional Access policy that enforces 'require compliant device' on the right apps.",
+    "Tune the loop's timing so containment happens in seconds without human intervention.",
+    "Trigger and reverse MDE device isolation and 'restrict app execution' actions.",
+    "Validate the whole loop with a controlled test detection and document the evidence for a portfolio."
+  ],
+  "quiz": [
+    {
+      "q": "In the automated isolation loop, what is the correct order of cause and effect?",
+      "options": [
+        "Conditional Access blocks -> Intune marks noncompliant -> MDE detects",
+        "MDE raises machine risk -> Intune marks device noncompliant -> Conditional Access blocks access",
+        "Intune detects malware -> MDE blocks -> Conditional Access notifies",
+        "Conditional Access raises risk -> MDE isolates -> Intune reports"
+      ],
+      "answer": 1,
+      "why": "Defender for Endpoint detects and raises the machine risk level, Intune's compliance policy flips the device to noncompliant based on that risk, and Conditional Access then denies access because the device is no longer compliant."
+    },
+    {
+      "q": "Which exact Intune compliance setting is the linchpin that connects MDE risk to compliance?",
+      "options": [
+        "Require BitLocker",
+        "Require the device to be at or under the machine risk score",
+        "Minimum OS version",
+        "Require firewall"
+      ],
+      "answer": 1,
+      "why": "Setting 'Require the device to be at or under the machine risk score' to a threshold like Medium means a High-risk device reported by MDE automatically fails compliance."
+    },
+    {
+      "q": "If you set the compliance threshold to 'Clear', what is the practical effect?",
+      "options": [
+        "Only devices with no risk detections at all stay compliant; even Low risk fails",
+        "All devices are always compliant",
+        "Only High-risk devices fail",
+        "The setting is ignored"
+      ],
+      "answer": 0,
+      "why": "'Clear' is the strictest threshold: any nonzero risk level (Low, Medium, or High) makes the device noncompliant, so it should be used carefully to avoid blocking users on benign low-severity signals."
+    },
+    {
+      "q": "What does the MDE 'Isolate device' action do that the Conditional Access block does not?",
+      "options": [
+        "Nothing different",
+        "It cuts the device off from network communication at the OS level while keeping the MDE connection for investigation",
+        "It deletes the device from Entra ID",
+        "It only sends an email"
+      ],
+      "answer": 1,
+      "why": "Device isolation severs the machine's network connectivity at the endpoint (except its link to the Defender service), containing lateral movement, whereas the Conditional Access block only denies access to cloud apps."
+    },
+    {
+      "q": "Why is this loop considered 'containment in seconds without human intervention'?",
+      "options": [
+        "Because an analyst must approve each step quickly",
+        "Because the three controls react to each other automatically via shared signals, with no ticket or manual action required",
+        "Because it only works during business hours",
+        "Because it disables the network card permanently"
+      ],
+      "answer": 1,
+      "why": "Each control consumes the previous control's signal automatically: detection raises risk, risk fails compliance, noncompliance triggers the access block, all without a human in the loop."
+    },
+    {
+      "q": "In 2-4 sentences, describe how you would safely test this isolation loop end-to-end without using live malware.",
+      "answer": "Use a controlled, sanctioned test such as the EICAR antivirus test file or a Microsoft-provided MDE evaluation/simulation to trigger a detection on a dedicated pilot device. Watch the device's risk level rise in the Defender portal, confirm Intune flips it to noncompliant, and then attempt to reach Exchange Online or SharePoint to verify Conditional Access blocks it. Capture screenshots and timestamps at each stage as portfolio evidence, then resolve the alert and confirm the device returns to compliant and regains access."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Enforce compliance for Defender for Endpoint with Conditional Access",
+      "url": "https://learn.microsoft.com/en-us/mem/intune/protect/advanced-threat-protection"
+    },
+    {
+      "label": "Take response actions on a device in Defender for Endpoint",
+      "url": "https://learn.microsoft.com/en-us/defender-endpoint/respond-machine-alerts"
+    },
+    {
+      "label": "Conditional Access: Require compliant device",
+      "url": "https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-conditional-access-grant"
+    },
+    {
+      "label": "Device compliance policy settings for Windows",
+      "url": "https://learn.microsoft.com/en-us/mem/intune/protect/compliance-policy-create-windows"
+    }
+  ],
+  "body_markdown": "## The closed loop, end to end\n\nProject 1's centerpiece is a containment loop with **no human in it**. Three controls you already met now talk to each other:\n\n1. **Microsoft Defender for Endpoint** sees malicious behavior on a device and raises its **machine risk level** (Low -> Medium -> High).\n2. **Intune compliance** has a rule: *require the device to be at or under the machine risk score = Medium*. A High-risk device instantly fails and is stamped **noncompliant** in Entra ID.\n3. **Conditional Access** has a policy: *require device to be marked compliant*. The moment the device is noncompliant, sign-in to Exchange Online, SharePoint, Teams, and SaaS apps is **blocked**.\n\nDetection to lockout takes seconds, and nobody opened a ticket. Your job in this lesson is to build and prove each link.\n\n## Link 1: MDE produces the risk signal\n\nThis is already running from Lesson 2 — onboarded devices report risk, and the Intune connector carries that risk into Intune. Confirm the connector is **Available** (Intune > *Endpoint security > Microsoft Defender for Endpoint*) and that *Connect Windows devices...* is **On**. Without this trust, the risk level never reaches compliance and the loop is dead.\n\n## Link 2: compliance converts risk into a state\n\nEdit (or create) your Windows compliance policy and set the **Microsoft Defender for Endpoint** rule:\n\n```text\nRequire the device to be at or under the machine risk score:  Medium\n```\n\nThreshold meanings:\n\n- **Clear** — strictest; any detection (Low+) makes the device noncompliant.\n- **Low** — Low is tolerated; Medium/High fail.\n- **Medium** — Low/Medium tolerated; only **High** fails. A common production balance.\n- **High** — most permissive; only the very worst flips the device.\n\nSet the *Actions for noncompliance* schedule to **0 days** so the state flips immediately — a grace period here would defeat the purpose.\n\n## Link 3: Conditional Access enforces the block\n\nIn Entra, *Protection > Conditional Access > New policy*:\n\n- **Users**: your target population (exclude a break-glass account).\n- **Target resources**: Office 365 (Exchange, SharePoint, Teams) and your SaaS apps.\n- **Grant**: *Require device to be marked as compliant*.\n- Enable in **Report-only** first, confirm in the *Conditional Access Insights* workbook, then set to **On**.\n\nNow the loop is wired: risk -> noncompliant -> blocked.\n\n## Tuning the timing\n\n'Seconds' depends on a few knobs. MDE raises risk almost immediately on detection. Intune re-evaluates compliance on a sync, so the device check-in cadence matters; the noncompliance schedule should be **0 days**. Conditional Access evaluates at sign-in and via **Continuous Access Evaluation (CAE)**, which can revoke active sessions in near real time rather than waiting for token expiry. The net effect is containment that feels instantaneous to the attacker and invisible to your SOC queue.\n\n## Deeper containment: isolate and restrict app execution\n\nConditional Access blocks *cloud* access, but a compromised device can still attack the *local network*. For that, use MDE response actions from the device page in the Defender portal (or via the API/automation):\n\n- **Isolate device** — cuts the machine off from all network communication except its link back to the Defender service, stopping lateral movement while you investigate. Choose *Full* or *Selective* isolation.\n- **Restrict app execution** — applies a code-integrity policy so only Microsoft-signed processes can run, neutering most malware without fully isolating the device.\n- **Run antivirus scan**, **Collect investigation package**, and **Initiate automated investigation** for follow-up.\n\nBoth isolation and restriction are reversible with one click (*Release from isolation* / *Remove app restriction*) once the threat is handled. These can be triggered manually, by automation in Defender XDR (next lesson), or by your own Logic App / Graph automation (Module 5).\n\n## Validate and capture evidence\n\nProve it safely. On a dedicated pilot device, trigger a benign detection (e.g., the **EICAR** test string or a Microsoft MDE simulation). Then watch the chain:\n\n```powershell\n# Generates a harmless EICAR detection to exercise the pipeline\n$e = 'X5O!P%@AP[4\\\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'\nSet-Content -Path \"$env:TEMP\\\\eicar.com\" -Value $e\n```\n\nConfirm: device risk rises in the Defender portal -> device shows **noncompliant** in Intune -> a browser sign-in to Outlook/SharePoint is blocked by Conditional Access. Screenshot each stage with timestamps. Resolve the alert, confirm the device returns to **compliant**, and verify access is restored. That documented round trip is the deliverable for Project 1.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Risk-Based Automated Device Isolation",
+      "sub": "Project 1: containment in seconds, no human required",
+      "narration": "This lesson is the heart of your first portfolio project. We are going to connect three security controls so they react to one another automatically. When Defender for Endpoint spots a threat, the device loses access to corporate resources within seconds, and no analyst has to lift a finger."
+    },
+    {
+      "type": "content",
+      "title": "The closed loop",
+      "bullets": [
+        "MDE detects and raises machine risk level",
+        "Intune compliance flips device to noncompliant",
+        "Conditional Access blocks Exchange, SharePoint, SaaS",
+        "Detection to lockout in seconds, no ticket"
+      ],
+      "narration": "Here is the whole loop on one slide. Detection raises risk, risk fails compliance, and failed compliance triggers the access block. Each control simply consumes the signal from the one before it, which is what makes the whole thing automatic."
+    },
+    {
+      "type": "content",
+      "title": "Link 1: MDE risk signal",
+      "bullets": [
+        "Onboarded devices report risk (Low/Medium/High)",
+        "Intune connector carries risk into Intune",
+        "Connector must show Available",
+        "No connector = no signal = dead loop"
+      ],
+      "narration": "The first link is already running from last lesson. Onboarded devices report a risk level, and the Intune connector carries that signal across. Always confirm the connector shows Available, because without it the rest of the loop simply never fires."
+    },
+    {
+      "type": "content",
+      "title": "Link 2: compliance converts risk",
+      "bullets": [
+        "Rule: device at or under machine risk score",
+        "Clear = strictest, High = most permissive",
+        "Medium is a common production balance",
+        "Noncompliance schedule = 0 days (no grace)"
+      ],
+      "code": "Require device at or under machine risk score: Medium\nActions for noncompliance schedule: 0 days",
+      "narration": "The linchpin setting maps MDE's risk score onto compliance. Pick your threshold deliberately: Clear fails on any detection, Medium only fails on High risk. And set the grace period to zero, because here we want the state to flip the instant risk rises."
+    },
+    {
+      "type": "content",
+      "title": "Link 3: Conditional Access block",
+      "bullets": [
+        "Grant: Require device marked compliant",
+        "Target Office 365 + SaaS apps",
+        "Exclude a break-glass account",
+        "Start report-only, then enable"
+      ],
+      "narration": "The final link is a Conditional Access policy that requires a compliant device. The moment Intune marks the device noncompliant, sign-in is denied. Always exclude a break-glass account and validate in report-only mode before you turn it on for real."
+    },
+    {
+      "type": "content",
+      "title": "Tuning for speed",
+      "bullets": [
+        "MDE raises risk almost instantly",
+        "Compliance schedule at 0 days",
+        "Continuous Access Evaluation revokes live sessions",
+        "Feels instantaneous, invisible to the SOC queue"
+      ],
+      "narration": "Speed comes from a few knobs. Risk rises immediately, the compliance flip is set to zero days, and Continuous Access Evaluation can kill an active session in near real time instead of waiting for the token to expire. The attacker is contained before they can pivot."
+    },
+    {
+      "type": "content",
+      "title": "Deeper containment in MDE",
+      "bullets": [
+        "Isolate device: cut network except Defender link",
+        "Restrict app execution: only signed code runs",
+        "Run AV scan, collect investigation package",
+        "All reversible with one click"
+      ],
+      "narration": "Conditional Access blocks cloud access, but a compromised box can still attack the local network. MDE's isolate action severs that connectivity while keeping the device reachable for investigation, and restrict app execution lets only signed code run. Both are one click to apply and one click to undo."
+    },
+    {
+      "type": "content",
+      "title": "Validate & document",
+      "bullets": [
+        "Trigger a benign EICAR detection on a pilot device",
+        "Watch risk rise, compliance flip, access block",
+        "Screenshot each stage with timestamps",
+        "Resolve, confirm compliant, access restored"
+      ],
+      "code": "$e = 'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR' +\n  '-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'\nSet-Content \"$env:TEMP\\eicar.com\" -Value $e",
+      "narration": "Prove the loop safely with the EICAR test file, never live malware. Capture the risk rising, the device going noncompliant, and the access block, each with a timestamp. That documented round trip is exactly the evidence hiring managers want to see for Project 1."
+    }
+  ]
+}

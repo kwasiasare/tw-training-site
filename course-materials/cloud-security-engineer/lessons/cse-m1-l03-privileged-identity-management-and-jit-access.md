@@ -1,0 +1,170 @@
+---
+course: cloud-security-engineer
+title: Privileged Identity Management and Just-in-Time Admin
+month: 1
+monthTitle: Zero Trust Identity & Entra ID Governance
+lesson: 3
+summary: 'Standing administrative access is one of the largest risks in any tenant: a permanently-assigned
+  Global Admin is a permanently-available target. This lesson teaches Microsoft Entra Privileged Identity
+  Management (PIM), which replaces standing access with eligible, just-in-time access that must be activated
+  with MFA, justification, and optional approval. You''ll learn eligible vs. active assignments, activation
+  settings and maximum duration, access reviews of privileged roles, PIM for groups, and alerting. The
+  goal is zero standing privilege, and the lesson includes a Microsoft Graph PowerShell snippet to make
+  a user eligible for a role.'
+objectives:
+- Contrast standing access with eligible (just-in-time) access and explain why standing privilege is dangerous
+- 'Configure PIM role settings: activation duration, require MFA, require justification, and approval
+  workflow'
+- Distinguish eligible vs. active assignments and time-bound vs. permanent assignments
+- Create recurring access reviews for privileged roles and act on the results
+- Use PIM for Groups to bring just-in-time access to group-based and non-role permissions
+- Enable and triage PIM alerts and articulate the principle of zero standing privilege
+- Make a user eligible for a privileged role using Microsoft Graph PowerShell
+video: cse-m1-l03-privileged-identity-management-and-jit-access.mp4
+quiz:
+- q: What is the key difference between an 'eligible' and an 'active' PIM role assignment?
+  options:
+  - Eligible means the user can use the role anytime; active means it is disabled
+  - Eligible means the user must activate the role (with MFA/justification) before using it; active means
+    the permissions are granted right now
+  - Eligible roles are read-only; active roles are read-write
+  - There is no functional difference; the terms are interchangeable
+  answer: 1
+  why: An eligible assignment grants nothing until the user activates it through PIM — typically requiring
+    MFA, a justification, and sometimes approval — and the activation is time-bound. An active assignment
+    means the role's permissions are in effect immediately. Eligible-by-default is the just-in-time model
+    that drives toward zero standing privilege.
+- q: Why is permanent (standing) Global Administrator access considered a serious risk?
+  options:
+  - It costs more in licensing than eligible access
+  - A permanently-assigned high-privilege account is always available to an attacker who compromises it,
+    with no activation barrier or time limit
+  - Standing access disables MFA automatically
+  - It prevents the user from signing in to non-admin apps
+  answer: 1
+  why: Standing privilege means the powerful permissions are live 24/7. If the account is phished or its
+    token stolen, the attacker immediately has full admin with no JIT activation gate, no fresh MFA challenge,
+    and no time box. PIM shrinks that exposure window to only the minutes the role is actually activated.
+- q: Which combination of PIM activation settings best enforces Zero Trust for a Global Administrator
+    role?
+  options:
+  - No MFA, no justification, 7-day activation, no approval
+  - Require MFA on activation, require justification, short maximum activation duration, and require approval
+  - Require justification only, with permanent activation
+  - Require approval only, with MFA disabled
+  answer: 1
+  why: Strong PIM settings for a top-tier role combine require MFA at activation (verify explicitly),
+    require a written justification (accountability), a short maximum duration such as a few hours (least
+    privilege in time), and an approval workflow so a second person authorizes the elevation. Together
+    these minimize both the window and the unilateral use of privilege.
+- q: What problem does PIM for Groups solve that role-based PIM alone does not?
+  options:
+  - It backs up group membership to storage
+  - It brings just-in-time, time-bound, approval-gated activation to membership/ownership of groups —
+    useful for app roles, Azure resources, or roles not directly PIM-enabled
+  - It converts security groups into distribution lists
+  - It disables Conditional Access for group members
+  answer: 1
+  why: PIM for Groups makes users *eligible* for group membership or ownership, so activating the group
+    grants whatever that group confers — access to an app, an Azure RBAC scope, or a bundle of permissions
+    — under the same JIT, MFA, justification, and approval controls. It extends zero standing privilege
+    beyond directory roles.
+- q: Why should privileged roles be subject to recurring access reviews even when PIM is enforced?
+  options:
+  - Access reviews replace the need for MFA
+  - Eligibility itself accumulates over time; reviews confirm each person still NEEDS to be eligible and
+    remove stale assignments
+  - Access reviews are required to activate a role
+  - They automatically delete the user account if not reviewed
+  answer: 1
+  why: PIM controls *how* a role is used (JIT activation), but eligibility lists still grow as people
+    change jobs. Recurring access reviews force reviewers (or the users themselves) to attest that each
+    eligible assignment is still justified, removing accumulated, forgotten, or role-changed access —
+    closing the gap PIM activation alone doesn't address.
+- q: In three to five sentences, explain the principle of 'zero standing privilege' and describe how PIM,
+    access reviews, and approval workflows together move a tenant toward it.
+  answer: Zero standing privilege means no account holds active high-privilege permissions by default;
+    privilege exists only as eligibility that must be activated for a short, justified window. PIM delivers
+    this by making admin roles eligible rather than active, so even a compromised admin account has no
+    live privilege until someone passes MFA, supplies a justification, and waits out an approval. Maximum
+    activation durations time-box the access so it auto-expires, and approval workflows ensure a second
+    person authorizes sensitive elevations. Recurring access reviews then prune the eligibility lists
+    so people who no longer need a role lose even the ability to activate it. Together they collapse the
+    attack surface from a permanent target down to a brief, audited, approved window.
+  why: 'Zero standing privilege is the end state of least-privilege-in-time: eligibility plus JIT activation
+    (PIM), time-boxing and approvals to constrain each use, and access reviews to keep the eligibility
+    set minimal and current.'
+resources:
+- label: What is Microsoft Entra Privileged Identity Management?
+  url: https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-configure
+- label: Configure Microsoft Entra role settings in PIM
+  url: https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-how-to-change-default-settings
+- label: Create an access review of Microsoft Entra roles in PIM
+  url: https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-create-roles-and-resource-roles-review
+- label: PIM for Groups
+  url: https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/concept-pim-for-groups
+---
+
+## The Problem: Standing Privilege
+
+Most breaches that end in disaster pass through a **privileged account**. The traditional model gives admins **standing access** — a permanent role assignment that is live every second of every day. That means the powerful permissions are *always* there to be stolen: phish the password, steal the token, or ride an open session, and the attacker instantly *is* a Global Administrator. There is no activation gate, no fresh MFA, no time limit, no second pair of eyes.
+
+Zero Trust's least-privilege principle says access should be **just-enough** and **just-in-time (JIT)**. Applied to admin roles, the end state is **zero standing privilege**: nobody walks around with live admin rights. Instead they hold *eligibility* and elevate only when they actually need to, for a short, audited window. The tool that delivers this in Microsoft Entra ID is **Privileged Identity Management (PIM)**.
+
+## Eligible vs. Active, Permanent vs. Time-Bound
+
+PIM describes assignments along two axes:
+
+- **Eligible vs. Active.** An **eligible** assignment grants *nothing* until the user **activates** it through PIM. An **active** assignment means the permissions are in effect now. The whole point of PIM is to make powerful roles *eligible* by default.
+- **Permanent vs. Time-bound.** Either type can be permanent or given a start/end date. Best practice for privileged roles is **eligible + time-bound** so even the eligibility itself expires and must be renewed.
+
+So a hardened design looks like: *Alice is **eligible** for Global Administrator until the end of the quarter; when she needs it she **activates** for up to 4 hours with MFA, a justification, and approval.* Outside those activations, her account has no admin power at all — there is nothing for an attacker to steal.
+
+## Activation: MFA, Justification, Approval, and Duration
+
+What happens at activation is controlled per role in **PIM role settings**. The levers you'll set:
+
+- **Require Microsoft Entra MFA on activation** — a fresh strong-auth challenge at elevation time (verify explicitly, again).
+- **Require justification** — the user types *why*, creating an audit trail.
+- **Require approval** — one or more designated approvers must say yes before the role activates; great for the most sensitive roles.
+- **Require ticket information** — tie elevation to a change/incident ticket.
+- **Maximum activation duration** — the time box, e.g., 1–8 hours. When it expires, permissions are automatically removed.
+
+Tune by sensitivity: a Global Administrator might require MFA + justification + approval with a 2–4 hour cap; a lower-impact role might need only MFA and justification. The tighter the role, the tighter the gate.
+
+## Making a User Eligible with Graph PowerShell
+
+PIM assignments are schedule requests in Microsoft Graph. The snippet below creates an **eligible** assignment for a role using the `Microsoft.Graph` PowerShell SDK. Replace the IDs with your tenant's values (find role definition IDs with `Get-MgRoleManagementDirectoryRoleDefinition`).
+
+```powershell
+Connect-MgGraph -Scopes "RoleManagement.ReadWrite.Directory"
+
+$params = @{
+  action           = "adminAssign"
+  justification    = "Make Alice eligible for Helpdesk Administrator"
+  roleDefinitionId = "729827e3-9c14-49f7-bb1b-9608f156bbb8"  # Helpdesk Administrator
+  directoryScopeId = "/"
+  principalId      = "<alice-objectId>"
+  scheduleInfo     = @{
+    startDateTime = (Get-Date).ToString("o")
+    expiration    = @{
+      type     = "afterDuration"
+      duration = "P90D"   # eligible for 90 days, then must be renewed
+    }
+  }
+}
+
+New-MgRoleManagementDirectoryRoleEligibilityScheduleRequest -BodyParameter $params
+```
+
+This grants Alice **no live access** — it only makes her *eligible*. She must still activate through PIM (portal or `New-MgRoleManagementDirectoryRoleAssignmentScheduleRequest` with `action = "selfActivate"`), passing whatever MFA/justification/approval the role settings demand.
+
+## Access Reviews of Privileged Roles
+
+PIM controls *how* a role is used, but **eligibility lists still grow**. People change teams, projects end, and old eligibility lingers. **Access reviews** close that gap: schedule a **recurring** review (e.g., monthly or quarterly) of each privileged role's eligible and active members. Reviewers — a manager, a designated owner, or the users themselves via self-attestation — confirm each assignment is still needed; anything not approved is **removed automatically**. For privileged roles, configure reviews to **require justification** and to **remove access on denial or no response**, so silence defaults to *least privilege*, not to lingering rights.
+
+## PIM for Groups, Alerts, and Zero Standing Privilege
+
+Not every permission is a directory role. **PIM for Groups** extends JIT to **group membership and ownership**: make a user *eligible* for a group, and activating it grants whatever the group confers — access to a SaaS app, an Azure RBAC scope, or a bundle of permissions — under the same MFA, justification, approval, and duration controls. This is how you bring zero standing privilege to things that aren't native PIM roles.
+
+Finally, turn on **PIM alerts** and triage them: *'Administrators aren't using their privileged roles'* (prune them), *'Roles are being assigned outside of PIM'* (close the back door), *'There are too many Global Administrators'*, and *'Roles activated too frequently.'* Each alert is a nudge back toward the goal: **zero standing privilege** — eligibility instead of standing rights, short activated windows instead of permanent power, approvals and reviews keeping the whole system honest.

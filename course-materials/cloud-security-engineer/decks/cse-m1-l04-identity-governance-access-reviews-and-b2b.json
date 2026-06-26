@@ -1,0 +1,184 @@
+{
+  "slug": "cse-m1-l04-identity-governance-access-reviews-and-b2b",
+  "title": "Identity Governance: Access Reviews, Entitlement Management, and B2B",
+  "month": 1,
+  "monthTitle": "Zero Trust Identity & Entra ID Governance",
+  "lesson": 4,
+  "video": "cse-m1-l04-identity-governance-access-reviews-and-b2b.mp4",
+  "summary": "PIM governs admin elevation; this lesson governs the whole identity lifecycle for everyone — employees, partners, and guests. You'll learn the Microsoft Entra Identity Governance suite: entitlement management with access packages, catalogs, and lifecycle policies that auto-expire access; access reviews for groups, apps, and guests; and lifecycle workflows that automate joiner, mover, and leaver events. You'll then secure external collaboration with B2B, cross-tenant access settings, and cross-tenant synchronization, and use guest access reviews to stop guest sprawl. Every control ties back to least privilege and Zero Trust.",
+  "objectives": [
+    "Describe the Microsoft Entra Identity Governance suite and the problem each component solves",
+    "Design entitlement management with access packages, catalogs, and lifecycle policies that automatically expire access",
+    "Configure access reviews for groups, applications, and guest users with sensible recurrence and auto-removal",
+    "Automate joiner/mover/leaver events with lifecycle workflows",
+    "Secure external collaboration using B2B and cross-tenant access settings (inbound/outbound trust)",
+    "Explain cross-tenant synchronization and when to use it instead of guest invitations",
+    "Use guest access reviews to prevent guest sprawl and enforce least privilege"
+  ],
+  "quiz": [
+    {
+      "q": "What core problem does entitlement management (access packages) solve?",
+      "options": [
+        "It encrypts files shared with external users",
+        "It bundles the resources a role needs (groups, apps, SharePoint sites) into a requestable package with approval and automatic expiration, so access is governed end-to-end",
+        "It replaces Conditional Access for guest sign-ins",
+        "It stores admin passwords in a vault"
+      ],
+      "answer": 1,
+      "why": "An access package bundles related resources (security/M365 groups, enterprise apps, SharePoint sites) plus the policy for who can request them, who approves, and when they expire. Users request access in one place, approvers grant it, and lifecycle policies auto-expire it — governing the full request-to-removal lifecycle instead of manual one-off grants."
+    },
+    {
+      "q": "In entitlement management, what is the role of a catalog?",
+      "options": [
+        "It is a list of blocked applications",
+        "It is a container that groups the resources and access packages for delegated administration, so non-admins can own packages for their own apps/groups",
+        "It is the audit log of all sign-ins",
+        "It is a Conditional Access policy set"
+      ],
+      "answer": 1,
+      "why": "A catalog is a container of resources (groups, apps, sites) and the access packages built from them. It enables delegation: a department lead can be made a catalog owner and manage access packages for their own resources without being a tenant-wide admin — a least-privilege, self-service governance model."
+    },
+    {
+      "q": "Which scenario is the best fit for a lifecycle workflow?",
+      "options": [
+        "Encrypting an email with a sensitivity label",
+        "Automatically running joiner tasks (enable account, add to groups, send welcome) a set number of days before a new hire's start date, and leaver tasks at termination",
+        "Blocking legacy authentication tenant-wide",
+        "Activating a PIM role for four hours"
+      ],
+      "answer": 1,
+      "why": "Lifecycle workflows automate joiner/mover/leaver (JML) events based on attributes like employeeHireDate and employeeLeaveDateTime — provisioning access before day one and, critically, deprovisioning it at departure so access doesn't linger. That automation is the operational backbone of least privilege across the user lifecycle."
+    },
+    {
+      "q": "What do cross-tenant access settings control in B2B collaboration?",
+      "options": [
+        "The color theme of the guest sign-in page",
+        "Inbound and outbound trust between your tenant and specific partner tenants — which users/apps are allowed, and whether you trust their MFA and device compliance claims",
+        "The amount of storage guests can use in SharePoint",
+        "Whether guests can change their own passwords"
+      ],
+      "answer": 1,
+      "why": "Cross-tenant access settings define, per partner tenant (or as a default), which inbound external users and outbound internal users may collaborate, which apps are in scope, and whether you trust the partner's MFA and device-compliance claims so guests don't have to re-satisfy MFA. This is how you make B2B both usable and Zero-Trust-aligned."
+    },
+    {
+      "q": "When is cross-tenant synchronization (CTS) preferable to standard B2B guest invitations?",
+      "options": [
+        "Never — CTS and B2B are identical",
+        "When a multi-tenant organization wants users from one tenant automatically provisioned and kept in sync as B2B members in another tenant, instead of inviting and managing them one by one",
+        "When you want to block all external access",
+        "When you only need to share a single SharePoint file with one person"
+      ],
+      "answer": 1,
+      "why": "Cross-tenant synchronization automatically creates, updates, and deprovisions B2B users across tenants in the same organization, keeping identities in sync without manual invitations. It's ideal for mergers or multi-tenant enterprises; one-off external sharing is still better served by a standard B2B guest invite."
+    },
+    {
+      "q": "In three to five sentences, explain how access packages, access reviews, lifecycle workflows, and guest access reviews work together to enforce least privilege across the identity lifecycle, and why this matters for Zero Trust.",
+      "answer": "Lifecycle workflows handle the joiner and mover and leaver events automatically, so accounts are provisioned just before they're needed and deprovisioned the moment someone leaves, eliminating orphaned access. Access packages govern in-life entitlements: users request bundled resources, approvers grant them, and lifecycle policies auto-expire the access so nothing is permanent by default. Access reviews periodically force attestation that each remaining group, app, and especially guest assignment is still justified, removing anything stale. Guest access reviews specifically curb guest sprawl, because external accounts otherwise accumulate silently and become forgotten attack surface. Together they keep the set of who-can-access-what minimal and current, which is exactly the least-privilege foundation Zero Trust depends on.",
+      "why": "The four controls cover provisioning (lifecycle workflows), in-life entitlement (access packages with expiry), periodic recertification (access reviews), and external-account hygiene (guest reviews) — a closed loop that continuously drives toward least privilege, the core of Zero Trust identity."
+    }
+  ],
+  "resources": [
+    {
+      "label": "What is Microsoft Entra ID Governance?",
+      "url": "https://learn.microsoft.com/en-us/entra/id-governance/identity-governance-overview"
+    },
+    {
+      "label": "What is entitlement management?",
+      "url": "https://learn.microsoft.com/en-us/entra/id-governance/entitlement-management-overview"
+    },
+    {
+      "label": "What are lifecycle workflows?",
+      "url": "https://learn.microsoft.com/en-us/entra/id-governance/what-are-lifecycle-workflows"
+    },
+    {
+      "label": "Cross-tenant access overview (B2B)",
+      "url": "https://learn.microsoft.com/en-us/entra/external-id/cross-tenant-access-overview"
+    }
+  ],
+  "body_markdown": "## From Admin Elevation to the Whole Lifecycle\n\nLesson 3 governed *admin elevation* with PIM. But least privilege has to apply to **everyone, all the time** — the new hire on day one, the employee who changes departments, the contractor who finishes a project, and the partner guest who was invited two years ago and never removed. **Microsoft Entra Identity Governance** is the suite that automates this whole lifecycle so access is granted appropriately, reviewed regularly, and removed promptly — without an admin manually babysitting every change.\n\nThe suite has four workhorses we'll cover: **entitlement management** (how access is requested and granted), **access reviews** (how access is recertified), **lifecycle workflows** (how joiners/movers/leavers are automated), and **B2B / cross-tenant** controls (how external people collaborate safely). All four serve one goal: keep *who-can-access-what* minimal and current.\n\n## Entitlement Management: Access Packages and Catalogs\n\nManually adding people to groups and apps doesn't scale and leaves no governance trail. **Entitlement management** fixes this with **access packages**.\n\n- An **access package** bundles everything a role needs: security and Microsoft 365 groups, enterprise applications, and SharePoint sites — plus a **policy** describing *who can request it*, *who approves*, and *how long it lasts*.\n- A **catalog** is the container that holds those resources and packages. Catalogs enable **delegation**: a department owner can manage packages for their own resources without being a tenant admin (least privilege for governance itself).\n- **Lifecycle policies** on the package set **automatic expiration** — access lapses after N days or on a date unless the user re-requests and is re-approved. Nothing is permanent by default.\n\nThe user experience: someone visits the **My Access** portal, requests the *'Finance App — Analyst'* package, the finance owner approves, and the right groups/apps/sites are granted automatically — then auto-removed at expiry. Request, approve, expire: governed end-to-end.\n\n## Access Reviews for Groups, Apps, and Guests\n\nGrants drift. People change roles, projects end, and yesterday's appropriate access becomes today's risk. **Access reviews** force periodic **attestation**:\n\n- Scope a review to a **group**, an **application's** assigned users, a **privileged role** (from Lesson 3), or **guest users**.\n- Choose **reviewers**: resource owners, managers, or the users themselves (self-attestation).\n- Set **recurrence** (weekly/monthly/quarterly) and an **auto-apply** action: **remove access if denied or not reviewed**, so inaction defaults to least privilege rather than lingering rights.\n\nFor sensitive resources, require the reviewer to **provide a justification** and enable **decision helpers** (e.g., flag users who haven't signed in). Reviews are the recertification heartbeat of governance.\n\n## Lifecycle Workflows: Joiner / Mover / Leaver\n\n**Lifecycle workflows (LCW)** automate the **JML** events that historically caused the worst access hygiene problems — especially the **leaver**, where forgotten accounts become standing attack surface.\n\n- **Joiner:** triggered relative to `employeeHireDate` — e.g., *2 days before start*, enable the account, add it to baseline groups, generate a temporary access pass, send a welcome email.\n- **Mover:** on attribute change (department/job title) — adjust group memberships and entitlements.\n- **Leaver:** triggered relative to `employeeLeaveDateTime` — disable the account, remove from all groups, revoke sessions/tokens, and reassign or remove access.\n\nWorkflows are built from configurable **tasks** and run on a schedule, with execution history for audit. Pairing LCW with HR-driven inbound provisioning means a person's access tracks their employment automatically.\n\n## Secure B2B and Cross-Tenant Access Settings\n\nExternal collaboration is essential and dangerous. **B2B collaboration** lets partners sign in with *their own* identity (no password for you to manage) as a **guest** in your tenant. **Cross-tenant access settings** make that Zero-Trust-aligned by defining trust **per partner tenant** (and a default):\n\n- **Inbound** — which external users/groups and which of *your* apps they can reach.\n- **Outbound** — which of *your* users can access *partner* tenants and apps.\n- **Trust settings** — whether you **trust the partner's MFA and device-compliance claims**, so a guest who already did phishing-resistant MFA in their home tenant doesn't have to repeat it, and your Conditional Access can require a *compliant device* even for guests.\n\nA hardened default blocks broad external access and explicitly allows named partner tenants and apps — external access by exception, not by default.\n\n## Cross-Tenant Sync and Stopping Guest Sprawl\n\nFor organizations that span **multiple tenants** (mergers, multi-national subsidiaries), inviting guests one by one doesn't scale. **Cross-tenant synchronization (CTS)** automatically **provisions, updates, and deprovisions** B2B users from a source tenant into a target tenant and keeps them in sync — users appear and disappear automatically as their home tenant changes. Use CTS for *same-organization* multi-tenant scenarios; use ordinary B2B invitations for *one-off* external partners.\n\nWhatever the mechanism, guests **accumulate silently** — invited for a project, never removed. That **guest sprawl** is forgotten attack surface. Counter it with **guest-focused access reviews**: recurring reviews of all guests (or guests in sensitive groups), with **remove-on-no-response**, plus inactivity decision helpers to catch guests who haven't signed in for months. \n\nStep back and see the loop: lifecycle workflows provision and deprovision, access packages grant and auto-expire, access reviews recertify, and guest reviews prune external accounts. Together they keep the identity estate minimal and current — the living embodiment of least privilege, and the identity foundation the rest of this course's Zero Trust architecture is built on.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Identity Governance: Access Reviews, Entitlement Management, and B2B",
+      "sub": "Automating least privilege across the entire identity lifecycle",
+      "narration": "PIM governed admin elevation. Now we govern everyone, all the time: the new hire, the employee who changes teams, the contractor who finishes a project, and the partner guest invited two years ago and never removed. Microsoft Entra Identity Governance automates that whole lifecycle so access is granted appropriately, reviewed regularly, and removed promptly. By the end you'll be able to design access packages, reviews, lifecycle workflows, and secure external collaboration."
+    },
+    {
+      "type": "content",
+      "title": "The Governance Suite",
+      "bullets": [
+        "Entitlement management — request and grant access",
+        "Access reviews — recertify access periodically",
+        "Lifecycle workflows — automate joiner/mover/leaver",
+        "B2B + cross-tenant — collaborate with partners safely"
+      ],
+      "narration": "Least privilege has to apply to everyone, continuously, not just to admins. The Identity Governance suite has four workhorses: entitlement management for how access is requested and granted, access reviews for how it's recertified, lifecycle workflows for automating joiners movers and leavers, and the B2B and cross-tenant controls for safe external collaboration. All four serve one goal: keep who-can-access-what minimal and current."
+    },
+    {
+      "type": "content",
+      "title": "Entitlement Management",
+      "bullets": [
+        "Access package bundles groups, apps, and SharePoint sites",
+        "Policy sets who can request, who approves, how long it lasts",
+        "Catalog = container enabling delegated, non-admin ownership",
+        "Lifecycle policy auto-expires access — nothing permanent"
+      ],
+      "narration": "Manually adding people to groups doesn't scale and leaves no trail. Entitlement management fixes that with access packages. A package bundles everything a role needs, groups, apps, and sites, plus a policy for who can request it, who approves, and how long it lasts. Catalogs are containers that let a department owner manage their own packages without being a tenant admin. And lifecycle policies auto-expire access, so nothing is permanent by default."
+    },
+    {
+      "type": "content",
+      "title": "The My Access Experience",
+      "bullets": [
+        "User requests a package in the My Access portal",
+        "Approver grants it; resources assigned automatically",
+        "Access auto-removed at expiry unless re-approved",
+        "Request, approve, expire: governed end-to-end"
+      ],
+      "narration": "Here's the experience. A user visits the My Access portal and requests, say, the Finance App Analyst package. The finance owner approves, and the right groups, apps, and sites are granted automatically. At expiry it's all removed unless they re-request and get re-approved. Request, approve, expire, the full lifecycle is governed in one place instead of scattered manual grants."
+    },
+    {
+      "type": "content",
+      "title": "Access Reviews",
+      "bullets": [
+        "Scope: groups, app assignments, privileged roles, or guests",
+        "Reviewers: owners, managers, or self-attestation",
+        "Recurrence weekly/monthly/quarterly",
+        "Auto-action: remove on denial OR no response"
+      ],
+      "narration": "Grants drift as people change roles. Access reviews force periodic attestation. Scope a review to a group, an app's assigned users, a privileged role, or guests. Pick reviewers, owners, managers, or the users themselves. Set the recurrence, and crucially set the auto-action to remove access on denial or no response, so inaction defaults to least privilege rather than lingering rights. Reviews are the recertification heartbeat of governance."
+    },
+    {
+      "type": "content",
+      "title": "Lifecycle Workflows (JML)",
+      "bullets": [
+        "Joiner: pre-start, enable account, add groups, send welcome",
+        "Mover: on department/title change, adjust entitlements",
+        "Leaver: disable, remove groups, revoke tokens",
+        "Triggered by employeeHireDate / employeeLeaveDateTime"
+      ],
+      "narration": "Lifecycle workflows automate the joiner, mover, and leaver events that historically caused the worst hygiene problems, especially the leaver, where forgotten accounts become standing attack surface. A joiner workflow can enable the account two days before the hire date and add baseline groups. A mover adjusts entitlements on a department change. A leaver disables the account, strips groups, and revokes tokens, all triggered automatically from HR attributes."
+    },
+    {
+      "type": "content",
+      "title": "Secure B2B + Cross-Tenant Access",
+      "bullets": [
+        "B2B: partners sign in with their own identity as guests",
+        "Inbound/outbound settings scope users and apps per partner",
+        "Trust partner MFA + device-compliance claims",
+        "Default: external access by exception, not by default"
+      ],
+      "narration": "External collaboration is essential and risky. B2B lets partners sign in with their own identity as guests, so there's no password for you to manage. Cross-tenant access settings make it Zero-Trust-aligned: you define, per partner tenant, which inbound and outbound users and apps are allowed, and whether you trust their MFA and device-compliance claims so guests don't re-do MFA. Harden the default to allow named partners by exception, not everyone."
+    },
+    {
+      "type": "content",
+      "title": "Cross-Tenant Sync + Stopping Guest Sprawl",
+      "bullets": [
+        "CTS auto-provisions/syncs B2B users across same-org tenants",
+        "Use CTS for mergers/multi-tenant; B2B invites for one-offs",
+        "Guests accumulate silently = forgotten attack surface",
+        "Guest access reviews + inactivity helpers prune them"
+      ],
+      "narration": "For multi-tenant organizations, inviting guests one by one doesn't scale, so cross-tenant synchronization auto-provisions and deprovisions B2B users across tenants in the same org. Use it for mergers and subsidiaries; use ordinary invites for one-off partners. Whatever the method, guests accumulate silently and become forgotten attack surface. Counter that sprawl with recurring guest access reviews that remove on no response, plus inactivity helpers. Provision, grant-and-expire, recertify, prune, that closed loop is least privilege in action, and the identity foundation for everything ahead."
+    }
+  ]
+}

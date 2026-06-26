@@ -1,0 +1,195 @@
+{
+  "slug": "cse-m1-l01-zero-trust-foundations-and-the-security-stack",
+  "title": "Zero Trust Foundations and the Microsoft Security Stack",
+  "month": 1,
+  "monthTitle": "Zero Trust Identity & Entra ID Governance",
+  "lesson": 1,
+  "video": "cse-m1-l01-zero-trust-foundations-and-the-security-stack.mp4",
+  "summary": "This lesson establishes the mental model for the entire course. You'll learn the three Zero Trust principles, the six Zero Trust pillars Microsoft uses to organize defense, and how the cloud shared-responsibility model reshapes who secures what. You'll then map the Microsoft security stack — Entra ID, Intune, Defender for Endpoint, Defender XDR, Purview, and Sentinel — onto those pillars, and see why identity has become the new perimeter. Finally you'll position SC-500 architect skills above your existing MD-102/MS-102 admin knowledge.",
+  "objectives": [
+    "State the three Zero Trust principles and explain what each one changes about traditional network security",
+    "Name the six Zero Trust pillars and give a real control for each",
+    "Explain the cloud shared-responsibility model and identify who secures identity, data, and the host across SaaS, PaaS, and IaaS",
+    "Map each Microsoft security product to the Zero Trust pillar it primarily defends",
+    "Justify why identity is the new perimeter and what 'verify explicitly' means in practice",
+    "Position SC-500 architect responsibilities relative to MD-102/MS-102 administrator tasks"
+  ],
+  "quiz": [
+    {
+      "q": "Which set correctly lists the three core principles of Zero Trust as Microsoft defines them?",
+      "options": [
+        "Encrypt everything, patch everything, log everything",
+        "Verify explicitly, use least-privilege access, assume breach",
+        "Trust the internal network, distrust the internet, audit quarterly",
+        "Single sign-on, multifactor authentication, password rotation"
+      ],
+      "answer": 1,
+      "why": "Zero Trust rests on three principles: verify explicitly (authenticate and authorize on all available signals), use least-privilege access (just-enough and just-in-time), and assume breach (segment, minimize blast radius, verify end-to-end). The other options are useful practices but are not the three principles."
+    },
+    {
+      "q": "An attacker steals valid user credentials and connects from inside the corporate network. Which Zero Trust principle most directly limits the damage?",
+      "options": [
+        "Verify explicitly, because the network location is no longer treated as proof of trust",
+        "Encrypt data at rest, because the files are protected",
+        "Perimeter firewalling, because the VPN blocks the attacker",
+        "Annual access recertification, because the account will eventually be reviewed"
+      ],
+      "answer": 0,
+      "why": "Zero Trust never treats network location as trust. 'Verify explicitly' re-evaluates every access request against signals such as identity, device compliance, and risk — so a valid credential from a trusted network is still challenged, unlike the legacy 'trusted internal network' model."
+    },
+    {
+      "q": "In the cloud shared-responsibility model, which item is ALWAYS the customer's responsibility across SaaS, PaaS, and IaaS?",
+      "options": [
+        "The physical datacenter and host hypervisor",
+        "Patching the underlying operating system",
+        "Information/data and identities/accounts",
+        "The network controller hardware"
+      ],
+      "answer": 2,
+      "why": "Regardless of service model, the customer always owns their data and their identities/accounts (and the access granted to them). Physical hosts and the hypervisor are always Microsoft's; OS and network responsibility shift depending on whether the service is SaaS, PaaS, or IaaS."
+    },
+    {
+      "q": "Which Microsoft product is the primary control plane for the IDENTITY pillar of Zero Trust?",
+      "options": [
+        "Microsoft Intune",
+        "Microsoft Entra ID",
+        "Microsoft Purview",
+        "Microsoft Sentinel"
+      ],
+      "answer": 1,
+      "why": "Microsoft Entra ID (formerly Azure AD) is the identity provider and policy decision point — authentication, Conditional Access, Identity Protection, and PIM all live here. Intune governs endpoints, Purview governs data, and Sentinel provides cross-pillar visibility and automation."
+    },
+    {
+      "q": "Why is identity described as 'the new perimeter' in cloud-first environments?",
+      "options": [
+        "Because firewalls no longer exist in the cloud",
+        "Because users, apps, and data are distributed beyond any network boundary, so the identity is the consistent control point for every access decision",
+        "Because passwords are now unbreakable",
+        "Because all traffic is internal once you adopt the cloud"
+      ],
+      "answer": 1,
+      "why": "When SaaS apps, remote users, and data live outside the corporate LAN, there is no single network edge to defend. The identity — verified with strong, phishing-resistant auth and evaluated by Conditional Access — becomes the consistent enforcement point for who can access what, from which device, under what risk."
+    },
+    {
+      "q": "In two to four sentences, explain how SC-500 architect-level responsibilities differ from the MD-102/MS-102 administrator tasks you may already know, and give one concrete example of a task at each level.",
+      "answer": "MD-102 and MS-102 focus on administering and configuring individual services — for example, enrolling a device in Intune or assigning licenses and managing mailboxes in Microsoft 365. SC-500 sits above this: it is about designing and operating a cross-product security architecture — deciding how identity, endpoint, data, and SIEM controls fit together to enforce Zero Trust across the estate. A concrete architect-level task is designing a layered Conditional Access baseline with PIM and Identity Protection that feeds incidents into Microsoft Sentinel and Defender XDR, then defining the response automation — a system-design and policy decision rather than a single-service configuration step.",
+      "why": "Administrator certifications are scoped to operating specific services; the SC-500 security architect role is scoped to designing the end-to-end Zero Trust security posture and how the products integrate, automate, and respond together."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Zero Trust security overview (Microsoft Learn)",
+      "url": "https://learn.microsoft.com/en-us/security/zero-trust/zero-trust-overview"
+    },
+    {
+      "label": "What is Microsoft Entra ID?",
+      "url": "https://learn.microsoft.com/en-us/entra/fundamentals/whatis"
+    },
+    {
+      "label": "Shared responsibility in the cloud",
+      "url": "https://learn.microsoft.com/en-us/azure/security/fundamentals/shared-responsibility"
+    },
+    {
+      "label": "Microsoft Defender XDR overview",
+      "url": "https://learn.microsoft.com/en-us/defender-xdr/microsoft-365-defender"
+    }
+  ],
+  "body_markdown": "## Why This Lesson Exists\n\nEvery later module in this course — Conditional Access, PIM, Intune and Defender for Endpoint, Purview data governance, Sentinel SIEM/SOAR — is a *piece* of one architecture. If you learn each product in isolation you become a button-clicker. If you learn the **model first**, you become an architect who can explain *why* a control exists and *where* it fits. That model is **Zero Trust**, and this lesson is the map you'll keep returning to.\n\nThe old model was a **castle-and-moat**: a hard network perimeter (firewall, VPN) with a soft, trusted interior. Once you were 'inside', you were trusted. That assumption is now fatal: users work from anywhere, apps are SaaS, data lives in the cloud, and a single phished credential drops an attacker straight 'inside'. Zero Trust replaces *implicit trust based on network location* with *explicit verification on every request*.\n\n## The Three Zero Trust Principles\n\nMicrosoft frames Zero Trust around three principles. Memorize them — they are the lens for every design decision.\n\n1. **Verify explicitly.** Always authenticate and authorize based on *all* available signals: identity, location, device health, service or workload, data classification, and anomalies. Never trust something just because it is on the corporate network.\n2. **Use least-privilege access.** Limit users with **just-in-time (JIT)** and **just-enough-access (JEA)**, risk-based adaptive policies, and data protection. Standing admin rights are the enemy; access should be the minimum needed, for the shortest time needed.\n3. **Assume breach.** Operate as though an attacker is already inside. **Segment** access (by network, identity, app, and data), **minimize blast radius**, encrypt end-to-end, and use analytics to **detect** and **respond**. Logging and visibility are not optional.\n\nA useful test: for any control you build, ask which principle it serves. Conditional Access requiring MFA = *verify explicitly*. PIM eligible roles = *least privilege*. Sentinel detections and segmentation = *assume breach*.\n\n## The Six Zero Trust Pillars\n\nPrinciples are the *philosophy*; pillars are *where you apply it*. Microsoft organizes Zero Trust into six pillars (sometimes shown as a wheel around a central policy engine):\n\n| Pillar | What it protects | Example control |\n|---|---|---|\n| **Identity** | Users, service principals, workload identities | Strong/phishing-resistant MFA, Conditional Access, PIM |\n| **Endpoints** | Laptops, phones, servers, IoT | Intune compliance, Defender for Endpoint EDR |\n| **Apps** | SaaS and line-of-business applications | App governance, app-enforced session controls, OAuth app review |\n| **Data** | Files, emails, structured data, AI prompts | Purview sensitivity labels, DLP, encryption |\n| **Infrastructure** | VMs, containers, PaaS, on-prem servers | Defender for Cloud, hardening, JIT VM access |\n| **Network** | Segmentation, traffic flows | Micro-segmentation, private endpoints, encrypted transport |\n\nAt the center sits a **policy engine** that takes signals from every pillar and makes an allow/deny/limit decision. In the Microsoft stack, **Conditional Access is that engine** for identity-centric access — which is exactly why Lesson 2 is dedicated to it.\n\n## The Cloud Shared-Responsibility Model\n\nZero Trust lives inside the **shared-responsibility model**, which defines *who* secures *what* between you and the cloud provider. The split shifts by service type:\n\n- **On-premises:** you own everything — physical, host, OS, network, apps, data, identity.\n- **IaaS** (e.g., an Azure VM): Microsoft owns the physical host and hypervisor; *you* still own the OS, applications, network configuration, data, and identities.\n- **PaaS** (e.g., Azure SQL, App Service): Microsoft also takes the OS and runtime; you own data, identities, and access configuration.\n- **SaaS** (e.g., Microsoft 365): Microsoft runs almost the whole stack; you *still* own your **data**, your **identities/accounts**, and the **access** you grant.\n\nThe constant across all models: **data and identities are always your responsibility.** That single fact is why this course starts with identity. Microsoft running the datacenter does not protect you from an over-privileged admin or an un-reviewed guest account — those are yours to govern.\n\n## Mapping the Microsoft Security Stack to the Pillars\n\nHere is the product map you'll use for the rest of the course:\n\n- **Identity → Microsoft Entra ID.** Authentication, Conditional Access (the policy engine), Identity Protection (risk), PIM (JIT admin), Identity Governance (access reviews, entitlement management, B2B). *This is Module 1.*\n- **Endpoints → Microsoft Intune + Microsoft Defender for Endpoint.** Intune sets and reports device **compliance** (which Conditional Access consumes); Defender for Endpoint provides **EDR**, attack surface reduction, and threat analytics. *Module 2.*\n- **Apps → Microsoft Defender for Cloud Apps / Entra app governance.** Discovery, OAuth app risk, session controls.\n- **Data → Microsoft Purview.** Sensitivity labels, data loss prevention (DLP), insider risk, and AI/Copilot data governance. *Module 3.*\n- **Infrastructure → Microsoft Defender for Cloud.** Cloud security posture management (CSPM) and workload protection. *Module 4/5.*\n- **Visibility & automation (cross-pillar) → Microsoft Defender XDR + Microsoft Sentinel.** Defender XDR correlates signals across identity, endpoint, email, and apps into unified **incidents**; Sentinel is the cloud-native **SIEM/SOAR** that ingests everything, hunts with **KQL**, and automates response with playbooks. *Module 4 and 5.*\n\nNotice the flow: each pillar **produces signals**, Conditional Access **acts** on identity signals in real time, and Defender XDR/Sentinel **observe and respond** across all of them — a direct expression of *assume breach*.\n\n## Identity Is the New Perimeter — and Where SC-500 Sits\n\nBecause users, apps, and data are scattered beyond any network edge, the **identity** is the one consistent thing present in every access request. That is what 'identity is the new perimeter' means: instead of asking *'is this packet inside the firewall?'* we ask *'is this verified identity, on a healthy device, with acceptable risk, allowed to reach this app and this data right now?'* Conditional Access answers that question on every sign-in.\n\nFinally, position your own growth. **MD-102** (endpoint admin) and **MS-102** (Microsoft 365 admin) certify you to *operate* services: enroll devices, manage licenses, configure mailboxes. **SC-500** (and this course) is the level above — *designing and operating the security architecture*: how identity, endpoint, data, and SIEM controls combine to enforce Zero Trust, and how you detect and respond when they're tested. You already know how to administer the parts; this course teaches you to architect the whole.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Zero Trust Foundations and the Microsoft Security Stack",
+      "sub": "The mental model that ties the whole course together",
+      "narration": "Welcome to the Cloud Security Engineer and M365 Security Architect course. Before we touch a single portal, we need a map. In this lesson we build the mental model you'll use for everything that follows: the three principles of Zero Trust, the six pillars where you apply them, the shared-responsibility model, and how every Microsoft security product maps onto that picture. By the end you'll understand why identity is the new perimeter, and where architect-level skills sit above the admin work you may already know."
+    },
+    {
+      "type": "content",
+      "title": "From Castle-and-Moat to Zero Trust",
+      "bullets": [
+        "Old model: hard network perimeter, soft trusted interior",
+        "Once 'inside', everything was implicitly trusted",
+        "Cloud and remote work erased the perimeter",
+        "Zero Trust: no implicit trust, verify every request"
+      ],
+      "narration": "The legacy security model was a castle and moat. A firewall and VPN formed a hard shell, and anyone inside was trusted. That assumption fails today, because your users, apps, and data live outside the building. A single phished password lands an attacker straight inside the castle. Zero Trust replaces trust-by-location with explicit verification on every single request, no matter where it comes from."
+    },
+    {
+      "type": "content",
+      "title": "The Three Principles",
+      "bullets": [
+        "Verify explicitly — authenticate on all signals, every time",
+        "Use least-privilege access — just-in-time, just-enough",
+        "Assume breach — segment, minimize blast radius, detect and respond",
+        "Test every control: which principle does it serve?"
+      ],
+      "narration": "Zero Trust stands on three principles. Verify explicitly means authenticate and authorize on all available signals, never on network location alone. Use least-privilege access means grant the minimum rights for the shortest time, using just-in-time and just-enough access. Assume breach means operate as if the attacker is already in: segment access, shrink the blast radius, and invest in detection and response. For any control you build, ask which of these three it serves."
+    },
+    {
+      "type": "content",
+      "title": "The Six Pillars",
+      "bullets": [
+        "Identity, Endpoints, Apps, Data, Infrastructure, Network",
+        "Principles are the philosophy; pillars are where you apply them",
+        "A central policy engine decides allow, deny, or limit",
+        "Conditional Access is that engine for identity"
+      ],
+      "narration": "If the principles are the philosophy, the six pillars are where you apply it: identity, endpoints, apps, data, infrastructure, and network. Picture them as a wheel around a central policy engine that takes signals from every pillar and decides whether to allow, deny, or limit access. In the Microsoft stack, Conditional Access is that engine for identity-centric access, which is why we devote the very next lesson to it."
+    },
+    {
+      "type": "content",
+      "title": "Shared Responsibility: Who Secures What",
+      "bullets": [
+        "On-prem: you own everything",
+        "IaaS: Microsoft owns host/hypervisor; you own OS up",
+        "PaaS: Microsoft also owns OS/runtime",
+        "SaaS: you ALWAYS still own data and identities"
+      ],
+      "narration": "Zero Trust lives inside the shared-responsibility model, which defines who secures what. On-premises you own the whole stack. Moving to infrastructure, platform, and software as a service, Microsoft takes over more layers, the host, the operating system, the runtime. But notice the constant: across every model, your data and your identities are always yours to protect. That is precisely why this course begins with identity governance."
+    },
+    {
+      "type": "content",
+      "title": "Mapping the Microsoft Stack",
+      "bullets": [
+        "Identity → Microsoft Entra ID (Conditional Access, PIM)",
+        "Endpoints → Intune + Defender for Endpoint",
+        "Data → Microsoft Purview",
+        "Infrastructure → Defender for Cloud",
+        "Cross-pillar visibility → Defender XDR + Sentinel"
+      ],
+      "narration": "Now the product map you'll use all course. Entra ID is the identity control plane. Intune and Defender for Endpoint secure your endpoints, with Intune compliance feeding Conditional Access. Purview governs your data. Defender for Cloud handles infrastructure posture. And across every pillar, Defender XDR correlates signals into incidents while Microsoft Sentinel is the cloud SIEM and SOAR that ingests it all, hunts with KQL, and automates the response."
+    },
+    {
+      "type": "content",
+      "title": "Signals Flow, Controls Act",
+      "bullets": [
+        "Each pillar produces signals (risk, compliance, classification)",
+        "Conditional Access acts on identity signals in real time",
+        "Defender XDR and Sentinel observe and respond across all",
+        "This loop IS 'assume breach' in practice"
+      ],
+      "narration": "The power is in the flow. Each pillar produces signals: Identity Protection emits user and sign-in risk, Intune emits device compliance, Purview emits data classification. Conditional Access consumes the identity signals and acts in real time at sign-in. Meanwhile Defender XDR and Sentinel observe everything and drive response. That continuous observe-and-respond loop is the assume-breach principle made operational."
+    },
+    {
+      "type": "content",
+      "title": "Identity Is the New Perimeter",
+      "bullets": [
+        "No single network edge left to defend",
+        "Identity is present in every access request",
+        "Ask: verified user, healthy device, acceptable risk?",
+        "Conditional Access answers that on every sign-in"
+      ],
+      "narration": "Because users, apps, and data are scattered beyond any firewall, the identity is the one consistent element in every access request. So instead of asking whether a packet is inside the network, we ask whether this verified identity, on a healthy device, with acceptable risk, is allowed to reach this app and this data right now. Conditional Access answers that question on every sign-in. That is what we mean when we say identity is the new perimeter."
+    },
+    {
+      "type": "content",
+      "title": "Where SC-500 Sits Above MD-102/MS-102",
+      "bullets": [
+        "MD-102 / MS-102: operate individual services",
+        "SC-500: design the cross-product security architecture",
+        "Admin task: enroll a device, assign a license",
+        "Architect task: design the Zero Trust + response design"
+      ],
+      "narration": "Finally, locate your own growth. The MD-102 and MS-102 certifications prove you can operate services: enrolling devices, managing licenses and mailboxes. SC-500, and this course, is the level above: designing and operating the whole security architecture, deciding how identity, endpoint, data, and SIEM controls combine to enforce Zero Trust and respond to threats. You already know the parts. Now you'll learn to architect the whole. Next lesson, we build the policy engine itself: Conditional Access."
+    }
+  ]
+}

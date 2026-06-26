@@ -122,6 +122,14 @@ export const COURSES: Course[] = [
     sample: 'dm-m1-l01-the-digital-marketing-landscape-the-assistant-ro',
     accent: '#7c3aed',
   },
+  {
+    slug: 'cloud-security-engineer',
+    title: 'Cloud Security Engineer & M365 Security Architect: Zero Trust to SOC Automation',
+    tagline: 'From M365 admin to senior security architect: Zero Trust, XDR, Purview, Sentinel & SOC automation.',
+    blurb: 'A project-based course that bridges the gap between intermediate M365 administration (MD-102/MS-102) and senior security architecture (SC-500). You\'ll design Zero Trust identity perimeters with Entra ID, unify endpoint security with Intune and Defender for Endpoint, govern data and AI with Microsoft Purview, run a cloud SIEM/SOAR with Microsoft Sentinel and KQL, and automate it all with PowerShell, the Microsoft Graph API, and Logic Apps. You finish by building the three portfolio-grade projects hiring managers look for.',
+    sample: 'cse-m1-l01-zero-trust-foundations-and-the-security-stack',
+    accent: '#0891b2',
+  },
 ];
 
 export function getCourse(slug: string): Course | undefined {

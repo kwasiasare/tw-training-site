@@ -1,0 +1,189 @@
+{
+  "slug": "cse-m5-l03-soar-playbooks-with-logic-apps",
+  "title": "SOAR Playbooks with Logic Apps",
+  "month": 5,
+  "monthTitle": "Security Automation with PowerShell, Graph API & Logic Apps",
+  "lesson": 3,
+  "video": "cse-m5-l03-soar-playbooks-with-logic-apps.mp4",
+  "summary": "Security Orchestration, Automation and Response (SOAR) is how a SOC responds at machine speed. In Microsoft Sentinel a playbook is an Azure Logic App triggered by the Microsoft Sentinel connector when an incident or alert fires. This lesson shows how automation rules bind analytic rules to playbooks, how to perform real response actions like disabling a compromised user, revoking sessions, and isolating a device, and how to add a human-in-the-loop approval. You will give the playbook a managed identity with least-privilege roles and walk through the account-disable playbook that underpins Capstone 3.",
+  "objectives": [
+    "Explain SOAR and how Sentinel playbooks map to Azure Logic Apps",
+    "Use the Microsoft Sentinel incident/alert trigger and read entities from the incident",
+    "Bind analytic rules to playbooks with automation rules",
+    "Implement response actions: disable/confirm-compromised a user, revoke sessions, isolate a device",
+    "Add a human-in-the-loop approval step versus fully automated response",
+    "Assign the playbook a managed identity with least-privilege roles instead of stored credentials"
+  ],
+  "quiz": [
+    {
+      "q": "In Microsoft Sentinel, what technology actually implements a playbook?",
+      "options": [
+        "A PowerShell runbook in Azure Automation",
+        "An Azure Logic App",
+        "A Power Automate desktop flow",
+        "A Kusto (KQL) saved function"
+      ],
+      "answer": 1,
+      "why": "A Sentinel playbook is an Azure Logic App built on the Microsoft Sentinel connector. The Logic App's trigger fires on a Sentinel incident or alert and its actions carry out the response, which is why playbook authoring is really Logic Apps workflow design."
+    },
+    {
+      "q": "What is the role of an automation rule in Sentinel?",
+      "options": [
+        "It writes the KQL detection logic for an analytic rule",
+        "It binds analytic rules (or incident conditions) to one or more playbooks and can set status/owner",
+        "It stores the playbook's credentials",
+        "It replaces the need for the Microsoft Sentinel connector"
+      ],
+      "answer": 1,
+      "why": "An automation rule is the glue: it watches for incidents (optionally filtered by analytic rule, severity, or tactics) and triggers playbooks, and can also change status, assign an owner, or add tags. The analytic rule detects; the automation rule routes the response."
+    },
+    {
+      "q": "Which trigger should a playbook use so it receives the full incident with all its entities?",
+      "options": [
+        "The recurrence (schedule) trigger",
+        "The 'When a HTTP request is received' trigger",
+        "The Microsoft Sentinel 'When an incident is created/updated' (incident) trigger",
+        "The Microsoft Sentinel alert trigger only"
+      ],
+      "answer": 2,
+      "why": "The Microsoft Sentinel incident trigger passes the whole incident including grouped alerts and entities (accounts, IPs, hosts), so the playbook can act on every entity. The alert trigger fires per alert and is used for alert-level automation rather than incident-level orchestration."
+    },
+    {
+      "q": "What is the recommended identity for a playbook to call Microsoft Graph or Defender APIs?",
+      "options": [
+        "A stored client secret in the Logic App parameters",
+        "The personal account of the SOC analyst who created it",
+        "A managed identity on the Logic App granted least-privilege roles/app permissions",
+        "Anonymous access with no identity"
+      ],
+      "answer": 2,
+      "why": "A managed identity removes stored secrets entirely; you enable it on the Logic App and grant it only the specific Graph application permissions or Azure roles the playbook needs (for example User.ReadWrite.All to disable an account). This is the least-privilege, secret-free pattern."
+    },
+    {
+      "q": "Why add a human-in-the-loop approval (for example a Teams adaptive card or email approval) before disabling an account?",
+      "options": [
+        "Because Logic Apps cannot disable accounts automatically",
+        "To prevent a false-positive detection from locking out a legitimate user without oversight",
+        "Because Graph requires a second administrator for every write",
+        "To make the playbook run faster"
+      ],
+      "answer": 1,
+      "why": "Fully automated containment is fast but risky: a false positive could disable a CEO mid-presentation. A human-in-the-loop approval gate lets an analyst confirm before a disruptive action runs, trading a few minutes of latency for safety. High-confidence detections may skip the gate; ambiguous ones should not."
+    },
+    {
+      "q": "In two to four sentences, walk through the trigger-to-actions flow of a playbook that disables a compromised user account, and name the specific response actions involved.",
+      "answer": "The playbook is triggered by the Microsoft Sentinel incident trigger when an analytic rule (for example impossible-travel or a confirmed risky sign-in) creates an incident, and an automation rule routes that incident to the playbook. The playbook parses the Account entity to get the user's object ID or UPN, optionally posts a Teams adaptive card or email for analyst approval, and on approval calls Microsoft Graph to set accountEnabled to false (disable the account) and to revoke the user's refresh tokens via revokeSignInSessions so existing sessions are killed. It can also confirm the user as compromised in Entra ID Protection and isolate any associated device through the Microsoft Defender for Endpoint action, then comment back on the incident and set its status to closed or active. The playbook authenticates with its managed identity holding least-privilege permissions such as User.ReadWrite.All.",
+      "why": "The flow is trigger (Sentinel incident) to entity extraction (Account) to optional approval to containment actions (disable account, revoke sessions, confirm compromised, isolate device) to incident update, all under a least-privilege managed identity. This is the core SOAR containment pattern and the basis of Capstone 3."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Automate threat response with playbooks in Microsoft Sentinel",
+      "url": "https://learn.microsoft.com/en-us/azure/sentinel/automation/automate-responses-with-playbooks"
+    },
+    {
+      "label": "Create and use Microsoft Sentinel automation rules",
+      "url": "https://learn.microsoft.com/en-us/azure/sentinel/create-manage-use-automation-rules"
+    },
+    {
+      "label": "Authenticate playbooks to Microsoft Sentinel (managed identity)",
+      "url": "https://learn.microsoft.com/en-us/azure/sentinel/authenticate-playbooks-to-sentinel"
+    },
+    {
+      "label": "Microsoft Graph user: revokeSignInSessions",
+      "url": "https://learn.microsoft.com/en-us/graph/api/user-revokesigninsessions"
+    }
+  ],
+  "body_markdown": "## What SOAR Is and Why It Matters\n\nA SOC analyst who manually disables a compromised account is racing the attacker, and losing. **SOAR**, Security Orchestration, Automation and Response, lets the platform respond at machine speed: detect, decide, contain, all in seconds. In Microsoft Sentinel the response unit is a **playbook**, and a playbook is nothing more than an **Azure Logic App** built on the **Microsoft Sentinel connector**. If you can design a Logic App workflow, you can build a SOAR playbook.\n\nThe value is consistency and speed. The same containment steps run identically every time, day or night, with a full audit trail, instead of depending on which analyst is on shift.\n\n## The Sentinel Trigger\n\nA playbook starts with a **trigger**. For incident-level orchestration use the Microsoft Sentinel **\"When an incident is created or updated\"** trigger. It hands the playbook the whole incident, including the grouped alerts and, crucially, the **entities**, accounts, IP addresses, hosts, URLs, that the response will act on.\n\n```\nTrigger: Microsoft Sentinel incident\n  -> incident.properties.title, severity, status\n  -> incident.properties.relatedEntities[] (Account, Ip, Host ...)\n```\n\nThere is also an **alert trigger** that fires per alert; use it for alert-scoped automation. For full containment of a multi-alert incident, the incident trigger is the right choice because it exposes every entity at once.\n\n## Automation Rules: Binding Detections to Playbooks\n\nAn analytic rule **detects**; it does not run a playbook by itself. The glue is an **automation rule**. It watches incidents, optionally filtered by analytic rule name, severity, or MITRE tactic, and triggers one or more playbooks. It can also set status, assign an owner, and add tags.\n\n```\nAutomation rule: \"Contain confirmed account compromise\"\n  Trigger:   When incident is created\n  Conditions: Analytic rule name contains 'Risky sign-in'\n              AND Severity = High\n  Actions:   Run playbook 'PB-Disable-CompromisedUser'\n             Change status -> Active, assign owner -> SOC Tier 2\n```\n\nThis separation is deliberate: detection logic (KQL) and response routing (automation rules) evolve independently, so you can re-point a detection at a different playbook without touching the query.\n\n## Common Response Actions\n\nOnce triggered, a playbook orchestrates **actions**, each typically a Graph or Defender API call. The most common containment actions:\n\n- **Disable a user** in Entra ID: set `accountEnabled = false`.\n- **Revoke sign-in sessions**: invalidate refresh tokens so existing sessions die (`revokeSignInSessions`).\n- **Confirm compromised**: mark the user compromised in Entra ID Protection so risk-based policies engage.\n- **Isolate a device** via Microsoft Defender for Endpoint.\n- **Add an entity to a watchlist** for ongoing correlation.\n- **Notify / request approval** via Teams or email.\n\nThe Graph calls behind the two most important user actions:\n\n```http\n# Disable the account\nPATCH https://graph.microsoft.com/v1.0/users/{userId}\nContent-Type: application/json\n\n{ \"accountEnabled\": false }\n\n# Kill all existing sessions (revoke refresh tokens)\nPOST https://graph.microsoft.com/v1.0/users/{userId}/revokeSignInSessions\n```\n\nIn a Logic App these are the **Microsoft Graph** HTTP actions (or the built-in Entra/Defender connector actions); the `{userId}` comes from the Account entity in the trigger.\n\n## Reading Entities with Inline Expressions\n\nThe playbook must pull the target user out of the incident. Sentinel exposes an **Entities - Get Accounts** action, and you reference fields with Logic App **inline expressions** (the workflow definition language). For example, to grab the first account's AAD object ID:\n\n```\n@{triggerBody()?['object']?['properties']?['relatedEntities'][0]?['properties']?['aadUserId']}\n```\n\nInside a \"For each\" loop over accounts you would instead use `@{items('For_each_account')?['properties']?['aadUserId']}`. These expressions are how data flows from the trigger into each action's parameters.\n\n## Human-in-the-Loop vs Fully Automated\n\nSpeed is good; an automated mistake is not. Disabling an account on a **false positive** could lock out a CEO mid-board-meeting. The mitigation is a **human-in-the-loop** approval gate: before the disruptive action, post a **Teams adaptive card** or send an **email with approval options** and branch on the response.\n\n```\nAction: Post adaptive card and wait for a response (Teams)\n  -> Buttons: [Approve disable]  [Reject]\nCondition: if outcome == 'Approve disable'\n  then  -> PATCH accountEnabled=false + revokeSignInSessions\n  else  -> add comment 'Analyst rejected auto-containment', close as benign\n```\n\nThe design rule: **high-confidence, low-blast-radius** detections (a confirmed-compromised risky user) can be fully automated; **ambiguous or high-impact** actions should pass through approval. Many SOCs run a tiered model, auto-contain commodity threats, gate anything touching a VIP or privileged account.\n\n## Least-Privilege Identity for the Playbook\n\nNever store a client secret in a Logic App. Enable a **managed identity** on the playbook and grant it only what it needs. To disable users and revoke sessions the identity needs the Graph **User.ReadWrite.All** application permission; to comment on incidents it needs the **Microsoft Sentinel Responder** (or Contributor) role on the workspace; to isolate devices it needs the appropriate Defender permission.\n\n```powershell\n# Grant the playbook's managed identity the Graph app role it needs (one-time)\n$miSpId  = (Get-MgServicePrincipal -Filter \"displayName eq 'PB-Disable-CompromisedUser'\").Id\n$graphSp = Get-MgServicePrincipal -Filter \"appId eq '00000003-0000-0000-c000-000000000000'\"\n$role    = $graphSp.AppRoles | Where-Object { $_.Value -eq 'User.ReadWrite.All' }\n\nNew-MgServicePrincipalAppRoleAssignment -ServicePrincipalId $miSpId `\n    -PrincipalId $miSpId -ResourceId $graphSp.Id -AppRoleId $role.Id\n```\n\n## Walkthrough: The Disable-Compromised-Account Playbook (Capstone 3)\n\nPutting it together, here is the end-to-end flow that Capstone 3 asks you to build:\n\n1. **Trigger** - Microsoft Sentinel incident trigger fires on a high-severity 'Risky sign-in' incident, routed by an **automation rule**.\n2. **Extract entity** - Entities - Get Accounts; read `aadUserId` via inline expression.\n3. **Approval (optional gate)** - post a Teams adaptive card to the SOC channel; wait for Approve/Reject.\n4. **Contain** - on approval: Graph `PATCH accountEnabled=false`, then `POST revokeSignInSessions`; optionally confirm the user compromised in Entra ID Protection and isolate the device in Defender.\n5. **Close the loop** - add a comment to the incident summarizing actions taken and set status to Active or Closed.\n6. **Identity** - every API call runs under the playbook's **managed identity** holding only User.ReadWrite.All and the Sentinel Responder role.\n\nThe result: from detection to a disabled, session-revoked account in well under a minute, with an approval trail and no stored credentials. That is SOAR.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "SOAR Playbooks with Logic Apps",
+      "sub": "Respond at machine speed in Microsoft Sentinel",
+      "narration": "A SOC analyst manually disabling a compromised account is racing the attacker and losing. In this lesson we automate that race. We'll see how Sentinel playbooks are really Azure Logic Apps, how automation rules route detections to them, and how to build the account-disable playbook that underpins Capstone three, complete with a human approval gate and a secret-free managed identity."
+    },
+    {
+      "type": "content",
+      "title": "What SOAR Is",
+      "bullets": [
+        "SOAR = Security Orchestration, Automation and Response",
+        "Sentinel's response unit is a playbook",
+        "A playbook IS an Azure Logic App on the Sentinel connector",
+        "Value: machine-speed, consistent, fully audited response"
+      ],
+      "narration": "SOAR lets the platform detect, decide, and contain in seconds instead of relying on whichever analyst is on shift. In Microsoft Sentinel the response unit is a playbook, and a playbook is simply an Azure Logic App built on the Sentinel connector. If you can design a Logic App workflow, you can build a SOAR playbook. The payoff is consistency, speed, and a full audit trail."
+    },
+    {
+      "type": "content",
+      "title": "The Sentinel Trigger",
+      "bullets": [
+        "Use the 'When an incident is created/updated' trigger",
+        "It passes the whole incident: alerts plus entities",
+        "Entities = accounts, IPs, hosts, URLs to act on",
+        "An alert trigger exists for alert-scoped automation"
+      ],
+      "code": "Trigger: Microsoft Sentinel incident\n  -> incident.properties.relatedEntities[]\n     (Account, Ip, Host ...)",
+      "narration": "A playbook starts with a trigger. For full containment use the Microsoft Sentinel incident trigger, which hands you the whole incident including the grouped alerts and the entities, the accounts, IPs, and hosts your response will act on. There's also an alert trigger that fires per alert, but the incident trigger exposes every entity at once, which is what containment needs."
+    },
+    {
+      "type": "content",
+      "title": "Automation Rules Bind Detection to Response",
+      "bullets": [
+        "Analytic rules detect; they don't run playbooks alone",
+        "Automation rules are the glue",
+        "Filter by analytic rule, severity, or MITRE tactic",
+        "Can also set status, owner, and tags"
+      ],
+      "code": "Automation rule: Contain confirmed compromise\n  When incident created\n  AND analytic rule contains 'Risky sign-in' AND Severity=High\n  Run playbook 'PB-Disable-CompromisedUser'",
+      "narration": "An analytic rule detects but doesn't run a playbook by itself. The automation rule is the glue: it watches incidents, optionally filtered by rule name, severity, or tactic, and triggers the playbooks, and it can set status and owner too. This separation lets detection logic and response routing evolve independently, so you can re-point a detection without touching the KQL."
+    },
+    {
+      "type": "content",
+      "title": "Common Response Actions",
+      "bullets": [
+        "Disable user: set accountEnabled=false",
+        "Revoke sessions: revokeSignInSessions kills refresh tokens",
+        "Confirm compromised in Entra ID Protection",
+        "Isolate device via Defender; notify or request approval"
+      ],
+      "code": "PATCH /v1.0/users/{userId}  { \"accountEnabled\": false }\nPOST  /v1.0/users/{userId}/revokeSignInSessions",
+      "narration": "Once triggered, a playbook orchestrates actions, each usually a Graph or Defender call. The most common containment steps are disabling the user by setting accountEnabled to false, revoking sign-in sessions to kill existing tokens, confirming the user compromised so risk policies engage, and isolating the device in Defender. The user ID for these calls comes straight from the Account entity in the trigger."
+    },
+    {
+      "type": "content",
+      "title": "Reading Entities with Inline Expressions",
+      "bullets": [
+        "Use 'Entities - Get Accounts' to extract accounts",
+        "Reference fields with Logic App inline expressions",
+        "aadUserId feeds the Graph disable/revoke actions",
+        "Loop over multiple accounts with a For each"
+      ],
+      "code": "@{triggerBody()?['object']?['properties']?\n  ['relatedEntities'][0]?['properties']?['aadUserId']}",
+      "narration": "The playbook must pull the target user out of the incident. Sentinel's Entities Get Accounts action extracts them, and you reference fields with Logic App inline expressions in the workflow definition language. This expression grabs the first account's Entra object ID, which then feeds the disable and revoke actions. Inside a For each loop you'd reference the current item instead."
+    },
+    {
+      "type": "content",
+      "title": "Human-in-the-Loop vs Fully Automated",
+      "bullets": [
+        "Automated containment is fast but a false positive is costly",
+        "Gate disruptive actions with a Teams card or email approval",
+        "High-confidence, low-blast-radius: auto-contain",
+        "Ambiguous or VIP-touching: require approval"
+      ],
+      "code": "Post adaptive card -> wait for response\nif outcome == 'Approve disable':\n  PATCH accountEnabled=false + revokeSignInSessions\nelse: comment + close as benign",
+      "narration": "Speed is good; an automated mistake is not. Disabling an account on a false positive could lock out a CEO mid-meeting. The fix is a human-in-the-loop gate: post a Teams adaptive card or email and branch on the response. The rule of thumb is to auto-contain high-confidence, low-impact threats but route anything ambiguous or touching a VIP through an analyst approval."
+    },
+    {
+      "type": "content",
+      "title": "Least-Privilege Managed Identity",
+      "bullets": [
+        "Never store a client secret in the Logic App",
+        "Enable a managed identity on the playbook",
+        "User.ReadWrite.All to disable/revoke; Sentinel Responder to comment",
+        "Grant only the exact roles each action needs"
+      ],
+      "code": "New-MgServicePrincipalAppRoleAssignment -ServicePrincipalId $miSpId `\n  -PrincipalId $miSpId -ResourceId $graphSp.Id -AppRoleId $role.Id",
+      "narration": "Never put a secret in a Logic App. Enable a managed identity on the playbook and grant it only what it needs: User.ReadWrite.All to disable accounts and revoke sessions, the Sentinel Responder role to comment on incidents, and the Defender permission to isolate devices. The one-time assignment script grants the Graph app role to the identity's service principal. From detection to a disabled, session-revoked account in under a minute, with an approval trail and zero stored credentials, that is SOAR, and it is exactly what Capstone three asks you to build."
+    }
+  ]
+}

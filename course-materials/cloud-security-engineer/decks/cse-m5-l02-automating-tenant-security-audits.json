@@ -1,0 +1,189 @@
+{
+  "slug": "cse-m5-l02-automating-tenant-security-audits",
+  "title": "Automating Tenant Security Audits and Compliance Reports",
+  "month": 5,
+  "monthTitle": "Security Automation with PowerShell, Graph API & Logic Apps",
+  "lesson": 2,
+  "video": "cse-m5-l02-automating-tenant-security-audits.mp4",
+  "summary": "Manual tenant audits do not scale and they go stale the moment they finish. In this lesson you turn the Microsoft Graph PowerShell SDK into a repeatable audit engine that finds users without strong authentication, stale and inactive accounts, the full guest inventory, risky users, privileged role assignments, and your Conditional Access posture. You will generate clean CSV and HTML compliance reports that auditors can read. Finally you will schedule the whole thing as an Azure Automation runbook authenticating with a managed identity, so the report runs itself every night with no stored secrets.",
+  "objectives": [
+    "Script a bulk audit of users lacking strong authentication using authentication method registration data",
+    "Identify stale and inactive accounts from signInActivity.lastSignInDateTime",
+    "Inventory guest accounts, risky users, and privileged directory role assignments",
+    "Export Conditional Access policies for review and drift detection",
+    "Generate readable CSV and HTML compliance reports from collected findings",
+    "Schedule the audit as an Azure Automation runbook using a managed identity with least privilege"
+  ],
+  "quiz": [
+    {
+      "q": "Which Graph endpoint or report is the most reliable source for whether a user has registered strong authentication methods?",
+      "options": [
+        "The user's StrongAuthenticationMethods property from the old MSOnline module",
+        "reports/authenticationMethods/userRegistrationDetails (Get-MgReportAuthenticationMethodUserRegistrationDetail)",
+        "The accountEnabled property on the user object",
+        "The user's lastPasswordChangeDateTime"
+      ],
+      "answer": 1,
+      "why": "The authentication methods registration report (userRegistrationDetails) reports per user whether they are registered and capable of MFA and passwordless. The legacy StrongAuthenticationMethods property came from the retired MSOnline module and is no longer the supported source."
+    },
+    {
+      "q": "To detect stale accounts, which property must you request and what permission does it require?",
+      "options": [
+        "lastPasswordChangeDateTime, requiring Directory.Read.All",
+        "signInActivity (lastSignInDateTime), requiring AuditLog.Read.All",
+        "createdDateTime, requiring User.Read",
+        "accountEnabled, requiring no special permission"
+      ],
+      "answer": 1,
+      "why": "signInActivity.lastSignInDateTime tells you when a user last actually signed in, which is the basis for staleness. It is not returned by default and requires the AuditLog.Read.All permission plus explicit selection in the -Property list."
+    },
+    {
+      "q": "How do you identify guest (external) accounts in a Graph user query?",
+      "options": [
+        "Filter where accountEnabled eq false",
+        "Filter where userType eq 'Guest'",
+        "Filter where displayName contains '#EXT#'",
+        "Guests cannot be queried via Graph"
+      ],
+      "answer": 1,
+      "why": "Guest accounts have userType equal to 'Guest' (their UPN typically contains #EXT# but userType is the reliable filter). You can pass -Filter \"userType eq 'Guest'\" to Get-MgUser to enumerate the guest inventory."
+    },
+    {
+      "q": "Why is a managed identity preferred over a stored client secret for an Azure Automation audit runbook?",
+      "options": [
+        "Managed identities run faster than secret-based auth",
+        "There is no credential to store, rotate, or leak; Azure manages it",
+        "Managed identities automatically grant Global Administrator",
+        "Client secrets cannot be used with Graph at all"
+      ],
+      "answer": 1,
+      "why": "A managed identity has no secret or certificate for you to store, rotate, or accidentally commit to source control. Azure issues and rotates the credential automatically, so the runbook connects with Connect-MgGraph -Identity and you simply assign the identity least-privilege Graph application permissions."
+    },
+    {
+      "q": "When exporting findings, why convert objects with ConvertTo-Csv/Export-Csv using -NoTypeInformation (or modern PowerShell defaults) and selected properties?",
+      "options": [
+        "It encrypts the CSV file",
+        "It produces a clean, flat report with only the columns auditors need and no PowerShell type header",
+        "It is the only way to write a file in Azure Automation",
+        "It prevents the script from being throttled"
+      ],
+      "answer": 1,
+      "why": "Selecting explicit properties and exporting without the type-information header yields a flat, readable CSV with exactly the columns an auditor expects. Dumping raw Graph objects produces nested, noisy output that is hard to consume."
+    },
+    {
+      "q": "In two to four sentences, describe the least-privilege application permissions you would assign to an unattended runbook that reports users without MFA, stale accounts, and the guest inventory, and explain why each is read-only.",
+      "answer": "The runbook needs User.Read.All to enumerate users and their properties, AuditLog.Read.All to read signInActivity for staleness detection, and either UserAuthenticationMethod.Read.All or the AuthenticationMethods report permission (Reports.Read.All / Policy.Read.All depending on the exact API) to read registration details, plus Directory.Read.All if it also reports role assignments. Every one of these is a .Read permission because an audit only inspects state and never changes it, so granting write scopes would needlessly expand the blast radius if the identity were compromised. Keeping the runbook read-only also means it can never accidentally disable an account or alter a policy, which keeps the audit safe to run on a schedule.",
+      "why": "An audit is a read-only operation, so it should hold only read scopes scoped to the data it inspects. This minimizes blast radius and aligns with least privilege, the core principle of secure automation."
+    }
+  ],
+  "resources": [
+    {
+      "label": "authenticationMethods userRegistrationDetails report",
+      "url": "https://learn.microsoft.com/en-us/graph/api/authenticationmethodsroot-list-userregistrationdetails"
+    },
+    {
+      "label": "Manage inactive user accounts in Microsoft Entra ID (signInActivity)",
+      "url": "https://learn.microsoft.com/en-us/entra/identity/monitoring-health/howto-manage-inactive-user-accounts"
+    },
+    {
+      "label": "Use a managed identity with Azure Automation",
+      "url": "https://learn.microsoft.com/en-us/azure/automation/enable-managed-identity-for-automation"
+    },
+    {
+      "label": "List Conditional Access policies (Graph)",
+      "url": "https://learn.microsoft.com/en-us/graph/api/conditionalaccessroot-list-policies"
+    }
+  ],
+  "body_markdown": "## Why Automate Audits\n\nA security posture review you run by hand in the portal is out of date the moment you close the browser, and it cannot be diffed, scheduled, or trusted to be consistent. **Automated audits** turn posture into data: a script collects the same evidence every time, on a schedule, and emits a report you can compare week over week to spot drift. In this lesson we build that engine on the Graph PowerShell SDK and ship it as a nightly Azure Automation runbook.\n\nThe permissions are all **read-only**, because an audit only inspects state. A typical scope set: `User.Read.All`, `AuditLog.Read.All`, `Policy.Read.All`, and `Directory.Read.All`.\n\n## Finding Users Without Strong Authentication\n\nThe single highest-value audit is *who can sign in without MFA*. Do **not** use the retired MSOnline `StrongAuthenticationMethods` property. The supported source is the **authentication methods registration report**, which reports per user whether they are MFA-capable and registered.\n\n```powershell\n# Requires AuditLog.Read.All (and Policy.Read.All / Reports.Read.All)\n$reg = Get-MgReportAuthenticationMethodUserRegistrationDetail -All\n\n$noMfa = $reg | Where-Object { -not $_.IsMfaRegistered } |\n    Select-Object UserPrincipalName, UserDisplayName,\n                  IsMfaRegistered, IsMfaCapable, IsAdmin\n\n\"$($noMfa.Count) users are NOT registered for MFA\"\n$noMfa | Export-Csv .\\users-without-mfa.csv -NoTypeInformation\n```\n\nFlagging `IsAdmin` users without MFA first is the right triage order: an unprotected privileged account is the highest risk in the tenant.\n\n## Detecting Stale and Inactive Accounts\n\nStale accounts are unused attack surface. The authoritative signal is **`signInActivity.lastSignInDateTime`**, which needs `AuditLog.Read.All` and must be requested explicitly.\n\n```powershell\n$cutoff = (Get-Date).AddDays(-90)\n\n$stale = Get-MgUser -All -Property \"displayName,userPrincipalName,accountEnabled,signInActivity\" |\n    Select-Object DisplayName, UserPrincipalName, AccountEnabled,\n        @{N='LastSignIn'; E={ $_.SignInActivity.LastSignInDateTime }} |\n    Where-Object {\n        $_.LastSignIn -and [datetime]$_.LastSignIn -lt $cutoff\n    }\n\n$stale | Sort-Object LastSignIn |\n    Export-Csv .\\stale-accounts.csv -NoTypeInformation\n```\n\nAccounts that have **never** signed in show a null `LastSignIn`; treat those separately, they are often unused service or test accounts.\n\n## Guests, Risky Users, and Role Assignments\n\nThree more high-value inventories. **Guests** are external identities (`userType eq 'Guest'`). **Risky users** come from Entra ID Protection. **Privileged role assignments** reveal who holds directory roles like Global Administrator.\n\n```powershell\n# Guest inventory\nGet-MgUser -All -Filter \"userType eq 'Guest'\" `\n    -Property \"displayName,userPrincipalName,createdDateTime,externalUserState\" |\n    Export-Csv .\\guest-inventory.csv -NoTypeInformation\n\n# Risky users (needs IdentityRiskyUser.Read.All)\nGet-MgRiskyUser -All |\n    Where-Object { $_.RiskState -eq 'atRisk' } |\n    Select-Object UserPrincipalName, RiskLevel, RiskLastUpdatedDateTime\n\n# Who holds privileged directory roles\nGet-MgDirectoryRole -All | ForEach-Object {\n    $role = $_\n    Get-MgDirectoryRoleMember -DirectoryRoleId $role.Id -All |\n        ForEach-Object {\n            [pscustomobject]@{ Role = $role.DisplayName; MemberId = $_.Id }\n        }\n}\n```\n\n## Exporting Conditional Access as Evidence\n\nYour **Conditional Access (CA)** policies are the backbone of Zero Trust enforcement. Exporting them gives you both an audit artifact and a baseline for drift detection (we automate redeployment of CA as code in lesson 4).\n\n```powershell\n# Needs Policy.Read.All\n$ca = Get-MgIdentityConditionalAccessPolicy -All\n\n$ca | Select-Object DisplayName, State,\n    @{N='Users';   E={ $_.Conditions.Users.IncludeUsers -join ';' }},\n    @{N='Apps';    E={ $_.Conditions.Applications.IncludeApplications -join ';' }},\n    @{N='Controls';E={ $_.GrantControls.BuiltInControls -join ';' }} |\n    Export-Csv .\\ca-policies.csv -NoTypeInformation\n\n# Keep the full JSON as the source-of-truth snapshot\n$ca | ConvertTo-Json -Depth 10 | Set-Content .\\ca-policies.json\n```\n\n## Generating CSV and HTML Reports\n\nCSV is great for diffing and pivot tables; **HTML** is what a manager or auditor actually reads. `ConvertTo-Html` turns any object collection into a styled table you can email.\n\n```powershell\n$style = \"<style>table{border-collapse:collapse}td,th{border:1px solid #ccc;padding:6px}th{background:#0078d4;color:#fff}</style>\"\n\n$noMfa | ConvertTo-Html -Title \"Users Without MFA\" -PreContent \"<h2>Users Without MFA - $(Get-Date -Format yyyy-MM-dd)</h2>\" -Head $style |\n    Out-File .\\mfa-report.html\n```\n\nBundle every finding (no-MFA, stale, guests, risky, roles) into one dated report folder so each run is a self-contained evidence package.\n\n## Scheduling with Azure Automation and a Managed Identity\n\nA report nobody runs is useless. Wrap the script in an **Azure Automation runbook** and let it run nightly. The best-practice credential is the Automation account's **system-assigned managed identity**, no secret to store, rotate, or leak. Assign that identity the read-only Graph application permissions, then connect with one line:\n\n```powershell\n# Inside the runbook - no stored credentials\nConnect-MgGraph -Identity\n\n# ... run all the audit blocks above ...\n# Write outputs to an Azure Storage blob or email them via Graph sendMail\n\nDisconnect-MgGraph\n```\n\nGrant the managed identity application permissions with a one-time admin script (assigning app role IDs on the service principal), schedule the runbook, and you have a hands-off compliance report that lands in the same place every morning. Because every scope is read-only, the runbook can audit the tenant but never change it, which is exactly what you want running unattended.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Automating Tenant Security Audits",
+      "sub": "From manual portal clicks to a nightly compliance report",
+      "narration": "In the last lesson we learned to drive Graph with PowerShell. Now we put it to work. A manual audit goes stale the instant you finish it and can't be diffed or scheduled. In this lesson we build a repeatable audit engine that finds users without MFA, stale accounts, guests, risky users, and role assignments, then ships it as a nightly Azure Automation runbook with no stored secrets."
+    },
+    {
+      "type": "content",
+      "title": "Why Automate Audits",
+      "bullets": [
+        "Manual reviews are stale the moment they finish",
+        "Automation turns posture into diffable, scheduled data",
+        "Compare runs week over week to detect drift",
+        "All audit scopes are read-only by design"
+      ],
+      "narration": "A posture review done by hand can't be diffed, scheduled, or trusted to be consistent. Automation turns posture into data: the same evidence collected the same way every night. Because an audit only inspects state, every permission we request is read-only, which keeps the automation safe to run unattended and minimizes blast radius."
+    },
+    {
+      "type": "content",
+      "title": "Users Without Strong Authentication",
+      "bullets": [
+        "Do NOT use the retired MSOnline StrongAuthenticationMethods",
+        "Use the authentication methods registration report",
+        "IsMfaRegistered and IsMfaCapable per user",
+        "Triage IsAdmin users without MFA first"
+      ],
+      "code": "$reg = Get-MgReportAuthenticationMethodUserRegistrationDetail -All\n$reg | Where-Object { -not $_.IsMfaRegistered } |\n    Select UserPrincipalName, IsMfaRegistered, IsAdmin |\n    Export-Csv .\\users-without-mfa.csv -NoTypeInformation",
+      "narration": "The highest-value audit is who can sign in without MFA. Don't use the retired MSOnline property; the supported source is the authentication methods registration report, which tells you per user whether they're MFA-registered and capable. Always flag admins without MFA first, because an unprotected privileged account is the single biggest risk in the tenant."
+    },
+    {
+      "type": "content",
+      "title": "Stale and Inactive Accounts",
+      "bullets": [
+        "Stale accounts are unused attack surface",
+        "Use signInActivity.lastSignInDateTime (AuditLog.Read.All)",
+        "Compare against a cutoff like 90 days",
+        "Null last sign-in means never used; handle separately"
+      ],
+      "code": "Get-MgUser -All -Property \"displayName,signInActivity\" |\n    Select DisplayName,\n      @{N='LastSignIn';E={$_.SignInActivity.LastSignInDateTime}} |\n    Where-Object { [datetime]$_.LastSignIn -lt (Get-Date).AddDays(-90) }",
+      "narration": "Unused accounts are attack surface. The authoritative staleness signal is signInActivity dot lastSignInDateTime, which needs AuditLog.Read.All and must be selected explicitly. Compare each user's last sign-in against a cutoff such as ninety days. Accounts that have never signed in show a null value; treat those separately because they're often forgotten service or test accounts."
+    },
+    {
+      "type": "content",
+      "title": "Guests, Risky Users, Roles",
+      "bullets": [
+        "Guests: filter userType eq 'Guest'",
+        "Risky users from Entra ID Protection (Get-MgRiskyUser)",
+        "Enumerate privileged directory role membership",
+        "These three inventories cover the biggest identity risks"
+      ],
+      "code": "Get-MgUser -All -Filter \"userType eq 'Guest'\" |\n    Export-Csv .\\guest-inventory.csv -NoTypeInformation\nGet-MgRiskyUser -All |\n    Where-Object { $_.RiskState -eq 'atRisk' }",
+      "narration": "Three more high-value inventories. Guests are external identities, reliably filtered by userType equals Guest. Risky users come from Entra ID Protection via Get-MgRiskyUser. And enumerating directory role membership shows exactly who holds privileged roles like Global Administrator. Together these cover the biggest identity-side risks an auditor cares about."
+    },
+    {
+      "type": "content",
+      "title": "Export Conditional Access as Evidence",
+      "bullets": [
+        "CA policies are the backbone of Zero Trust enforcement",
+        "Export needs Policy.Read.All",
+        "Flatten key fields to CSV for review",
+        "Keep full JSON as a drift-detection baseline"
+      ],
+      "code": "$ca = Get-MgIdentityConditionalAccessPolicy -All\n$ca | ConvertTo-Json -Depth 10 | Set-Content .\\ca-policies.json",
+      "narration": "Conditional Access policies enforce Zero Trust, so they belong in every audit. Export them with Policy.Read.All, flatten the key fields to CSV for human review, and keep the full JSON as a source-of-truth snapshot. That JSON becomes the baseline for drift detection and feeds the Security-as-Code redeployment we cover in lesson four."
+    },
+    {
+      "type": "content",
+      "title": "CSV and HTML Reports",
+      "bullets": [
+        "CSV for diffing and pivot tables",
+        "HTML is what managers and auditors actually read",
+        "ConvertTo-Html builds a styled, emailable table",
+        "Bundle all findings into one dated evidence folder"
+      ],
+      "code": "$noMfa | ConvertTo-Html -Title \"Users Without MFA\" -Head $style |\n    Out-File .\\mfa-report.html",
+      "narration": "Export each finding to CSV for diffing, but produce HTML for the humans. ConvertTo-Html turns any object collection into a styled table you can email straight to a manager. Bundle every finding, no-MFA, stale, guests, risky, roles, into one dated folder so each nightly run is a self-contained evidence package."
+    },
+    {
+      "type": "content",
+      "title": "Schedule with a Managed Identity",
+      "bullets": [
+        "Wrap the script in an Azure Automation runbook",
+        "Authenticate with Connect-MgGraph -Identity, no stored secret",
+        "Assign the identity read-only Graph application permissions",
+        "Schedule nightly; the report runs itself"
+      ],
+      "code": "# Inside the runbook - no stored credentials\nConnect-MgGraph -Identity\n# ... run all audit blocks, write to blob or email ...\nDisconnect-MgGraph",
+      "narration": "A report nobody runs is useless, so wrap it in an Azure Automation runbook scheduled nightly. The best credential is the Automation account's system-assigned managed identity: there is nothing to store, rotate, or leak. Assign that identity the read-only Graph application permissions, connect with the Identity switch, and you have a hands-off compliance report that lands in the same place every morning."
+    }
+  ]
+}
