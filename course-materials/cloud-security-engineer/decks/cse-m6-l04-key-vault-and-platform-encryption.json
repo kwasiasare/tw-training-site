@@ -1,0 +1,234 @@
+{
+  "slug": "cse-m6-l04-key-vault-and-platform-encryption",
+  "title": "Azure Key Vault, Secrets, and Platform Encryption",
+  "month": 6,
+  "monthTitle": "Azure Platform Security: Storage, Databases & Networking",
+  "lesson": 4,
+  "video": "cse-m6-l04-key-vault-and-platform-encryption.mp4",
+  "summary": "Every storage account, database, and disk you hardened earlier in this module is ultimately protected by a key, and Azure Key Vault is where those keys and secrets live. This lesson makes Key Vault the root of trust for the platform: you will choose between Standard, Premium HSM-backed keys, and the single-tenant Managed HSM, lock the vault down with Azure RBAC instead of legacy access policies, and eliminate secrets from code by having managed identities fetch them at runtime. You will protect the vault itself with soft delete, purge protection, firewall and Private Endpoint, and stream its audit logs into Sentinel. Then you will connect Key Vault to the rest of the platform with customer-managed keys for Azure Storage, Azure SQL TDE, and managed disks, understanding envelope encryption and the availability trade-off you take on when you own the key. Finally you will compare Azure Disk Encryption, encryption at host, and server-side encryption, and turn on Microsoft Defender for Key Vault so anomalous access becomes a SOC alert. The throughline is that Key Vault is the root of trust that ties together the storage, database, and network protections of this entire module.",
+  "objectives": [
+    "Choose between Key Vault Standard, Premium (HSM-backed keys), and Managed HSM for a given requirement",
+    "Secure the vault with Azure RBAC data-plane roles using least privilege over legacy access policies",
+    "Eliminate secrets from code using managed identities and Key Vault references in app settings",
+    "Protect the vault with soft delete, purge protection, firewall, and Private Endpoint",
+    "Manage the secret and key lifecycle with versioning, expiry, and auto-rotation policies",
+    "Encrypt Storage, Azure SQL TDE, and managed disks with customer-managed keys via envelope encryption",
+    "Compare Azure Disk Encryption, encryption at host, and server-side encryption, and alert with Defender for Key Vault"
+  ],
+  "quiz": [
+    {
+      "q": "What is the practical difference between Key Vault soft delete and purge protection?",
+      "options": [
+        "Soft delete lets you recover a deleted vault or object during the retention period; purge protection blocks permanent deletion during that window even by administrators",
+        "They are the same feature under two names",
+        "Purge protection deletes objects faster; soft delete keeps them forever",
+        "Soft delete encrypts secrets; purge protection rotates them"
+      ],
+      "answer": 0,
+      "why": "Soft delete (on by default) retains deleted vaults and objects for a retention period so you can recover from accidental deletion. Purge protection goes further by blocking any purge of that soft-deleted data during the retention window, so not even a vault administrator or a compromised account can permanently destroy keys, which is critical when those keys encrypt your storage and databases."
+    },
+    {
+      "q": "When should you choose Azure Key Vault Managed HSM over the Premium vault tier?",
+      "options": [
+        "When you want the cheapest option for storing a few app secrets",
+        "When you need FIPS 140-3 Level 3, single-tenant dedicated HSM pool validated HSMs with full control of the key boundary",
+        "When you do not need HSM protection at all",
+        "When you only store certificates, never keys"
+      ],
+      "answer": 1,
+      "why": "Both Premium and Managed HSM provide FIPS 140-3 Level 3 HSM-backed keys; Managed HSM is single-tenant with a dedicated pool and customer-controlled security domain, so choose it when regulation or sovereignty demands single tenancy."
+    },
+    {
+      "q": "Why are managed identities the preferred way for an app to read a secret from Key Vault?",
+      "options": [
+        "They store the secret directly in the application source code",
+        "They disable RBAC so any app can read any secret",
+        "The application authenticates to Microsoft Entra ID with an identity Azure manages, so no credential is ever stored in code or config",
+        "They require you to embed a client secret in the app settings"
+      ],
+      "answer": 2,
+      "why": "A managed identity gives the app a Microsoft Entra identity whose credential Azure provisions and rotates automatically, so the app requests a token and reads the secret at runtime with no password in code or configuration. Combined with a least-privilege role like Key Vault Secrets User, this removes the bootstrapping secret that plaintext connection strings always reintroduce."
+    },
+    {
+      "q": "In customer-managed key (CMK) encryption of Azure Storage or SQL TDE, what does envelope encryption mean?",
+      "options": [
+        "The data is mailed on an encrypted disk",
+        "A data encryption key encrypts the data, and your Key Vault key (the key encryption key) wraps that data encryption key",
+        "Microsoft keeps a copy of your key in every region",
+        "The key and the data are stored in the same blob"
+      ],
+      "answer": 1,
+      "why": "With envelope encryption the service encrypts data with a symmetric data encryption key (DEK), then wraps that DEK with your key encryption key (KEK) held in Key Vault. The service only stores the wrapped DEK, so revoking or disabling the KEK renders the data unreadable, which is the power and the responsibility of CMK; you now own the availability and rotation of that key."
+    },
+    {
+      "q": "Why does Azure RBAC for the data plane improve on legacy vault access policies?",
+      "options": [
+        "Access policies are more granular than RBAC",
+        "RBAC provides a unified, role-based, least-privilege model managed alongside other Azure resources, with roles like Key Vault Secrets User and Crypto User scoped per vault or secret",
+        "RBAC removes the need for any permissions",
+        "Access policies integrate with Microsoft Entra ID but RBAC does not"
+      ],
+      "answer": 1,
+      "why": "The legacy access policy model grants broad permission sets per identity and is managed separately from the rest of Azure. Azure RBAC is Microsoft's recommended model, offering granular built-in roles (Key Vault Secrets User, Crypto User, Administrator) that you assign with least privilege at the vault or individual object scope, consistent with how you control every other Azure resource."
+    },
+    {
+      "q": "In 3-4 sentences, explain why Key Vault is described as the \"root of trust\" for the storage and database protections built earlier in this module, and name one operational risk you accept when you move from Microsoft-managed keys to customer-managed keys.",
+      "options": null,
+      "answer": "Key Vault holds the keys that encrypt the storage accounts, Azure SQL databases, and managed disks hardened earlier, so the confidentiality of all that data ultimately depends on the keys and access controls inside the vault, making it the single root of trust for platform encryption. If the vault is compromised or its keys are destroyed, the protected data is exposed or rendered permanently unreadable, which is why soft delete, purge protection, RBAC, and network isolation matter so much. When you move to customer-managed keys you accept responsibility for the key's availability and rotation, so an accidentally disabled, deleted, or expired key, or a vault that becomes unreachable, can take your storage and databases offline. That operational ownership is the trade-off for the control and revocability CMK provides.",
+      "why": "Key Vault is the root of trust because the keys that encrypt storage, SQL TDE, and disks live there, so its protection determines the security of everything downstream; the main CMK trade-off is that you now own key availability and rotation, and a lost or disabled key can make data unreadable."
+    }
+  ],
+  "resources": [
+    {
+      "label": "About Azure Key Vault",
+      "url": "https://learn.microsoft.com/en-us/azure/key-vault/general/overview"
+    },
+    {
+      "label": "Provide access to Key Vault keys, certificates, and secrets with Azure RBAC",
+      "url": "https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide"
+    },
+    {
+      "label": "Customer-managed keys for Azure Storage encryption",
+      "url": "https://learn.microsoft.com/en-us/azure/storage/common/customer-managed-keys-overview"
+    },
+    {
+      "label": "Azure Key Vault soft-delete and purge protection",
+      "url": "https://learn.microsoft.com/en-us/azure/key-vault/general/soft-delete-overview"
+    },
+    {
+      "label": "Microsoft Defender for Key Vault",
+      "url": "https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-key-vault-introduction"
+    }
+  ],
+  "body_markdown": "## The Root of Trust for the Platform\n\nAcross this module you hardened **storage accounts**, **Azure SQL databases**, and the **network** around them. Strip away the configuration and every one of those protections comes down to one thing: a **key**. Azure Storage encrypts blobs with a key; Azure SQL **Transparent Data Encryption (TDE)** encrypts the database with a key; a managed disk is encrypted with a key. **Azure Key Vault** is where those keys, along with application **secrets** and **certificates**, live and are governed. That makes Key Vault the **root of trust** for the entire platform: if the vault is wrong, everything it protects is wrong. This lesson closes the module by tying the keys back to the resources they protect.\n\nKey Vault manages three object types, and the distinction matters:\n\n- **Secrets** — arbitrary protected strings: connection strings, API keys, passwords.\n- **Keys** — cryptographic keys (RSA, EC) used for **wrap/unwrap, sign/verify**, never exported in the clear; these are what back customer-managed encryption.\n- **Certificates** — X.509 certificates with lifecycle management, built on top of keys and secrets.\n\n## Standard, Premium, and Managed HSM\n\nChoose the protection level for your keys deliberately:\n\n- **Standard** — keys are protected by software (still encrypted at rest in Microsoft's infrastructure). Fine for most secrets and certificates.\n- **Premium** — adds **HSM-backed keys** protected by **FIPS 140-3 Level 3** validated HSMs (legacy keys were FIPS 140-2 Level 2) in a **multi-tenant** HSM pool. Use it when a key must never exist outside an HSM boundary, including most CMK scenarios.\n- **Azure Key Vault Managed HSM** — a fully managed, **single-tenant** service backed by **FIPS 140-3 Level 3** validated HSMs, with a dedicated HSM pool and a customer-controlled security domain. Both Premium and Managed HSM reach FIPS 140-3 Level 3; choose Managed HSM when you need single tenancy / a dedicated cryptographic boundary, not a higher FIPS level.\n\nThe rule of thumb: **Standard** for secrets and certificates, **Premium** when CMK or compliance requires an HSM, **Managed HSM** when you need a dedicated, single-tenant cryptographic boundary.\n\n## Access Model: Azure RBAC over Legacy Access Policies\n\nKey Vault has two authorization models for the **data plane** (the operations that read secrets and use keys). The **legacy access policy** model grants coarse permission sets per identity and is managed separately from the rest of Azure. **Azure RBAC is the recommended model** and is what you should use for new vaults: it is granular, role-based, least-privilege, and managed consistently with every other Azure resource.\n\nAssign the **narrowest** built-in data-plane role for the job:\n\n- **Key Vault Secrets User** — read secret values. This is what an application's managed identity gets.\n- **Key Vault Crypto User** — use keys to encrypt/decrypt, wrap/unwrap, sign/verify (but not manage them).\n- **Key Vault Administrator** — full data-plane management; reserve for break-glass and platform engineers.\n\nSwitch the vault to RBAC and grant a role at the vault scope:\n\n```bash\n# Put the vault on the Azure RBAC authorization model\naz keyvault update --name kv-platform-prod \\\n  --resource-group rg-platform \\\n  --enable-rbac-authorization true\n\n# Grant an app's managed identity read-only access to secrets (least privilege)\naz role assignment create \\\n  --assignee \"<managed-identity-object-id>\" \\\n  --role \"Key Vault Secrets User\" \\\n  --scope \"/subscriptions/<sub>/resourceGroups/rg-platform/providers/Microsoft.KeyVault/vaults/kv-platform-prod\"\n```\n\nNever hand an application **Administrator** when **Secrets User** will do. Least privilege at the vault is the difference between a leaked token reading one secret and an attacker owning every key you have.\n\n## Eliminating Secrets from Code\n\nIn Module 5 the theme was automation without standing credentials. Key Vault is how that lands for applications. **Never store credentials in code or config.** Instead, give the workload a **managed identity** and let it fetch secrets at runtime.\n\n- **System-assigned managed identity** — tied to the lifecycle of one resource (a VM, App Service, Function). Deleted with the resource. Use it for a 1:1 identity.\n- **User-assigned managed identity** — a standalone identity you can attach to **many** resources. Use it when several workloads share an identity or you want the identity to outlive any single resource.\n\nThe app authenticates to **Microsoft Entra ID** with its managed identity, gets a token, and reads the secret. No password is ever stored. For App Service and Functions you do not even need code: use a **Key Vault reference** in app settings, and the platform resolves it at runtime:\n\n```text\n@Microsoft.KeyVault(SecretUri=https://kv-platform-prod.vault.azure.net/secrets/SqlConnectionString/)\n```\n\nThe app sees a normal setting; the value is fetched from Key Vault under the resource's managed identity. The plaintext connection string never lives in your repo, your pipeline, or your configuration files.\n\n## Protecting the Vault Itself\n\nBecause the vault is the root of trust, it gets its own defenses:\n\n- **Soft delete** is **on by default** and cannot be disabled. Deleted vaults and objects are retained for a configurable period (7-90 days) so you can **recover from accidental deletion**.\n- **Purge protection** goes further: during the retention window it **blocks permanent deletion even by an administrator**. Once enabled it cannot be turned off for the life of the vault. This is what stops a compromised admin or a rogue script from destroying the keys that encrypt your data. **For any vault holding CMK, purge protection is mandatory.**\n\n```bash\naz keyvault update --name kv-platform-prod \\\n  --resource-group rg-platform \\\n  --enable-purge-protection true\n```\n\n- **Network restriction** — set the firewall to **deny public access** and reach the vault over a **Private Endpoint**, so secrets never traverse the public internet. This is the same network discipline you applied to storage and SQL earlier in the module.\n- **Diagnostic logging** — send **AuditEvent** logs to **Log Analytics / Microsoft Sentinel** so every secret read and key operation is recorded and huntable.\n\n## Secret and Key Lifecycle: Versioning, Expiry, Rotation\n\nEvery object in Key Vault is **versioned**: updating a secret creates a new version while old versions remain addressable, so rotation never breaks a consumer mid-flight. Set **activation and expiry dates** on secrets and keys so stale credentials age out instead of living forever.\n\nFor keys, configure an **auto-rotation policy** so Key Vault generates a new key version on a schedule, and use **Event Grid near-expiry notifications** to drive rotation of secrets that Key Vault cannot rotate itself (for example, rotating a database password and writing the new value back). The goal is that no human is the rotation mechanism:\n\n```bash\n# Auto-rotate a key 30 days before expiry, with an 18-month lifetime\naz keyvault key rotation-policy update \\\n  --vault-name kv-platform-prod --name cmk-storage \\\n  --value '{\"lifetimeActions\":[{\"trigger\":{\"timeBeforeExpiry\":\"P30D\"},\"action\":{\"type\":\"Rotate\"}}],\"attributes\":{\"expiryTime\":\"P18M\"}}'\n```\n\n## Customer-Managed Keys: Closing the Loop with Storage and SQL\n\nThis is where Key Vault connects back to Lessons 1 and 2. By default Azure encrypts storage, SQL, and disks with **Microsoft-managed keys** at no effort. **Customer-managed keys (CMK / BYOK)** let you supply and control the key instead, using **envelope encryption**: the service encrypts data with a **data encryption key (DEK)**, then **wraps** that DEK with your **key encryption key (KEK)** in Key Vault. The service stores only the wrapped DEK, so if you disable or revoke the KEK, the data becomes unreadable.\n\nThat revocability is the benefit. The cost is **ownership**: with CMK **you own the availability and rotation of the key**. An accidentally disabled, deleted, or expired key, or a vault made unreachable, can take your storage account or database offline. This is exactly why such a vault needs **soft delete and purge protection** and a managed-identity-based access path.\n\nPoint a storage account at a CMK (the storage account's managed identity needs **Key Vault Crypto Service Encryption User** on the key):\n\n```bash\naz storage account update \\\n  --name stplatformprod --resource-group rg-platform \\\n  --encryption-key-source Microsoft.Keyvault \\\n  --encryption-key-vault \"https://kv-platform-prod.vault.azure.net/\" \\\n  --encryption-key-name cmk-storage \\\n  --encryption-key-version \"\"   # empty = auto-track the latest key version on rotation\n```\n\nThe same pattern applies to **Azure SQL TDE with a customer-managed key** (the TDE protector becomes your Key Vault key) and to **managed disks** via a **disk encryption set** that references the vault key. In every case Key Vault is the KEK and the platform resource is the consumer.\n\n## Disk and Compute Encryption Options\n\nFor VMs and disks there are three distinct mechanisms; know which is which:\n\n- **Server-side encryption (SSE) of managed disks** — the default. Azure encrypts disks at rest in the storage infrastructure with **platform-managed** or **customer-managed keys** (via a disk encryption set). Transparent to the guest OS.\n- **Encryption at host** — encrypts the temp disk and host caches too; recommended for sensitive VMs, but must be explicitly enabled (not a default).\n- **Azure Disk Encryption (ADE)** — in-guest volume encryption using **BitLocker** (Windows) or **DM-Crypt** (Linux), with the **encryption key stored in Key Vault**. Use it when you need OS-level volume encryption inside the guest.\n\nAnd one line on the frontier: **Azure confidential computing** encrypts data **in use** by running the workload inside a hardware-based **trusted execution environment**, closing the last gap after at-rest and in-transit.\n\nThis Bicep snippet wires a disk encryption set to a Key Vault key so disks can use CMK:\n\n```bicep\nresource des 'Microsoft.Compute/diskEncryptionSets@2023-04-02' = {\n  name: 'des-platform-prod'\n  location: location\n  identity: { type: 'SystemAssigned' }\n  properties: {\n    encryptionType: 'EncryptionAtRestWithCustomerKey'\n    activeKey: {\n      keyUrl: 'https://kv-platform-prod.vault.azure.net/keys/cmk-disk/<version>'\n    }\n  }\n}\n```\n\n## Defender for Key Vault and Hunting Access\n\nFinally, turn the vault into a **detection** surface. **Microsoft Defender for Key Vault** (a Defender for Cloud workload plan, introduced in Module 4) watches for **anomalous and suspicious access** patterns, unusual callers, spikes in secret reads, access from unfamiliar locations, and raises **alerts** that flow into **Sentinel** as potential **credential theft**. Combined with the AuditEvent logs you enabled, the SOC can both detect and investigate.\n\nA simple hunt over the vault's diagnostic logs:\n\n```kusto\n// Unusual volume of secret reads per caller in the last 24h\nAzureDiagnostics\n| where ResourceType == \"VAULTS\"\n| where OperationName == \"SecretGet\"\n| summarize Reads = count(), Secrets = dcount(id_s) by CallerIPAddress, identity_claim_appid_g, bin(TimeGenerated, 1h)\n| where Reads > 100\n| sort by Reads desc\n```\n\nThat closes Module 6 and SC-500 Domain 2. You secured storage, databases, and networking, and you have now seen that all of it hangs from one place: **Key Vault, the root of trust** whose keys encrypt the platform and whose access you govern with RBAC, isolate with private networking, protect with soft delete and purge protection, and monitor with Defender. Next, Module 7 brings the whole course together in the capstone.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Azure Key Vault, Secrets, and Platform Encryption",
+      "sub": "The root of trust that ties this whole module together",
+      "narration": "We close Module 6, and SC-500 Domain 2, by getting underneath everything we hardened. Storage, databases, and disks are all protected by keys, and Azure Key Vault is where those keys, secrets, and certificates live. In this lesson we treat the vault as the root of trust for the platform: we'll pick the right tier, lock it down with Azure RBAC, get secrets out of code with managed identities, protect the vault with soft delete and purge protection, and then connect its keys back to the storage and SQL encryption from earlier lessons using customer-managed keys."
+    },
+    {
+      "type": "content",
+      "title": "The Root of Trust",
+      "bullets": [
+        "Storage, SQL TDE, and managed disks all come down to a key",
+        "Key Vault stores secrets, keys, and certificates",
+        "Secrets are strings; keys do wrap/sign; certificates are X.509",
+        "If the vault is wrong, everything it protects is wrong"
+      ],
+      "narration": "Strip away the configuration from this whole module and every protection rests on a key. Storage encrypts blobs with a key, Azure SQL Transparent Data Encryption uses a key, and a managed disk is encrypted with a key. Key Vault is where those keys live, alongside application secrets like connection strings and X.509 certificates. Secrets are protected strings, keys do cryptographic operations like wrap and sign and are never exported in the clear, and certificates build on both. Because so much depends on it, the vault is the root of trust: get it wrong and everything downstream is exposed."
+    },
+    {
+      "type": "content",
+      "title": "Standard, Premium, and Managed HSM",
+      "bullets": [
+        "Standard: software-protected keys, fine for secrets and certificates",
+        "Premium: HSM-backed keys, FIPS 140-3 Level 3 (legacy 140-2 Level 2), multi-tenant pool",
+        "Managed HSM: single-tenant dedicated pool, FIPS 140-3 Level 3, customer security domain",
+        "Pick Managed HSM when compliance demands single tenancy"
+      ],
+      "narration": "Choose your protection level deliberately. Standard protects keys in software and is fine for most secrets and certificates. Premium adds HSM-backed keys protected by FIPS 140-3 Level 3 validated HSMs — legacy keys were FIPS 140-2 Level 2 — in a multi-tenant hardware pool, which you want for most customer-managed-key scenarios. Managed HSM is a fully managed, single-tenant service backed by FIPS 140-3 Level 3 hardware too, giving you a dedicated pool and a customer-controlled security domain. Both reach FIPS 140-3 Level 3; reach for Managed HSM when regulation or sovereignty demands single tenancy and a dedicated cryptographic boundary, not a higher FIPS level."
+    },
+    {
+      "type": "content",
+      "title": "Azure RBAC over Legacy Access Policies",
+      "bullets": [
+        "RBAC is the recommended data-plane model for new vaults",
+        "Key Vault Secrets User: read secret values (for app identities)",
+        "Key Vault Crypto User: use keys; Administrator: full management",
+        "Assign the narrowest role at vault or object scope"
+      ],
+      "code": "az keyvault update --name kv-platform-prod \\\n  --resource-group rg-platform \\\n  --enable-rbac-authorization true\n\naz role assignment create \\\n  --assignee \"<managed-identity-object-id>\" \\\n  --role \"Key Vault Secrets User\" \\\n  --scope \".../vaults/kv-platform-prod\"",
+      "language": "bash",
+      "narration": "Key Vault has two authorization models for the data plane. The legacy access policy model grants coarse permission sets and is managed separately from the rest of Azure. Azure RBAC is the recommended model: granular, role-based, and consistent with every other resource. Give an app's managed identity only Key Vault Secrets User to read secrets, use Crypto User to let a service use keys, and reserve Administrator for break-glass. As the commands show, you flip the vault to RBAC and then assign the narrowest role at the vault scope. Never hand out Administrator when Secrets User will do."
+    },
+    {
+      "type": "content",
+      "title": "Eliminating Secrets from Code",
+      "bullets": [
+        "Never store credentials in code or config",
+        "Give the workload a managed identity to fetch secrets at runtime",
+        "System-assigned: 1:1 with a resource; user-assigned: shared across many",
+        "App Service and Functions resolve Key Vault references with no code"
+      ],
+      "code": "@Microsoft.KeyVault(SecretUri=https://kv-platform-prod.vault.azure.net/secrets/SqlConnectionString/)",
+      "language": "text",
+      "narration": "Module 5 was about automation without standing credentials, and Key Vault is how that lands for apps. Never put a credential in code or config. Instead give the workload a managed identity: a system-assigned identity is tied 1:1 to one resource, while a user-assigned identity is standalone and can be shared across many. The app authenticates to Microsoft Entra ID with that identity and reads the secret at runtime, with no password stored anywhere. For App Service and Functions you don't even write code: a Key Vault reference in app settings, like the one on screen, resolves at runtime under the resource's managed identity."
+    },
+    {
+      "type": "content",
+      "title": "Protecting the Vault Itself",
+      "bullets": [
+        "Soft delete is on by default: recover deleted vaults and objects",
+        "Purge protection blocks permanent deletion even by admins",
+        "Purge protection is mandatory for any vault holding CMK",
+        "Lock down with firewall plus Private Endpoint; log AuditEvent to Sentinel"
+      ],
+      "narration": "Because the vault is the root of trust, it gets its own defenses. Soft delete is on by default and can't be disabled; it retains deleted vaults and objects for seven to ninety days so you can recover from accidents. Purge protection goes further and blocks permanent deletion during that window even by an administrator, and once on it can't be turned off, so a compromised admin or rogue script can't destroy your keys. For any vault holding customer-managed keys, purge protection is mandatory. Then deny public access and reach the vault over a Private Endpoint, and send AuditEvent logs to Sentinel so every secret read is huntable."
+    },
+    {
+      "type": "content",
+      "title": "Lifecycle: Versioning, Expiry, Rotation",
+      "bullets": [
+        "Every object is versioned, so rotation never breaks consumers",
+        "Set activation and expiry dates so stale credentials age out",
+        "Auto-rotation policies generate new key versions on a schedule",
+        "Event Grid near-expiry events drive rotation of external secrets"
+      ],
+      "code": "az keyvault key rotation-policy update \\\n  --vault-name kv-platform-prod --name cmk-storage \\\n  --value '{\"lifetimeActions\":[{\"trigger\":{\"timeBeforeExpiry\":\"P30D\"},\"action\":{\"type\":\"Rotate\"}}],\"attributes\":{\"expiryTime\":\"P18M\"}}'",
+      "language": "bash",
+      "narration": "Every object in Key Vault is versioned, so updating a secret creates a new version while old ones stay addressable and consumers don't break mid-flight. Set activation and expiry dates so stale credentials age out instead of living forever. For keys, configure an auto-rotation policy, like this one that rotates thirty days before an eighteen-month expiry, so the vault generates new versions on a schedule. For secrets Key Vault can't rotate itself, use Event Grid near-expiry notifications to trigger automation that rotates the backing credential and writes the new value back. The goal is that no human is the rotation mechanism."
+    },
+    {
+      "type": "content",
+      "title": "Customer-Managed Keys and Envelope Encryption",
+      "bullets": [
+        "Default is Microsoft-managed keys; CMK lets you own the key",
+        "Envelope encryption: a DEK encrypts data, your KEK wraps the DEK",
+        "Disable or revoke the KEK and the data becomes unreadable",
+        "Trade-off: you now own key availability and rotation"
+      ],
+      "code": "az storage account update \\\n  --name stplatformprod --resource-group rg-platform \\\n  --encryption-key-source Microsoft.Keyvault \\\n  --encryption-key-vault \"https://kv-platform-prod.vault.azure.net/\" \\\n  --encryption-key-name cmk-storage \\\n  --encryption-key-version \"\"",
+      "language": "bash",
+      "narration": "This is where Key Vault connects back to the storage and SQL lessons. By default Azure uses Microsoft-managed keys with zero effort. Customer-managed keys let you supply the key using envelope encryption: the service encrypts data with a data encryption key, then wraps that DEK with your key encryption key in Key Vault, storing only the wrapped version. Disable or revoke your KEK and the data becomes unreadable, which is the benefit. The cost is ownership: you now own the key's availability and rotation, so a disabled or deleted key can take storage and databases offline. The command points a storage account at a CMK, with an empty version so it auto-tracks rotation."
+    },
+    {
+      "type": "content",
+      "title": "Disk and Compute Encryption Options",
+      "bullets": [
+        "Server-side encryption: default, platform or customer-managed keys",
+        "Encryption at host: covers temp disks and caches from the host",
+        "Azure Disk Encryption: in-guest BitLocker or DM-Crypt, key in Key Vault",
+        "Confidential computing encrypts data in use in a trusted enclave"
+      ],
+      "code": "resource des 'Microsoft.Compute/diskEncryptionSets@2023-04-02' = {\n  name: 'des-platform-prod'\n  location: location\n  identity: { type: 'SystemAssigned' }\n  properties: {\n    encryptionType: 'EncryptionAtRestWithCustomerKey'\n    activeKey: {\n      keyUrl: 'https://kv-platform-prod.vault.azure.net/keys/cmk-disk/<version>'\n    }\n  }\n}",
+      "language": "bicep",
+      "narration": "For VMs there are three distinct mechanisms. Server-side encryption of managed disks is the default and encrypts at rest with platform or customer-managed keys via a disk encryption set, transparent to the guest. Encryption at host extends that to temp disks and caches from the Azure host with no guest performance hit, but must be explicitly enabled, not a default. Azure Disk Encryption is in-guest volume encryption using BitLocker or DM-Crypt with the key in Key Vault. And confidential computing encrypts data in use inside a hardware trusted execution environment. The Bicep wires a disk encryption set to a Key Vault key so disks can use a customer-managed key."
+    },
+    {
+      "type": "content",
+      "title": "Defender for Key Vault and Hunting",
+      "bullets": [
+        "Defender for Key Vault alerts on anomalous, suspicious access",
+        "Unusual callers and spikes in reads surface as credential theft",
+        "Alerts flow into Sentinel beside identity and endpoint signals",
+        "AuditEvent logs let the SOC hunt and investigate"
+      ],
+      "code": "AzureDiagnostics\n| where ResourceType == \"VAULTS\"\n| where OperationName == \"SecretGet\"\n| summarize Reads = count(), Secrets = dcount(id_s) by CallerIPAddress, identity_claim_appid_g, bin(TimeGenerated, 1h)\n| where Reads > 100\n| sort by Reads desc",
+      "language": "kusto",
+      "narration": "Finally, make the vault a detection surface. Microsoft Defender for Key Vault, a Defender for Cloud plan from Module 4, watches for anomalous access: unfamiliar callers, spikes in secret reads, access from odd locations, and raises alerts into Sentinel as potential credential theft. Paired with the AuditEvent logs you enabled, the SOC can both detect and investigate, as this hunt for an unusual volume of secret reads per caller shows."
+    },
+    {
+      "type": "content",
+      "title": "Module 6 Wrap-Up",
+      "bullets": [
+        "Key Vault is the root of trust for storage, SQL, and disk encryption",
+        "Govern with RBAC, isolate with private networking",
+        "Protect with soft delete and purge protection; monitor with Defender",
+        "Next: Module 7 brings the whole course together in the capstone"
+      ],
+      "narration": "That closes Module 6 and SC-500 Domain 2. We secured storage, databases, and networking, and we've now seen that all of it hangs from one place. Key Vault is the root of trust whose keys encrypt the platform: you govern access with RBAC, get secrets out of code with managed identities, isolate the vault with private networking, protect it with soft delete and purge protection, and monitor it with Defender. With identity, endpoints, data, SIEM, automation, and platform security all covered, Module 7 brings the whole course together in the capstone."
+    }
+  ]
+}

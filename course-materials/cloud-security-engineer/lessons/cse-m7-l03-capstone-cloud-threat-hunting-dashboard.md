@@ -1,7 +1,7 @@
 ---
 course: cloud-security-engineer
 title: 'Capstone: Enterprise Cloud Threat-Hunting Dashboard'
-month: 6
+month: 7
 monthTitle: Capstone Projects & Career Launch
 lesson: 3
 summary: Leadership wants one place to see security across a multi-cloud estate. In this capstone you
@@ -19,7 +19,7 @@ objectives:
 - Validate the detection-to-response flow end to end with controlled test sign-ins
 - Build a Workbook dashboard and assemble the KQL, playbook, and screenshots into a hireable portfolio
   artifact
-video: cse-m6-l03-capstone-cloud-threat-hunting-dashboard.mp4
+video: cse-m7-l03-capstone-cloud-threat-hunting-dashboard.mp4
 quiz:
 - q: Why is Microsoft Sentinel a strong choice for centralized multi-cloud security reporting in this
     scenario?

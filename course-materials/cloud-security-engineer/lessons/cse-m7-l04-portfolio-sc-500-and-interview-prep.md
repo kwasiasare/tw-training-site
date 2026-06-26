@@ -1,7 +1,7 @@
 ---
 course: cloud-security-engineer
 title: Portfolio, SC-500, and Interview Preparation
-month: 6
+month: 7
 monthTitle: Capstone Projects & Career Launch
 lesson: 4
 summary: 'You have built three portfolio-grade projects; now you turn them into a job. This lesson shows
@@ -20,7 +20,7 @@ objectives:
 - Prepare to talk through architecture decisions for Zero Trust, Conditional Access, and securing Copilot
 - Practice reading KQL aloud and reasoning about least privilege and incident response under questioning
 - Build a continuing-growth plan to stay current after the course
-video: cse-m6-l04-portfolio-sc-500-and-interview-prep.mp4
+video: cse-m7-l04-portfolio-sc-500-and-interview-prep.mp4
 quiz:
 - q: What makes a security portfolio project genuinely persuasive to a hiring manager?
   options:
@@ -44,9 +44,9 @@ quiz:
   why: 'SC-500 (Implementing End-to-End Security Controls for Cloud and AI Workloads, which earns the
     Cloud and AI Security Engineer Associate certification) measures four domains: manage identity, access,
     and governance (20-25%); secure storage, databases, and networking (25-30%); secure compute, including
-    AI security (20-25%); and manage and monitor security posture (20-25%). This course maps strongly
-    to the identity/access/governance, AI-security, and posture domains; the Azure storage, database,
-    and networking domain is the main area to study separately.'
+    AI security (20-25%); and manage and monitor security posture (20-25%). With Module 6 (Azure Platform
+    Security) added, this course now gives you hands-on coverage across all four domains, with the largest,
+    storage/database/networking domain reinforced by practice in your own Azure subscription.'
 - q: Which is the strongest, most hireable resume bullet?
   options:
   - Used Microsoft Sentinel and wrote some KQL queries
@@ -124,14 +124,14 @@ Pin the GitHub repos, link the videos, and write a short portfolio landing page 
 
 ## Mapping to SC-500
 
-Exam **SC-500, *Implementing End-to-End Security Controls for Cloud and AI Workloads*, earns the **Microsoft Certified: Cloud and AI Security Engineer Associate** certification (the successor to AZ-500). It measures four domains; this course maps strongly to three of them, and you should plan to supplement the fourth:
+Exam **SC-500, *Implementing End-to-End Security Controls for Cloud and AI Workloads*, earns the **Microsoft Certified: Cloud and AI Security Engineer Associate** certification (the successor to AZ-500). It measures four domains, and this course now gives you hands-on grounding in all four:
 
 - **Manage identity, access, and governance (20-25%)** — Entra ID, Conditional Access, PIM, MFA/passwordless, managed identities, Azure Policy, RBAC, and Defender for Cloud regulatory compliance -> your **Zero Trust endpoint-isolation** capstone, Module 1, and the security-as-code work in Module 5.
 - **Secure compute, including AI security (20-25%)** — the AI-security objectives (SharePoint overexposure, Copilot/AI risk via Purview DSPM, securing Logic Apps) -> your **pre-AI Purview audit** capstone and Module 3. (The server/VM and container objectives in this domain are study-separately items.)
 - **Manage and monitor security posture (20-25%)** — Defender for Cloud CSPM, multicloud AWS/GCP connectors, Microsoft Sentinel (connectors, automation rules, playbooks, retention), and Security Copilot -> your **Sentinel threat-hunting** capstone and Modules 4-5.
-- **Secure storage, databases, and networking (25-30%)** — Azure Storage, Azure SQL, NSGs, Azure Firewall, Private Link, and VPN. This is the one domain the course does **not** cover, and it is the largest, so budget dedicated study here.
+- **Secure storage, databases, and networking (25-30%)** — Azure Storage hardening, Azure SQL security, NSGs, Azure Firewall, Private Link, and Key Vault/customer-managed keys -> your new **Module 6 (Azure Platform Security)**. This is the largest domain, so reinforce the module with hands-on labs in your own Azure subscription.
 
-A naming note: SC-500 is an *engineer*-level associate cert, not the architect exam — the architect credential is **SC-100 (Cybersecurity Architect)**, a sensible next step. Plan: review the official *skills measured* study guide, close the storage/database/networking gap and the server/VM/container objectives with free **Microsoft Learn** paths and a hands-on Azure subscription, take a practice assessment, and schedule the exam. Because you built the identity, AI, and posture work hands-on, you are confirming knowledge there rather than memorizing it cold.
+A naming note: SC-500 is an *engineer*-level associate cert, not the architect exam — the architect credential is **SC-100 (Cybersecurity Architect)**, a sensible next step. Plan: review the official *skills measured* study guide, reinforce the Module 6 storage/database/networking work and close the remaining server/VM/container compute objectives with free **Microsoft Learn** paths and a hands-on Azure subscription, take a practice assessment, and schedule the exam. Because you built the identity, platform-security, AI, and posture work hands-on, you are confirming knowledge rather than memorizing it cold.
 
 ## Resume Bullets That Quantify Impact
 

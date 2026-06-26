@@ -1,0 +1,229 @@
+{
+  "slug": "cse-m6-l03-azure-network-security",
+  "title": "Azure Network Security: NSGs, Firewall, and Private Link",
+  "month": 6,
+  "monthTitle": "Azure Platform Security: Storage, Databases & Networking",
+  "lesson": 3,
+  "video": "cse-m6-l03-azure-network-security.mp4",
+  "summary": "Network security in Azure is defense in depth, and the senior skill is knowing exactly which layer each control defends. This lesson maps the toolkit by layer: Network Security Groups filter at Layer 3-4, Azure Firewall spans Layer 3 to Layer 7, Web Application Firewall inspects HTTP at Layer 7, and DDoS Protection absorbs volumetric attacks at Layer 3-4. You will write stateful NSG rules with priorities, service tags, and Application Security Groups, then centralize egress through Azure Firewall in a hub-and-spoke topology with FQDN filtering, threat intelligence, and Premium IDPS and TLS inspection. You will remove public exposure entirely with Private Endpoints and Private Link, understand how that differs from Service Endpoints, and lock down administrative access with Azure Bastion and Just-in-Time VM access instead of internet-facing RDP and SSH. Finally you will turn on VNet flow logs and Traffic Analytics so every flow is visible in Log Analytics and Sentinel. The throughline is layered network controls and private-by-default connectivity.",
+  "objectives": [
+    "Author stateful NSG rules using priority ordering, default rules, service tags, and ASGs",
+    "Decide between subnet and NIC association and between NSGs and Azure Firewall",
+    "Centralize egress through Azure Firewall with FQDN filtering, threat intel, and Premium IDPS/TLS",
+    "Place each control at its layer — NSG and DDoS at L3-4, Azure Firewall at L3-L7, and WAF at L7",
+    "Remove public exposure with Private Endpoints and Private Link, and contrast Service Endpoints",
+    "Secure administrative access with Azure Bastion and Just-in-Time VM access",
+    "Gain visibility with Network Watcher, VNet flow logs, and Traffic Analytics into Sentinel"
+  ],
+  "quiz": [
+    {
+      "q": "How are Network Security Group rules evaluated when traffic arrives?",
+      "options": [
+        "All rules are evaluated and the most permissive wins",
+        "Rules are processed in priority order, highest number first, and all must allow",
+        "Rules are processed in priority order, lowest number first, and the first match (allow or deny) stops evaluation",
+        "Rules are evaluated randomly until a deny is found"
+      ],
+      "answer": 2,
+      "why": "NSGs are stateful and evaluate rules by priority from the lowest number (highest priority) to the highest. The first rule that matches the 5-tuple is applied and processing stops, so a lower-numbered allow can override a higher-numbered deny. Default rules (priorities 65000-65500) sit at the bottom, allowing intra-VNet and load balancer traffic and denying everything else inbound."
+    },
+    {
+      "q": "What does an Application Security Group (ASG) let you do that a raw IP-based rule does not?",
+      "options": [
+        "Inspect HTTP request bodies for SQL injection",
+        "Group VMs by workload role so NSG rules reference the group instead of hardcoded IP addresses",
+        "Absorb volumetric DDoS attacks at the network edge",
+        "Encrypt traffic between two subnets automatically"
+      ],
+      "answer": 1,
+      "why": "An ASG is a logical grouping of network interfaces by application role (for example web or db). NSG rules can use ASGs as source or destination, so you write intent-based rules like \"allow web to db on 1433\" without maintaining IP lists. As VMs scale in and out, membership updates and the rules keep working, which is far more maintainable than static IP prefixes."
+    },
+    {
+      "q": "A workload must reach Azure Storage with no traffic traversing the public internet and no public endpoint exposed. Which option best meets this?",
+      "options": [
+        "A Private Endpoint, which projects a private IP from your subnet to the storage account over Private Link and is resolved via a private DNS zone",
+        "A Service Endpoint, because it gives the storage account a private IP in your VNet",
+        "An NSG rule allowing the Storage service tag outbound",
+        "Azure Firewall application rule allowing the storage FQDN"
+      ],
+      "answer": 0,
+      "why": "A Private Endpoint creates a network interface with a private IP from your subnet that maps to the PaaS resource through Azure Private Link, and a private DNS zone (privatelink.blob.core.windows.net) resolves the public name to that private IP. The public endpoint can then be disabled. A Service Endpoint keeps the resource's public IP and only optimizes the path plus VNet firewall rules, so it does not remove public exposure."
+    },
+    {
+      "q": "At which layer does a Web Application Firewall operate, and how does it differ from an NSG?",
+      "options": [
+        "Layer 3-4, identical to an NSG but faster",
+        "Layer 7 (HTTP/HTTPS), inspecting request content for attacks like SQL injection and XSS, whereas an NSG filters by IP, port, and protocol at Layer 3-4",
+        "Layer 2, filtering MAC addresses",
+        "Layer 7, but only for outbound traffic"
+      ],
+      "answer": 1,
+      "why": "A WAF on Application Gateway (regional) or Azure Front Door (global edge) is a Layer 7 reverse proxy that inspects HTTP requests against managed rule sets (the OWASP Core Rule Set) to block injection, cross-site scripting, and similar attacks. An NSG and Azure Firewall operate at Layer 3-4 on addresses and ports and cannot see inside an HTTP payload, which is why you layer a WAF in front of web apps."
+    },
+    {
+      "q": "Why deploy Azure Bastion and Just-in-Time VM access instead of opening RDP/SSH to the internet?",
+      "options": [
+        "They make VMs run faster",
+        "They eliminate standing internet-exposed management ports; Bastion gives browser-based RDP/SSH with no public IP on the VM, and JIT opens ports only on demand for a limited time",
+        "They are required for VNet peering to work",
+        "They replace the need for any NSG rules"
+      ],
+      "answer": 1,
+      "why": "Internet-exposed RDP (3389) and SSH (22) are a primary brute-force and ransomware entry point. Azure Bastion is a managed PaaS jumpbox that brokers RDP/SSH over TLS in the browser so VMs need no public IP. Just-in-Time VM access (a Defender for Servers feature) keeps the management ports closed in the NSG and opens them only for a requested source, port, and time window, shrinking the exposure window to near zero."
+    },
+    {
+      "q": "In 3-4 sentences, explain the role of Azure Firewall in a hub-and-spoke topology and how forced tunneling or a default route changes traffic flow. Name one Premium-tier capability.",
+      "options": null,
+      "answer": "In a hub-and-spoke design, Azure Firewall is deployed in the hub VNet as a central, stateful, managed egress and inspection point for all spoke workloads. You attach a user-defined route (UDR) with a 0.0.0.0/0 default route whose next hop is the firewall's private IP to the spoke subnets, forcing all outbound (and inter-spoke) traffic through the firewall for network, application (FQDN), and threat-intelligence filtering instead of letting it egress directly to the internet. Forced tunneling extends this by routing the firewall's own internet-bound traffic back to an on-premises edge over VPN/ExpressRoute for inspection there. One Premium-tier capability is IDPS (intrusion detection and prevention) or TLS inspection, which decrypts and inspects outbound HTTPS for signatures.",
+      "why": "Azure Firewall centralizes egress control in the hub; a default route (0.0.0.0/0 to the firewall private IP) forces spoke traffic through it, and forced tunneling sends internet-bound traffic to on-prem. Premium adds IDPS and TLS inspection. This is the canonical secure hub-and-spoke pattern."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Network security groups overview",
+      "url": "https://learn.microsoft.com/en-us/azure/virtual-network/network-security-groups-overview"
+    },
+    {
+      "label": "What is Azure Firewall?",
+      "url": "https://learn.microsoft.com/en-us/azure/firewall/overview"
+    },
+    {
+      "label": "What is Azure Private Link?",
+      "url": "https://learn.microsoft.com/en-us/azure/private-link/private-link-overview"
+    },
+    {
+      "label": "What is Azure Bastion?",
+      "url": "https://learn.microsoft.com/en-us/azure/bastion/bastion-overview"
+    },
+    {
+      "label": "VNet flow logs",
+      "url": "https://learn.microsoft.com/en-us/azure/network-watcher/vnet-flow-logs-overview"
+    }
+  ],
+  "body_markdown": "## Defense in Depth: Know Your Layer\n\nThe single most important habit in Azure network security is to know **which OSI layer each control defends**, because each tool sees a different part of the traffic and they are meant to stack:\n\n- **Network Security Groups (NSGs)** — **Layer 3-4** only. They filter on IP address, port, and protocol and cannot read inside an HTTP request.\n- **Azure Firewall** — primarily **Layer 3-4**, but also **Layer 7-aware**: its application rules filter by FQDN/URL (reading the HTTP Host header / TLS SNI), and the Premium SKU adds IDPS and TLS inspection (L3-L7).\n- **Web Application Firewall (WAF)** — **Layer 7**. It is an HTTP-aware reverse proxy that inspects the HTTP request content and body for injection and cross-site scripting, which Azure Firewall application rules do not.\n- **Azure DDoS Protection** — **Layer 3-4**, absorbing volumetric and protocol floods before they reach your resources.\n- **Private Link / Private Endpoints** — not a filter at all but a **connectivity** control: it replaces a public IP with a **private IP plus private DNS** so the resource is never on the internet.\n\nA senior design uses all of them together: DDoS at the edge, a WAF in front of web apps, NSGs and Azure Firewall segmenting and controlling east-west and egress traffic, and Private Endpoints removing public PaaS exposure entirely.\n\n## Network Security Groups (NSGs)\n\nAn **NSG** is a **stateful** packet filter you attach to a **subnet** or a **NIC** (or both). Stateful means you allow a flow in one direction and the return traffic is permitted automatically — you do not write a matching reverse rule.\n\nEach rule is a 5-tuple match — **source**, **source port**, **destination**, **destination port**, **protocol** — plus a **priority** (100-4096) and an **allow/deny** action. The mechanics that trip people up:\n\n- Rules are processed **lowest priority number first**. The **first match wins** and evaluation stops, so a priority-200 allow beats a priority-300 deny.\n- Every NSG ships with **default rules** at priorities 65000-65500 that you cannot delete: inbound allows intra-VNet traffic (`AllowVNetInBound`) and the Azure load balancer, then `DenyAllInBound`; outbound allows VNet and internet, then `DenyAllOutBound`. Your rules sit *above* these defaults.\n- **Subnet vs NIC**: a subnet NSG applies to every NIC in the subnet (broad, coarse); a NIC NSG applies to one VM (granular). When both are present, inbound traffic is evaluated at the **subnet first then the NIC**, and outbound the reverse — and traffic must be allowed by **both**.\n\n```bash\n# Allow HTTPS from the internet to the web tier\naz network nsg rule create \\\n  --resource-group rg-prod --nsg-name nsg-web \\\n  --name Allow-HTTPS-Inbound --priority 200 \\\n  --direction Inbound --access Allow --protocol Tcp \\\n  --source-address-prefixes Internet \\\n  --destination-port-ranges 443 \\\n  --destination-asgs asg-web\n```\n\n## Service Tags and Application Security Groups\n\nTwo features make NSG rules maintainable at scale instead of brittle IP lists:\n\n- **Service tags** are Microsoft-managed labels for the IP ranges of a service — `Internet`, `VirtualNetwork`, `AzureLoadBalancer`, `Storage`, `Sql`, `AzureKeyVault`, `AzureCloud`, and many regional variants. Microsoft updates the underlying prefixes for you, so a rule that allows the `Storage` tag keeps working as Azure's address space changes.\n- **Application Security Groups (ASGs)** are logical groupings of **NICs by workload role**. You put your web VMs in `asg-web` and your database VMs in `asg-db`, then write intent-based rules — *allow `asg-web` to `asg-db` on 1433* — without referencing a single IP. As the workload scales in and out, ASG membership follows the VMs and the rules keep holding. This is the modern, declarative way to do microsegmentation inside a VNet.\n\n## Azure Firewall\n\nNSGs are great for cheap, distributed Layer 3-4 segmentation, but they have no FQDN awareness, no centralized logging, and no threat intelligence. **Azure Firewall** is the managed, stateful, highly available **network firewall-as-a-service** you put in the **hub** of a hub-and-spoke topology to control and inspect traffic centrally.\n\nRules live in a **Firewall Policy** and are organized into **rule collections**, processed in a fixed order:\n\n1. **DNAT rules** — translate an inbound public IP:port to a private destination (publishing a service).\n2. **Network rules** — Layer 3-4 allow/deny by IP, port, protocol, and **service tags / FQDN tags**.\n3. **Application rules** — Layer 7-aware **FQDN filtering** for HTTP/S and SQL, e.g. allow outbound only to `*.windowsupdate.com` or `*.ubuntu.com`.\n\nOn top, **threat intelligence-based filtering** supports two modes — **Alert only**, or **Alert and deny** — for traffic to and from known-malicious IPs and domains from the Microsoft Threat Intelligence feed. To make the firewall the actual egress point, you attach a **user-defined route (UDR)** to each spoke subnet with a **default route `0.0.0.0/0` whose next hop is the firewall's private IP** — now all outbound and inter-spoke traffic is forced through it. **Forced tunneling** extends this by routing the firewall's own internet-bound traffic back to an on-premises edge over VPN/ExpressRoute for inspection there.\n\n```bicep\n// Force all spoke egress through the hub firewall\nresource udr 'Microsoft.Network/routeTables@2023-09-01' = {\n  name: 'rt-spoke-default'\n  location: location\n  properties: {\n    routes: [\n      {\n        name: 'default-to-firewall'\n        properties: {\n          addressPrefix: '0.0.0.0/0'\n          nextHopType: 'VirtualAppliance'\n          nextHopIpAddress: '10.0.1.4' // Azure Firewall private IP\n        }\n      }\n    ]\n  }\n}\n```\n\n## Azure Firewall Premium: IDPS and TLS Inspection\n\nThe **Premium** SKU adds two capabilities that matter for regulated and high-assurance estates:\n\n- **IDPS (Intrusion Detection and Prevention System)** — signature-based detection that can **alert** or **alert and deny** on known exploit patterns in network traffic, including matching against thousands of rules updated by Microsoft.\n- **TLS inspection** — the firewall **decrypts outbound HTTPS**, inspects the plaintext (so IDPS and application rules can see the real content), then re-encrypts. It uses an intermediate CA certificate, typically issued from your own **Key Vault**, that clients trust.\n\nPremium also brings **URL filtering** (beyond whole-FQDN) and **web categories**. The trade-off is cost and the operational care TLS inspection demands, so most teams enable it selectively on the egress paths that need deep inspection.\n\n## Web Application Firewall (WAF) at Layer 7\n\nNSGs and Azure Firewall cannot see that a request body contains `' OR 1=1--`. That is the job of the **Web Application Firewall**, a **Layer 7** control that runs in one of two places:\n\n- **Application Gateway WAF** — a **regional** Layer 7 load balancer / reverse proxy in front of web apps in a VNet.\n- **Azure Front Door WAF** — a **global**, edge-based WAF for internet-facing apps, blocking attacks close to the user.\n\nBoth use **Microsoft-managed rule sets** built on the **OWASP Core Rule Set (CRS)** to block injection, cross-site scripting, and other Top 10 attacks, plus optional **bot protection** and custom rate-limit/geo rules. The critical operational setting is the mode:\n\n- **Detection mode** — logs what *would* be blocked, used to tune rules and find false positives without breaking the app.\n- **Prevention mode** — actually **blocks** matching requests.\n\nThe standard rollout is to run in detection first, tune out false positives, then switch to prevention.\n\n## Azure DDoS Protection\n\nEvery Azure public IP gets **always-on, platform-level** DDoS defense for free (basic infrastructure protection). The **paid tiers** add adaptive, application-aware mitigation:\n\n- **DDoS Network Protection** — enabled on a **VNet**, it protects **all public IP resources** in that VNet with adaptive real-time tuning, attack analytics and metrics, **mitigation reports**, **cost protection** (credits for scale-out during an attack), and access to the DDoS Rapid Response team.\n- **DDoS IP Protection** — a lower-cost, **per-public-IP** tier for when you only need to protect a few addresses rather than a whole VNet.\n\nDDoS Protection operates at **Layer 3-4** against volumetric and protocol floods; pair it with a **WAF** for Layer 7 application-layer attacks, since the two cover different layers.\n\n## Private Link and Private Endpoints\n\nBy default, Azure PaaS services (Storage, SQL, Key Vault) have a **public endpoint**. Even with the resource firewall locked down, that public surface exists. **Azure Private Link** removes it.\n\nA **Private Endpoint** is a **NIC with a private IP from your subnet** that maps to a specific PaaS resource (and sub-resource, like the `blob` of a storage account) over the Microsoft backbone. A **private DNS zone** — for example `privatelink.blob.core.windows.net` — overrides the public name so clients resolve the service to its **private IP**. You then **disable the public endpoint** entirely. Traffic never touches the internet.\n\nDo not confuse this with a **Service Endpoint**, which is weaker:\n\n- A **Service Endpoint** keeps the resource's **public IP**; it just optimizes routing over the backbone and lets the resource firewall trust a specific subnet (a VNet rule). The service is still publicly addressable.\n- A **Private Endpoint** gives the resource a **private IP in your VNet**, supports on-premises access over VPN/ExpressRoute, and lets you turn the public endpoint off.\n\nFor a zero-trust data plane, prefer Private Endpoints.\n\n```bash\n# Create a private endpoint to a storage account's blob service\naz network private-endpoint create \\\n  --resource-group rg-prod --name pe-storage-blob \\\n  --vnet-name vnet-hub --subnet snet-privateendpoints \\\n  --private-connection-resource-id \\\n    $(az storage account show -g rg-prod -n stcontoso --query id -o tsv) \\\n  --group-id blob --connection-name conn-blob\n```\n\n## Secure Administrative Access: Bastion and JIT\n\nOpen RDP (3389) and SSH (22) on a public IP is one of the most exploited attack surfaces in the cloud. Two services let you manage VMs without it:\n\n- **Azure Bastion** — a managed PaaS jumpbox deployed into a dedicated `AzureBastionSubnet`. It brokers **RDP and SSH over TLS in the browser**, so your VMs need **no public IP** and no agent, and the management ports are never exposed to the internet.\n- **Just-in-Time (JIT) VM access** — a **Defender for Servers** feature that keeps the management ports **closed in the NSG** and opens them only when a user **requests access**, scoped to a source IP, port, and **time window** (after which they auto-close). Combined, Bastion provides the connectivity and JIT shrinks the exposure window to near zero.\n\n## Visibility: Network Watcher, Flow Logs, and Traffic Analytics\n\nYou cannot secure traffic you cannot see. **Network Watcher** is the regional diagnostics service for Azure networking, with tools like **IP flow verify**, **next hop**, and **connection troubleshoot** to test whether an NSG or route is doing what you think.\n\nFor continuous visibility, enable **VNet flow logs** (the successor to NSG flow logs, which Microsoft is retiring) — they record **allowed and denied flows** at the virtual network level to a storage account. Layer **Traffic Analytics** on top to process those raw logs into a **Log Analytics workspace**, enriched with geography, threat context, and topology, and queryable with KQL or pulled into **Microsoft Sentinel** for correlation with identity and endpoint signals:\n\n```kusto\n// Top denied / malicious flows from VNet flow logs via Traffic Analytics\nNTANetAnalytics\n| where TimeGenerated > ago(24h)\n| where SubType == \"FlowLog\" and FlowType in (\"MaliciousFlow\", \"ExternalPublic\")\n| where FlowStatus == \"D\"   // Denied\n| summarize Flows = count() by SrcIp, DestIp, DestPort, L7Protocol\n| sort by Flows desc\n```\n\nThat closes the loop: layered controls from Layer 3-4 to Layer 7, private-by-default connectivity to PaaS, hardened administrative access, and full flow visibility flowing into the same SOC you built earlier in the course. With storage, databases, and networking secured, the platform is ready for the capstone projects in Module 7.\n",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Azure Network Security",
+      "sub": "NSGs, Firewall, WAF, DDoS, and Private Link by layer",
+      "narration": "In this lesson we secure the Azure network itself, and the organizing idea is layers. Every control sees a different slice of traffic: NSGs work at Layer 3 and 4 on addresses and ports, Azure Firewall works mostly at Layer 3 and 4 but is also Layer 7-aware through its FQDN application rules, a Web Application Firewall works at Layer 7 inside the HTTP request, DDoS Protection absorbs volumetric floods at Layer 3 and 4, and Private Link is not a filter at all but a way to give PaaS a private IP so it leaves the internet entirely. By the end you'll know exactly which tool defends which layer and how they stack into a defense-in-depth design."
+    },
+    {
+      "type": "content",
+      "title": "Know Your Layer",
+      "bullets": [
+        "NSG: Layer 3-4 only, filters on IP, port, protocol",
+        "Azure Firewall: L3-4 plus L7-aware FQDN/URL rules; Premium adds IDPS/TLS",
+        "WAF: Layer 7, inspects HTTP content and body for injection and XSS",
+        "DDoS Protection: Layer 3-4, absorbs volumetric and protocol floods",
+        "Private Link: connectivity, not a filter, a private IP plus private DNS"
+      ],
+      "narration": "Hold this mental map. Network Security Groups filter on the IP five-tuple at Layer 3 and 4 and cannot read inside an HTTP request. Azure Firewall is mostly Layer 3 and 4 but also Layer 7-aware: its application rules filter by FQDN and URL using the HTTP Host header or TLS SNI, and the Premium SKU adds IDPS and TLS inspection. A Web Application Firewall is HTTP-aware at Layer 7 and reads the request body for injection and cross-site scripting, which the firewall's application rules do not. DDoS Protection lives at Layer 3 and 4 to soak up floods. And Private Link isn't a filter; it's a connectivity control that swaps a public endpoint for a private IP and private DNS. A senior design uses all of them together rather than leaning on any one."
+    },
+    {
+      "type": "content",
+      "title": "Network Security Groups",
+      "bullets": [
+        "Stateful filter on a subnet or a NIC; return traffic is automatic",
+        "5-tuple rules with priority 100-4096; lowest number wins, first match stops",
+        "Undeletable default rules at 65000-65500 allow VNet/LB, deny the rest",
+        "Subnet NSG is coarse, NIC NSG is granular; both must allow"
+      ],
+      "narration": "An NSG is a stateful packet filter you attach to a subnet, a NIC, or both. Stateful means you allow a flow one way and the return is permitted automatically. Each rule matches a five-tuple and carries a priority from 100 to 4096; rules are processed lowest number first and the first match wins, so a priority-200 allow beats a priority-300 deny. Every NSG also has undeletable default rules in the 65000 range that allow intra-VNet and load balancer traffic and deny everything else. Remember that when a subnet and a NIC both have NSGs, both must allow the traffic."
+    },
+    {
+      "type": "content",
+      "title": "Service Tags and ASGs",
+      "bullets": [
+        "Service tags: Microsoft-managed IP ranges (Internet, Storage, Sql, AzureKeyVault)",
+        "Microsoft updates the prefixes, so tag-based rules keep working",
+        "ASGs group NICs by workload role (asg-web, asg-db)",
+        "Write intent-based rules: allow asg-web to asg-db on 1433"
+      ],
+      "narration": "Two features keep NSG rules from rotting into stale IP lists. Service tags are Microsoft-managed labels for a service's address ranges, like Internet, Storage, Sql, or AzureKeyVault, and Microsoft keeps the underlying prefixes current for you. Application Security Groups group network interfaces by role, so you place web VMs in asg-web and database VMs in asg-db and write a rule that says allow asg-web to asg-db on 1433, with no IP addresses at all. As the workload scales, membership follows the VMs and the rule still holds. That's microsegmentation done declaratively."
+    },
+    {
+      "type": "content",
+      "title": "Azure Firewall",
+      "bullets": [
+        "Managed, stateful firewall-as-a-service in the hub of hub-and-spoke",
+        "Firewall Policy rule collections: DNAT, then Network, then Application",
+        "Application rules do FQDN filtering; threat intel: Alert only or Alert and deny",
+        "Default route 0.0.0.0/0 to the firewall IP forces spoke egress through it"
+      ],
+      "code": "resource udr 'Microsoft.Network/routeTables@2023-09-01' = {\n  name: 'rt-spoke-default'\n  properties: {\n    routes: [{\n      name: 'default-to-firewall'\n      properties: {\n        addressPrefix: '0.0.0.0/0'\n        nextHopType: 'VirtualAppliance'\n        nextHopIpAddress: '10.0.1.4' // firewall private IP\n      }\n    }]\n  }\n}",
+      "language": "bicep",
+      "narration": "NSGs are cheap distributed segmentation but they have no FQDN awareness, no central log, and no threat intel. Azure Firewall is the managed, stateful firewall you place in the hub of a hub-and-spoke network. Its policy holds rule collections processed in a fixed order: DNAT first, then network rules, then application rules that do Layer 7 FQDN filtering, like allow outbound only to star-dot-windowsupdate-dot-com. Threat-intelligence filtering supports two modes, Alert only or Alert and deny, on known-bad IPs and domains. To make the firewall the real egress point, you attach a user-defined route sending 0.0.0.0/0 to the firewall's private IP, forcing all spoke traffic through it."
+    },
+    {
+      "type": "content",
+      "title": "Firewall Premium: IDPS and TLS",
+      "bullets": [
+        "IDPS: signature-based detection that can alert or alert-and-deny",
+        "TLS inspection: decrypts outbound HTTPS so rules see real content",
+        "Uses an intermediate CA cert, typically from Key Vault",
+        "Adds URL filtering and web categories; enable selectively for cost"
+      ],
+      "narration": "The Premium SKU adds two things regulated estates often need. IDPS is signature-based intrusion detection and prevention that can alert, or alert and deny, on known exploit patterns. TLS inspection decrypts outbound HTTPS so that IDPS and application rules can actually read the content, then re-encrypts it, using an intermediate CA certificate you usually issue from Key Vault. Premium also brings URL filtering and web categories. Because TLS inspection costs money and operational care, most teams turn it on selectively for the egress paths that truly need deep inspection."
+    },
+    {
+      "type": "content",
+      "title": "Web Application Firewall (Layer 7)",
+      "bullets": [
+        "L7 reverse proxy NSGs and Firewall can't do; reads the HTTP body",
+        "Application Gateway WAF is regional; Front Door WAF is global edge",
+        "Managed OWASP Core Rule Set blocks injection, XSS, plus bot protection",
+        "Detection mode logs only; Prevention mode blocks; tune then enforce"
+      ],
+      "narration": "An NSG can't tell that a request body contains a SQL injection payload. That's the Web Application Firewall's job, a Layer 7 reverse proxy. It runs in two places: Application Gateway WAF, which is regional and sits in front of apps in a VNet, and Azure Front Door WAF, which is global and blocks attacks at the edge near the user. Both run the Microsoft-managed OWASP Core Rule Set to stop injection and cross-site scripting, with optional bot protection. The key operational knob is the mode: run detection first to log and tune out false positives, then switch to prevention to actually block."
+    },
+    {
+      "type": "content",
+      "title": "Azure DDoS Protection",
+      "bullets": [
+        "Always-on platform protection is free on every public IP",
+        "Network Protection: per-VNet, covers all public IPs, adaptive tuning",
+        "Adds metrics, mitigation reports, cost protection, rapid response",
+        "IP Protection: cheaper, per-public-IP; DDoS is L3-4, pair with WAF for L7"
+      ],
+      "narration": "Every Azure public IP already gets always-on, platform-level DDoS defense for free. The paid tiers add adaptive, application-aware mitigation. DDoS Network Protection is enabled on a virtual network and protects all the public IPs in it, with real-time tuning, attack metrics, mitigation reports, cost protection credits, and access to the rapid response team. DDoS IP Protection is a cheaper per-address tier when you only need to cover a few IPs. Remember DDoS works at Layer 3 and 4 on volumetric floods, so you pair it with a WAF to cover Layer 7 application attacks."
+    },
+    {
+      "type": "content",
+      "title": "Private Link and Private Endpoints",
+      "bullets": [
+        "Private Endpoint: a NIC with a private IP mapping to a PaaS resource",
+        "Private DNS zone (privatelink.blob.core.windows.net) resolves to the private IP",
+        "Disable the public endpoint; traffic stays on the Microsoft backbone",
+        "Service Endpoint keeps the public IP, only a VNet rule; prefer Private Endpoint"
+      ],
+      "code": "az network private-endpoint create \\\n  --resource-group rg-prod --name pe-storage-blob \\\n  --vnet-name vnet-hub --subnet snet-privateendpoints \\\n  --private-connection-resource-id \\\n    $(az storage account show -g rg-prod -n stcontoso --query id -o tsv) \\\n  --group-id blob --connection-name conn-blob",
+      "language": "bash",
+      "narration": "By default Storage, SQL, and Key Vault have public endpoints. Private Link removes that surface. A Private Endpoint is a network interface with a private IP from your subnet that maps to a specific PaaS resource and sub-resource, like the blob of a storage account, over the Microsoft backbone. A private DNS zone overrides the public name so clients resolve to the private IP, and then you disable the public endpoint entirely. Don't confuse this with a Service Endpoint, which keeps the resource's public IP and only adds a VNet firewall rule. For zero-trust data planes, prefer Private Endpoints."
+    },
+    {
+      "type": "content",
+      "title": "Secure Admin Access: Bastion and JIT",
+      "bullets": [
+        "Open 3389/22 on a public IP is a top cloud attack surface",
+        "Azure Bastion: browser RDP/SSH over TLS, no public IP on the VM",
+        "JIT VM access (Defender for Servers) keeps ports closed by default",
+        "JIT opens ports only on request, scoped to source, port, and time"
+      ],
+      "narration": "Open RDP or SSH on a public IP is one of the most exploited surfaces in the cloud. Azure Bastion is a managed jumpbox in a dedicated subnet that brokers RDP and SSH over TLS right in the browser, so your VMs need no public IP and no agent. Just-in-Time VM access, a Defender for Servers feature, keeps the management ports closed in the NSG and opens them only when someone requests access, scoped to a source IP, a port, and a time window that auto-closes. Together they take your standing management exposure to nearly zero."
+    },
+    {
+      "type": "content",
+      "title": "Visibility: Flow Logs to Sentinel",
+      "bullets": [
+        "Network Watcher: IP flow verify, next hop, connection troubleshoot",
+        "VNet flow logs (successor to NSG flow logs) record allowed and denied flows",
+        "Traffic Analytics enriches them into Log Analytics, queryable with KQL",
+        "Feed into Sentinel to correlate with identity and endpoint signals"
+      ],
+      "code": "NTANetAnalytics\n| where TimeGenerated > ago(24h)\n| where SubType == \"FlowLog\" and FlowType in (\"MaliciousFlow\", \"ExternalPublic\")\n| where FlowStatus == \"D\"\n| summarize Flows = count() by SrcIp, DestIp, DestPort, L7Protocol\n| sort by Flows desc",
+      "language": "kusto",
+      "narration": "You can't secure traffic you can't see. Network Watcher gives you point tools like IP flow verify, next hop, and connection troubleshoot to confirm an NSG or route does what you expect. For continuous visibility, enable VNet flow logs, the successor to NSG flow logs, which record allowed and denied flows. Layer Traffic Analytics on top to enrich them into a Log Analytics workspace with geography and threat context, queryable with KQL, and pull them into Sentinel to correlate with identity and endpoint data. This query surfaces the top denied and malicious flows. That closes the loop on layered network security, and the platform is ready for the Module 7 capstones."
+    }
+  ]
+}

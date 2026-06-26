@@ -1,10 +1,10 @@
 {
-  "slug": "cse-m6-l01-capstone-zero-trust-endpoint-isolation",
+  "slug": "cse-m7-l01-capstone-zero-trust-endpoint-isolation",
   "title": "Capstone: Automated Zero-Trust Endpoint Isolation System",
-  "month": 6,
+  "month": 7,
   "monthTitle": "Capstone Projects & Career Launch",
   "lesson": 1,
-  "video": "cse-m6-l01-capstone-zero-trust-endpoint-isolation.mp4",
+  "video": "cse-m7-l01-capstone-zero-trust-endpoint-isolation.mp4",
   "summary": "This capstone wires three Microsoft security services into a single closed-loop control that contains a compromised endpoint in seconds, with no human in the path. When Defender for Endpoint raises a device's risk to High, an Intune compliance policy flips the device to noncompliant, and a Conditional Access policy that requires a compliant device instantly cuts the user off from Exchange, SharePoint, and federated SaaS such as an AWS app. You will build and test every link end to end, simulate a detonation safely in an evaluation tenant, and prove the chain fires. By the end you have a portfolio-grade Zero Trust signal-sharing project with diagrams, policy exports, and a demo video. It draws directly on Modules 1 and 2.",
   "objectives": [
     "Explain the Zero Trust signal-sharing loop that connects Defender for Endpoint, Intune compliance, and Conditional Access",
