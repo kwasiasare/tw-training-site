@@ -1,0 +1,182 @@
+{
+  "slug": "mlo-m5-l04-llmops-in-production-observability-evaluation",
+  "title": "LLMOps in Production: Observability, Evaluation, and Cost",
+  "month": 5,
+  "monthTitle": "LLMOps & GPU Serving",
+  "lesson": 4,
+  "video": "mlo-m5-l04-llmops-in-production-observability-evaluation.mp4",
+  "summary": "This final lesson closes the loop on running LLMs in production. You'll learn the observability signals unique to LLM serving (latency decomposition into TTFT and TPOT, throughput, token usage, GPU metrics, and cost-per-token), how to trace requests with the OpenTelemetry GenAI conventions and a tool like Langfuse or Phoenix, how to evaluate quality with offline eval sets, LLM-as-judge, and RAG metrics, and how to model and cut cost using the batching, quantization, caching, and autoscaling levers from earlier in the module.",
+  "objectives": [
+    "Decompose LLM latency into TTFT and TPOT and explain how token, throughput, and GPU metrics differ from the classic model monitoring of Module 4",
+    "Instrument an LLM service with the OpenTelemetry GenAI semantic conventions and visualize traces in an LLM observability tool such as Langfuse or Arize Phoenix",
+    "Build an evaluation strategy using offline eval datasets, LLM-as-judge regression suites, and RAG metrics with RAGAS",
+    "Apply guardrails and prompt/response drift monitoring to keep a production LLM safe and on-distribution",
+    "Model cost-per-token and combine batching, quantization, caching, autoscaling, and spot GPUs to hit a cost budget"
+  ],
+  "quiz": [
+    {
+      "q": "In LLM serving, which metric measures inter-token latency during the decode phase — the model's \"typing speed\" after the first token has been produced?",
+      "options": [
+        "Time to First Token (TTFT)",
+        "Time Per Output Token (TPOT)",
+        "Tokens-per-second throughput",
+        "End-to-end request latency"
+      ],
+      "answer": 1,
+      "why": "TPOT (also called inter-token latency) is the average time between successive output tokens during decode. TTFT measures the wait for the first token (prefill); throughput aggregates across requests."
+    },
+    {
+      "q": "Which observability signal is specific to LLM serving and was NOT part of the classic model monitoring (latency, errors, throughput, drift) taught in Module 4?",
+      "options": [
+        "Request error rate",
+        "p95 latency",
+        "Token usage and cost-per-token",
+        "Requests per second"
+      ],
+      "answer": 2,
+      "why": "Token counts (input/output) and the cost-per-1K-tokens derived from them are unique to generative models. Latency, errors, and throughput are shared operational signals already covered in Module 4."
+    },
+    {
+      "q": "Following the OpenTelemetry GenAI semantic conventions, which attribute name records the number of output tokens a model generated?",
+      "options": [
+        "llm.tokens.out",
+        "gen_ai.usage.output_tokens",
+        "response.token_count",
+        "openai.completion_tokens"
+      ],
+      "answer": 1,
+      "why": "The GenAI semconv standardizes names like gen_ai.request.model, gen_ai.usage.input_tokens, and gen_ai.usage.output_tokens so spans look identical across providers and frameworks."
+    },
+    {
+      "q": "In RAGAS, what does the \"faithfulness\" metric measure?",
+      "options": [
+        "Whether the answer is grounded in the retrieved context with no hallucinated claims",
+        "How quickly the retriever returns documents",
+        "Whether the model weights are correctly quantized",
+        "How fully the GPU is utilized during decode"
+      ],
+      "answer": 0,
+      "why": "Faithfulness (groundedness) breaks the answer into atomic claims and checks each against the retrieved context using an LLM judge; it is the primary defense against hallucination in RAG."
+    },
+    {
+      "q": "Name one cost-optimization lever from earlier in this module and explain in one line why it lowers cost-per-token.",
+      "answer": "Continuous batching (it keeps the GPU saturated by inserting new requests as others finish, raising tokens/sec so the fixed GPU-hour cost is spread over far more tokens). Quantization, prefix/KV caching, autoscaling/scale-to-zero, and spot GPUs are also valid.",
+      "why": "Cost-per-token = GPU-hour price / tokens produced per hour. Levers either raise the denominator (batching, caching, quantization throughput) or cut the numerator (spot GPUs, scale-to-zero idle time)."
+    },
+    {
+      "q": "What is prompt/response drift, and why is it worth monitoring even before you have ground-truth labels or eval results?",
+      "answer": "It is a shift over time in the distribution of incoming prompts (input drift) or model outputs (response drift) relative to a reference window. It is an early, label-free warning that usage patterns or output quality are changing, letting you re-run evals or add guardrails before users are harmed.",
+      "why": "Like prediction drift in Module 4, it needs no labels — you compare distributions (embeddings, length, topic, refusal rate) against a baseline, giving a leading indicator of regressions."
+    }
+  ],
+  "resources": [
+    {
+      "label": "OpenTelemetry — GenAI Semantic Conventions",
+      "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/"
+    },
+    {
+      "label": "Langfuse — LLM Observability Documentation",
+      "url": "https://langfuse.com/docs"
+    },
+    {
+      "label": "Ragas — RAG & LLM Evaluation Documentation",
+      "url": "https://docs.ragas.io/"
+    },
+    {
+      "label": "NVIDIA NeMo Guardrails Documentation",
+      "url": "https://docs.nvidia.com/nemo/guardrails/latest/about/overview.html"
+    }
+  ],
+  "body_markdown": "## Closing the Loop on Production LLMs\n\nAcross this module you stood up an LLM serving stack: high-throughput inference with vLLM (Lesson 1), quantization and compiled engines with Triton and TensorRT-LLM (Lesson 2), and elastic scaling on Kubernetes with KServe (Lesson 3). A serving system that is fast and scalable is still only half of LLMOps. This lesson adds the operational half: **observing** what the system does, **evaluating** whether its answers are good, keeping it **safe**, and running it inside a **cost budget**.\n\nThe classic monitoring from Module 4 — latency, errors, throughput, and PSI/KS drift — still applies. But LLMs add signals that a churn classifier never had: token usage, two-phase latency, GPU memory pressure, generation quality, and a per-request dollar cost. LLMOps is classic MLOps plus these new dimensions.\n\n## LLM-Specific Observability\n\nA single LLM request has **two latency phases**, so a single end-to-end number hides the real behavior:\n\n- **TTFT (Time To First Token)** — the wait before the first token streams out. It is dominated by the *prefill* of the prompt (plus scheduler queueing). Long prompts and cold caches inflate it. For interactive UX, aim for p99 TTFT under ~1s.\n- **TPOT (Time Per Output Token)** — the inter-token latency during *decode*, i.e. the model's typing speed. A common interactive target is p99 TPOT under ~100ms. Total latency ≈ `TTFT + TPOT × output_tokens`.\n\nThroughput and usage metrics complete the picture:\n\n- **Throughput**: aggregate **tokens/sec** across all in-flight requests, plus requests/sec. Continuous batching trades a little per-request latency for large throughput gains.\n- **Token usage**: input and output tokens per request — the raw driver of both cost and decode latency.\n- **GPU metrics**: utilization, memory used vs. total, and KV-cache occupancy. LLM serving is usually **memory-bound**; a full KV cache forces preemption and tanks throughput.\n- **Cost-per-token**: derived from GPU-hour price and tokens/sec (see the cost section).\n\nvLLM exposes these on a Prometheus `/metrics` endpoint, so the Prometheus + Grafana stack from Module 4 carries straight over — you are just scraping different series.\n\n```promql\n# p95 TTFT from the vLLM histogram\nhistogram_quantile(0.95, sum(rate(vllm:time_to_first_token_seconds_bucket[5m])) by (le))\n\n# p95 inter-token latency (TPOT)\nhistogram_quantile(0.95, sum(rate(vllm:inter_token_latency_seconds_bucket[5m])) by (le))\n\n# output token throughput (tokens/sec)\nsum(rate(vllm:generation_tokens_total[1m]))\n```\n\n**How this differs from Module 4.** There you watched a fixed-shape prediction (a score or class) and computed PSI/KS on tabular features. Here the output is open-ended text, latency is two-phase, the bottleneck is GPU memory, and every request has a token-denominated cost. The *discipline* (expose metrics, scrape, alert, act) is identical; the *signals* are new.\n\n## Tracing with OpenTelemetry GenAI Conventions\n\nMetrics tell you *that* something is slow or expensive; **traces** tell you *why* — which prompt, which tool call, which retrieval step. The **OpenTelemetry GenAI semantic conventions** standardize how LLM spans are named so a trace looks the same whether it came from vLLM, LangChain, or a raw provider SDK. Standard attributes include:\n\n- `gen_ai.request.model`, `gen_ai.request.temperature`, `gen_ai.request.max_tokens`\n- `gen_ai.usage.input_tokens`, `gen_ai.usage.output_tokens`\n- `gen_ai.response.finish_reasons`\n\nAs of mid-2026 most of these conventions are still marked **experimental** in the spec, but vendor and tool support is already broad. Capture a span per LLM call and attach the standard attributes:\n\n```python\nfrom opentelemetry import trace\n\ntracer = trace.get_tracer(\"llm-service\")\n\nwith tracer.start_as_current_span(\"chat\") as span:\n    span.set_attribute(\"gen_ai.request.model\", \"llama-3.1-8b-instruct\")\n    resp = client.chat.completions.create(model=..., messages=msgs)\n    span.set_attribute(\"gen_ai.usage.input_tokens\", resp.usage.prompt_tokens)\n    span.set_attribute(\"gen_ai.usage.output_tokens\", resp.usage.completion_tokens)\n```\n\nPoint those traces at an **LLM observability tool**. Both leading open-source options are OTLP-native:\n\n- **Langfuse** — open-source platform for tracing, prompt management, evals, and analytics; it can act as an OTLP backend at `/api/public/otel` and aims to follow the GenAI semconv. (Note: Langfuse was acquired by ClickHouse in January 2026 — validate hosting/licensing for your org.)\n- **Arize Phoenix** — open-source observability and eval platform built on OpenTelemetry and **OpenInference** instrumentation; ships `phoenix.evals` and runs standalone (`phoenix serve`, ports 6006/4317).\n\n## Evaluation: Is the Output Actually Good?\n\nA model can be fast, cheap, and confidently wrong. **Evaluation** is the LLM analogue of model-quality monitoring — but generation has no single ground-truth label, so you combine methods:\n\n- **Offline eval datasets**: a curated, version-controlled set of representative inputs with expected behavior. Run them in CI as a **regression suite** so a prompt tweak or model swap can't silently regress quality.\n- **LLM-as-judge**: use a strong model to grade outputs against a rubric (correctness, helpfulness, tone) at scale where human review can't reach. Pin the judge model and prompt so scores are comparable over time; periodically calibrate against human labels.\n- **RAG evaluation with RAGAS**: for retrieval-augmented systems, score retrieval (context precision/recall) and generation (faithfulness, answer relevancy). **Faithfulness** is the primary hallucination guard — it splits the answer into atomic claims and checks each against the retrieved context using an LLM judge.\n\n```python\nfrom ragas import evaluate\nfrom ragas.metrics import faithfulness, answer_relevancy, context_precision\n\nresult = evaluate(\n    dataset,  # question, answer, contexts, (optional) ground_truth\n    metrics=[faithfulness, answer_relevancy, context_precision],\n)\nprint(result)  # gate the deploy: fail CI if faithfulness < 0.85\n```\n\nWire eval scores into the same promotion-gate pattern from the capstone: a new model or prompt ships only if it beats the production baseline on your eval suite.\n\n## Guardrails, Safety, and Drift\n\nEvaluation catches quality regressions offline; **guardrails** enforce safety online, on every request:\n\n- **Input rails** screen prompts for jailbreaks and injection; **output rails** block unsafe or off-policy responses; **retrieval rails** filter RAG chunks.\n- **NeMo Guardrails** (NVIDIA, Apache-2.0) is a programmable toolkit using the *Colang* language to model conversation flows and rails. **Llama Guard** is a dedicated content-safety classifier (input and output moderation). Production systems layer them — classifier plus programmable rails plus deterministic pattern checks — as defense in depth.\n\n**Prompt/response drift** is the LLM version of the prediction drift from Module 4: compare the distribution of incoming prompts (length, topic, embedding clusters) and outputs (length, refusal rate, sentiment) against a reference window. Because it needs no labels, it is an **early warning** that usage has shifted or quality is slipping — a trigger to re-run evals or tighten guardrails before users feel it.\n\n## Cost Modeling and Optimization\n\nLLM inference is expensive enough that **cost is a first-class SLO**. Model it per token:\n\n```\ncost_per_1k_tokens = (GPU_hourly_price / tokens_per_second / 3600) * 1000\n```\n\nThe denominator (throughput) and numerator (GPU price and idle time) are exactly what the earlier lessons gave you levers for:\n\n- **Continuous batching** (Lesson 1) keeps the GPU saturated, lifting tokens/sec 2–3x+ over static batching — the single biggest win.\n- **Quantization** (INT8/INT4/FP8, Lesson 2) shrinks the model and KV cache, fitting larger batches and cutting cost roughly in half while keeping ~95–99% of accuracy.\n- **Prompt/prefix and KV caching** skip recomputing shared context (system prompts, RAG preambles), cutting prefill cost and TTFT.\n- **Autoscaling and scale-to-zero** (Lesson 3, KServe) remove idle GPU spend for spiky or low-traffic endpoints.\n- **Spot/preemptible GPUs** cut the hourly price for batch or interruption-tolerant workloads.\n\nStacking these across model, system, and application layers can cut inference cost by well over half. Track `cost_per_1k_tokens` as a Grafana panel next to TTFT and faithfulness, and **alert when it breaches budget** just like latency or error rate.\n\n## Tie-In: Extending the Capstone to LLMs\n\nThis module extends the Module 4 capstone — your end-to-end MLOps system — to large language models. As an advanced project, take that same discipline and stand up a **production LLM serving system**: a vLLM (or Triton/TensorRT-LLM) backend, served and autoscaled on Kubernetes/KServe, **observed** with OpenTelemetry GenAI traces and Prometheus/Grafana dashboards (TTFT, TPOT, throughput, GPU, cost-per-token), **evaluated** by an offline RAGAS/LLM-as-judge regression suite gating each deploy, **guarded** by input/output rails, and run inside an explicit **cost budget** with batching, quantization, caching, and scale-to-zero. The MLOps discipline you learned for classic models — reproducible, monitored, gated, and operable — now extends end-to-end to LLMs.\n\n## Key Takeaways\n\n- LLM observability adds TTFT/TPOT latency decomposition, token usage, GPU/KV-cache pressure, and cost-per-token on top of the classic latency/error/throughput/drift signals.\n- Trace with the OpenTelemetry GenAI conventions and visualize in Langfuse or Phoenix (both OTLP-native, open-source).\n- Evaluate with versioned offline sets, LLM-as-judge regression suites, and RAGAS (faithfulness first) — and gate deploys on the results.\n- Add guardrails (NeMo Guardrails, Llama Guard) and label-free prompt/response drift monitoring for safety and early warning.\n- Treat cost as an SLO: model cost-per-token and pull the batching, quantization, caching, autoscaling, and spot-GPU levers to stay on budget.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "LLMOps in Production: Observability, Evaluation, and Cost",
+      "narration": "Welcome to the final lesson of the course. You've already built a fast, scalable LLM serving stack with vLLM, quantization, and Kubernetes. Now we close the loop: how to observe an LLM in production, evaluate whether its answers are actually good, keep it safe, and run it inside a cost budget."
+    },
+    {
+      "type": "content",
+      "title": "Classic MLOps Plus New Signals",
+      "bullets": [
+        "Module 4 monitoring still applies: latency, errors, throughput, drift",
+        "LLMs add: two-phase latency, token usage, GPU/KV-cache pressure",
+        "And a per-request dollar cost the churn classifier never had",
+        "Same discipline (expose, scrape, alert, act) — new signals"
+      ],
+      "narration": "LLMOps is classic MLOps plus a handful of new dimensions. The latency, error, throughput, and drift monitoring from Module 4 still apply. But a language model adds signals a tabular classifier never had: a two-phase latency profile, token usage, GPU memory pressure, generation quality, and a dollar cost on every request. The discipline is identical; the signals are new."
+    },
+    {
+      "type": "content",
+      "title": "Latency Decomposition: TTFT and TPOT",
+      "bullets": [
+        "TTFT = wait for first token, dominated by prompt prefill; target p99 < ~1s",
+        "TPOT = inter-token latency in decode (typing speed); target p99 < ~100ms",
+        "Total latency ≈ TTFT + TPOT × output_tokens",
+        "Throughput = aggregate tokens/sec; usually GPU-memory-bound"
+      ],
+      "narration": "A single LLM request has two latency phases, so one end-to-end number hides the truth. Time to first token is the wait before the first token streams, dominated by prefilling the prompt — aim for p99 under about a second. Time per output token is the inter-token latency during decode, the model's typing speed — aim for p99 under about a hundred milliseconds. Total latency is roughly TTFT plus TPOT times the number of output tokens. Throughput is aggregate tokens per second, and serving is usually bound by GPU memory and KV-cache occupancy."
+    },
+    {
+      "type": "content",
+      "title": "Scraping LLM Metrics with Prometheus",
+      "bullets": [
+        "vLLM exposes a Prometheus /metrics endpoint",
+        "Reuse the Prometheus + Grafana stack from Module 4",
+        "New series: TTFT, TPOT, generation tokens, GPU/KV-cache",
+        "Differs from Module 4: open-ended output, two-phase, memory-bound, token cost"
+      ],
+      "code": "# p95 inter-token latency (TPOT)\nhistogram_quantile(0.95,\n  sum(rate(vllm:inter_token_latency_seconds_bucket[5m])) by (le))\n\n# output token throughput\nsum(rate(vllm:generation_tokens_total[1m]))",
+      "narration": "vLLM exposes all of this on a Prometheus metrics endpoint, so the Prometheus and Grafana stack from Module 4 carries straight over — you're just scraping different series. Here we compute p95 inter-token latency from the vLLM histogram and output-token throughput. The difference from Module 4 is that the output is open-ended text, latency is two-phase, the bottleneck is GPU memory, and every request carries a token-denominated cost."
+    },
+    {
+      "type": "content",
+      "title": "Tracing with OpenTelemetry GenAI Conventions",
+      "bullets": [
+        "Metrics say what is slow; traces say why (which prompt, tool, retrieval)",
+        "GenAI semconv standardizes span names across providers/frameworks",
+        "gen_ai.request.model, gen_ai.usage.input_tokens / output_tokens",
+        "Mostly experimental in mid-2026, but broadly supported",
+        "Send to Langfuse or Arize Phoenix — both OTLP-native, open-source"
+      ],
+      "code": "with tracer.start_as_current_span(\"chat\") as span:\n    span.set_attribute(\"gen_ai.request.model\", \"llama-3.1-8b-instruct\")\n    resp = client.chat.completions.create(model=..., messages=msgs)\n    span.set_attribute(\"gen_ai.usage.output_tokens\",\n                       resp.usage.completion_tokens)",
+      "narration": "Metrics tell you that something is slow or expensive; traces tell you why — which prompt, which tool call, which retrieval step. The OpenTelemetry GenAI semantic conventions standardize span attribute names like gen_ai.request.model and gen_ai.usage.output_tokens so a trace looks the same whether it came from vLLM, LangChain, or a raw SDK. Most are still experimental in mid-2026 but widely supported. Point those traces at an open-source, OTLP-native tool: Langfuse, or Arize Phoenix built on OpenInference."
+    },
+    {
+      "type": "content",
+      "title": "Evaluation: Is the Output Actually Good?",
+      "bullets": [
+        "No single ground-truth label, so combine methods",
+        "Offline eval datasets, version-controlled, run as a CI regression suite",
+        "LLM-as-judge: a strong model grades against a rubric at scale",
+        "RAGAS for RAG: context precision/recall + faithfulness, answer relevancy",
+        "Faithfulness first — the primary hallucination guard"
+      ],
+      "code": "from ragas import evaluate\nfrom ragas.metrics import faithfulness, answer_relevancy\n\nresult = evaluate(dataset, metrics=[faithfulness, answer_relevancy])\n# gate the deploy: fail CI if faithfulness < 0.85",
+      "narration": "A model can be fast, cheap, and confidently wrong, so evaluation is the LLM analogue of model-quality monitoring. Because generation has no single ground-truth label, you combine methods: a versioned offline eval set run as a CI regression suite; LLM-as-judge to grade against a rubric at scale; and for RAG, RAGAS metrics. Faithfulness — splitting the answer into atomic claims and checking each against the retrieved context — is your primary hallucination guard. Gate every deploy on the eval results, just like the capstone's promotion gate."
+    },
+    {
+      "type": "content",
+      "title": "Guardrails, Safety, and Drift",
+      "bullets": [
+        "Input rails (jailbreak/injection), output rails, retrieval rails",
+        "NeMo Guardrails (Apache-2.0, Colang flows) + Llama Guard classifier",
+        "Layer them as defense in depth",
+        "Prompt/response drift: compare prompt & output distributions to a baseline",
+        "Label-free early warning — re-run evals or tighten rails before users feel it"
+      ],
+      "narration": "Evaluation catches regressions offline; guardrails enforce safety online on every request. Input rails screen for jailbreaks and injection, output rails block unsafe responses, retrieval rails filter RAG chunks. NeMo Guardrails gives programmable Colang flows, and Llama Guard is a dedicated content-safety classifier — layer them as defense in depth. Prompt and response drift is the LLM version of prediction drift: compare incoming prompt and output distributions to a reference. It needs no labels, so it's an early warning to re-run evals or tighten guardrails."
+    },
+    {
+      "type": "content",
+      "title": "Cost as an SLO, and the Capstone",
+      "bullets": [
+        "cost_per_1k_tokens = GPU_hourly / tokens_per_sec / 3600 * 1000",
+        "Levers: continuous batching, quantization, prompt/KV caching",
+        "Autoscaling / scale-to-zero, spot/preemptible GPUs",
+        "Alert when cost-per-token breaches budget, like latency or errors",
+        "Capstone: served, scaled, observed, evaluated, guarded, on-budget LLM"
+      ],
+      "narration": "LLM inference is expensive enough that cost is a first-class SLO. Model it per token: GPU hourly price divided by tokens per second. Then pull the levers from earlier lessons — continuous batching, quantization, prompt and KV caching, autoscaling with scale-to-zero, and spot GPUs — to raise throughput or cut idle spend. Stacked, they cut cost by well over half. Track cost-per-token next to TTFT and faithfulness and alert on budget. That is your capstone: a production LLM system that is served, scaled, observed, evaluated, guarded, and run on budget — classic MLOps discipline extended end-to-end to LLMs."
+    }
+  ]
+}

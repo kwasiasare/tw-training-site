@@ -110,7 +110,7 @@ with mlflow.start_run(run_name="rf-baseline"):
 
     mlflow.log_metric("accuracy", acc)
     mlflow.log_artifact("confusion_matrix.png")
-    mlflow.sklearn.log_model(model, artifact_path="model")
+    mlflow.sklearn.log_model(model, name="model")
 ```
 
 Key calls:
@@ -118,6 +118,8 @@ Key calls:
 - `mlflow.log_metric` / `log_metrics` — record results; pass `step=` for time series.
 - `mlflow.log_artifact` / `log_artifacts` — store files or directories.
 - `mlflow.<flavor>.log_model` — store the model in a framework-specific *flavor* so it can be reloaded and served.
+
+> **MLflow 3.x note:** Pass the model's destination with `name=` — the older `artifact_path=` argument is **deprecated** in MLflow 3. MLflow 3 also makes models *first-class* entities, so `log_model` no longer requires an active `start_run()` context (though logging inside a run still links the model to that run for lineage). Pin a specific version such as `mlflow==3.14.0` in `requirements.txt` so your tracking server, client, and CI all agree.
 
 ## Autologging
 

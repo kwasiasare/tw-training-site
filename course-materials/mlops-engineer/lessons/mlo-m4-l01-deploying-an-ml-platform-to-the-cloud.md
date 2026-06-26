@@ -140,7 +140,7 @@ spec:
             requests: { cpu: "500m", memory: "1Gi" }
             limits:   { cpu: "1",    memory: "2Gi" }
           readinessProbe:
-            httpGet: { path: /health, port: 8080 }
+            httpGet: { path: /ready, port: 8080 }
 ```
 
 Add a **HorizontalPodAutoscaler** to scale replicas on CPU or custom latency metrics:

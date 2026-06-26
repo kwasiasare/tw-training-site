@@ -105,14 +105,14 @@ Three probe types keep traffic on healthy pods:
 
 ```yaml
 startupProbe:
-  httpGet: { path: /healthz, port: 8080 }
+  httpGet: { path: /health, port: 8080 }
   failureThreshold: 30
   periodSeconds: 10
 readinessProbe:
   httpGet: { path: /ready, port: 8080 }
   periodSeconds: 5
 livenessProbe:
-  httpGet: { path: /healthz, port: 8080 }
+  httpGet: { path: /health, port: 8080 }
   periodSeconds: 10
 ```
 

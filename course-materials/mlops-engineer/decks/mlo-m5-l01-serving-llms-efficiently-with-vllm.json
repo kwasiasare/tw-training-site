@@ -1,0 +1,193 @@
+{
+  "slug": "mlo-m5-l01-serving-llms-efficiently-with-vllm",
+  "title": "Serving LLMs Efficiently with vLLM",
+  "month": 5,
+  "monthTitle": "LLMOps & GPU Serving",
+  "lesson": 1,
+  "video": "mlo-m5-l01-serving-llms-efficiently-with-vllm.mp4",
+  "summary": "Serving large language models is fundamentally different from serving the classic models in earlier modules. This lesson explains why LLM inference is memory-bound and autoregressive, how the KV cache dominates GPU memory, and how vLLM uses PagedAttention and continuous batching to serve many requests efficiently. You will launch an OpenAI-compatible vLLM server, call it, tune key flags, and reason about throughput-versus-latency trade-offs.",
+  "objectives": [
+    "Explain why LLM inference is memory-bound and autoregressive and how it differs from serving classic ML models",
+    "Describe how the KV cache dominates GPU memory and how PagedAttention manages it efficiently",
+    "Contrast continuous (in-flight) batching with static batching and explain why it raises GPU utilization",
+    "Launch an OpenAI-compatible vLLM server and call it with curl and the Python openai client",
+    "Tune key vLLM flags and reason about throughput-versus-latency trade-offs using TTFT, TPOT, and tokens/s"
+  ],
+  "quiz": [
+    {
+      "q": "Why is autoregressive LLM decoding usually memory-bandwidth bound rather than compute bound?",
+      "options": [
+        "Each generated token requires retraining the model",
+        "Each decode step reads the full weights and the KV cache to produce just one token, so it is limited by memory bandwidth, not raw FLOPs",
+        "GPUs have no tensor cores for attention",
+        "Tokenization dominates the runtime"
+      ],
+      "answer": 1,
+      "why": "During decode the model produces one token per step but must stream the entire weight matrix and the growing KV cache from GPU memory, so memory bandwidth—not arithmetic throughput—is the bottleneck."
+    },
+    {
+      "q": "What does PagedAttention do?",
+      "options": [
+        "Compresses the model weights with quantization",
+        "Stores the KV cache in fixed-size, non-contiguous blocks addressed through a block table, like OS virtual memory",
+        "Skips attention computation for long sequences",
+        "Encrypts the KV cache at rest"
+      ],
+      "answer": 1,
+      "why": "PagedAttention applies the idea of OS virtual memory to the KV cache, dividing it into fixed-size blocks mapped via a block table so memory need not be contiguous, which slashes fragmentation and waste."
+    },
+    {
+      "q": "How does continuous (in-flight) batching differ from static batching?",
+      "options": [
+        "It waits for every request in the batch to finish before admitting any new ones",
+        "It schedules at the iteration level, freeing finished sequences and admitting queued ones every step to keep the GPU saturated",
+        "It runs each request on a separate dedicated GPU",
+        "It disables the KV cache to save memory"
+      ],
+      "answer": 1,
+      "why": "Continuous batching makes scheduling decisions every forward pass — when a sequence finishes, its blocks are freed and a waiting request joins immediately, so the GPU is not idled by the slowest request."
+    },
+    {
+      "q": "Which vLLM flag controls the fraction of GPU memory reserved for weights, activations, and the KV cache pool?",
+      "options": [
+        "--max-model-len",
+        "--max-num-seqs",
+        "--gpu-memory-utilization",
+        "--tensor-parallel-size"
+      ],
+      "answer": 2,
+      "why": "--gpu-memory-utilization (default 0.90) sets the fraction of VRAM vLLM may use; after weights load, the remainder becomes the KV cache pool, so a higher value allows more concurrent sequences."
+    },
+    {
+      "q": "A user says the chatbot feels slow to start answering but then streams quickly. Which latency metric is the problem, and name one lever to improve it?",
+      "answer": "Time to first token (TTFT) is high—the prefill/queueing stage. Lower it by reducing queue pressure (fewer concurrent requests or a smaller --max-model-len), giving the KV cache more memory, or adding tensor parallelism. TPOT/ITL (streaming speed) is fine here.",
+      "why": "TTFT measures time from request arrival to the first output token, dominated by prefill and queue wait; inter-token latency governs streaming speed, which the user reports as acceptable."
+    },
+    {
+      "q": "Your 70B model does not fit in one GPU's memory. Which vLLM flag spreads it across multiple GPUs on a node, and what does it do?",
+      "answer": "--tensor-parallel-size N shards each layer's weight matrices (and the attention/KV computation) across N GPUs on one node so the model and its KV cache fit and compute in parallel.",
+      "why": "Tensor parallelism splits the large matrix multiplications across GPUs, distributing both the memory footprint and the compute; larger multi-node topologies are covered in later lessons."
+    }
+  ],
+  "resources": [
+    {
+      "label": "vLLM Documentation",
+      "url": "https://docs.vllm.ai/en/stable/"
+    },
+    {
+      "label": "vLLM Optimization and Tuning",
+      "url": "https://docs.vllm.ai/en/stable/configuration/optimization/"
+    },
+    {
+      "label": "vLLM Production Metrics (TTFT, ITL)",
+      "url": "https://docs.vllm.ai/en/stable/design/metrics/"
+    },
+    {
+      "label": "PagedAttention: Efficient Memory Management for LLM Serving (SOSP 2023)",
+      "url": "https://arxiv.org/abs/2309.06180"
+    }
+  ],
+  "body_markdown": "## Why Serving LLMs Is Different\n\nIn Modules 1–4 you containerized models with Docker, wrapped them in FastAPI, deployed to Kubernetes, tracked them with MLflow, and added monitoring. Those classic models — a gradient-boosted classifier, a small CNN — take a fixed-size input, run one forward pass, and return one output. Sizing them is easy: measure latency, set replicas, autoscale on CPU.\n\nLarge language models break that mental model. A single request is not one forward pass — it is *hundreds* of them, one per generated token. Memory, not CPU, is the scarce resource, and a naive deployment wastes most of the GPU. This module is about serving LLMs the way production teams actually do, starting with **vLLM**, the de-facto open-source inference engine.\n\n## LLM Inference Is Memory-Bound and Autoregressive\n\nLLMs generate text **autoregressively**: they produce one token, append it to the input, and feed the whole sequence back in to produce the next token. A 200-token answer means ~200 sequential forward passes.\n\nInference splits into two phases:\n\n- **Prefill**: process the entire input prompt in one parallel pass and populate the cache. This is compute-heavy and drives **time to first token**.\n- **Decode**: generate output tokens one at a time. Each step does very little math but must read the *entire* set of model weights plus a growing cache from GPU memory.\n\nDecode is **memory-bandwidth bound**: the GPU's tensor cores sit mostly idle while waiting for data to stream from VRAM. This is the opposite of classic batch inference, and it changes everything about how we batch and size LLM servers.\n\n## The KV Cache Dominates GPU Memory\n\nTo avoid recomputing attention over the whole sequence at every step, the model caches the **key** and **value** tensors for every previous token. This **KV cache** grows linearly with sequence length and with the number of concurrent requests:\n\n```\nkv_bytes ≈ 2 (K and V) × layers × kv_heads × head_dim × seq_len × dtype_bytes\n```\n\nFor a 13B model at fp16, a single 2,000-token sequence can need on the order of a gigabyte of KV cache — and you want to serve *many* sequences at once. After the weights load, **whatever VRAM is left becomes the KV cache pool, and that pool caps how many requests you can serve concurrently.** KV cache, not weights, is usually what limits throughput.\n\nClassic frameworks pre-allocated a contiguous chunk of memory per request sized for the maximum length, wasting huge amounts to internal fragmentation. vLLM's headline innovation fixes exactly this.\n\n## PagedAttention\n\n**PagedAttention** (UC Berkeley, SOSP 2023) applies the idea of **operating-system virtual memory** to the KV cache. Instead of one contiguous allocation per sequence, the cache is split into fixed-size **blocks** (16 tokens each by default). Each sequence keeps a **block table** mapping its logical positions to physical blocks, which may live anywhere in the pool.\n\nThe payoff:\n\n- **Near-zero fragmentation** — blocks are allocated on demand as a sequence grows, not reserved up front for the worst case.\n- **Higher concurrency** — the freed memory becomes room for more simultaneous requests.\n- **Cheap sharing** — sequences with a common prefix (a shared system prompt, parallel samples) can point at the *same* physical blocks (copy-on-write), saving memory and prefill work.\n\nPagedAttention is always on in vLLM; there is no flag to enable it.\n\n## Continuous (In-Flight) Batching\n\nThroughput on a GPU comes from batching. The old approach, **static batching**, collects N requests, runs them together, and waits for *all* of them to finish before starting the next batch. Because requests finish at different lengths, fast ones idle while the GPU grinds on the slowest — utilization tanks.\n\nvLLM uses **continuous batching** (also called in-flight or iteration-level batching). Scheduling happens **every forward pass**: the moment a sequence emits its end-of-sequence token, its KV blocks are freed and a queued request is admitted into the running batch for the very next step. The GPU stays saturated, and average latency drops because requests no longer wait for a whole batch to drain. Continuous batching is on by default.\n\n## Launching an OpenAI-Compatible vLLM Server\n\nvLLM ships an **OpenAI-compatible** HTTP server, so it is a drop-in replacement for the OpenAI API. Start it with the `vllm serve` CLI:\n\n```bash\npip install vllm\n\n# Serve a model; it downloads from Hugging Face on first run\nvllm serve meta-llama/Llama-3.1-8B-Instruct \\\n  --host 0.0.0.0 --port 8000 \\\n  --gpu-memory-utilization 0.90 \\\n  --max-model-len 8192\n```\n\nBy default it listens on port `8000` and exposes:\n\n- `POST /v1/chat/completions` — chat-style requests\n- `POST /v1/completions` — raw text completions\n- `GET  /v1/models` — list served models\n- `GET  /health` and `GET /metrics` — liveness and Prometheus metrics\n\nThe `/health` and `/metrics` endpoints plug straight into the Kubernetes probes and monitoring you set up in earlier modules.\n\n## Calling the Server\n\nBecause the API is OpenAI-compatible, any OpenAI client works — just point it at your host and use any non-empty API key. With curl:\n\n```bash\ncurl http://localhost:8000/v1/chat/completions \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"model\": \"meta-llama/Llama-3.1-8B-Instruct\",\n    \"messages\": [{\"role\": \"user\", \"content\": \"Explain the KV cache in one sentence.\"}],\n    \"max_tokens\": 128\n  }'\n```\n\nOr with the Python `openai` client:\n\n```python\nfrom openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8000/v1\", api_key=\"EMPTY\")\n\nresp = client.chat.completions.create(\n    model=\"meta-llama/Llama-3.1-8B-Instruct\",\n    messages=[{\"role\": \"user\", \"content\": \"Explain the KV cache in one sentence.\"}],\n    max_tokens=128,\n    stream=True,  # stream tokens as they are generated\n)\nfor chunk in resp:\n    print(chunk.choices[0].delta.content or \"\", end=\"\")\n```\n\n## Key Tuning Flags\n\nA handful of flags drive most of the performance:\n\n- `--gpu-memory-utilization` (default `0.90`): fraction of VRAM vLLM may use. Whatever is left after weights becomes KV cache, so a higher value allows more concurrent sequences — raise it until you hit out-of-memory.\n- `--max-model-len`: maximum context length (prompt + output) in tokens. Each token costs KV cache, so capping this frees memory for more parallel requests. Set it to the longest context you actually need.\n- `--max-num-seqs`: the maximum number of sequences in a running batch. Larger values increase throughput under heavy load but can raise per-request latency.\n- `--tensor-parallel-size`: number of GPUs to shard the model across on one node (see below).\n\n## Throughput vs. Latency: TTFT, TPOT, Throughput\n\nYou cannot maximize everything at once; serving is a trade-off measured by three numbers:\n\n- **TTFT (time to first token)**: how long until the first token appears. Dominated by prefill and queue wait — this is what makes a chat UI feel responsive.\n- **TPOT / ITL (time per output token / inter-token latency)**: the average gap between successive tokens once generation starts — how fast text streams.\n- **Throughput (tokens/second)**: total tokens the server emits across *all* requests per second — the cost-efficiency number.\n\nPushing batch size and `--max-num-seqs` up raises aggregate throughput (cheaper per token) but increases TTFT and TPOT for any individual user. An interactive chatbot optimizes for low TTFT; a nightly batch summarization job optimizes for raw throughput. Always state which one your SLO targets. vLLM exposes all three on `/metrics` for Prometheus.\n\n## Tensor Parallelism for Multi-GPU\n\nWhen a model is too large for one GPU — a 70B model needs well over a single 80 GB card's memory — use **tensor parallelism** to shard each layer's weight matrices across GPUs on the same node:\n\n```bash\nvllm serve meta-llama/Llama-3.1-70B-Instruct \\\n  --tensor-parallel-size 4\n```\n\nEach GPU holds a slice of every layer and the slices compute in parallel, communicating over fast NVLink. This distributes both the weights and the KV cache so a model that would not fit anywhere now runs. Larger pipeline/data-parallel and multi-node topologies build on this idea in later lessons.\n\n## Common Pitfalls\n\n- Setting `--max-model-len` far higher than needed → KV cache reserved per token starves concurrency.\n- Pushing `--gpu-memory-utilization` to `1.0` → out-of-memory crashes; leave headroom for activations.\n- Quoting a single TTFT number without load → latency degrades sharply as concurrency rises; always benchmark under realistic traffic.\n- Treating an LLM pod like a classic CPU service in autoscaling → scale on GPU/KV-cache pressure and queue depth, not CPU.\n\n> **Coming up in this module:** quantization and TensorRT-LLM/Triton for even faster kernels (lesson 2), serving on Kubernetes with KServe (lesson 3), and LLM observability and cost control (lesson 4). This lesson gave you the engine; the rest of the module operationalizes it.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Serving LLMs Efficiently with vLLM",
+      "narration": "Welcome to the LLMOps module. Serving large language models is nothing like serving the classic models from earlier modules. In this lesson we'll see why LLM inference is memory-bound and autoregressive, how the KV cache dominates GPU memory, and how vLLM's PagedAttention and continuous batching make efficient serving possible."
+    },
+    {
+      "type": "content",
+      "title": "Why Serving LLMs Is Different",
+      "bullets": [
+        "Classic models: one input, one forward pass, one output",
+        "LLMs generate token by token: hundreds of passes per request",
+        "Memory, not CPU, is the scarce resource",
+        "A naive deployment wastes most of the GPU"
+      ],
+      "narration": "In earlier modules a request meant a single forward pass over a fixed input. Large language models break that model completely. One answer is hundreds of sequential forward passes, one per generated token. The scarce resource is GPU memory, not CPU, and a naive deployment leaves most of the GPU idle. vLLM is the engine that fixes this."
+    },
+    {
+      "type": "content",
+      "title": "Memory-Bound, Autoregressive & the KV Cache",
+      "bullets": [
+        "Prefill processes the prompt in parallel; decode emits one token at a time",
+        "Decode streams all weights + KV cache for each token -> memory-bandwidth bound",
+        "KV cache stores key/value tensors for every past token",
+        "Grows with sequence length AND concurrent requests",
+        "Leftover VRAM after weights = KV cache pool; usually caps throughput"
+      ],
+      "code": "kv_bytes ~= 2 * layers * kv_heads * head_dim * seq_len * dtype_bytes",
+      "narration": "LLM inference has two phases: prefill processes the whole prompt in one parallel pass, then decode generates tokens one at a time. Each decode step does almost no math but must stream all the weights plus a growing KV cache from memory, so it is memory-bandwidth bound. That KV cache stores key and value tensors for every past token and grows with sequence length and concurrency. Whatever VRAM is left after weights load becomes the cache pool, and that pool usually caps throughput."
+    },
+    {
+      "type": "content",
+      "title": "PagedAttention",
+      "bullets": [
+        "Applies OS virtual memory ideas to the KV cache",
+        "Cache split into fixed-size blocks (16 tokens by default)",
+        "A block table maps logical positions to physical blocks",
+        "Near-zero fragmentation, higher concurrency, prefix sharing",
+        "Always on in vLLM—no flag to enable"
+      ],
+      "narration": "PagedAttention, from UC Berkeley's 2023 paper, treats the KV cache like operating-system virtual memory. Instead of one contiguous allocation per sequence, it splits the cache into fixed-size blocks and uses a per-sequence block table to map logical positions to physical blocks anywhere in the pool. The result is near-zero fragmentation, far higher concurrency, and cheap prefix sharing. It is always on."
+    },
+    {
+      "type": "content",
+      "title": "Continuous (In-Flight) Batching",
+      "bullets": [
+        "Static batching waits for the slowest request in the batch",
+        "Continuous batching schedules every forward pass",
+        "Finished sequences free blocks; queued requests join instantly",
+        "Keeps the GPU saturated and lowers average latency"
+      ],
+      "narration": "Throughput comes from batching, but static batching waits for every request to finish before starting the next batch, so fast requests idle while the slowest grinds on. vLLM uses continuous batching: it makes scheduling decisions every single forward pass. The moment a sequence emits its end token, its blocks are freed and a queued request joins for the next step. The GPU stays saturated and average latency drops."
+    },
+    {
+      "type": "content",
+      "title": "Launch & Call an OpenAI-Compatible Server",
+      "bullets": [
+        "vllm serve starts an OpenAI-compatible server on port 8000",
+        "Endpoints: /v1/chat/completions, /v1/completions, /v1/models",
+        "/health and /metrics feed K8s probes and Prometheus",
+        "Any OpenAI client works—just change base_url, any non-empty key",
+        "Set stream=True to stream tokens as generated"
+      ],
+      "code": "vllm serve meta-llama/Llama-3.1-8B-Instruct --port 8000 \\\n  --gpu-memory-utilization 0.90 --max-model-len 8192\n\nfrom openai import OpenAI\nclient = OpenAI(base_url=\"http://localhost:8000/v1\", api_key=\"EMPTY\")\nclient.chat.completions.create(model=\"meta-llama/Llama-3.1-8B-Instruct\",\n    messages=[{\"role\": \"user\", \"content\": \"Explain the KV cache.\"}],\n    max_tokens=128, stream=True)",
+      "narration": "vLLM ships an OpenAI-compatible server, so it is a drop-in replacement for the OpenAI API. You start it with vllm serve pointing at a Hugging Face model; it listens on port 8000 and exposes chat, completions, models, health, and metrics endpoints. Because it is OpenAI-compatible, any OpenAI client works—you just change base_url and pass any non-empty key, and stream equals true streams tokens as they are generated."
+    },
+    {
+      "type": "content",
+      "title": "Key Tuning Flags",
+      "bullets": [
+        "--gpu-memory-utilization: VRAM fraction, default 0.90",
+        "--max-model-len: max context; each token costs KV cache",
+        "--max-num-seqs: max sequences in the running batch",
+        "--tensor-parallel-size: shard model across GPUs"
+      ],
+      "narration": "A handful of flags drive most performance. gpu-memory-utilization sets the VRAM fraction, defaulting to 0.90—raise it for more KV cache until you hit out of memory. max-model-len caps context length and frees memory when lowered. max-num-seqs caps the running batch. And tensor-parallel-size shards the model across GPUs. Tune these against your real traffic."
+    },
+    {
+      "type": "content",
+      "title": "Throughput vs. Latency",
+      "bullets": [
+        "TTFT: time to first token—chat responsiveness",
+        "TPOT / ITL: time per output token—streaming speed",
+        "Throughput: total tokens/sec across all requests",
+        "Bigger batches: more throughput, worse TTFT/TPOT",
+        "All three exposed on /metrics"
+      ],
+      "narration": "You can't maximize everything. Time to first token measures responsiveness; time per output token, also called inter-token latency, measures streaming speed; and throughput in tokens per second measures cost efficiency. Pushing batch size up raises throughput but worsens both latency metrics for individual users. State which one your SLO targets—a chatbot wants low TTFT, a batch job wants throughput."
+    },
+    {
+      "type": "content",
+      "title": "Tensor Parallelism and What's Next",
+      "bullets": [
+        "Big models (70B) don't fit on one GPU",
+        "--tensor-parallel-size N shards each layer across N GPUs",
+        "Distributes weights AND KV cache; computes in parallel over NVLink",
+        "Next: quantization/TensorRT-LLM, KServe, observability & cost"
+      ],
+      "code": "vllm serve meta-llama/Llama-3.1-70B-Instruct \\\n  --tensor-parallel-size 4",
+      "narration": "When a model is too large for one GPU, tensor parallelism shards each layer's weight matrices across GPUs on a node, distributing both the memory and the compute over fast NVLink. That's the engine. Upcoming lessons operationalize it: quantization and TensorRT-LLM for faster kernels, serving on Kubernetes with KServe, and LLM observability and cost control."
+    }
+  ]
+}
