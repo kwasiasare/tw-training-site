@@ -9,6 +9,8 @@ interface Props {
 }
 const { title, description } = Astro.props;
 const fullTitle = title ? `${title} | ${SITE.title}` : `${SITE.title} — Course`;
+// www.salloma.com is the canonical host; build a self-referential canonical URL.
+const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://www.salloma.com').href;
 ---
 
 <!doctype html>
@@ -17,6 +19,14 @@ const fullTitle = title ? `${title} | ${SITE.title}` : `${SITE.title} — Course
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
+    {/* Redirect the apex domain to the canonical www host (SWA has no host-based redirect). */}
+    <script is:inline>
+      (function () {
+        if (location.hostname === 'salloma.com') {
+          location.replace('https://www.salloma.com' + location.pathname + location.search + location.hash);
+        }
+      })();
+    </script>
     {/* Apply the saved theme before paint to avoid a flash. Defaults to dark. */}
     <script is:inline>
       (function () {
@@ -28,6 +38,7 @@ const fullTitle = title ? `${title} | ${SITE.title}` : `${SITE.title} — Course
     </script>
     <title>{fullTitle}</title>
     <meta name="description" content={description ?? SITE.tagline} />
+    <link rel="canonical" href={canonicalURL} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <Analytics />
   </head>
