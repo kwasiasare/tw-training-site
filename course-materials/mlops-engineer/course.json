@@ -4,7 +4,7 @@
   "description": "A hands-on, project-based course that takes you from containerizing ML workloads to building fully automated, monitored, and cloud-deployed machine learning pipelines — including a dedicated module on serving large language models efficiently on GPUs. You'll master Docker, Kubernetes, CI/CD, MLflow, infrastructure as code, production monitoring, and modern LLMOps (vLLM, quantization, KServe, and GPU-aware scaling) while building a portfolio of deployable systems.",
   "audience": "Data scientists, software engineers, and DevOps practitioners who want to transition into an MLOps Engineer role and need practical skills in deploying, automating, and monitoring machine learning systems — including LLMs — in production.",
   "modules": 5,
-  "lessons": 20,
+  "lessons": 21,
   "layout": {
     "decks": "decks",
     "lessons": "lessons",
