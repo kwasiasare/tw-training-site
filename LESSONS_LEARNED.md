@@ -1,8 +1,9 @@
 # Lessons Learned — Training Website
 
 Practical lessons captured while building the platform: a multi-course training site
-(Astro + Azure Static Web Apps + Cloudflare R2) with two full courses, automated CI/CD,
-and a course-production pipeline. Kept current as the project evolves.
+(Astro + Azure Static Web Apps + Cloudflare R2) with twelve courses, automated CI/CD,
+an AI tutor + open-answer grading, and a course-production pipeline. Kept current as the
+project evolves.
 
 ---
 
@@ -34,6 +35,20 @@ and a course-production pipeline. Kept current as the project evolves.
   fields, slug/filename match, slide counts — 0 problems).
 - **Idempotent sync.** The R2 uploader skips same-size objects, so re-runs only push new/changed
   videos — safe to run anytime.
+- **Adversarial fact-check before prod for net-new technical content.** An independent subagent
+  verifies *every* CLI/KQL/Bicep/T-SQL snippet and product claim against authoritative docs
+  (Microsoft Learn) before merge. This repeatedly catches confident-but-wrong content the author
+  and peer review miss — e.g. a "FIPS 140-2 Level 3" claim baked into a graded quiz answer and three
+  slides (both Key Vault Premium and Managed HSM are FIPS **140-3** Level 3; the differentiator is
+  multi- vs single-tenant), wrong KQL tables/columns, and an Azure Firewall "L3-4 only" mischaracterisation.
+- **Astro content schema: quiz `options` must be an array or omitted — never `null`.** Writing
+  `options: null` (or an empty `options:`, which YAML reads as null) on the free-form quiz item fails
+  the content-collection build with `InvalidContentEntryDataError` ("Expected array, received null").
+  Omit the key entirely. The fresh-checkout SWA build catches this even when a local build with stale
+  `node_modules` does not — run `npm run build` in `site/` before pushing content.
+- **Renumbering a module = `git mv` + field-scoped edits.** Grep the course for prose references to the
+  module number first; then rename files and change only `month`/`slug`/`video` (e.g. capstone M6→M7,
+  kept last). Verify md↔deck parity and that `monthTitle` still matches `course.json`.
 
 ## Git, CI/CD & deployment
 
@@ -46,6 +61,16 @@ and a course-production pipeline. Kept current as the project evolves.
   `git rev-parse --abbrev-ref HEAD` before committing. Recovery: move commits with
   `git checkout dev && git merge master --ff-only`, then `git reset --hard origin/master` on master.
 - **Watch every deploy to green.** A push that breaks CI is a failure, not a completion.
+- **The master deploy does NOT regenerate the catalog/lesson indexes.** Only `generate-course.yml`
+  runs `build_lesson_index.py` / `build_catalog.py`; `azure-swa-deploy.yml` ships the committed JSON
+  as-is. So regenerate **and commit** `api/src/shared/lessons.generated.json` +
+  `catalog.generated.json` whenever lesson content changes, or the AI tutor/grader ground on stale data.
+- **The repo lives under OneDrive — concurrent work syncs in mid-session.** Unrelated changes (another
+  course, `site/consts.ts`, etc.) can appear in the working tree without you touching them. **Scope
+  every commit explicitly** (`git add <your paths>`, never `git add -A`) and verify with
+  `git diff --cached --name-status` before committing. For whole-repo generated indexes, splice rather
+  than rebuild wholesale: take the committed `HEAD` baseline for all other courses and overwrite only
+  your course's freshly-built slice, so foreign uncommitted work never leaks into your commit.
 - **Deployment-token mismatches are common.** "deployment_token provided was invalid" means the
   GitHub secret doesn't match the SWA — re-set it from `az staticwebapp secrets list`.
 - **robocopy `/MOVE` beats a rename when a folder is locked.** Moving the project directory failed
