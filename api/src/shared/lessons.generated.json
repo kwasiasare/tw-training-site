@@ -24999,5 +24999,75 @@
         "why": "Like prediction drift in Module 4, it needs no labels — you compare distributions (embeddings, length, topic, refusal rate) against a baseline, giving a leading indicator of regressions."
       }
     ]
+  },
+  "mlo-m5-l05-capstone-production-llm-serving-system": {
+    "course": "mlops-engineer",
+    "title": "Capstone: Build and Operate a Production LLM Serving System",
+    "objectives": [
+      "Architect a production LLM serving system that connects serving, optimization, scaling, observability, evaluation, and cost control",
+      "Serve a quantized open model with vLLM behind an OpenAI-compatible API and define latency/throughput SLOs",
+      "Deploy and autoscale the endpoint on Kubernetes with KServe, GPU scheduling, and scale-to-zero",
+      "Instrument token-, latency-, and cost-aware observability and gate deploys with an offline eval suite",
+      "Add guardrails and operate the system within a cost budget, then document it for a portfolio"
+    ],
+    "body": "## Capstone Overview\n\nThis is the integration lesson for the LLMOps module. The individual pieces from Lessons 1–4 — efficient serving with vLLM, quantization and compiled runtimes, Kubernetes/KServe scaling, and production observability/evaluation/cost — come together into a single deployed system. The goal is not a new tool but to demonstrate **end-to-end ownership** of an LLM in production: from a model checkpoint to a monitored, evaluated, cost-bounded endpoint that can be safely updated.\n\nIt extends the Module 4 capstone (an end-to-end classic-ML system) to large language models. Treat it as a portfolio project: hiring managers want to see that you can connect serving, scaling, observability, evaluation, and cost trade-offs — and operate the result after deployment.\n\n## Reference Architecture\n\nA production LLM serving system has five planes that mirror the module:\n\n1. **Serving runtime** — an open model served by **vLLM** (PagedAttention + continuous batching) behind an OpenAI-compatible API.\n2. **Optimization** — a **quantized** checkpoint (e.g., AWQ/FP8) and, where latency is critical, a compiled runtime (Triton + TensorRT-LLM).\n3. **Scaling plane** — **Kubernetes + KServe** with GPU-aware scheduling, request-based autoscaling, scale-to-zero, and tensor/pipeline parallelism for large models.\n4. **Observability & evaluation** — token-, latency-, and cost-aware telemetry (OpenTelemetry GenAI + Prometheus/Grafana) plus an offline **eval suite** that gates every change.\n5. **Governance** — guardrails, drift monitoring, and an explicit **cost budget** with alerting.\n\nThe planes connect through artifacts: the model/quantized checkpoint, the container image and KServe `InferenceService`, the dashboards, and the eval report that gates promotion.\n\n## Step 1 — Scope and SLOs\n\nPick a realistic use case (a support assistant, a RAG Q&A service, a summarizer). Define:\n\n- The model and task, and a **quality bar** measured by your eval suite (e.g., RAGAS faithfulness ≥ target, no regression vs. baseline).\n- **Latency SLOs** in LLM terms: p95 **TTFT** (e.g., < 1s) and p95 **TPOT** (e.g., < 100ms), plus a throughput target in tokens/sec.\n- A **cost budget**: a target `cost_per_1k_tokens` and a monthly ceiling.\n- \"Production-ready\" means: endpoint live and autoscaling, dashboards showing token/latency/cost, eval gate wired into CI, guardrails active, and alerts configured.\n\n## Step 2 — Serve with vLLM\n\nServe a quantized open model behind the OpenAI-compatible server. Quantization (Lesson 2) shrinks memory and raises throughput; validate quality loss before committing to it.\n\n```bash\nvllm serve meta-llama/Llama-3.1-8B-Instruct \\\n  --quantization awq \\\n  --kv-cache-dtype fp8 \\\n  --max-model-len 8192 \\\n  --gpu-memory-utilization 0.90\n# OpenAI-compatible endpoints on :8000 — /v1/chat/completions, /metrics\n```\n\nExpose `/health` (liveness) and `/ready` (readiness) so the orchestrator only routes traffic once weights are loaded — the same probe convention used throughout Modules 3–5.\n\n## Step 3 — Deploy and Scale on KServe\n\nWrap the runtime in a KServe `InferenceService`. Use `minReplicas: 0` for scale-to-zero on idle, autoscale on request concurrency, and shard large models with a `workerSpec`.\n\n```yaml\napiVersion: serving.kserve.io/v1beta1\nkind: InferenceService\nmetadata:\n  name: llm-capstone\nspec:\n  predictor:\n    minReplicas: 0          # scale-to-zero when idle\n    maxReplicas: 8\n    scaleMetric: concurrency\n    scaleTarget: 10\n    model:\n      modelFormat:\n        name: huggingface\n      storageUri: hf://meta-llama/Llama-3.1-8B-Instruct\n      resources:\n        limits:\n          nvidia.com/gpu: \"1\"   # GPUs only in limits; request == limit\n```\n\nFor a model that does not fit one GPU, add a `workerSpec` (sibling of `model`) with `tensorParallelSize`/`pipelineParallelSize`, and schedule onto GPU nodes with taints/tolerations and `nvidia.com/gpu.product` affinity.\n\n## Step 4 — Observability\n\nInstrument the system with the **OpenTelemetry GenAI** conventions (`gen_ai.usage.input_tokens`, `gen_ai.usage.output_tokens`, `gen_ai.request.model`) and scrape vLLM's Prometheus metrics. Build a Grafana board with the LLM-specific signals next to classic latency/error/throughput.\n\n```promql\n# p95 TTFT and inter-token latency (TPOT)\nhistogram_quantile(0.95, sum(rate(vllm:time_to_first_token_seconds_bucket[5m])) by (le))\nhistogram_quantile(0.95, sum(rate(vllm:inter_token_latency_seconds_bucket[5m])) by (le))\n# output throughput (tokens/sec)\nsum(rate(vllm:generation_tokens_total[1m]))\n```\n\nTrace requests end-to-end into an LLM observability tool (Langfuse or Phoenix, both OTLP-native) so you can inspect prompts, token counts, and per-request cost.\n\n## Step 5 — The Evaluation Gate\n\nThis is what makes the system safe to change. Maintain a versioned offline eval set and run it in CI on every model or prompt change. Promote only if quality holds against the baseline.\n\n```python\nfrom ragas import evaluate\nfrom ragas.metrics import faithfulness, answer_relevancy\n\nresult = evaluate(eval_dataset, metrics=[faithfulness, answer_relevancy])\nif result[\"faithfulness\"] < BASELINE[\"faithfulness\"]:\n    raise SystemExit(\"Eval regression — blocking promotion\")\n```\n\nCombine deterministic checks with **LLM-as-judge** scoring for open-ended quality, and treat the eval report as the promotion artifact — the LLM analogue of Module 4's model-metric gate.\n\n## Step 6 — Guardrails and Drift\n\nAdd input/output **guardrails** (e.g., NeMo Guardrails, or Llama Guard as a safety classifier) to block prompt injection, unsafe content, and PII leakage. Monitor **prompt/response drift** (embedding-distribution shift, refusal rate, output-length spikes) to catch silent degradation without ground-truth labels.\n\n## Step 7 — Operate Within a Cost Budget\n\nTreat cost as an SLO. Track `cost_per_1k_tokens` as a Grafana panel and alert when it breaches budget, just like latency. Pull the stacked levers from the module: continuous batching, quantization, prompt/KV caching, autoscaling with scale-to-zero, and spot/preemptible GPUs. Document the before/after cost so the trade-offs are explicit.\n\n## Step 8 — Document for Your Portfolio\n\nA strong README includes: the architecture diagram, how to deploy (ideally one command), the SLOs and whether they were met, dashboard screenshots (TTFT, TPOT, tokens, cost), the eval report gating deploys, and a trade-offs/\"what I'd improve\" section. Reproducibility is what separates a great capstone from an average one.\n\n## Common Pitfalls\n\n- Optimizing for throughput while blowing the **TTFT** SLO — interactive UX needs both tracked.\n- Quantizing without an eval check, shipping a quietly worse model.\n- No evaluation gate, so a prompt tweak silently regresses quality.\n- Forgetting `minReplicas: 0`, paying for idle GPUs around the clock.\n- Dashboards that track only infra metrics and ignore tokens, cost, and decode latency.\n- Guardrails bolted on after launch instead of designed in.",
+    "quiz": [
+      {
+        "q": "Which metric pair best captures interactive LLM latency for your SLOs?",
+        "options": [
+          "Disk IOPS and CPU temperature",
+          "TTFT (time to first token) and TPOT (time per output token)",
+          "Image pull time and pod count",
+          "Model file size and host RAM"
+        ],
+        "answer": 1,
+        "why": "TTFT measures responsiveness (prefill and queue time) and TPOT measures streaming speed (the decode loop); together they define the interactive latency SLOs for an LLM endpoint."
+      },
+      {
+        "q": "What should the evaluation gate do before a new model or prompt is promoted in the capstone?",
+        "options": [
+          "Automatically promote it to save time",
+          "Run an offline eval/regression suite (e.g., RAGAS plus LLM-as-judge) and block promotion if quality regresses against the baseline",
+          "Only check that the container builds",
+          "Increase the GPU memory utilization"
+        ],
+        "answer": 1,
+        "why": "The gate runs the eval suite and blocks promotion when quality regresses, preventing silent quality drops — the LLM analogue of the classic model-metric promotion gate from Module 4."
+      },
+      {
+        "q": "Which KServe setting lets an idle LLM endpoint cost nothing when there is no traffic?",
+        "options": [
+          "maxReplicas set very high",
+          "minReplicas; 0, enabling scale-to-zero via Knative",
+          "A physically larger GPU",
+          "Disabling the readiness probe"
+        ],
+        "answer": 1,
+        "why": "minReplicas of 0 lets KServe/Knative scale the deployment to zero pods when idle, eliminating GPU cost during no-traffic periods, at the cost of a cold start on the next request."
+      },
+      {
+        "q": "You must serve a 70B model that does not fit on a single GPU. What is the right approach?",
+        "options": [
+          "Lower the sampling temperature",
+          "Shard it across GPUs with tensor (and optionally pipeline) parallelism, e.g., KServe workerSpec or vLLM --tensor-parallel-size",
+          "Reduce max_tokens",
+          "Move inference to the CPU"
+        ],
+        "answer": 1,
+        "why": "A model larger than one GPU's memory must be split across GPUs with tensor and optionally pipeline parallelism; KServe's workerSpec or vLLM's --tensor-parallel-size configures this."
+      },
+      {
+        "q": "Name two cost levers from this module you would combine to keep a production LLM endpoint within budget.",
+        "options": null,
+        "answer": "Any two of — continuous batching, weight or KV-cache quantization, prompt/KV caching, autoscaling with scale-to-zero, and spot/preemptible GPUs.",
+        "why": "These levers stack across the model, system, and application layers; combining several (for example quantization plus continuous batching plus scale-to-zero) can cut inference cost well over half."
+      },
+      {
+        "q": "Besides latency and error rate, name one LLM-specific signal your capstone dashboard must track.",
+        "options": null,
+        "answer": "Token usage / cost-per-1k-tokens (also acceptable; TTFT, TPOT, GPU or KV-cache utilization, or an eval/faithfulness score).",
+        "why": "LLM endpoints add token-economics and decode-latency signals that classic infra dashboards miss but that directly drive both user experience and spend."
+      }
+    ]
   }
 }
