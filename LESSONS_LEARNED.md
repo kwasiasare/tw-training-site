@@ -122,3 +122,19 @@ project evolves.
 - `grep` for a multibyte character (e.g. the `→` arrow) with `.` matches single bytes — verify with
   ASCII-only substrings instead.
 - The harness resets the shell working directory each command; target absolute paths or `git -C`.
+
+## Content pipeline gotchas (decks → lessons)
+
+- **`convert_decks_to_md.py <course>` regenerates EVERY lesson in that course from its deck.**
+  Some committed `.md` files have diverged from their decks (fact-check/errata edits applied to the
+  `.md` but not the deck). Re-converting a whole course to add ONE new lesson silently reverts those
+  edits. When only *adding* lessons: convert, then `git checkout HEAD -- <existing lessons>` to keep
+  only the new files, and rebuild `lessons.generated.json` + `catalog.generated.json`.
+- **Short-answer quiz items must not carry `options: null`.** The Astro content schema accepts an
+  array or an omitted key, never null. Decks sometimes carry `"options": null`; the converter now
+  strips null/empty `options` so the build can't break (was a recurring TW-81 failure). When hand-
+  authoring decks, omit the `options` key entirely on short-answer items.
+- **Cert currency churns fast (2026).** Verified retirements: Azure DP-100 (retired 2026-06-01),
+  AWS ML – Specialty (retired 2026-03-31 → ML Engineer Associate MLA-C01), TensorFlow Developer
+  Certificate (discontinued). Always confirm a credential on its official page before a course
+  recommends it; OpenAI Evals platform is deprecating (prefer Ragas for eval references).
