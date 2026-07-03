@@ -71,7 +71,7 @@ resources:
   url: https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/windows-commands
 - label: Microsoft Support — User Account Control settings
   url: https://support.microsoft.com/en-us/windows/user-account-control-settings-d5b2046b-dcb8-54eb-f732-059f321afe18
-- label: CompTIA — A+ Core 2 (220-1102) exam objectives
+- label: CompTIA — A+ Core 2 (220-1202) exam objectives
   url: https://www.comptia.org/certifications/a
 ---
 

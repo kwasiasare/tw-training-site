@@ -63,7 +63,7 @@ quiz:
   why: Formatting prepares a volume for use but wipes existing files, so picking the wrong disk in a tool
     like Disk Management or diskpart can destroy data permanently.
 resources:
-- label: CompTIA A+ Certification (220-1101 / 220-1102)
+- label: CompTIA A+ Certification (220-1201 / 220-1202)
   url: https://www.comptia.org/certifications/a
 - label: Microsoft Learn — Overview of Disk Management
   url: https://learn.microsoft.com/en-us/windows-server/storage/disk-management/overview-of-disk-management

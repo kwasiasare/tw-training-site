@@ -62,7 +62,7 @@ quiz:
   why: 'These are the essentials: the CPU does the work, RAM holds active data, storage keeps data when
     powered off, and the motherboard connects everything together.'
 resources:
-- label: CompTIA A+ Certification (220-1101 & 220-1102) overview
+- label: CompTIA A+ Certification (220-1201 & 220-1202) overview
   url: https://www.comptia.org/certifications/a
 - label: Microsoft Learn — How does a computer work?
   url: https://learn.microsoft.com/en-us/training/

@@ -63,7 +63,7 @@ quiz:
   why: Front-panel headers are tiny and easy to get wrong; the power and reset switches work either way,
     but the LEDs only light when the plus and minus pins are oriented correctly per the manual.
 resources:
-- label: CompTIA — A+ certification (Core 1 220-1101) overview
+- label: CompTIA — A+ certification (Core 1 220-1201) overview
   url: https://www.comptia.org/certifications/a
 - label: iFixit — Repair guides and teardown techniques
   url: https://www.ifixit.com

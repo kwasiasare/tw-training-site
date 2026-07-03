@@ -71,7 +71,7 @@ resources:
   url: https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/net-user
 - label: Microsoft Support — Create a local user or administrator account in Windows
   url: https://support.microsoft.com/en-us/windows/create-a-local-user-or-administrator-account-in-windows-20de74e0-ac7f-3502-a866-32915af2a34d
-- label: CompTIA — A+ Core 2 (220-1102) exam objectives
+- label: CompTIA — A+ Core 2 (220-1202) exam objectives
   url: https://www.comptia.org/certifications/a
 ---
 

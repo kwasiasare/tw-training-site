@@ -23,7 +23,7 @@
     {"q": "Name the small connectors you must wire up for the case power button, reset button and activity LEDs, and why their orientation can matter.", "answer": "The front-panel headers (often labelled F_PANEL or System Panel); the LED connectors are polarised so positive and negative must match the motherboard pins or the LED simply won't light.", "why": "Front-panel headers are tiny and easy to get wrong; the power and reset switches work either way, but the LEDs only light when the plus and minus pins are oriented correctly per the manual."}
   ],
   "resources": [
-    {"label": "CompTIA — A+ certification (Core 1 220-1101) overview", "url": "https://www.comptia.org/certifications/a"},
+    {"label": "CompTIA — A+ certification (Core 1 220-1201) overview", "url": "https://www.comptia.org/certifications/a"},
     {"label": "iFixit — Repair guides and teardown techniques", "url": "https://www.ifixit.com"},
     {"label": "Microsoft Learn — Create installation media for Windows", "url": "https://learn.microsoft.com/en-us/windows/deployment/"},
     {"label": "Wikipedia — Electrostatic discharge", "url": "https://en.wikipedia.org/wiki/Electrostatic_discharge"}

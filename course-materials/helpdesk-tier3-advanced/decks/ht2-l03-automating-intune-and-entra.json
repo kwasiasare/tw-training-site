@@ -15,30 +15,182 @@
     "Throttle-proof a bulk operation with batching and Retry-After handling"
   ],
   "quiz": [
-    {"q": "Before you can POST a device action like sync or wipe, what do you usually need first?", "options": ["The device's Graph object id, obtained by querying managedDevices", "The device's serial number only", "Local admin on the device", "The user's password"], "answer": 0, "why": "Graph actions target a resource by its id in the URL (for example /managedDevices/{id}/syncDevice), so you resolve the device to its id before calling the action."},
-    {"q": "What is the practical difference between an Entra dynamic group and an assigned group?", "options": ["Dynamic groups cannot hold devices", "Assigned groups update faster", "There is no difference, only the name", "Dynamic group membership is evaluated automatically from a rule; assigned membership is set manually"], "answer": 3, "why": "Dynamic groups recalculate membership from a membership rule (e.g. device OS), while assigned groups require you to add and remove members explicitly via Graph or the portal."},
-    {"q": "Which cmdlet triggers an Intune device sync action from the SDK?", "options": ["Sync-MgDevice", "Sync-MgDeviceManagementManagedDevice", "Invoke-MgSyncDeviceManagementManagedDevice", "Update-MgDeviceSync"], "answer": 1, "why": "Sync-MgDeviceManagementManagedDevice -ManagedDeviceId <id> issues the syncDevice action; many Intune actions also have an equivalent Invoke-MgGraphRequest POST."},
-    {"q": "Why add SupportsShouldProcess and call ShouldProcess in a bulk-change function?", "options": ["It makes the script run faster", "It is required to connect to Graph", "It gives the function free -WhatIf and -Confirm so callers can preview destructive changes", "It encrypts the output"], "answer": 2, "why": "SupportsShouldProcess plus an if ($PSCmdlet.ShouldProcess(...)) guard lets users dry-run with -WhatIf and gate risky bulk actions with -Confirm before anything changes."},
-    {"q": "When Graph returns HTTP 429, what header tells you how long to wait before retrying?", "answer": "The Retry-After header; honour it by sleeping for that many seconds before retrying, ideally with exponential backoff.", "why": "429 Too Many Requests means you are throttled; respecting Retry-After (and backing off) is the correct, supported way to keep bulk jobs running without making throttling worse."},
-    {"q": "In one sentence, why resolve a user to their object id rather than acting by userPrincipalName everywhere?", "answer": "The object id is the stable, unique key Graph uses for relationship calls like group membership, and it does not change if the userPrincipalName is renamed.", "why": "UPNs can be renamed and are not always accepted on relationship endpoints, so resolving to the immutable id first makes bulk scripts reliable."}
+    {
+      "q": "Before you can POST a device action like sync or wipe, what do you usually need first?",
+      "options": [
+        "The device's Graph object id, obtained by querying managedDevices",
+        "The device's serial number only",
+        "Local admin on the device",
+        "The user's password"
+      ],
+      "answer": 0,
+      "why": "Graph actions target a resource by its id in the URL (for example /managedDevices/{id}/syncDevice), so you resolve the device to its id before calling the action."
+    },
+    {
+      "q": "What is the practical difference between an Entra dynamic group and an assigned group?",
+      "options": [
+        "Dynamic groups cannot hold devices",
+        "Assigned groups update faster",
+        "There is no difference, only the name",
+        "Dynamic group membership is evaluated automatically from a rule; assigned membership is set manually"
+      ],
+      "answer": 3,
+      "why": "Dynamic groups recalculate membership from a membership rule (e.g. device OS), while assigned groups require you to add and remove members explicitly via Graph or the portal."
+    },
+    {
+      "q": "Which cmdlet triggers an Intune device sync action from the SDK?",
+      "options": [
+        "Sync-MgDevice",
+        "Sync-MgDeviceManagementManagedDevice",
+        "Invoke-MgSyncDeviceManagementManagedDevice",
+        "Update-MgDeviceSync"
+      ],
+      "answer": 1,
+      "why": "Sync-MgDeviceManagementManagedDevice -ManagedDeviceId <id> issues the syncDevice action; many Intune actions also have an equivalent Invoke-MgGraphRequest POST."
+    },
+    {
+      "q": "Why add SupportsShouldProcess and call ShouldProcess in a bulk-change function?",
+      "options": [
+        "It makes the script run faster",
+        "It is required to connect to Graph",
+        "It gives the function free -WhatIf and -Confirm so callers can preview destructive changes",
+        "It encrypts the output"
+      ],
+      "answer": 2,
+      "why": "SupportsShouldProcess plus an if ($PSCmdlet.ShouldProcess(...)) guard lets users dry-run with -WhatIf and gate risky bulk actions with -Confirm before anything changes."
+    },
+    {
+      "q": "When Graph returns HTTP 429, what header tells you how long to wait before retrying?",
+      "answer": "The Retry-After header; honour it by sleeping for that many seconds before retrying, ideally with exponential backoff.",
+      "why": "429 Too Many Requests means you are throttled; respecting Retry-After (and backing off) is the correct, supported way to keep bulk jobs running without making throttling worse."
+    },
+    {
+      "q": "In one sentence, why resolve a user to their object id rather than acting by userPrincipalName everywhere?",
+      "answer": "The object id is the stable, unique key Graph uses for relationship calls like group membership, and it does not change if the userPrincipalName is renamed.",
+      "why": "UPNs can be renamed and are not always accepted on relationship endpoints, so resolving to the immutable id first makes bulk scripts reliable."
+    }
   ],
   "resources": [
-    {"label": "Microsoft Learn — Intune deviceManagement managedDevice API", "url": "https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice"},
-    {"label": "Microsoft Learn — Working with groups in Microsoft Graph", "url": "https://learn.microsoft.com/en-us/graph/api/resources/groups-overview"},
-    {"label": "Microsoft Learn — Microsoft Graph throttling guidance", "url": "https://learn.microsoft.com/en-us/graph/throttling"},
-    {"label": "Microsoft Learn — about_Functions_CmdletBindingAttribute (ShouldProcess)", "url": "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_functions_cmdletbindingattribute"}
+    {
+      "label": "Microsoft Learn — Intune deviceManagement managedDevice API",
+      "url": "https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice"
+    },
+    {
+      "label": "Microsoft Learn — Working with groups in Microsoft Graph",
+      "url": "https://learn.microsoft.com/en-us/graph/api/resources/groups-overview"
+    },
+    {
+      "label": "Microsoft Learn — Microsoft Graph throttling guidance",
+      "url": "https://learn.microsoft.com/en-us/graph/throttling"
+    },
+    {
+      "label": "Microsoft Learn — about_Functions_CmdletBindingAttribute (ShouldProcess)",
+      "url": "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_functions_cmdletbindingattribute"
+    }
   ],
-  "body_markdown": "## Acting on Intune devices, not just reading them\n\nReading inventory is half the job. The other half is **taking action** — sync, restart, retire, or wipe a device. Graph actions target a resource by its **id** in the URL, so the workflow is always: resolve to id, then act.\n\n```powershell\nConnect-MgGraph -Scopes 'DeviceManagementManagedDevices.PrivilegedOperations.All','DeviceManagementManagedDevices.ReadWrite.All'\n\n# Resolve the device to its Graph id\n$device = Get-MgDeviceManagementManagedDevice -All `\n    -Filter \"deviceName eq 'LAP-0427'\"\n\n# Trigger a sync action against that id\nSync-MgDeviceManagementManagedDevice -ManagedDeviceId $device.Id\n```\n\nPrivileged actions like wipe require a stronger scope (`PrivilegedOperations.All`). Request it only in scripts that genuinely need it.\n\n## Managing Entra users and groups\n\nThe same SDK manages **Entra ID**. Users, groups, and the relationships between them are all Graph resources.\n\n```powershell\n# Resolve a user to their stable object id\n$user = Get-MgUser -Filter \"userPrincipalName eq 'jdoe@contoso.com'\"\n\n# Add that user to a group by id\nNew-MgGroupMember -GroupId $groupId -DirectoryObjectId $user.Id\n```\n\nAlways act on the **object id**, not the `userPrincipalName`. UPNs get renamed; the id never changes and relationship endpoints expect it.\n\n## Dynamic vs assigned groups\n\nAn **assigned group** is one you add and remove members from by hand (or by script). A **dynamic group** recalculates its membership from a **membership rule** — for example, all Windows devices. You manage assigned groups with `New-MgGroupMember`; you manage dynamic ones by editing the rule.\n\n```powershell\n# A dynamic device group: rule, not manual members\n$params = @{\n    DisplayName     = 'All Windows Devices'\n    MailEnabled     = $false\n    MailNickname    = 'allWinDevices'\n    SecurityEnabled = $true\n    GroupTypes      = @('DynamicMembership')\n    MembershipRule  = '(device.deviceOSType -eq \"Windows\")'\n    MembershipRuleProcessingState = 'On'\n}\nNew-MgGroup @params\n```\n\n## Make bulk changes safe with ShouldProcess\n\nA script that loops over hundreds of devices must support a **dry run**. Adding `SupportsShouldProcess` to `[CmdletBinding()]` gives your function free `-WhatIf` and `-Confirm`.\n\n```powershell\nfunction Invoke-DeviceSyncBulk {\n    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]\n    param([Parameter(Mandatory)][object[]]$Devices)\n    process {\n        foreach ($d in $Devices) {\n            if ($PSCmdlet.ShouldProcess($d.DeviceName, 'Sync device')) {\n                Sync-MgDeviceManagementManagedDevice -ManagedDeviceId $d.Id\n            }\n        }\n    }\n}\n# Preview first, then commit:\nInvoke-DeviceSyncBulk -Devices $stale -WhatIf\n```\n\n## Surviving throttling at scale\n\nGraph throttles aggressive callers with **HTTP 429**. The response carries a **`Retry-After`** header telling you how long to pause. Honour it, ideally with backoff.\n\n```powershell\nforeach ($d in $devices) {\n    try {\n        Sync-MgDeviceManagementManagedDevice -ManagedDeviceId $d.Id -ErrorAction Stop\n    }\n    catch {\n        if ($_.Exception.Response.StatusCode -eq 429) {\n            $wait = [int]($_.Exception.Response.Headers.RetryAfter.Delta.TotalSeconds)\n            Start-Sleep -Seconds ($wait ? $wait : 10)\n        }\n        else { throw }\n    }\n}\n```\n\n## Your task\n\nWrite a function `Set-StaleDeviceGroup` that finds all managed devices whose `lastSyncDateTime` is older than 30 days, resolves each to its id, and adds them to a specified assigned Entra group. Support `-WhatIf` via `SupportsShouldProcess`, request only the scopes you need, and wrap the group-add call in a try/catch that honours `Retry-After` on a 429. Run it once with `-WhatIf` to prove the preview works before any change is made."
-  ,
+  "body_markdown": "## Acting on Intune devices, not just reading them\n\nReading inventory is half the job. The other half is **taking action** — sync, restart, retire, or wipe a device. Graph actions target a resource by its **id** in the URL, so the workflow is always: resolve to id, then act.\n\n```powershell\nConnect-MgGraph -Scopes 'DeviceManagementManagedDevices.PrivilegedOperations.All','DeviceManagementManagedDevices.ReadWrite.All'\n\n# Resolve the device to its Graph id\n$device = Get-MgDeviceManagementManagedDevice -All `\n    -Filter \"deviceName eq 'LAP-0427'\"\n\n# Trigger a sync action against that id\nSync-MgDeviceManagementManagedDevice -ManagedDeviceId $device.Id\n```\n\nPrivileged actions like wipe require a stronger scope (`PrivilegedOperations.All`). Request it only in scripts that genuinely need it.\n\n## Managing Entra users and groups\n\nThe same SDK manages **Entra ID**. Users, groups, and the relationships between them are all Graph resources.\n\n```powershell\n# Resolve a user to their stable object id\n$user = Get-MgUser -Filter \"userPrincipalName eq 'jdoe@contoso.com'\"\n\n# Add that user to a group by id\nNew-MgGroupMember -GroupId $groupId -DirectoryObjectId $user.Id\n```\n\nAlways act on the **object id**, not the `userPrincipalName`. UPNs get renamed; the id never changes and relationship endpoints expect it.\n\nDevices need one extra hop. A `managedDevice` from Intune exposes `AzureAdDeviceId`, which is the Entra **deviceId** — a different GUID from the directory **object id** that relationship calls such as `New-MgGroupMember` require. Resolve the directory object first:\n\n```powershell\n# managedDevice -> Entra directory object -> group membership\n$dev = Get-MgDevice -Filter \"deviceId eq '$($managed.AzureAdDeviceId)'\"\nNew-MgGroupMember -GroupId $groupId -DirectoryObjectId $dev.Id\n```\n\n## Dynamic vs assigned groups\n\nAn **assigned group** is one you add and remove members from by hand (or by script). A **dynamic group** recalculates its membership from a **membership rule** — for example, all Windows devices. You manage assigned groups with `New-MgGroupMember`; you manage dynamic ones by editing the rule.\n\n```powershell\n# A dynamic device group: rule, not manual members\n$params = @{\n    DisplayName     = 'All Windows Devices'\n    MailEnabled     = $false\n    MailNickname    = 'allWinDevices'\n    SecurityEnabled = $true\n    GroupTypes      = @('DynamicMembership')\n    MembershipRule  = '(device.deviceOSType -eq \"Windows\")'\n    MembershipRuleProcessingState = 'On'\n}\nNew-MgGroup @params\n```\n\n## Make bulk changes safe with ShouldProcess\n\nA script that loops over hundreds of devices must support a **dry run**. Adding `SupportsShouldProcess` to `[CmdletBinding()]` gives your function free `-WhatIf` and `-Confirm`.\n\n```powershell\nfunction Invoke-DeviceSyncBulk {\n    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]\n    param([Parameter(Mandatory)][object[]]$Devices)\n    process {\n        foreach ($d in $Devices) {\n            if ($PSCmdlet.ShouldProcess($d.DeviceName, 'Sync device')) {\n                Sync-MgDeviceManagementManagedDevice -ManagedDeviceId $d.Id\n            }\n        }\n    }\n}\n# Preview first, then commit:\nInvoke-DeviceSyncBulk -Devices $stale -WhatIf\n```\n\n## Surviving throttling at scale\n\nGraph throttles aggressive callers with **HTTP 429**. The response carries a **`Retry-After`** header telling you how long to pause. Honour it, ideally with backoff.\n\n```powershell\nforeach ($d in $devices) {\n    try {\n        Sync-MgDeviceManagementManagedDevice -ManagedDeviceId $d.Id -ErrorAction Stop\n    }\n    catch {\n        if ($_.Exception.Response.StatusCode -eq 429) {\n            $wait = [int]($_.Exception.Response.Headers.RetryAfter.Delta.TotalSeconds)\n            Start-Sleep -Seconds ($wait ? $wait : 10)\n        }\n        else { throw }\n    }\n}\n```\n\n## Your task\n\nWrite a function `Set-StaleDeviceGroup` that finds all managed devices whose `lastSyncDateTime` is older than 30 days, resolves each to its id, and adds them to a specified assigned Entra group. Support `-WhatIf` via `SupportsShouldProcess`, request only the scopes you need, and wrap the group-add call in a try/catch that honours `Retry-After` on a 429. Run it once with `-WhatIf` to prove the preview works before any change is made.",
   "slides": [
-    {"type": "title", "title": "Automating Intune and Entra with Graph", "sub": "Month 2 - Automation: PowerShell & Microsoft Graph at Scale  |  Lesson 3", "narration": "Now we put Graph to work. In this lesson you stop just reading inventory and start taking action: syncing and acting on Intune devices, managing Entra users and groups, and doing it in bulk without breaking things. The two safety habits here, WhatIf and throttle handling, are what separate a hobby script from production automation."},
-    {"type": "content", "title": "Act on devices by id", "bullets": ["Graph actions target a resource by its id.", "Workflow: resolve to id, then act.", "Sync, restart, retire, wipe are all actions.", "Privileged actions need stronger scopes."], "code": "$device = Get-MgDeviceManagementManagedDevice -All `\n    -Filter \"deviceName eq 'LAP-0427'\"\nSync-MgDeviceManagementManagedDevice -ManagedDeviceId $device.Id", "narration": "Reading inventory is half the job. The other half is acting: sync, restart, retire, or wipe. Graph actions target a resource by its id in the U R L, so the workflow is always the same. First resolve the device to its Graph id by querying managed devices, then call the action against that id. Here we find a laptop by name and trigger a sync with Sync dash M g Device Management Managed Device. Privileged actions like wipe need a stronger scope, so request those only when you truly need them."},
-    {"type": "content", "title": "Manage Entra users and groups", "bullets": ["The same SDK manages Entra ID.", "Users, groups, memberships are all resources.", "Resolve a user to their object id first.", "Add members with New-MgGroupMember."], "code": "$user = Get-MgUser -Filter \"userPrincipalName eq 'jdoe@contoso.com'\"\nNew-MgGroupMember -GroupId $groupId -DirectoryObjectId $user.Id", "narration": "The very same S D K manages Entra I D. Users, groups, and the relationships between them are all Graph resources. The key habit: always resolve a user to their stable object id before acting, then use that id for relationship calls like adding a group member. U P Ns get renamed, but the object id never changes, and the relationship endpoints expect the id. New dash M g Group Member adds a user to a group by id."},
-    {"type": "content", "title": "Dynamic vs assigned groups", "bullets": ["Assigned: you add and remove members manually.", "Dynamic: membership comes from a rule.", "Manage assigned with New-MgGroupMember.", "Manage dynamic by editing the rule."], "code": "$params = @{\n    DisplayName = 'All Windows Devices'\n    SecurityEnabled = $true\n    GroupTypes = @('DynamicMembership')\n    MembershipRule = '(device.deviceOSType -eq \"Windows\")'\n    MembershipRuleProcessingState = 'On'\n    MailEnabled = $false; MailNickname = 'allWinDevices'\n}\nNew-MgGroup @params", "narration": "Know the difference between two kinds of group. An assigned group is one you add and remove members from by hand or by script. A dynamic group recalculates its membership automatically from a membership rule, for example all Windows devices. You manage assigned groups with New dash M g Group Member, but for dynamic groups you never touch members directly, you edit the rule. Notice the splatting here, the at sign params hashtable, which keeps a long parameter list readable."},
-    {"type": "content", "title": "Splatting keeps calls readable", "bullets": ["Build a hashtable of parameters.", "Pass it with the @ splat operator.", "Cleaner than long backtick-continued lines.", "Easy to build parameters conditionally."], "code": "$body = @{ Method = 'POST'; Uri = $uri }\nInvoke-MgGraphRequest @body", "narration": "A quick but vital technique you just saw: splatting. Instead of a long line of parameters continued with backticks, you build a hashtable where each key is a parameter name, then pass it with the at sign splat operator. It is cleaner, and it lets you build up parameters conditionally before the call. You will use splatting constantly once you start writing real functions, so get comfortable with it now."},
-    {"type": "content", "title": "Safe bulk changes with ShouldProcess", "bullets": ["Bulk scripts must support a dry run.", "SupportsShouldProcess gives free -WhatIf.", "Guard each change with PSCmdlet.ShouldProcess.", "ConfirmImpact High prompts on risky actions."], "code": "[CmdletBinding(SupportsShouldProcess, ConfirmImpact='High')]\nparam([object[]]$Devices)\nif ($PSCmdlet.ShouldProcess($d.DeviceName, 'Sync device')) {\n    Sync-MgDeviceManagementManagedDevice -ManagedDeviceId $d.Id\n}", "narration": "When a script loops over hundreds of devices, it must support a dry run. Add Supports Should Process to your CmdletBinding and your function gets dash WhatIf and dash Confirm for free. Then guard every change with an if P S Cmdlet dot Should Process check. Now a user can run with dash WhatIf to preview exactly what would happen and change nothing. Set Confirm Impact to High on genuinely destructive actions so it prompts before doing them. Preview first, commit second."},
-    {"type": "content", "title": "Throttling and 429", "bullets": ["Graph throttles with HTTP 429.", "The Retry-After header says how long to wait.", "Honour it, ideally with exponential backoff.", "Never just hammer the API in a tight loop."], "code": "catch {\n    if ($_.Exception.Response.StatusCode -eq 429) {\n        $wait = [int]$_.Exception.Response.Headers.RetryAfter.Delta.TotalSeconds\n        Start-Sleep -Seconds ($wait ? $wait : 10)\n    } else { throw }\n}", "narration": "At scale, Graph will throttle you. It returns H T T P four twenty nine, too many requests, and it includes a Retry dash After header telling you how many seconds to pause. The correct, supported behaviour is to honour that header, sleep, and then retry, ideally with exponential backoff. Never just hammer the A P I in a tight loop, because that makes the throttling worse and can get your app flagged. Catch the four twenty nine, read Retry After, sleep, retry."},
-    {"type": "content", "title": "Batching large jobs", "bullets": ["Group work into chunks rather than one huge burst.", "Add small pauses between batches.", "Combine with Retry-After handling.", "Log progress so a long run is observable."], "code": "for ($i = 0; $i -lt $devices.Count; $i += 20) {\n    $batch = $devices[$i..($i+19)]\n    # ...act on batch...\n    Start-Sleep -Milliseconds 500\n}", "narration": "Alongside honouring Retry After, proactively batch large jobs. Instead of firing thousands of requests in one burst, group the work into chunks, act on a chunk, pause briefly, then move on. Combine batching with the four twenty nine handling from the last slide and your bulk jobs become reliable. And log progress as you go, because a job that runs for twenty minutes needs to be observable so you know it is alive and where it is."},
-    {"type": "content", "title": "Recap & your task", "bullets": ["Resolve to id, then act on devices and users.", "Know dynamic vs assigned groups.", "Add ShouldProcess for -WhatIf safety.", "Honour Retry-After and batch at scale.", "Task: build Set-StaleDeviceGroup with -WhatIf."], "narration": "Let us recap. To act on a device or user you resolve it to its id first, then call the action. Know the difference between dynamic and assigned groups. Make bulk scripts safe with Supports Should Process so they offer dash WhatIf. And survive scale by honouring Retry After and batching your work. Your task: write Set dash Stale Device Group. It finds devices not synced in thirty days, resolves each to its id, and adds them to an assigned Entra group. Support dash WhatIf, request only the scopes you need, and handle a four twenty nine with Retry After. Run it once with dash WhatIf to prove the preview works before anything changes. See you in lesson four."}
+    {
+      "type": "title",
+      "title": "Automating Intune and Entra with Graph",
+      "sub": "Month 2 - Automation: PowerShell & Microsoft Graph at Scale  |  Lesson 3",
+      "narration": "Now we put Graph to work. In this lesson you stop just reading inventory and start taking action: syncing and acting on Intune devices, managing Entra users and groups, and doing it in bulk without breaking things. The two safety habits here, WhatIf and throttle handling, are what separate a hobby script from production automation."
+    },
+    {
+      "type": "content",
+      "title": "Act on devices by id",
+      "bullets": [
+        "Graph actions target a resource by its id.",
+        "Workflow: resolve to id, then act.",
+        "Sync, restart, retire, wipe are all actions.",
+        "Privileged actions need stronger scopes."
+      ],
+      "code": "$device = Get-MgDeviceManagementManagedDevice -All `\n    -Filter \"deviceName eq 'LAP-0427'\"\nSync-MgDeviceManagementManagedDevice -ManagedDeviceId $device.Id",
+      "narration": "Reading inventory is half the job. The other half is acting: sync, restart, retire, or wipe. Graph actions target a resource by its id in the U R L, so the workflow is always the same. First resolve the device to its Graph id by querying managed devices, then call the action against that id. Here we find a laptop by name and trigger a sync with Sync dash M g Device Management Managed Device. Privileged actions like wipe need a stronger scope, so request those only when you truly need them."
+    },
+    {
+      "type": "content",
+      "title": "Manage Entra users and groups",
+      "bullets": [
+        "The same SDK manages Entra ID.",
+        "Users, groups, memberships are all resources.",
+        "Resolve a user to their object id first.",
+        "Add members with New-MgGroupMember."
+      ],
+      "code": "$user = Get-MgUser -Filter \"userPrincipalName eq 'jdoe@contoso.com'\"\nNew-MgGroupMember -GroupId $groupId -DirectoryObjectId $user.Id",
+      "narration": "The very same S D K manages Entra I D. Users, groups, and the relationships between them are all Graph resources. The key habit: always resolve a user to their stable object id before acting, then use that id for relationship calls like adding a group member. U P Ns get renamed, but the object id never changes, and the relationship endpoints expect the id. New dash M g Group Member adds a user to a group by id."
+    },
+    {
+      "type": "content",
+      "title": "Dynamic vs assigned groups",
+      "bullets": [
+        "Assigned: you add and remove members manually.",
+        "Dynamic: membership comes from a rule.",
+        "Manage assigned with New-MgGroupMember.",
+        "Manage dynamic by editing the rule."
+      ],
+      "code": "$params = @{\n    DisplayName = 'All Windows Devices'\n    SecurityEnabled = $true\n    GroupTypes = @('DynamicMembership')\n    MembershipRule = '(device.deviceOSType -eq \"Windows\")'\n    MembershipRuleProcessingState = 'On'\n    MailEnabled = $false; MailNickname = 'allWinDevices'\n}\nNew-MgGroup @params",
+      "narration": "Know the difference between two kinds of group. An assigned group is one you add and remove members from by hand or by script. A dynamic group recalculates its membership automatically from a membership rule, for example all Windows devices. You manage assigned groups with New dash M g Group Member, but for dynamic groups you never touch members directly, you edit the rule. Notice the splatting here, the at sign params hashtable, which keeps a long parameter list readable."
+    },
+    {
+      "type": "content",
+      "title": "Splatting keeps calls readable",
+      "bullets": [
+        "Build a hashtable of parameters.",
+        "Pass it with the @ splat operator.",
+        "Cleaner than long backtick-continued lines.",
+        "Easy to build parameters conditionally."
+      ],
+      "code": "$body = @{ Method = 'POST'; Uri = $uri }\nInvoke-MgGraphRequest @body",
+      "narration": "A quick but vital technique you just saw: splatting. Instead of a long line of parameters continued with backticks, you build a hashtable where each key is a parameter name, then pass it with the at sign splat operator. It is cleaner, and it lets you build up parameters conditionally before the call. You will use splatting constantly once you start writing real functions, so get comfortable with it now."
+    },
+    {
+      "type": "content",
+      "title": "Safe bulk changes with ShouldProcess",
+      "bullets": [
+        "Bulk scripts must support a dry run.",
+        "SupportsShouldProcess gives free -WhatIf.",
+        "Guard each change with PSCmdlet.ShouldProcess.",
+        "ConfirmImpact High prompts on risky actions."
+      ],
+      "code": "[CmdletBinding(SupportsShouldProcess, ConfirmImpact='High')]\nparam([object[]]$Devices)\nif ($PSCmdlet.ShouldProcess($d.DeviceName, 'Sync device')) {\n    Sync-MgDeviceManagementManagedDevice -ManagedDeviceId $d.Id\n}",
+      "narration": "When a script loops over hundreds of devices, it must support a dry run. Add Supports Should Process to your CmdletBinding and your function gets dash WhatIf and dash Confirm for free. Then guard every change with an if P S Cmdlet dot Should Process check. Now a user can run with dash WhatIf to preview exactly what would happen and change nothing. Set Confirm Impact to High on genuinely destructive actions so it prompts before doing them. Preview first, commit second."
+    },
+    {
+      "type": "content",
+      "title": "Throttling and 429",
+      "bullets": [
+        "Graph throttles with HTTP 429.",
+        "The Retry-After header says how long to wait.",
+        "Honour it, ideally with exponential backoff.",
+        "Never just hammer the API in a tight loop."
+      ],
+      "code": "catch {\n    if ($_.Exception.Response.StatusCode -eq 429) {\n        $wait = [int]$_.Exception.Response.Headers.RetryAfter.Delta.TotalSeconds\n        Start-Sleep -Seconds ($wait ? $wait : 10)\n    } else { throw }\n}",
+      "narration": "At scale, Graph will throttle you. It returns H T T P four twenty nine, too many requests, and it includes a Retry dash After header telling you how many seconds to pause. The correct, supported behaviour is to honour that header, sleep, and then retry, ideally with exponential backoff. Never just hammer the A P I in a tight loop, because that makes the throttling worse and can get your app flagged. Catch the four twenty nine, read Retry After, sleep, retry."
+    },
+    {
+      "type": "content",
+      "title": "Batching large jobs",
+      "bullets": [
+        "Group work into chunks rather than one huge burst.",
+        "Add small pauses between batches.",
+        "Combine with Retry-After handling.",
+        "Log progress so a long run is observable."
+      ],
+      "code": "for ($i = 0; $i -lt $devices.Count; $i += 20) {\n    $batch = $devices[$i..($i+19)]\n    # ...act on batch...\n    Start-Sleep -Milliseconds 500\n}",
+      "narration": "Alongside honouring Retry After, proactively batch large jobs. Instead of firing thousands of requests in one burst, group the work into chunks, act on a chunk, pause briefly, then move on. Combine batching with the four twenty nine handling from the last slide and your bulk jobs become reliable. And log progress as you go, because a job that runs for twenty minutes needs to be observable so you know it is alive and where it is."
+    },
+    {
+      "type": "content",
+      "title": "Recap & your task",
+      "bullets": [
+        "Resolve to id, then act on devices and users.",
+        "Know dynamic vs assigned groups.",
+        "Add ShouldProcess for -WhatIf safety.",
+        "Honour Retry-After and batch at scale.",
+        "Task: build Set-StaleDeviceGroup with -WhatIf."
+      ],
+      "narration": "Let us recap. To act on a device or user you resolve it to its id first, then call the action. Know the difference between dynamic and assigned groups. Make bulk scripts safe with Supports Should Process so they offer dash WhatIf. And survive scale by honouring Retry After and batching your work. Your task: write Set dash Stale Device Group. It finds devices not synced in thirty days, resolves each to its id, and adds them to an assigned Entra group. Support dash WhatIf, request only the scopes you need, and handle a four twenty nine with Retry After. Run it once with dash WhatIf to prove the preview works before anything changes. See you in lesson four."
+    }
   ]
 }

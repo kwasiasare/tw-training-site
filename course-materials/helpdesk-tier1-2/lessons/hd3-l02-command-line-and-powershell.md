@@ -73,7 +73,7 @@ resources:
   url: https://learn.microsoft.com/en-us/powershell/scripting/learn/ps101/02-help-system
 - label: Microsoft Learn — Understanding the PowerShell pipeline
   url: https://learn.microsoft.com/en-us/powershell/scripting/learn/ps101/04-pipelines
-- label: CompTIA — A+ Core 2 (220-1102) exam objectives
+- label: CompTIA — A+ Core 2 (220-1202) exam objectives
   url: https://www.comptia.org/certifications/a
 ---
 

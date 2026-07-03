@@ -113,7 +113,10 @@ function Invoke-StaleDeviceRemediation {
         if ($PSCmdlet.ShouldProcess($d.DeviceName, 'Tag + sync stale device')) {
             try {
                 Invoke-WithRetry {
-                    New-MgGroupMember -GroupId $RemediationGroupId -DirectoryObjectId $d.AzureAdDeviceId -ErrorAction Stop
+                    # AzureAdDeviceId is the Entra deviceId, NOT the directory object id that
+                    # New-MgGroupMember needs -- resolve the device object first.
+                    $obj = Get-MgDevice -Filter "deviceId eq '$($d.AzureAdDeviceId)'" -ErrorAction Stop
+                    New-MgGroupMember -GroupId $RemediationGroupId -DirectoryObjectId $obj.Id -ErrorAction Stop
                     Sync-MgDeviceManagementManagedDevice -ManagedDeviceId $d.Id -ErrorAction Stop
                 }
                 [pscustomobject]@{ Device = $d.DeviceName; Action = 'Remediated'; Error = $null }
