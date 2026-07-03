@@ -98,7 +98,7 @@ chunks = splitter.split_documents(pages)
 Each chunk is converted to a vector with an embedding model (e.g. `text-embedding-3-small`). Store the vector along with the original text and metadata in a vector store such as **Chroma**, **FAISS**, or **Pinecone**.
 
 ```python
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 vectordb = Chroma.from_documents(chunks, OpenAIEmbeddings(model="text-embedding-3-small"), persist_directory="./db")
 ```

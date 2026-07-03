@@ -100,3 +100,22 @@ test('certificate: fabricated lesson slugs do not count toward completion', asyn
   assert.equal(res.jsonBody.completedLessons, 0, 'junk lessons must not be counted');
   assert.equal(container._calls.upserts.length, 0, 'no certificate may be issued');
 });
+
+test('certificate: an issued certificate is grandfathered when the course later grows', async () => {
+  // User completed all 3 lessons and was issued a cert; the course then grew
+  // to 5 lessons. The persisted certificate must still be returned (TW-98
+  // product decision) instead of flipping back to eligible:false.
+  const seed = [{
+    id: 'user-123:cert:demo-course', userId: 'user-123', type: 'certificate',
+    course: 'demo-course', serial: 'GRNDFTHR', issuedAt: '2026-06-01T00:00:00Z',
+  }];
+  const container = makeContainer({ seed, queryResult: [...completed('demo-course', 3), ...seed] });
+  const res = await handler(container, {
+    countLessons: () => 5, // course grew after issuance
+    getLesson: (id) => (id.startsWith('l') ? { course: 'demo-course' } : null),
+  })(makeRequest({ method: 'GET', user: authUser(), query: { course: 'demo-course' } }), makeContext());
+  assert.equal(res.status, 200);
+  assert.equal(res.jsonBody.eligible, true, 'issued cert must survive course growth');
+  assert.equal(res.jsonBody.serial, 'GRNDFTHR', 'must return the original certificate');
+  assert.equal(container._calls.upserts.length, 0, 'must not re-issue');
+});

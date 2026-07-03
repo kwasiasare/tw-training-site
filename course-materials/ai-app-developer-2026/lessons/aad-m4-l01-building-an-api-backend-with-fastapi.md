@@ -126,12 +126,16 @@ Because the routes are `async def`, use the **async** OpenAI client and `await` 
 
 ```python
 from openai import AsyncOpenAI
+import os
+
 client = AsyncOpenAI()
+# Read the model name from an env var so your code survives model churn
+MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
     completion = await client.chat.completions.create(
-        model="gpt-4o-mini",
+        model=MODEL,
         messages=[{"role": "user", "content": req.prompt}],
         temperature=req.temperature,
         max_tokens=req.max_tokens,
@@ -151,7 +155,7 @@ from fastapi.responses import StreamingResponse
 async def chat_stream(req: ChatRequest):
     async def event_generator():
         stream = await client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=MODEL,
             messages=[{"role": "user", "content": req.prompt}],
             stream=True,
         )

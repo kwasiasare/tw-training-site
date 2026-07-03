@@ -166,7 +166,7 @@ Don't let the report be free-form. Define a schema and validate it. A useful rep
 }
 ```
 
-Use the model's structured-output / JSON mode and parse with a validator (e.g., Pydantic) so downstream code can rely on the shape. Every key finding should map to at least one source URL.
+Use the model's **strict Structured Outputs** (`response_format` with `"type": "json_schema"` and `"strict": true`, or the SDK's `client.chat.completions.parse()` helper with a Pydantic model — see Module 1, Lesson 4) rather than legacy JSON mode, and parse with a validator (e.g., Pydantic) so downstream code can rely on the shape. Every key finding should map to at least one source URL.
 
 ## Guardrails
 

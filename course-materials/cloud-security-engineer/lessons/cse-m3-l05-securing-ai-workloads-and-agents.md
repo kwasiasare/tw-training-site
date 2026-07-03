@@ -1,0 +1,217 @@
+---
+course: cloud-security-engineer
+title: 'Securing AI Workloads and Agents: Entra Agent ID, Foundry Guardrails, and Defender for AI'
+month: 3
+monthTitle: Data Security & AI Governance with Microsoft Purview
+lesson: 5
+summary: 'Lesson 4 secured the Microsoft 365 side of AI: Copilot, oversharing, and Purview DSPM for AI.
+  This lesson is the Azure side, and it matters because your organization is no longer just buying AI,
+  it is building it. Custom agents in Copilot Studio and LLM applications on Microsoft Foundry are a genuinely
+  new attack surface: prompt injection, data overexposure, and autonomous agents holding real permissions.
+  You will give agents first-class identities with Microsoft Entra Agent ID and apply Conditional Access
+  to them, inventory agents in the Microsoft 365 admin center and trace agent blast radius in Defender
+  XDR, protect Copilot Studio agents at runtime, configure Microsoft Foundry guardrails (content filters,
+  Prompt Shields, groundedness detection, blocklists), govern LLM traffic through the AI gateway in Azure
+  API Management, and turn on Microsoft Defender for AI Services so jailbreak attempts land in your SOC
+  as investigable alerts. This closes the AI-security group of SC-500 Domain 3.'
+objectives:
+- Explain why AI agents and LLM workloads are a new attack surface requiring identity, runtime, and posture
+  controls
+- Describe Microsoft Entra Agent ID and apply Conditional Access, Identity Protection, and lifecycle governance
+  to agent identities
+- Inventory agents in the Microsoft 365 admin center Agent Registry and trace agent threats and blast
+  radius in Defender XDR
+- Protect Copilot Studio custom agents with real-time runtime protection
+- 'Configure Microsoft Foundry guardrails: content filters, Prompt Shields, groundedness detection, and
+  blocklists'
+- 'Govern LLM traffic with AI gateway capabilities in Azure API Management: token limits, content safety,
+  and semantic caching'
+- Enable threat protection for AI services in Defender for Cloud and monitor posture in the Data and AI
+  security dashboard
+video: cse-m3-l05-securing-ai-workloads-and-agents.mp4
+quiz:
+- q: Why does Microsoft Entra Agent ID treat AI agents as first-class identities instead of letting them
+    share a user's or app's credentials?
+  options:
+  - Agents run too slowly to use normal accounts
+  - Agents act autonomously with their own tool and data access, so they need their own identity that
+    Conditional Access, Identity Protection, and lifecycle governance can target
+  - Agent ID exists only to meter and bill agents separately
+  - Agents cannot authenticate with OAuth 2.0
+  answer: 1
+  why: 'An agent identity is a specialized service principal created from an agent identity blueprint.
+    Because the agent has its own identity, your existing Zero Trust machinery applies to it: Conditional
+    Access policies can target agents, Identity Protection can detect risky agents, governance can manage
+    their lifecycle, and every sign-in and action is logged, none of which is possible if the agent hides
+    behind shared credentials.'
+- q: An attacker hides instructions inside a PDF that your RAG application summarizes, steering the model
+    into leaking data. Which Microsoft Foundry guardrail is designed to detect this class of attack?
+  options:
+  - Blocklists
+  - Prompt Shields, which detects indirect attacks embedded in documents as well as direct jailbreaks
+  - Semantic caching
+  - Groundedness detection
+  answer: 1
+  why: 'Prompt Shields is the injection defense: it detects direct attacks (jailbreak prompts) and indirect
+    attacks, instructions hidden in third-party content like documents or emails the model processes (cross
+    prompt injection, XPIA). Blocklists only match exact terms, groundedness detection checks whether
+    output is supported by source material, and semantic caching is an API Management performance feature.'
+- q: Which Azure API Management AI gateway policy stops one team's application from consuming your entire
+    model token budget?
+  options:
+  - llm-content-safety
+  - llm-token-limit, which enforces a tokens-per-minute rate and/or a token quota per subscription key
+  - Semantic caching
+  - A network security group on the APIM subnet
+  answer: 1
+  why: The llm-token-limit policy limits language-model token consumption per key to a specified rate
+    (tokens per minute), a quota over a period, or both. Because all LLM traffic flows through the gateway,
+    the limit is guaranteed to apply, containing both runaway cost and abuse. llm-content-safety screens
+    content, and semantic caching reduces backend calls but does not cap a consumer.
+- q: What does threat protection for AI services in Microsoft Defender for Cloud add on top of Microsoft
+    Foundry content filters?
+  options:
+  - Nothing; they are the same feature
+  - SOC-facing security alerts, jailbreak attempts, sensitive data exposure, and more, that surface in
+    the Defender XDR portal and correlate into incidents
+  - It replaces the need for Conditional Access
+  - It only scans storage accounts for malware
+  answer: 1
+  why: Content filters and Prompt Shields act in-line on a single request. Threat protection for AI services
+    consumes those signals plus Microsoft threat intelligence and turns them into security alerts, optionally
+    with prompt evidence, that land in Defender for Cloud and the Defender XDR portal, where they correlate
+    with identity, endpoint, and cloud alerts into investigable incidents for the SOC.
+- q: In three to five sentences, explain why an autonomous AI agent should have its own Microsoft Entra
+    identity, and name the controls that become possible once it does.
+  answer: An agent autonomously invokes tools, reads data, and takes actions, so it holds real permissions;
+    if it shares a user's or app's credentials you can neither scope those permissions to least privilege
+    nor attribute its actions, and a compromised agent is indistinguishable from its owner. Giving it
+    an agent identity, a specialized service principal created via Microsoft Entra Agent ID, makes it
+    a first-class citizen of your Zero Trust controls. You can then target agents with Conditional Access
+    policies (including blocking high-risk agents), detect risky agent behavior with Identity Protection,
+    manage ownership and lifecycle with Identity Governance so abandoned agents lose access, and audit
+    every sign-in and action. It also enables inventory in the Microsoft 365 admin center Agent Registry
+    and blast-radius investigation in Defender XDR when something goes wrong.
+  why: 'A strong answer connects agent autonomy to real permissions and accountability, then enumerates
+    the identity-driven controls: Conditional Access targeting, Identity Protection risk, lifecycle governance,
+    audit logging, registry inventory, and Defender XDR investigation.'
+- q: Design defense in depth for a customer-facing LLM application built on Microsoft Foundry. In three
+    to five sentences, name the layers and what each one catches.
+  answer: 'On the model deployment itself I would configure Microsoft Foundry guardrails: content filters
+    for harm categories, Prompt Shields for direct jailbreaks and indirect injection in retrieved documents,
+    groundedness detection to catch unsupported claims in RAG answers, and blocklists for known-bad terms.
+    I would route all traffic through Azure API Management as an AI gateway, using llm-token-limit to
+    cap consumption per subscription key, llm-content-safety to screen prompts via Azure AI Content Safety,
+    and semantic caching to reduce backend exposure and cost. The application identity would follow least
+    privilege, a managed identity or governed agent identity rather than shared keys. For detection, I
+    would enable threat protection for AI services in Defender for Cloud so jailbreak and data-leakage
+    attempts raise alerts that correlate into Defender XDR incidents, and I would watch overall coverage
+    and attack paths in the Data and AI security dashboard. Each layer catches what the previous one misses:
+    in-line guardrails block single requests, the gateway governs aggregate traffic, and Defender gives
+    the SOC visibility across attempts.'
+  why: A strong answer layers in-line guardrails on the deployment, gateway governance on the traffic,
+    least-privilege identity, SOC detection via Defender for AI Services into XDR, and posture via the
+    dashboard, and explains that the layers cover different failure modes rather than duplicating each
+    other.
+resources:
+- label: What is Microsoft Entra Agent ID?
+  url: https://learn.microsoft.com/en-us/entra/agent-id/what-is-microsoft-entra-agent-id
+- label: AI threat protection in Microsoft Defender for Cloud
+  url: https://learn.microsoft.com/en-us/azure/defender-for-cloud/ai-threat-protection
+- label: AI gateway capabilities in Azure API Management
+  url: https://learn.microsoft.com/en-us/azure/api-management/genai-gateway-capabilities
+- label: Content filtering in Microsoft Foundry
+  url: https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/content-filtering
+- label: Data and AI security dashboard in Defender for Cloud
+  url: https://learn.microsoft.com/en-us/azure/defender-for-cloud/data-aware-security-dashboard-overview
+---
+
+## From Copilot Readiness to the Azure AI Estate
+
+Lesson 4 taught you the Microsoft 365 side of AI security: Copilot reads what the user can read, so you remediated oversharing, labeled data, and watched the estate with **Purview DSPM for AI**. But your organization is not just *buying* AI anymore, it is *building* it: custom agents in **Copilot Studio**, LLM applications on **Microsoft Foundry** (formerly Azure AI Foundry), and APIs fronting models. This lesson is the **Azure side** of AI security, and together with Lesson 4 it closes the AI-security group of **SC-500 Domain 3 (secure compute, including AI security)**.
+
+Why is this a genuinely new attack surface? Two reasons:
+
+- **Prompt injection.** Attackers manipulate model behavior either *directly* (a jailbreak prompt that tries to override the system prompt) or *indirectly*, hiding instructions inside a document, email, or web page the model is asked to process (cross prompt injection, XPIA). The model cannot inherently tell instructions from data.
+- **Agents act.** An agent is not a chatbot; it invokes tools, reads data, and takes actions on connected systems in response to natural language. An over-permissioned agent is a service account that can be **socially engineered**. Data overexposure, the Lesson 4 problem, now has an autonomous actor attached to it.
+
+The defense is layered: identity controls on the agents themselves, guardrails inside the model platform, a governance chokepoint on the traffic, threat detection for the SOC, and a posture view over all of it.
+
+## Agents Are Identities: Microsoft Entra Agent ID
+
+**Microsoft Entra Agent ID** is the identity and security framework that treats AI agents as **first-class identities** in the directory. An agent identity is a specialized **service principal** in Microsoft Entra ID, created from an **agent identity blueprint** (a template with parent-child relationships so security policy stays consistent across fleets of agents). It works with agents built on Microsoft platforms *and* elsewhere, third-party agents (for example on AWS Bedrock or n8n) can be onboarded via the Microsoft Entra Auth SDK or workload identity federation, so every agent gets a governed identity regardless of where it was built.
+
+Once agents have identities, your existing Zero Trust machinery applies to them:
+
+- **Conditional Access for agents** - target agent identities in Conditional Access policies, exactly as you learned to target users in Module 1, including blocking high-risk agents.
+- **Identity Protection for agents** - real-time risk detection for risky agent behavior.
+- **Identity Governance for agents** - lifecycle and access management: ownership, provisioning, and reviews, so an abandoned agent does not linger with live permissions.
+- **Sign-in and audit logs for agents** - every agent authentication and activity is logged for compliance and investigation.
+
+Licensing note: extending Entra security features to agents pairs a **Microsoft Agent 365** license with your Entra licensing (Conditional Access for agents requires Entra ID P1; Identity Protection for agents requires P2).
+
+## Inventory, Investigation, and Blast Radius
+
+Identity is only useful if you know what agents exist. The **Agent Registry** in the **Microsoft 365 admin center** (*Agents > All agents > Registry*) is the centralized inventory: every shared agent, its creator, host products, availability, and a **Risks** column that aggregates high-severity findings from Microsoft Entra, Defender, and Purview. This is part of **Microsoft Agent 365**, the control plane for observing, securing, and governing agents.
+
+On the detection side, **Microsoft Defender** monitors Agent 365-managed agents and raises near-real-time alerts for **jailbreak attempts, cross prompt injection (XPIA), secrets and credential leaks, malicious content propagation, and evasion techniques**. Alerts correlate into incidents in the Defender portal, and the **incident graph lets you trace the full root cause and blast radius** of an agent compromise: which tools it invoked, which data it touched, which downstream systems it reached. Advanced Hunting exposes the telemetry in KQL tables such as `AgentsInfo` (agent inventory and posture), `CloudAppEvents` (agent actions and tool invocations), and `BehaviorInfo` (runtime protection audit and block events), the same hunting discipline you will build in Module 4, pointed at agents.
+
+For **Copilot Studio custom agents**, real-time runtime protection adds an in-line control: at runtime, a connected security system (Microsoft Defender, a third-party provider, or your own tool) **reviews the agent's planned actions and approves or blocks them before they execute**. If a threat is detected mid-conversation, the agent is stopped immediately.
+
+## Guardrails in Microsoft Foundry
+
+For LLM applications you build on **Microsoft Foundry**, guardrails sit directly on the model deployment and check both input (prompts) and output (completions):
+
+- **Content filters** - classify prompts and completions across harm categories (hate, sexual, violence, self-harm) at configurable severity thresholds, and can annotate or block.
+- **Prompt Shields** - the injection defense: detects **direct attacks (jailbreaks)** in user prompts *and* **indirect attacks** hidden in documents the model processes. This is the control aimed squarely at the XPIA scenario above.
+- **Groundedness detection** - for RAG applications, flags model claims that are *not supported by the source material* you supplied, catching hallucination before it reaches the user.
+- **Blocklists** - custom exact-term lists applied to input and/or output, plus a built-in profanity list.
+
+Treat these like ASR rules from Module 2: start in annotate/audit where available, review what fires, then enforce.
+
+## The Governance Chokepoint: AI Gateway in Azure API Management
+
+If every team calls model endpoints directly, you cannot govern any of it. The **AI gateway capabilities in Azure API Management** make APIM the **single chokepoint** for LLM traffic, the same pattern as a firewall for network traffic:
+
+- **`llm-token-limit`** - enforce a tokens-per-minute rate, a token quota over a period, or both, *per subscription key*, so one team's runaway app cannot burn the entire model budget or enable abuse.
+- **`llm-content-safety`** - forward prompts to the **Azure AI Content Safety** service before they reach the model; malicious content is blocked with a 403.
+- **`llm-emit-metric`** - emit token-consumption metrics for monitoring and chargeback.
+- **Semantic caching** - serve vector-similar prompts from a cache instead of the backend model, cutting cost and latency and giving consistent answers to repeated questions.
+
+The security value is architectural: one place where limits, logging, and content checks are guaranteed to apply to every LLM call.
+
+## Threat Protection: Microsoft Defender for AI Services
+
+Guardrails block in-line; the SOC still needs *alerts*. **Threat protection for AI services** in Microsoft Defender for Cloud identifies threats to your generative AI applications in near real time. It combines signals from **Azure AI Content Safety Prompt Shields** with Microsoft threat intelligence to raise security alerts for **jailbreak attempts (blocked or unblocked), sensitive data exposure and data leakage, credential theft, and more**, optionally with the triggering prompt snippets attached as evidence. Crucially, these alerts **surface in the Defender XDR portal** and correlate into incidents alongside your identity, endpoint, and cloud alerts, so an AI attack is investigated with the same workflow you will run in Module 4, not in a separate silo.
+
+## Posture: The Data and AI Security Dashboard
+
+Finally, the **Data and AI security dashboard** in Defender for Cloud is the posture view across the whole estate: your data and AI resources per cloud, which are fully, partially, or not protected by the relevant Defender plans, sensitive data findings, and the **top issues**, critical alerts, recommendations, and attack paths touching data and AI resources. Full functionality lights up with **Defender CSPM** (with sensitive data discovery) plus the workload plans, connecting this lesson back to the Defender for Cloud work coming in Module 4.
+
+## Hands-On: Walk the AI Security Stack
+
+Pick the tier that matches what you have:
+
+```text
+Tier 1 (Azure subscription, free trial works):
+[ ] In the Microsoft Foundry portal, create a content filter:
+    set severity thresholds, enable Prompt Shields for
+    jailbreak and indirect attacks, add a blocklist term
+[ ] Apply it to a model deployment and test with a benign
+    jailbreak-style prompt; observe the block/annotation
+[ ] In Defender for Cloud, review Environment settings >
+    AI services plan (30-day free trial) and open the
+    Data and AI security dashboard
+
+Tier 2 (M365 dev/trial tenant, read-only):
+[ ] M365 admin center > Agents: explore the Agent Registry
+    and the Risks column
+[ ] Revisit Purview DSPM for AI from Lesson 4 and note how
+    the M365 and Azure views complement each other
+
+Tier 3 (no tenant):
+[ ] Read the Entra Agent ID and Defender for AI docs below
+    and sketch the layered architecture from memory
+```
+
+Whichever tier you land on, produce the same artifact: a one-page layered diagram, agent identity at the bottom, Foundry guardrails on the model, APIM gateway on the traffic, Defender for AI Services alerts into the SOC, and the posture dashboard across the top. That diagram is interview gold, and it is the Azure half of the AI-security story you started in Lesson 4.

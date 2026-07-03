@@ -4,7 +4,7 @@
   "description": "A hands-on, project-based course that takes you from Python foundations to deploying production-ready AI applications using LLMs, RAG pipelines, autonomous agents, and vector databases. You'll build a portfolio of real apps culminating in a deployed capstone project.",
   "audience": "Aspiring AI Application Developers with basic programming exposure who want to build and deploy real LLM-powered applications and land a job in the field.",
   "modules": 5,
-  "lessons": 20,
+  "lessons": 21,
   "layout": {
     "decks": "decks",
     "lessons": "lessons",
@@ -28,6 +28,8 @@
     "apis",
     "deployment",
     "prompt engineering",
-    "vector databases"
+    "vector databases",
+    "mcp",
+    "structured outputs"
   ]
 }

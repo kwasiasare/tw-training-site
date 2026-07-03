@@ -56,7 +56,15 @@ app.http('certificate', {
       });
       const completedLessons = completedSet.size;
 
-      if (completedLessons < totalLessons) {
+      // Issued certificates are durable (TW-98 product decision, 2026-07-03):
+      // a course may gain lessons or rename them after issuance, which would
+      // drop the recomputed completion below 100%. An already-persisted
+      // certificate therefore short-circuits the eligibility gate.
+      const certId = `${user.userId}:cert:${course}`;
+      let cert = null;
+      try { cert = (await container.item(certId, user.userId).read()).resource; } catch { cert = null; }
+
+      if (!cert && completedLessons < totalLessons) {
         return {
           status: 200,
           headers: { 'cache-control': 'private, no-store' },
@@ -70,9 +78,6 @@ app.http('certificate', {
       const learner = displayName || (user.userDetails || '').split('@')[0] || user.userDetails || 'Learner';
 
       // Issue once, then return the same certificate on every subsequent view.
-      const certId = `${user.userId}:cert:${course}`;
-      let cert = null;
-      try { cert = (await container.item(certId, user.userId).read()).resource; } catch { cert = null; }
       if (!cert) {
         cert = {
           id: certId,

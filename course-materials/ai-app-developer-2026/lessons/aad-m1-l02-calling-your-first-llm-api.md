@@ -102,11 +102,14 @@ Add `.env` to `.gitignore` so secrets never reach version control. In production
 
 ```python
 from openai import OpenAI
+import os
 
 client = OpenAI()  # reads OPENAI_API_KEY from env automatically
+# Read the model name from an env var so your code survives model churn
+MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
 
 response = client.chat.completions.create(
-    model="gpt-4o-mini",
+    model=MODEL,
     messages=[
         {"role": "system", "content": "You are a concise assistant."},
         {"role": "user", "content": "Explain what an API is in one sentence."}
@@ -124,6 +127,22 @@ print(response.choices[0].message.content)
 - **messages**: the conversation history; roles are `system`, `user`, `assistant`
 - **temperature**: 0 = deterministic, higher = more creative (0.0–2.0)
 - **max_tokens**: cap on response length
+
+### Choosing a Model
+
+Every provider ships models in tiers. **Frontier** models give the best reasoning quality; **mini/nano** tiers trade some quality for much lower latency and cost. Choose by weighing three factors: **task difficulty, latency, and cost**. Drafting, classification, and extraction usually run fine on a mini-tier model; complex reasoning or agent work may justify a frontier model.
+
+Model names evolve quickly — new versions ship and old ones are deprecated — so don't memorize names from a course or blog post. Check the provider's live model documentation ([OpenAI models page](https://platform.openai.com/docs/models), [Anthropic models docs](https://docs.anthropic.com/en/docs/about-claude/models/overview)) before choosing.
+
+To keep your code working through model churn, read the model name from an environment variable with a sensible default:
+
+```python
+import os
+# Swap models via env var without touching code
+MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+```
+
+Any snippet in this course that hard-codes a model name can (and in production, should) use this pattern.
 
 ### Reading the Response
 
@@ -151,6 +170,27 @@ for chunk in stream:
 ```
 
 Each chunk carries a small `delta`. You concatenate deltas to build the full message.
+
+## Same Call with Claude
+
+The same request looks nearly identical with Anthropic's SDK (`pip install anthropic`). Two differences to note: the **system prompt is a top-level parameter** (not a message role), and **`max_tokens` is required**.
+
+```python
+from anthropic import Anthropic
+import os
+
+client = Anthropic()  # reads ANTHROPIC_API_KEY from env automatically
+
+response = client.messages.create(
+    model=os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-5"),
+    max_tokens=200,  # required on the Anthropic API
+    system="You are a concise assistant.",
+    messages=[{"role": "user", "content": "Explain what an API is in one sentence."}],
+)
+print(response.content[0].text)
+```
+
+The response shape differs slightly too: content is a list of blocks, so you read `response.content[0].text`, and token usage is reported as `response.usage.input_tokens` and `output_tokens`. Everything else — env-var keys, streaming, retries with backoff — follows the same patterns you just learned.
 
 ## Handling Errors and Rate Limits
 

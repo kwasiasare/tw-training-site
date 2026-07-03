@@ -118,7 +118,7 @@ Similarity is measured with **cosine**, **dot product**, or **Euclidean** distan
 ## Putting It Together (Example)
 
 ```python
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 splitter = RecursiveCharacterTextSplitter(
     chunk_size=600, chunk_overlap=80,

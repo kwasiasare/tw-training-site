@@ -75,6 +75,8 @@ resources:
   url: https://www.makeareadme.com/
 ---
 
+**How the two capstones fit together:** this lesson is where you **build and deploy the full-stack AI app end to end** — architecture, backend, frontend, and a public demo URL. Module 5's capstone (m5-l01) then takes the app you ship here and hardens it to a portfolio-ready rubric. Finish this build first.
+
 ## Capstone Overview
 
 This is where the course comes together. You will ship a **full-stack AI application** that someone can click a link and use. The goal is not just to make it work locally, but to produce a **portfolio-ready** project: deployed, documented, and demonstrating the core skills of an AI Application Developer—RAG, agents, and API integration.
