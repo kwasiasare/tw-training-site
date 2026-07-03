@@ -27,7 +27,7 @@ app.http('certificate', {
     }
 
     try {
-      const { countLessons } = require('../shared/lessons');
+      const { countLessons, getLesson } = require('../shared/lessons');
       const totalLessons = countLessons(course);
       if (totalLessons === 0) return { status: 404, jsonBody: { error: 'unknown_course' } };
 
@@ -47,7 +47,11 @@ app.http('certificate', {
       resources.forEach((r) => {
         if (r.type === 'profile' && r.displayName) displayName = r.displayName;
         if (r.type === 'progress' && r.course === course && r.status === 'completed' && r.lesson) {
-          completedSet.add(r.lesson);
+          // Count only lessons that really belong to this course. progress.js
+          // validates on write, but this also disarms records stored before
+          // that check existed (or after a lesson is renamed/removed).
+          const meta = getLesson(r.lesson);
+          if (meta && meta.course === course) completedSet.add(r.lesson);
         }
       });
       const completedLessons = completedSet.size;

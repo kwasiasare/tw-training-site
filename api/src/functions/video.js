@@ -17,12 +17,26 @@ const { app } = require('@azure/functions');
 const FREE_PREVIEW = new Set([
   'aad-m1-l01-python-essentials-for-ai-developers',
   'aad-m1-l02-calling-your-first-llm-api',
+  'age-m1-l01-calling-llm-apis-in-python-completions-chat-and-',
+  'age-m1-l02-prompt-engineering-and-system-design-for-agent-b',
+  'apm-m1-l01-how-modern-ai-works-a-no-math-mental-model-for-p',
+  'apm-m1-l02-inside-llms-tokens-context-windows-and-how-they-',
+  'cse-m1-l01-zero-trust-foundations-and-the-security-stack',
+  'cse-m1-l02-architecting-conditional-access-policies',
+  'dm-m1-l01-the-digital-marketing-landscape-the-assistant-ro',
+  'dm-m1-l02-copywriting-that-converts-for-social-and-ads',
+  'dsc-m1-l01-python-essentials-for-data-work',
+  'dsc-m1-l02-loading-and-cleaning-data-with-pandas',
   'g1-l01-how-llms-behave',
   'g1-l02-where-llms-fail',
   'hd1-l01-how-a-computer-works',
   'hd1-l02-inside-the-pc',
   'ht1-l01-the-tier3-mindset-and-rca',
   'ht1-l02-advanced-windows-internals',
+  'mle-m1-l01-python-for-ml-numpy-pandas-and-clean-code',
+  'mle-m1-l02-linear-algebra-in-action-with-numpy',
+  'mlo-m1-l01-setting-up-your-mlops-toolchain-and-workflow',
+  'mlo-m1-l02-containerizing-a-machine-learning-model-with-doc',
 ]);
 
 const SLUG_RE = /^[a-z0-9-]+$/i;

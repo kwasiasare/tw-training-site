@@ -39,6 +39,15 @@ app.http('progress', {
       if (!isSlug(course) || !isSlug(lesson)) {
         return { status: 400, jsonBody: { error: 'invalid_course_or_lesson' } };
       }
+      // The lesson must exist in the bundled index and belong to the claimed
+      // course. Slug-shape alone isn't enough: the certificate endpoint counts
+      // distinct completed lessons per course, so accepting arbitrary slugs
+      // would let a user mint a certificate from fabricated lesson ids.
+      const { getLesson } = require('../shared/lessons');
+      const known = getLesson(lesson);
+      if (!known || known.course !== course) {
+        return { status: 400, jsonBody: { error: 'unknown_lesson' } };
+      }
       const id = `${user.userId}:${course}:${lesson}`;
       // Merge into any existing record so marking complete and saving a quiz
       // score (separate actions) don't overwrite each other.

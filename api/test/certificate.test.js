@@ -82,3 +82,21 @@ test('certificate: re-issue returns the SAME serial (stable certificate)', async
   assert.equal(res.jsonBody.serial, 'ABCD1234', 'existing serial reused');
   assert.equal(res.jsonBody.issuedAt, '2026-01-01T00:00:00Z');
 });
+
+test('certificate: fabricated lesson slugs do not count toward completion', async () => {
+  // Slug-shaped junk that was never a real lesson (e.g. stored before the
+  // progress-write validation existed) must not add up to a certificate.
+  const junk = [1, 2, 3].map((i) => ({
+    id: `user-123:demo-course:x${i}`, userId: 'user-123', type: 'progress',
+    course: 'demo-course', lesson: `x${i}`, status: 'completed',
+  }));
+  const container = makeContainer({ queryResult: junk });
+  const res = await handler(container, {
+    countLessons: () => 3,
+    getLesson: (id) => (id.startsWith('l') ? { course: 'demo-course' } : null),
+  })(makeRequest({ method: 'GET', user: authUser(), query: { course: 'demo-course' } }), makeContext());
+  assert.equal(res.status, 200);
+  assert.equal(res.jsonBody.eligible, false);
+  assert.equal(res.jsonBody.completedLessons, 0, 'junk lessons must not be counted');
+  assert.equal(container._calls.upserts.length, 0, 'no certificate may be issued');
+});
