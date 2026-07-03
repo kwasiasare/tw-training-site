@@ -36,7 +36,9 @@
         "apis",
         "deployment",
         "prompt engineering",
-        "vector databases"
+        "vector databases",
+        "mcp",
+        "structured outputs"
       ]
     }
   },
@@ -62,7 +64,7 @@
   {
     "slug": "cloud-security-engineer",
     "title": "Cloud Security Engineer & M365 Security Architect: Zero Trust to SOC Automation",
-    "summary": "A project-based course that bridges the gap between intermediate M365 administration (MD-102/MS-102) and senior security architecture (SC-500). You'll design Zero Trust identity perimeters with Entra ID, unify endpoint security with Intune and Defender for Endpoint, govern data and AI with Microsoft",
+    "summary": "A project-based course that bridges the gap between intermediate M365 administration (MD-102/MS-102) and hands-on cloud security engineering, and prepares you for SC-500 (Microsoft Certified: Cloud and AI Security Engineer Associate), covering identity, data, SOC automation, Azure platform security,",
     "targetProfile": {
       "role": "Cloud Security Engineer / M365 Security Architect",
       "level": "mid",
@@ -96,6 +98,9 @@
         "private link",
         "azure key vault",
         "ddos protection",
+        "security copilot",
+        "ai security",
+        "entra agent id",
         "sc-500"
       ]
     }

@@ -104,6 +104,8 @@ resources:
   url: https://docs.docker.com/get-started/
 ---
 
+**How this differs from the Module 4 capstone:** in m4-l04 you built and deployed the full-stack app end to end. This lesson's job is to **harden, evaluate, and document the app you shipped in m4-l04 to a portfolio-ready rubric** — security, evaluation, observability, and interview-ready documentation. It deliberately builds on m4-l04 rather than starting a new project.
+
 ## From Coursework to a Shippable Product
 
 Across Modules 1-4 you built the moving parts of a modern AI application: a prompt-driven text assistant, a RAG document Q&A chatbot, an autonomous research agent, and a full-stack deployment with monitoring. This capstone does something different. It does not ask you to learn a new technique — it asks you to take **one** of those projects and harden it into a **production-grade, portfolio-grade** application that a stranger can use from a public link, that you can defend in an interview, and that proves you can ship and operate software, not just prototype it.

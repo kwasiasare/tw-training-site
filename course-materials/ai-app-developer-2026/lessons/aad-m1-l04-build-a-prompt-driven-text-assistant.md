@@ -143,7 +143,66 @@ def run_task(task: str, text: str) -> dict:
     return json.loads(resp.choices[0].message.content)
 ```
 
-Note `response_format={"type": "json_object"}`, which instructs the API to return valid JSON, and a low `temperature` for consistency.
+Note `response_format={"type": "json_object"}`, which instructs the API to return valid JSON, and a low `temperature` for consistency. This is **JSON mode**, the original mechanism — keep it in mind as the baseline, then upgrade to Structured Outputs below.
+
+### Structured Outputs: The Modern Default
+
+JSON mode (`json_object`) is the legacy baseline: it guarantees syntactically valid JSON, but the model can still return the wrong keys or types. **Structured Outputs** goes further — you pass a JSON Schema with `"strict": true`, and the API **guarantees the response conforms to that schema**:
+
+```python
+resp = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": SYSTEM},
+        {"role": "user", "content": prompt},
+    ],
+    response_format={
+        "type": "json_schema",
+        "json_schema": {
+            "name": "assist_result",
+            "strict": True,
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "task": {"type": "string"},
+                    "result": {"type": "string"},
+                    "word_count": {"type": "integer"},
+                },
+                "required": ["task", "result", "word_count"],
+                "additionalProperties": False,
+            },
+        },
+    },
+    temperature=0.3,
+)
+```
+
+The SDK also offers a convenience helper: define the schema as a Pydantic model and let `.parse()` handle the schema plumbing and validation for you:
+
+```python
+from pydantic import BaseModel
+
+class AssistResult(BaseModel):
+    task: str
+    result: str
+    word_count: int
+
+completion = client.chat.completions.parse(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": SYSTEM},
+        {"role": "user", "content": prompt},
+    ],
+    response_format=AssistResult,
+)
+out = completion.choices[0].message.parsed  # a validated AssistResult instance
+```
+
+Use Structured Outputs whenever downstream code depends on the shape; fall back to JSON mode only for models or providers that don't support strict schemas.
+
+### The Responses API
+
+OpenAI's current primary interface is the **Responses API** — `client.responses.create(model=..., input=...)` — which unifies chat, tool use, and structured outputs under one endpoint (read the reply from `response.output_text`). Chat Completions remains fully supported, and this course uses it because it's the request shape the widest range of providers and libraries are compatible with. Everything you learn here — messages, structured output, temperature — transfers directly.
 
 ## Building the CLI
 

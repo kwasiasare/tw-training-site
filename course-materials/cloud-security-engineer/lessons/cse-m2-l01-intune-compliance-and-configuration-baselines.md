@@ -72,7 +72,7 @@ quiz:
   options:
   - Windows Autopilot
   - App protection policies / MAM without device enrollment
-  - Hybrid Azure AD join
+  - Microsoft Entra hybrid join
   - Group Policy
   answer: 1
   why: MAM (app protection policies) protects corporate data inside managed apps without enrolling or

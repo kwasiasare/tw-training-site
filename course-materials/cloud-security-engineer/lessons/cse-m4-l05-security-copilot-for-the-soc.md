@@ -1,0 +1,205 @@
+---
+course: cloud-security-engineer
+title: 'Microsoft Security Copilot for the SOC: Capacity, Plugins, Promptbooks, and Agents'
+month: 4
+monthTitle: Cloud SIEM & SOAR Operations with Microsoft Sentinel
+lesson: 5
+summary: 'Microsoft Security Copilot is a generative-AI assistant grounded in Microsoft security data,
+  and used well it makes a SOC measurably faster; used carelessly it automates mistakes. This lesson covers
+  the platform with the same discipline the rest of the course demands: what Security Copilot is, the
+  standalone portal versus the embedded experiences in Defender XDR, Microsoft Sentinel, Intune, and Entra,
+  how Security Compute Units and workspaces actually get provisioned and billed, the least-privilege permissions
+  model where Copilot never exceeds what you can already access, plugins and promptbooks, and the agents,
+  like the Phishing Triage Agent, that you deploy and govern from the Microsoft Security Store. You will
+  practice the SOC workflows that matter, incident summarization, guided response, KQL generation, script
+  analysis, always verifying AI output against ground truth. It is honest about cost too: Security Copilot
+  is consumption-priced and absent from free tenants, so we finish with how to learn it anyway. This is
+  the Security Copilot coverage for SC-500 Domain 4.'
+objectives:
+- Describe what Security Copilot is and distinguish the standalone portal from the embedded experiences
+  in Defender XDR, Sentinel, Intune, and Entra
+- 'Plan capacity with Security Compute Units: provisioned versus overage billing, workspaces, and the
+  Microsoft 365 E5/E7 inclusion'
+- 'Apply the least-privilege permissions model: Copilot roles plus the underlying product roles that plugins
+  require'
+- Configure plugins (Microsoft, non-Microsoft, and custom) and run promptbooks for repeatable workflows
+- Deploy and govern Security Copilot agents such as the Phishing Triage Agent from the Microsoft Security
+  Store
+- Run SOC workflows, incident summarization, guided response, KQL generation, and script analysis, while
+  verifying AI output against ground truth
+- Plan a realistic learning path given that Security Copilot is consumption-priced and unavailable in
+  free tenants
+video: cse-m4-l05-security-copilot-for-the-soc.mp4
+quiz:
+- q: What is a Security Compute Unit (SCU)?
+  options:
+  - A virtual machine size for the Security Copilot backend
+  - The unit of compute capacity that powers Security Copilot workloads, provisioned hourly as a baseline
+    or consumed as pay-as-you-go overage
+  - A per-analyst license seat
+  - A quota on how many KQL queries Sentinel can run
+  answer: 1
+  why: Security Copilot is not licensed per user; it runs on SCUs, the unit measure of compute behind
+    every prompt, promptbook, and agent run. Provisioned SCUs (minimum one) refresh each clock hour and
+    are billed hourly whether used or not, while overage SCUs are billed on actual consumption to absorb
+    spikes, and eligible Microsoft 365 E5/E7 customers receive an included monthly allocation instead.
+- q: An analyst holds the Copilot contributor role but Security Copilot returns no Microsoft Sentinel
+    data for their prompts. What is the most likely reason?
+  options:
+  - They also need Global Administrator
+  - The contributor role only grants access to the Copilot platform; querying Sentinel through the plugin
+    still requires an appropriate Azure RBAC role such as Microsoft Sentinel Reader
+  - Sentinel data is never available in Security Copilot
+  - SCUs only work in the standalone portal
+  answer: 1
+  why: 'Security Copilot follows least privilege and never elevates the user: plugins operate on the user''s
+    behalf with their existing permissions. The Copilot contributor role lets you create sessions, but
+    reaching Sentinel data requires a role like Microsoft Sentinel Reader on the workspace, just as the
+    Intune plugin requires an Intune role such as Endpoint Security Manager. Global Administrator would
+    be a gross violation of least privilege, not a fix.'
+- q: What is a promptbook in Security Copilot?
+  options:
+  - A monthly billing report for SCU consumption
+  - A reusable, parameterized sequence of prompts that standardizes a recurring workflow, such as incident
+    investigation, so analysts run tested steps instead of improvising
+  - The store where partner agents are published
+  - A fine-tuned model trained on your tenant's data
+  answer: 1
+  why: 'Promptbooks chain prompts into a repeatable multi-step workflow with inputs, giving the SOC consistency:
+    every analyst runs the same tested investigation sequence. You can use built-in promptbooks or author
+    custom ones, and they deserve runbook discipline, version them, review them, and improve them after
+    each incident that exercises them.'
+- q: Which statement about Security Copilot agents, such as the Phishing Triage Agent, is accurate?
+  options:
+  - They are enabled automatically for every tenant with SCUs
+  - They must be deliberately deployed and governed; the Phishing Triage Agent triages user-reported phishing
+    with explained verdicts and refines itself from analyst feedback
+  - They replace the need for a SOC team
+  - They are always free of charge, including partner-built agents
+  answer: 1
+  why: Agents are not auto-enabled; your organization deploys them intentionally from the Microsoft Security
+    Store, scopes what they act on, and reviews their output while building trust. The Phishing Triage
+    Agent autonomously analyzes user-reported phishing submissions, issues verdicts with plain-language
+    reasoning, and learns from analyst feedback, and partner-built agents may carry separate licensing
+    from the partner.
+- q: Your CISO asks you to plan Security Copilot capacity for a SOC with steady daytime usage and occasional
+    incident-day spikes, in an organization with Microsoft 365 E5. In three to five sentences, explain
+    your approach.
+  answer: 'First I would check whether the Microsoft 365 E5 inclusion already provides capacity: eligible
+    E5 customers receive an included monthly SCU allocation as an auto-provisioned Default Security Copilot
+    Capacity, which resets monthly and does not roll over, so it may cover typical usage at no extra cost.
+    If usage exceeds the inclusion or the organization is not yet enabled, I would provision a baseline
+    of SCUs sized to steady daytime demand, since provisioned capacity is billed hourly whether consumed
+    or not, and add overage capacity with a sensible cap so incident-day spikes are absorbed pay-as-you-go
+    instead of forcing permanent over-provisioning. I would separate teams with workspaces where isolation
+    is needed, remembering that SCUs are not shared between workspaces, so each one needs its own capacity
+    plan. Finally I would monitor the usage dashboard for a few weeks and tune the provisioned baseline
+    against actual consumption.'
+  why: A strong answer checks the E5 inclusion first, sizes an hourly-billed provisioned baseline to steady
+    load, uses capped overage for spikes, accounts for per-workspace capacity, and closes the loop with
+    usage monitoring rather than guessing.
+- q: In three to five sentences, describe how a SOC should adopt Security Copilot's KQL generation and
+    guided response without losing operational rigor.
+  answer: Treat every AI output as a draft, not a verdict. For KQL generation, the analyst must read the
+    generated query the way this course taught, confirm the tables, time windows, joins, and filters match
+    the hunting intent, and run it on a narrow scope before trusting results, never paste-and-run. For
+    guided response, map each recommended step to the team's own runbooks and keep an explicit human approval
+    gate on any action with blast radius, such as isolating devices or disabling accounts. Record in the
+    incident what the AI recommended, what the human decided, and why, so there is an audit trail for
+    postmortems and auditors. Measured this way, Copilot accelerates the mechanical work while judgment,
+    and accountability, stay with people.
+  why: A strong answer states the draft-not-verdict principle, gives concrete verification for generated
+    KQL (read and validate before running), keeps human approval gates on impactful response actions,
+    and requires an audit trail of AI recommendations versus human decisions.
+resources:
+- label: What is Microsoft Security Copilot?
+  url: https://learn.microsoft.com/en-us/copilot/security/microsoft-security-copilot
+- label: Security Copilot Security Compute Units and capacity
+  url: https://learn.microsoft.com/en-us/copilot/security/security-compute-units-capacity
+- label: Understand authentication in Microsoft Security Copilot
+  url: https://learn.microsoft.com/en-us/copilot/security/authentication
+- label: Microsoft Security Copilot Phishing Triage Agent in Microsoft Defender
+  url: https://learn.microsoft.com/en-us/defender-xdr/phishing-triage-agent
+- label: Security Copilot for Microsoft 365 E5 and E7 customers
+  url: https://learn.microsoft.com/en-us/copilot/security/security-copilot-inclusion
+---
+
+## What Security Copilot Is (and Is Not)
+
+**Microsoft Security Copilot** is a generative-AI security assistant: large language models grounded in Microsoft's security data, your incidents, alerts, device and identity signals through plugins, plus Microsoft threat intelligence, so its answers are anchored in *your* environment rather than the open internet. It summarizes incidents, drafts hunting queries, analyzes suspicious scripts, and guides response.
+
+What it is *not*: an autonomous SOC. Every module in this course has taught the same discipline, automate the mechanical, keep humans on the judgment, and Security Copilot is where that discipline gets tested hardest, because the output *looks* authoritative. The rule for this lesson: **AI output is a draft, not a verdict.** You will verify it against ground truth every time.
+
+For **SC-500**, Security Copilot sits in the Domain 4 posture-and-operations territory alongside the Sentinel and Defender for Cloud work you have done in this module.
+
+## Standalone Portal vs Embedded Experiences
+
+You meet Security Copilot in two ways:
+
+- **The standalone portal** (`securitycopilot.microsoft.com`) - the full chat canvas: sessions, plugin management, promptbooks, usage monitoring, and workspace settings. This is where investigations that span products live, and where owners administer the platform.
+- **Embedded experiences** - Copilot surfaced inside the tools you already work in: **Defender XDR** (incident summaries, guided response, script analysis in the Defender portal), **Microsoft Sentinel** (investigation assistance over your workspace data), **Intune** (device and policy insight), **Microsoft Entra** (identity investigation and Conditional Access insight), and **Microsoft Purview** (data security investigation). Same engine, same capacity, different front door.
+
+Most SOC analysts live in the embedded experiences; platform owners and cross-product investigators use the standalone portal.
+
+## Provisioning: Security Compute Units and Workspaces
+
+Security Copilot is not licensed per user; it runs on **Security Compute Units (SCUs)**, the unit of compute that powers every prompt, promptbook, and agent run.
+
+- **Provisioned capacity** - you provision a baseline number of SCUs (minimum one). Capacity refreshes every clock hour, unused SCUs do not roll over, and **billing is per hour on the provisioned amount** whether you consume it or not. Best for steady usage.
+- **Overage capacity** - pay-as-you-go SCUs consumed only when usage exceeds the provisioned baseline, billable to one decimal place, with an optional cap or set to unlimited. This absorbs incident-day spikes without permanently over-provisioning.
+- **Microsoft 365 E5/E7 inclusion** - eligible E5 and E7 customers receive an included monthly SCU allocation (scaling with license count, capped, resetting monthly with no rollover) as a **Default Security Copilot Capacity** that is auto-provisioned, no Azure setup. If your organization has E5, Security Copilot may already be there.
+
+**Workspaces** partition the platform: each workspace gets its own capacity, plugins, promptbooks, agents, and access, so the SOC, the identity team, and a subsidiary can be isolated. SCUs are **not shared between workspaces**, so capacity planning is per workspace. Track consumption in the usage dashboard before you tune the numbers, prompt complexity drives SCU burn, and promptbooks and agents consume more than single prompts.
+
+## Permissions: Least Privilege Still Applies
+
+The permissions model is the part most people get wrong, and it is exactly the Zero Trust story from Module 1:
+
+- **Security Copilot roles**: *Copilot owner* (administer the platform) and *Copilot contributor* (create sessions and run prompts).
+- **Copilot never elevates you.** A contributor role grants access to the *platform*, not to your organization's security data. When a plugin queries a product, it operates **on your behalf with your existing permissions**: pulling Sentinel data requires an Azure RBAC role such as **Microsoft Sentinel Reader**; Intune data requires an Intune role such as **Endpoint Security Manager**. No role in the source product, no data, regardless of what Copilot could theoretically reach.
+
+This is a feature, not friction: it means deploying Security Copilot does not create a new privileged path around your carefully designed RBAC. Grant analysts the narrowest product roles that support their Copilot use cases, and audit them like any other assignment.
+
+## Plugins and Promptbooks
+
+**Plugins** are how Copilot reaches data and services: Microsoft plugins (Defender XDR, Sentinel, Entra, Intune, Microsoft Threat Intelligence, and more), **non-Microsoft plugins** (for example ServiceNow), and **custom plugins** you author for internal APIs and data. Owners control which plugins are available; fewer, deliberate plugins beat everything-on.
+
+**Promptbooks** are reusable, parameterized sequences of prompts that standardize a recurring workflow, incident investigation, suspicious-script analysis, threat-actor profiling, so every analyst runs the same tested steps instead of improvising. You can run the built-in promptbooks or create your own; treat a promptbook like a runbook, version it, review it, and improve it after every incident that exercises it.
+
+## Agents and the Microsoft Security Store
+
+The newest layer is **agents**: packaged, semi-autonomous workers built on Security Copilot. The flagship example is the **Phishing Triage Agent** in Microsoft Defender, which autonomously triages user-reported phishing submissions, performs semantic analysis of the email, URLs, and attachments, issues a verdict with a **plain-language explanation of its reasoning**, and refines itself from analyst feedback. Microsoft and partners publish agents through the **Microsoft Security Store** (in the Defender portal: *Security Copilot > Security Store*); partner agents may carry their own licensing.
+
+Governance is on you: **agents are not enabled automatically**, you deploy them deliberately, scope what they can act on, review their verdicts while you build trust, and keep a human approval gate on any action with blast radius, the same pattern as the SOAR playbooks in Lesson 3, and the same agent-governance thinking as the Module 3 lesson on securing AI workloads, now pointed at your own SOC tooling.
+
+## SOC Workflows That Actually Help
+
+Where Security Copilot earns its SCUs, each with its verification discipline:
+
+- **Incident summarization** - a readable narrative of a multi-alert incident in seconds, ideal for handoffs and stakeholder updates. *Verify:* click through to the underlying alerts before you act on the summary; the incident graph is ground truth.
+- **Guided response** - step-by-step remediation recommendations on an incident. *Verify:* map each step to your own runbooks before executing; approve actions explicitly.
+- **KQL generation** - describe a hunt in natural language, get a query; enormously useful for the long tail of one-off hunts. *Verify:* read the query like you learned in Lesson 2, check the tables, time windows, and filters, and run it on a narrow scope first. Never paste-and-run.
+- **Script analysis** - deobfuscate and explain a suspicious PowerShell or command-line sample from an alert. *Verify:* corroborate with sandbox detonation or file reputation before you declare benign.
+
+And write it down: record what the AI recommended, what the human decided, and why, in the incident comments. That audit trail is what makes AI-assisted operations defensible to auditors and to your own postmortems.
+
+## The Honest Cost Conversation
+
+Security Copilot is **consumption-priced**: hourly-billed provisioned SCUs plus on-demand overage. It is **not in free or trial tenants**, and a personally funded lab gets expensive quickly, an always-on provisioned SCU bills for every hour of the month. If your organization has **Microsoft 365 E5 or E7**, check whether the included capacity is already lit up before anyone buys anything.
+
+No capacity? You can still learn it credibly:
+
+```text
+[ ] Microsoft Learn path: "Enhance security operations by
+    using Microsoft Security Copilot (SC-5006)"
+[ ] Read the docs: SCU capacity model, authentication and
+    roles, plugin catalog, Phishing Triage Agent
+[ ] Watch the embedded-experience demos on Microsoft Learn
+    and the Security Copilot adoption hub
+[ ] Design on paper: a workspace + RBAC + plugin plan and
+    one promptbook for your Module 4 impossible-travel hunt
+```
+
+## Hands-On: Design the Rollout
+
+Produce a one-page **Security Copilot adoption plan** for a fictional 2,000-seat organization: which teams get workspaces, the SCU strategy (provisioned baseline, overage cap, or E5 inclusion), which plugins are enabled, the product RBAC each analyst persona needs, one promptbook you would author first, and which agent you would pilot, with its human approval gate and the metric you would use to judge it (for example, agreement rate between agent verdicts and analyst review on phishing triage). If you do have access to a licensed tenant, run one real workflow end to end, summarize an incident, generate and *verify* a KQL query, and note where the draft needed correction. Either way, the deliverable demonstrates the skill hiring managers actually want: not prompt tricks, but the judgment to deploy AI assistance without surrendering the SOC to it.

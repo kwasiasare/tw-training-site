@@ -111,9 +111,11 @@ An embedding model maps text to a dense vector where semantic similarity equals 
 
 ```python
 from openai import OpenAI
-import chromadb
+import chromadb, os
 
 client = OpenAI()
+# Read the model name from an env var so your code survives model churn
+MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
 db = chromadb.PersistentClient(path="./store")
 collection = db.get_or_create_collection("docs")
 
@@ -147,7 +149,7 @@ Context:
 
 Question: {question}"""
     resp = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model=MODEL,
         messages=[{"role": "user", "content": prompt}],
     )
     return resp.choices[0].message.content

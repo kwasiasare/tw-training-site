@@ -164,9 +164,11 @@ Wrap any REST endpoint the same way—translate model arguments into an HTTP req
 
 ```python
 from openai import OpenAI
-import json
+import json, os
 
 client = OpenAI()
+# Read the model name from an env var so your code survives model churn
+MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o")
 tools = [...]  # your schemas
 handlers = {"calculator": calculator, "web_search": web_search}
 
@@ -174,7 +176,7 @@ def run_agent(user_msg: str, max_iters: int = 5):
     messages = [{"role": "user", "content": user_msg}]
     for _ in range(max_iters):  # cap iterations to avoid runaway tool-calling
         resp = client.chat.completions.create(
-            model="gpt-4o", messages=messages, tools=tools)
+            model=MODEL, messages=messages, tools=tools)
         msg = resp.choices[0].message
         if not msg.tool_calls:
             return msg.content  # final answer
@@ -191,6 +193,52 @@ def run_agent(user_msg: str, max_iters: int = 5):
 ```
 
 Always cap the loop (e.g. max 5 iterations) to avoid infinite tool-calling.
+
+## Tool Calling with Claude
+
+Anthropic's API runs the same loop with slightly different shapes. Tools are flat objects with `name`, `description`, and an `input_schema` (no `{"type": "function"}` wrapper). When the model wants a tool, the response has `stop_reason == "tool_use"` and a `tool_use` content block carrying `id`, `name`, and `input`. You reply with a **user** message containing a `tool_result` block — there is no separate `tool` role:
+
+```python
+from anthropic import Anthropic
+import os
+
+client = Anthropic()
+CLAUDE_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-5")
+
+claude_tools = [{
+    "name": "web_search",
+    "description": "Search the web for current information. Use for recent events or facts you don't know.",
+    "input_schema": {
+        "type": "object",
+        "properties": {"query": {"type": "string", "description": "The search query"}},
+        "required": ["query"],
+    },
+}]
+
+question = {"role": "user", "content": "What changed in Python 3.13?"}
+resp = client.messages.create(
+    model=CLAUDE_MODEL, max_tokens=1024,
+    tools=claude_tools, messages=[question],
+)
+
+if resp.stop_reason == "tool_use":
+    tool_use = next(b for b in resp.content if b.type == "tool_use")
+    result = web_search(**tool_use.input)  # run your handler
+    followup = client.messages.create(
+        model=CLAUDE_MODEL, max_tokens=1024, tools=claude_tools,
+        messages=[
+            question,
+            {"role": "assistant", "content": resp.content},
+            {"role": "user", "content": [{
+                "type": "tool_result",
+                "tool_use_id": tool_use.id,
+                "content": str(result),
+            }]},
+        ],
+    )
+```
+
+The concepts — schemas, descriptions, the loop, iteration caps — are identical across providers; only the message shapes differ.
 
 ## Security & Reliability Best Practices
 

@@ -64,7 +64,7 @@
       "options": [
         "Windows Autopilot",
         "App protection policies / MAM without device enrollment",
-        "Hybrid Azure AD join",
+        "Microsoft Entra hybrid join",
         "Group Policy"
       ],
       "answer": 1,
