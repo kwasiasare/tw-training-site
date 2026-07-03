@@ -75,20 +75,41 @@ jobs:
           R2_PUBLIC_BASE=${{ secrets.R2_PUBLIC_BASE }}
           EOF
 
+      # Workflow inputs are passed to the shell via env vars (not inline
+      # ${{ }} interpolation) so shell metacharacters in an input can't
+      # inject into the runner (actionlint/script-injection guidance).
+      - name: Validate slug
+        env:
+          SLUG: ${{ inputs.slug }}
+        # Intentionally stricter than the API's case-insensitive slug rule:
+        # new generated courses are always lowercase kebab-case.
+        run: |
+          if ! printf '%s' "$SLUG" | grep -Eq '^[a-z0-9-]{1,80}$'; then
+            echo "::error::slug must match ^[a-z0-9-]{1,80}$ (lowercase kebab-case)" && exit 1
+          fi
+
       - name: Author course (Claude)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SLUG: ${{ inputs.slug }}
+          PREFIX: ${{ inputs.prefix }}
+          ROLE: ${{ inputs.role }}
+          SKILLS: ${{ inputs.skills }}
+          MODULES: ${{ inputs.modules }}
+          LESSONS_PER_MODULE: ${{ inputs.lessons_per_module }}
         run: |
           python generate_course.py \
-            --slug "${{ inputs.slug }}" \
-            --prefix "${{ inputs.prefix }}" \
-            --role "${{ inputs.role }}" \
-            --skills "${{ inputs.skills }}" \
-            --modules "${{ inputs.modules }}" \
-            --lessons-per-module "${{ inputs.lessons_per_module }}"
+            --slug "$SLUG" \
+            --prefix "$PREFIX" \
+            --role "$ROLE" \
+            --skills "$SKILLS" \
+            --modules "$MODULES" \
+            --lessons-per-module "$LESSONS_PER_MODULE"
 
       - name: Decks → lesson markdown
-        run: python convert_decks_to_md.py "${{ inputs.slug }}"
+        env:
+          SLUG: ${{ inputs.slug }}
+        run: python convert_decks_to_md.py "$SLUG"
 
       - name: Install fonts for slide rendering
         if: ${{ inputs.render_videos }}
@@ -98,32 +119,36 @@ jobs:
         if: ${{ inputs.render_videos }}
         env:
           COURSE_SLUG: ${{ inputs.slug }}
-        run: COURSE_SLUG="${{ inputs.slug }}" python batch_render.py
+        run: python batch_render.py
 
       - name: Upload videos to R2
         if: ${{ inputs.render_videos }}
         env:
           COURSE_SLUG: ${{ inputs.slug }}
-        run: COURSE_SLUG="${{ inputs.slug }}" python upload_videos_r2.py
+        run: python upload_videos_r2.py
 
       - name: Register course in the catalog
+        env:
+          SLUG: ${{ inputs.slug }}
         run: |
-          python add_course_to_consts.py "${{ inputs.slug }}"
+          python add_course_to_consts.py "$SLUG"
           python build_catalog.py        # makes the generated course reusable by the matcher (TW-66)
           python build_lesson_index.py   # indexes lessons for the AI tutor + grader (TW-67/68)
 
       - name: Open a draft PR for review
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLUG: ${{ inputs.slug }}
+          ROLE: ${{ inputs.role }}
         run: |
           rm -f .env
-          BRANCH="generate/${{ inputs.slug }}"
+          BRANCH="generate/$SLUG"
           git config user.name "course-generator[bot]"
           git config user.email "noreply@github.com"
           git checkout -b "$BRANCH"
-          git add "course-materials/${{ inputs.slug }}" site/src/consts.ts api/src/shared/catalog.generated.json api/src/shared/lessons.generated.json
-          git commit -m "Generated course: ${{ inputs.slug }} (${{ inputs.role }})"
+          git add "course-materials/$SLUG" site/src/consts.ts api/src/shared/catalog.generated.json api/src/shared/lessons.generated.json
+          git commit -m "Generated course: $SLUG ($ROLE)"
           git push origin "$BRANCH"
           gh pr create --draft --base master --head "$BRANCH" \
-            --title "Generated course: ${{ inputs.slug }} — review before publish" \
-            --body "AI-generated course for **${{ inputs.role }}** (TW-65). Videos uploaded to R2; lessons + decks + catalog entry in this PR. **Review the lessons, then mark ready & merge to publish (TW-66).**"
+            --title "Generated course: $SLUG — review before publish" \
+            --body "AI-generated course for **$ROLE** (TW-65). Videos uploaded to R2; lessons + decks + catalog entry in this PR. **Review the lessons, then mark ready & merge to publish (TW-66).**"

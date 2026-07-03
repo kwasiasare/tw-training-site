@@ -1,0 +1,1515 @@
+[
+  {
+    "slug": "ai-app-developer-2026",
+    "role": "AI Application Developer",
+    "courseGrade": "B-",
+    "professorGrade": "B",
+    "industryGrade": "B-",
+    "verdict": "significant-revisions",
+    "headline": "Pedagogically strong, copy-paste-broken in spots, and a model/API/MCP generation behind 2026 hireability — fixable to A- with code fixes plus a currency refresh.",
+    "jdAlignmentScore": 72,
+    "topRecommendations": [
+      "Fix the copy-paste-breaking code defects before any cohort runs: async-correct m4-l01 (AsyncOpenAI+await or run_in_threadpool, async streaming generator) and merge the duplicate @app.post('/chat'); wrap m3-l02 tool schemas in {type:function,function:{...}} to match m3-l04 and the real API and add the iteration cap the lesson preaches; bound ast.Pow in the 'safe' calculator. Both reviewers flag all of these.",
+      "Refresh provider currency course-wide: move off the gpt-4o/gpt-4o-mini line to a current frontier model, teach model selection/routing as a skill, and link live model/pricing pages instead of hard-coding IDs and per-1K prices (convert to per-1M).",
+      "Teach the OpenAI Responses API and true Structured Outputs (json_schema/strict) alongside Chat Completions, and stop conflating JSON mode ('valid JSON') with schema adherence ('matches my schema') in m1-l03/m1-l04 — validate parsed output against a Pydantic schema since structured output is load-bearing across the course.",
+      "Close the 2026 agent-infrastructure gap in Module 3: add an MCP (Model Context Protocol) lesson and convert the thin multi-agent lesson (m3-l03) from pseudocode to a concrete LangGraph (and/or CrewAI) hands-on build.",
+      "Correct the outdated Pinecone 'requires pre-computed vectors' claim (including the graded quiz answer) to reflect integrated/hosted embeddings, and standardize LangChain imports on langchain_text_splitters + langchain_chroma across sibling lessons with pinned versions.",
+      "Modernize remaining currency: bump the Dockerfile to python:3.12/3.13-slim with chown'd non-root files, set temperature=0 in the m2-l03 RAG example, and use get_or_create_collection in m2-l01 for re-run safety.",
+      "Go at least partly multi-provider (industry-weighted): add one Anthropic/Claude hands-on path and mention an abstraction layer (LiteLLM/Portkey), since 2026 postings state single-provider knowledge is insufficient."
+    ],
+    "sectionsToRedo": [
+      {
+        "section": "m3-l02 'Anatomy of a Tool Definition' + 'The Orchestration Loop'",
+        "reason": "Tool schemas are passed as bare {name,description,parameters} which the Chat Completions API rejects (m3-l04 shows the correct {type:function,function:{...}} wrapper), and the orchestration loop is `while True` with no iteration cap despite the prose insisting on one. Learners copying this get non-working code that violates the lesson's own guardrail guidance. Professor rated critical, industry rated major.",
+        "severity": "critical",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "m4-l01 'A Basic Chat Endpoint', 'Streaming Responses', and 'Error Handling'",
+        "reason": "async routes call the synchronous OpenAI client and a sync streaming generator runs the blocking client inside an async route, blocking the event loop and contradicting the lesson's own 'async frees workers' thesis; plus two colliding @app.post('/chat') endpoints where the second silently overrides the first. Use AsyncOpenAI+await or run_in_threadpool, make the generator async, and consolidate the route.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "m1-l03 / m1-l04 'Enforcing/Requesting Structured Output'",
+        "reason": "Only JSON mode (response_format=json_object, guarantees valid JSON) is taught while Structured Outputs/json_schema strict (guarantees the schema) is only linked; the lessons conflate 'valid JSON' with 'matches my schema'. m1-l04's run_task also lacks the try/except around json.loads it preaches. Add strict structured outputs and validate against a Pydantic schema.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "Module 3 — add an MCP lesson + LangGraph/CrewAI hands-on (deepen m3-l03)",
+        "reason": "MCP (Model Context Protocol) is absent despite being a near-universal 2026 agent-JD requirement, and the multi-agent lesson stays at pseudocode while citing LangGraph; m3-l03 is also thinner than peers (5 quiz Qs/3 resources vs 6/4). Add a concrete framework walkthrough and an MCP integration. Industry weighted this heavily as table-stakes; professor flagged the depth/MCP gap too.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "Module 1 L2 / structured-output guidance — model & API currency + multi-provider",
+        "reason": "Course standardizes on gpt-4o/gpt-4o-mini and Chat Completions only for a 2026 cohort; refresh to current models with model-selection framing, introduce the Responses API as the recommended successor, and add at least one second provider (Anthropic) so the course is not single-provider. Industry weighted multi-provider as a JD must-have.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "m2-l01 'The Pinecone Equivalent' + quiz Q6 answer + intro Chroma snippet",
+        "reason": "The 'Pinecone requires pre-computed vectors / cannot embed for you' claim (baked into a graded answer) is outdated — Pinecone offers integrated inference/hosted embeddings (upsert_records). Soften the absolute contrast and fix the graded answer; also switch the intro create_collection() to get_or_create_collection() for re-run safety. Professor rated the Pinecone claim major.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "m3-l02 'Calculator' tool — bound ast.Pow",
+        "reason": "The 'safe' AST evaluator allows unbounded ast.Pow, so a model-generated 9**9**9 can hang or OOM the process — a DoS gap in the example presented as the security best practice. Bound the exponent/operand magnitude or reject Pow. Professor rated minor, industry rated major (reconciled major given it is the security exemplar).",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "m2-l03 RAG generation call — set temperature=0",
+        "reason": "The flagship end-to-end RAG generation call omits temperature (defaults high) even though the lesson's theme is hallucination reduction and sibling m2-l04 correctly sets temperature=0. Make the flagship example obey its own anti-hallucination advice.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "LangChain imports across m2-l02 / m2-l04",
+        "reason": "Deprecated/inconsistent paths: m2-l02 uses langchain.text_splitter vs m2-l04's langchain_text_splitters, and m2-l04 uses langchain_community.vectorstores.Chroma instead of langchain_chroma; modern Chroma no longer needs explicit .persist(). Standardize and pin versions so the shown imports run.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "m4-l02 Dockerfile + m4-l03 pricing",
+        "reason": "Bump python:3.11-slim to a supported minor (3.12/3.13-slim) and chown copied files to the non-root user (COPY runs before USER appuser, leaving files root-owned); convert m4-l03's hard-coded per-1K prices to per-1M or a live-pricing pointer, keeping the cost formula.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "Multi-provider abstraction / fine-tuning / prompt-caching primers",
+        "reason": "Industry-only: course is OpenAI-only in practice with no LiteLLM/Portkey abstraction, no fine-tuning/LoRA/QLoRA exposure (explicit comp premium in JDs), no prompt/semantic caching, and no OpenTelemetry GenAI tracing. Add at least conceptual primers to match 2026 postings.",
+        "severity": "minor",
+        "whoFlagged": "industry"
+      }
+    ],
+    "accuracyConcerns": [
+      "m3-l02 tool schemas use the bare {name,description,parameters} form and are passed directly to chat.completions.create; the API requires the {type:function,function:{...}} wrapper (correctly shown in m3-l04). As written the code raises an API error and two sibling lessons teach contradictory formats. [both — professor: critical, industry: major]",
+      "m4-l01 calls the synchronous OpenAI client inside async def routes and inside a sync streaming generator, blocking the event loop and contradicting the lesson's 'async frees workers' claim. [both — major]",
+      "m4-l01 defines two colliding @app.post('/chat') endpoints; the second silently overrides the first for copy-paste learners. [both — minor]",
+      "m3-l02's m3-l02 orchestration loop is `while True` with no iteration cap, contradicting its own 'always cap the loop (max 5 iterations)' guidance; only m3-l04 shows the correct cap. [professor — major]",
+      "m3-l02's 'safe' AST calculator allows unbounded ast.Pow (9**9**9 DoS) while being presented as the security-best-practice example. [both — professor: minor, industry: major]",
+      "m2-l01 teaches in prose and the graded quiz answer that Pinecone 'requires pre-computed vectors / cannot embed for you'; this is outdated — Pinecone offers integrated inference/hosted embeddings. [both — major]",
+      "m1-l03/m1-l04 conflate JSON mode (response_format=json_object, valid JSON) with schema adherence; Structured Outputs/json_schema strict (which enforces the schema) is only linked, not taught. [both — major]",
+      "m1-l04 run_task claims json_object output is 'predictable and parseable' but does not wrap json.loads in try/except, so malformed JSON would raise, contradicting its 'handle failures gracefully' message. [industry — minor]",
+      "m2-l03 RAG generation omits temperature (defaults high) despite the hallucination-reduction theme; sibling m2-l04 correctly sets temperature=0. [both — minor]",
+      "m2-l01 intro uses chromadb.Client().create_collection(), which raises on a second run; m2-l03 safely uses get_or_create_collection(). [professor — minor]"
+    ],
+    "currencyConcerns": [
+      "Entire course pins to gpt-4o/gpt-4o-mini and Chat Completions as the primary interface for a 2026 cohort across ~7 lessons, never mentioning the Responses API or current frontier model lines (GPT-5.x / Claude 4.x / Gemini 3.x). [both — top concern]",
+      "MCP (Model Context Protocol) is entirely absent from the Agents module despite being a near-universal 2026 agent/AI-developer JD requirement. [both]",
+      "OpenAI Structured Outputs (json_schema/strict) — the schema-enforcing successor to JSON mode — is only linked, not taught in the body. [both]",
+      "Multi-provider fluency (Anthropic Claude, AWS Bedrock) and abstraction layers (LiteLLM/Portkey) are absent; the course is OpenAI-only in practice while 2026 JDs say single-provider knowledge is insufficient. [industry]",
+      "Named agent frameworks (LangGraph, CrewAI) are cited in resources but the orchestration module stays at pseudocode with no hands-on framework build. [both]",
+      "Deprecated/inconsistent LangChain imports: langchain.text_splitter vs langchain_text_splitters, and langchain_community.vectorstores.Chroma vs the dedicated langchain_chroma; modern Chroma no longer needs explicit .persist(). [both]",
+      "m4-l02 Dockerfile uses python:3.11-slim (heading to maintenance-only by 2026) and copies files before USER appuser, leaving them root-owned. [both]",
+      "m4-l03 hard-codes per-1K-token prices ($0.00015 in / $0.0006 out for gpt-4o-mini); pricing is volatile and increasingly quoted per 1M tokens. [both]",
+      "Missing modern AI-dev expectations carrying explicit JD/comp weight: fine-tuning/LoRA/QLoRA, prompt and semantic caching, OpenTelemetry GenAI tracing, parallel tool-call execution, computer-use, and embedding 'dimensions'/normalization details. [industry]",
+      "m4-l04 lists Chroma Cloud as a managed option without qualifying its production maturity vs Pinecone/pgvector. [industry — minor]"
+    ],
+    "_prof": {
+      "grade": "B",
+      "summary": "This is a well-structured, pedagogically sound 16-lesson course that builds a genuinely coherent arc: Python/LLM foundations -> RAG -> agents/tools -> deployment/capstone. Conceptual accuracy is high in the explanatory prose (embeddings, similarity metrics, ANN indexes, chunking trade-offs, the agent/ReAct loop, RAG two-phase pipeline, HTTP status semantics, Docker layer caching, cost/eval discipline are all correct and well-explained). Scaffolding and prerequisite handling are strong: Module 1 establishes venv/typing/Pydantic/async/retry primitives that recur consistently downstream, and each project lesson integrates the module's concepts. Quizzes are appropriately mixed (MCQ + free-text), test understanding rather than recall, and the answer indices are correct 0-based throughout (I audited the off-by-one concern across all 16 lessons and found NO indexing errors -- that candidate issue is unfounded). The grade is held to B rather than higher by a cluster of real technical-accuracy defects in the SHOWN CODE that contradict the lessons' own stated best practices: (1) m3-l02 defines tool schemas in the bare {name,description,parameters} form but passes them directly to chat.completions.create, which the OpenAI API rejects -- it requires the {\"type\":\"function\",\"function\":{...}} wrapper that m3-l04 correctly uses; (2) m3-l02's orchestration loop is `while True` with no iteration counter even though the surrounding prose insists you must cap iterations; (3) m4-l01 calls the synchronous OpenAI client inside `async def` routes and inside a sync streaming generator, blocking the event loop and directly contradicting the lesson's central \"async frees workers\" claim, plus it defines two colliding @app.post(\"/chat\") endpoints; (4) m3-l02's \"safe\" calculator leaves ast.Pow unbounded (9**9**9 DoS) while being presented as the security-best-practice example. Separately, the course is pervasively pinned to an aging model line (gpt-4o-mini/gpt-4o) and the Chat Completions API, teaches JSON mode (valid-JSON) without teaching Structured Outputs/json_schema (schema-enforcing) despite structured output being a load-bearing theme, and uses several deprecated LangChain import paths inconsistently between sibling lessons. None of these are conceptual misunderstandings -- they are currency and code-hygiene issues -- but because learners copy shown code verbatim, they undermine the transferable mastery the course otherwise builds well. Fix the copy-paste-breaking code defects and refresh the tooling/model currency and this is a solid A-/A course.",
+      "strengths": [
+        "Logical, well-scaffolded progression: Module 1 (Python/LLM primitives) -> Module 2 (RAG) -> Module 3 (agents/tools) -> Module 4 (deploy/capstone), with each project lesson integrating that module's concepts and the capstone explicitly recombining RAG + agents + APIs.",
+        "Strong conceptual accuracy in explanations: embeddings and the same-model-for-index-and-query rule, cosine/dot/Euclidean metrics, HNSW/IVF/flat ANN indexes with the right tuning knobs (M/ef_search, nprobe), chunking trade-offs, the observe/think/act ReAct loop, two-phase RAG ordering (load->chunk->embed->store), HTTP status semantics (422/429/502/504/500), Docker layer caching, and the monitoring/cost/eval disciplines are all correct.",
+        "Quizzes genuinely test understanding (not just recall), mix MCQ with free-text application questions, and the answer keys are correct -- the suspected off-by-one indexing problem does not exist on audit across all 16 lessons.",
+        "Excellent emphasis on production realities often missing from intro courses: secrets management, prompt-injection delimiting, grounded prompting with 'I don't know', recall@k vs faithfulness as separate eval axes, golden datasets, LLM-as-judge bias caveats, SLOs/budgets, non-root containers, and .dockerignore.",
+        "Resource links are high quality and authoritative (official OpenAI/Anthropic/FastAPI/Pydantic/LangChain/RAGAS docs, the actual ReAct arXiv paper)."
+      ],
+      "weaknesses": [
+        "Several SHOWN code snippets contradict the lesson's own stated best practice (unwrapped tool schemas in m3-l02, uncapped while-True loop in m3-l02, blocking sync client inside async routes in m4-l01), so a learner copying the code gets behavior the prose warns against.",
+        "Pervasive currency lag: the entire course pins to gpt-4o-mini/gpt-4o and the Chat Completions API for a cohort dated 2026, never mentioning the Responses API or newer/cheaper model lines.",
+        "Structured output is a load-bearing course theme, yet only JSON mode (guarantees valid JSON) is taught in the body while Structured Outputs / json_schema strict mode (guarantees the schema) is only linked, not explained -- conflating 'valid JSON' with 'matches my schema'.",
+        "Deprecated and inconsistent LangChain import paths between sibling lessons (m2-l02 uses langchain.text_splitter while m2-l04 uses langchain_text_splitters; m2-l04 uses langchain_community.vectorstores.Chroma instead of langchain_chroma).",
+        "Module 3 omits agent infrastructure a 2026 developer is expected to know (Model Context Protocol, parallel tool-call execution), and m3-l03 is noticeably thinner (5 quiz Qs / 3 resources vs peers' 6/4, stays at pseudocode despite citing LangGraph)."
+      ],
+      "accuracyIssues": [
+        {
+          "issue": "m3-l02 defines tool schemas as bare {name, description, parameters} objects and then passes them directly as tools=tools to client.chat.completions.create. The OpenAI Chat Completions tools parameter requires each tool wrapped as {\"type\":\"function\",\"function\":{...}} (which m3-l04 demonstrates correctly). As written, m3-l02's code would raise an API error, and the two sibling lessons teach contradictory tool-definition formats.",
+          "lesson": "aad-m3-l02",
+          "severity": "critical"
+        },
+        {
+          "issue": "m3-l02's orchestration loop is `while True:` with no iteration counter or break-on-limit, yet the same lesson's prose states 'Always cap the loop (e.g. max 5 iterations)'. The demonstrated code does not implement the guardrail it teaches; only the later m3-l04 shows a correct `for _ in range(max_iters)` cap.",
+          "lesson": "aad-m3-l02",
+          "severity": "major"
+        },
+        {
+          "issue": "m4-l01 declares routes as `async def` but calls the synchronous OpenAI client (client.chat.completions.create) directly, and the streaming endpoint uses a synchronous `def event_generator` that runs the blocking client inside the async route. Both block the event loop, directly contradicting the lesson's own quiz/claim that async 'frees workers to handle other requests.' Should use the async client (AsyncOpenAI) or run_in_threadpool.",
+          "lesson": "aad-m4-l01",
+          "severity": "major"
+        },
+        {
+          "issue": "m4-l01 defines two separate @app.post(\"/chat\") endpoints (one under 'A Basic Chat Endpoint', one under 'Error Handling') without noting they are alternatives. In a single FastAPI app the second silently overrides the first; a learner assembling the file from snippets gets confusing behavior.",
+          "lesson": "aad-m4-l01",
+          "severity": "minor"
+        },
+        {
+          "issue": "m3-l02's 'safe' AST calculator allows ast.Pow without bounding the exponent, so a model-generated expression like 9**9**9 can hang or OOM the process. It is presented as THE security-best-practice example, so the unbounded ** is a real (if subtle) DoS gap.",
+          "lesson": "aad-m3-l02",
+          "severity": "minor"
+        },
+        {
+          "issue": "m2-l01 teaches (in prose AND the quiz answer key) that 'Pinecone requires you to supply the vectors yourself' / 'expects pre-computed vectors.' This is outdated: Pinecone offers integrated inference / hosted embeddings (upsert_records) as of 2024+. The hard Chroma-can-embed-vs-Pinecone-cannot contrast is no longer accurate and is baked into a graded answer.",
+          "lesson": "aad-m2-l01",
+          "severity": "major"
+        },
+        {
+          "issue": "m2-l03's end-to-end RAG generation call omits temperature (defaulting high) even though the lesson's whole theme is reducing hallucination and the sibling project lesson m2-l04 correctly sets temperature=0. The flagship example does not follow the lesson's own anti-hallucination advice.",
+          "lesson": "aad-m2-l03",
+          "severity": "minor"
+        },
+        {
+          "issue": "m2-l01 intro code uses chromadb.Client() with create_collection(), which raises if the collection already exists, while m2-l03 uses the safer get_or_create_collection(). Inconsistent and the intro version breaks on a second run -- a poor first impression for beginners.",
+          "lesson": "aad-m2-l01",
+          "severity": "minor"
+        }
+      ],
+      "outdatedContent": [
+        {
+          "issue": "Entire course pins to gpt-4o-mini / gpt-4o as the default models (m1-l02, m1-l04, m2-l03, m2-l04, m3-l02, m3-l04, m4-l01) and teaches client.chat.completions.create as the primary interface for a 2026 cohort, never mentioning the Responses API or newer model lines.",
+          "fix": "Refresh model IDs to a currently-recommended line and add a short note introducing the Responses API as the successor interface, framing Chat Completions as still-valid-but-legacy. Prefer referencing the live models/pricing page over hard-coding IDs.",
+          "lesson": "Treat fast-moving provider surface (model IDs, default API) as content that decays; pin to a 'current as of' note and link the canonical docs instead of embedding specifics that silently rot."
+        },
+        {
+          "issue": "Structured output is central, but the body only teaches response_format={'type':'json_object'} (JSON mode), which guarantees valid JSON but NOT schema adherence. OpenAI Structured Outputs (json_schema / strict mode) is linked in resources but never explained; m1-l03 and m1-l04 conflate 'returns valid JSON' with 'matches my schema'.",
+          "fix": "Add a short section distinguishing JSON mode (valid JSON) from Structured Outputs/json_schema (schema-enforced), and update the project to validate with Pydantic against a schema. This closes the most consequential currency+accuracy gap.",
+          "lesson": "When a capability has both a weak and a strong form, teach the distinction explicitly; learners otherwise assume the weak form gives the strong guarantee."
+        },
+        {
+          "issue": "Deprecated/inconsistent LangChain imports: m2-l02 uses `from langchain.text_splitter import RecursiveCharacterTextSplitter` while m2-l04 uses the current `langchain_text_splitters`; m2-l04 uses `langchain_community.vectorstores.Chroma` instead of the dedicated `langchain_chroma` package. Newer Chroma (>=0.4) also no longer needs an explicit .persist() call.",
+          "fix": "Standardize on langchain_text_splitters and langchain_chroma across both lessons and drop any explicit .persist() guidance that no longer applies. Pin versions in requirements so the shown imports actually run.",
+          "lesson": "Use one canonical, current import path consistently across sibling lessons; divergent paths in the same module both confuse learners and signal the material was written against different library versions."
+        },
+        {
+          "issue": "m4-l03 hard-codes per-1K-token example prices ($0.00015 in / $0.0006 out for gpt-4o-mini); pricing is increasingly quoted per 1M tokens and changes frequently, and learners copy these numbers into cost code.",
+          "fix": "Either quote per-1M tokens to match current convention or replace concrete numbers with a clearly-flagged placeholder plus a link to the live pricing page; keep the cost-formula structure (which is correct).",
+          "lesson": "Embed methodology, not volatile numbers; show the formula and direct learners to fetch current rates."
+        },
+        {
+          "issue": "m4-l02 Dockerfile uses python:3.11-slim; by 2026 Python 3.12/3.13 are current and 3.11 is heading to maintenance-only. (The COPY . . before USER appuser leaving files root-owned is acceptable but worth a note for strict non-root setups.)",
+          "fix": "Bump the base image to a currently-supported minor (e.g., 3.12/3.13-slim) and optionally add a chown note for stricter non-root file ownership.",
+          "lesson": "Base-image pins age; bump to a supported minor and note the policy so the example stays buildable and secure."
+        }
+      ],
+      "jdComparison": {
+        "jdSources": [
+          "Inferred from course self-description (target role: AI Application Developer); no external JD file located in repo for this course."
+        ],
+        "requirementsCovered": [
+          "Calling LLM APIs securely (env-var keys, retries/backoff, streaming)",
+          "Prompt engineering and structured/JSON output",
+          "RAG end-to-end (embeddings, vector DBs, chunking, retrieval tuning, evaluation)",
+          "LLM agents, tool/function calling, multi-agent orchestration, guardrails",
+          "FastAPI backends with SSE streaming, Docker containerization, cloud deployment, monitoring/cost/eval, capstone shipping"
+        ],
+        "requirementsMissing": [
+          "Model Context Protocol (MCP) and parallel tool-call execution -- emerging-standard agent infrastructure expected of a 2026 AI app developer",
+          "Structured Outputs / json_schema strict mode taught in the body (only linked)",
+          "Current model line / Responses API currency",
+          "Embedding practicalities (dimensions parameter / dimensionality reduction, normalization for dot-product, cost-latency numbers)"
+        ],
+        "alignmentScore": 82
+      },
+      "sectionsToRedo": [
+        {
+          "section": "m3-l02 'The Orchestration Loop' and 'Anatomy of a Tool Definition'",
+          "reason": "The tool schemas must be wrapped as {\"type\":\"function\",\"function\":{...}} to match the API (align with m3-l04), and the while-True loop must implement the max-iteration cap the lesson preaches. As shown, the code fails against the real API and contradicts its own guardrail guidance.",
+          "severity": "critical"
+        },
+        {
+          "section": "m4-l01 'A Basic Chat Endpoint', 'Streaming Responses', and 'Error Handling'",
+          "reason": "Replace the blocking synchronous client calls inside async routes with the async client (or run_in_threadpool), make the streaming generator async, and consolidate the two colliding @app.post('/chat') endpoints into one. This is required for the lesson's async-throughput thesis to hold and for the code to behave as described.",
+          "severity": "major"
+        },
+        {
+          "section": "m1-l03 / m1-l04 'Enforcing Output Format' / 'Requesting Structured Output'",
+          "reason": "Add an explicit treatment of Structured Outputs (json_schema strict mode) versus JSON mode, and validate parsed output against a Pydantic schema, so learners stop conflating 'valid JSON' with 'matches my schema'.",
+          "severity": "major"
+        },
+        {
+          "section": "m2-l01 'The Pinecone Equivalent' + quiz Q6 answer",
+          "reason": "Update the Pinecone claim (and the graded answer) to reflect integrated inference/hosted embeddings; soften the absolute 'Pinecone cannot embed for you' contrast. Also switch the intro Chroma snippet to get_or_create_collection for re-run safety.",
+          "severity": "major"
+        },
+        {
+          "section": "m3-l02 'Calculator' tool",
+          "reason": "Bound the exponent (or disallow ast.Pow above a small limit) in the 'safe' AST evaluator so the security-exemplar example is not itself a DoS vector.",
+          "severity": "minor"
+        }
+      ],
+      "topRecommendations": [
+        "Fix the copy-paste-breaking code defects first: wrap m3-l02 tool schemas in the {\"type\":\"function\",...} form and add the iteration cap; make m4-l01 use the async OpenAI client (or run_in_threadpool) and merge the duplicate /chat endpoints. These are the issues most likely to leave learners with non-working, best-practice-violating code.",
+        "Refresh tooling/model currency course-wide: update model IDs (and note the Responses API), standardize on langchain_text_splitters + langchain_chroma, pin versions in requirements.txt, and convert hard-coded per-1K prices to per-1M or a live-docs pointer.",
+        "Teach Structured Outputs / json_schema (not just JSON mode) in the body and validate with Pydantic, since reliable structured output is the backbone of nearly every project in the course.",
+        "Close the 2026 agent-infrastructure gap in Module 3: add at least a conceptual section on the Model Context Protocol (MCP) and parallel tool-call execution, and deepen the thin m3-l03 with a concrete LangGraph/orchestration walkthrough to match its peers' depth.",
+        "Make flagship examples obey their own lessons: set temperature=0 in the m2-l03 RAG generation call, bound the m3-l02 calculator exponent, and use get_or_create_collection in m2-l01 so the introductory code is consistent, safe, and re-runnable."
+      ]
+    },
+    "_industry": {
+      "grade": "B-",
+      "summary": "\"ai-app-developer-2026\" is a well-sequenced, genuinely practical 16-lesson course that covers the core production stack a 2026 AI Application Developer needs: Python/async, secure LLM API calls, prompt engineering, embeddings + vector DBs, a full RAG pipeline, agents/tool-calling/ReAct, multi-agent orchestration, FastAPI + SSE, Docker + cloud deploy, observability/cost/eval, and a deployable full-stack capstone. Each module ends in a hands-on project and the capstone explicitly targets portfolio/interview readiness, which is exactly what employers screen for. That foundation is solid and the pedagogy (projects, quizzes, guardrails, evals) is strong.\\n\\nHowever, it grades B- rather than A because it is meaningfully behind the 2026 frontier that real job descriptions now treat as table stakes, and it contains several confirmed technical inaccuracies in code that learners copy. The single biggest currency problem: the course standardizes on gpt-4o / gpt-4o-mini and the Chat Completions API throughout, and never teaches the OpenAI Responses API, Structured Outputs (json_schema/strict), or multi-provider fluency (Anthropic Claude, Bedrock) — all of which 2026 postings list explicitly. The biggest coverage gap is MCP (Model Context Protocol), which now appears in nearly every 2026 agent JD and is absent entirely. Named agent frameworks (LangGraph, CrewAI) are cited in resources but the orchestration module stays at pseudocode. Confirmed code bugs include: a FastAPI async route calling the synchronous OpenAI client (blocks the event loop — directly contradicting the lesson's own 'async frees workers' claim), duplicate colliding /chat routes, a 'safe' calculator that still allows unbounded ast.Pow (9**9**9 DoS), an outdated 'Pinecone can't embed for you' claim, and a tool-schema format in m3-l02 that the API would reject. None are fatal to the learning arc, but together they pull a 2026-dated course's hireability down. With a model/API refresh, an MCP lesson, a real LangGraph walkthrough, and the code fixes, this is an A-/A course.",
+      "strengths": [
+        "End-to-end coverage of the real production stack: foundations -> RAG -> agents -> FastAPI/SSE -> Docker/cloud -> observability/cost/eval -> deployable capstone. The arc mirrors how employers describe the job.",
+        "Every module ends in a concrete, buildable project (prompt CLI, document Q&A chatbot, autonomous research agent, full-stack capstone), and the capstone is explicitly framed for portfolio/interview readiness with README + 60-90s demo video — exactly what recruiters screen on.",
+        "Strong production-mindedness that juniors usually lack: guardrails (max iterations, human-in-the-loop, timeouts), structured JSON logging with PII redaction, token-cost tracking, golden-dataset + LLM-as-judge eval harness, SLOs/alerting, non-root Docker, server-side secrets.",
+        "RAG module is genuinely deep and current in concept: hybrid search (BM25 + dense), cross-encoder re-ranking, MMR, query transforms (multi-query/HyDE), recall@k / context precision / faithfulness, RAGAS — these map directly to the 'eval literacy' signal employers say is the #1 differentiator.",
+        "Security and cost discipline are threaded throughout (env-var keys, delimiting against prompt injection, AST instead of eval, rate limiting, CORS, max_tokens budgets), which aligns with the 2026 safety/guardrails and cost-optimization JD requirements.",
+        "Vector-DB breadth is good (Chroma, Pinecone, plus Weaviate/Qdrant/Milvus/pgvector mentioned), matching the spread of databases named across job postings."
+      ],
+      "weaknesses": [
+        "Model currency: standardizes on gpt-4o / gpt-4o-mini across 7 lessons. For a course literally dated 2026, this is an aging model line; JDs now expect fluency with current frontier models (GPT-5.x, Claude Opus/Sonnet 4.x, Gemini 3.x) and the ability to reason about model routing across them.",
+        "API currency: teaches only Chat Completions; never mentions the OpenAI Responses API (the recommended successor for new agentic apps) or true Structured Outputs (json_schema/strict). The course conflates JSON-mode ('valid JSON') with schema adherence ('matches your schema'), a real technical gap given how central structured output is.",
+        "MCP (Model Context Protocol) is completely absent. It is now a near-universal item in 2026 agent/AI-developer JDs and the course's 'Agents, Tools, and APIs' module is the natural home for it.",
+        "Multi-provider gap: the entire course is OpenAI-only in practice. 2026 postings repeatedly say 'knowing one provider is not enough' (Anthropic + OpenAI + Bedrock) and value abstraction layers (LiteLLM/Portkey). No Anthropic/Claude hands-on, no cross-provider routing.",
+        "Agent-framework depth: LangGraph and CrewAI are the named industry standard for orchestration in 2026 JDs, but the multi-agent lesson stays at pseudocode with no framework walkthrough; that lesson is also thinner than its peers (5 quiz Qs / 3 resources vs 6 / 4).",
+        "Confirmed code defects learners will copy: sync OpenAI client inside FastAPI async routes (blocks event loop, contradicts the lesson), duplicate /chat routes, unbounded ast.Pow in the 'safe' calculator (DoS), bare tool-schema missing the {type:function,function:{...}} wrapper, and the outdated 'Pinecone requires pre-computed vectors' claim.",
+        "Library-currency drift: deprecated import paths (langchain.text_splitter, langchain_community.vectorstores.Chroma vs the newer langchain_text_splitters / langchain_chroma), python:3.11-slim base image, and per-1K (vs per-1M) hard-coded prices.",
+        "Missing modern AI-dev expectations: no fine-tuning/LoRA/QLoRA exposure (JDs add +10-15% comp for it), no prompt caching (Anthropic/OpenAI), no semantic caching, no OpenTelemetry GenAI tracing, no computer-use, and no embedding 'dimensions' parameter / normalization details."
+      ],
+      "accuracyIssues": [
+        {
+          "issue": "m4-l01 FastAPI: the /chat endpoint is declared 'async def' but calls the synchronous client.chat.completions.create (line 131), and the streaming endpoint uses a synchronous generator calling the blocking client inside an async route (lines 150-161). Both block the event loop, directly contradicting the lesson's own quiz answer that 'async frees workers to handle other requests.'",
+          "lesson": "In an async route, blocking I/O must use the async client (AsyncOpenAI + await) or be offloaded via run_in_threadpool/asyncio.to_thread; otherwise async provides zero throughput benefit and the lesson teaches a harmful anti-pattern.",
+          "severity": "major"
+        },
+        {
+          "issue": "m4-l01 defines two @app.post('/chat') endpoints (lines 129 and 179). In a single FastAPI app the second silently overrides the first; presented as illustrative snippets but not labeled as alternatives, so copy-paste learners get a broken/confusing app.",
+          "lesson": "Code snippets that would collide in one app must be explicitly framed as alternative versions, or given distinct paths.",
+          "severity": "minor"
+        },
+        {
+          "issue": "m3-l02 calculator is presented as the security-best-practice 'safe eval' but allows ast.Pow with no bound, so a model-generated '9**9**9' can hang/OOM the process (resource-exhaustion DoS). The AST approach is correct in spirit but incomplete.",
+          "lesson": "A 'safe' evaluator must also bound exponentiation/operand magnitude (or reject Pow), since blocking eval() alone does not prevent compute-based DoS.",
+          "severity": "major"
+        },
+        {
+          "issue": "m3-l02 shows tool schemas as bare {name, description, parameters} objects, but the OpenAI Chat Completions tools API requires {'type':'function','function':{...}} (which m3-l04 shows correctly). As written, m3-l02's schemas would be rejected by the API, and two lessons in the same module use inconsistent formats.",
+          "lesson": "Tool-definition format must be consistent and API-valid across a module; the wrapped {type:function,function:{...}} form is the correct one for Chat Completions.",
+          "severity": "major"
+        },
+        {
+          "issue": "m2-l01 claims Chroma can embed for you but 'Pinecone requires you to supply the vectors yourself / expects pre-computed vectors' (quiz answer + body lines 152-168). Pinecone now offers integrated inference / hosted embeddings (upsert_records, Pinecone Inference), so the hard contrast is outdated and factually wrong as of 2024+.",
+          "lesson": "Verify managed-service capability claims against current docs; Pinecone supports integrated embedding, so the Chroma-vs-Pinecone distinction should be reframed.",
+          "severity": "major"
+        },
+        {
+          "issue": "m1-l03/m1-l04 conflate response_format={'type':'json_object'} (guarantees valid JSON) with schema adherence. JSON mode does NOT enforce a specific schema; OpenAI Structured Outputs (json_schema/strict) does and is only listed in resources, not taught.",
+          "lesson": "Distinguish 'valid JSON' (JSON mode) from 'matches my schema' (Structured Outputs/strict); teach json_schema strict mode for reliable structured output.",
+          "severity": "major"
+        },
+        {
+          "issue": "m2-l03 end-to-end RAG generation call sets no temperature (defaults high ~0.7-1.0) despite the lesson's entire theme being hallucination reduction; the sibling project (m2-l04) correctly sets temperature=0. The flagship example doesn't follow its own anti-hallucination advice.",
+          "lesson": "Grounded/factual generation examples should set low temperature to match the lesson's stated goal.",
+          "severity": "minor"
+        },
+        {
+          "issue": "m1-l04 run_task claims response_format json_object makes output 'predictable and parseable' but the shown code does not wrap json.loads in try/except, so it would raise on malformed JSON — contradicting the lesson's 'handle failures gracefully' message (failure handling is only described in prose).",
+          "lesson": "Demonstrated code should embody the resilience it preaches; show the try/except + retry path inline, not only in prose.",
+          "severity": "minor"
+        }
+      ],
+      "outdatedContent": [
+        {
+          "issue": "gpt-4o / gpt-4o-mini used as the default model across m1-l02, m1-l04, m2-l03, m2-l04, m3-l02, m3-l04, m4-l01 in a course dated 2026. This model line is aging and below the current frontier.",
+          "fix": "Replace defaults with current models and, more importantly, teach model selection/routing across providers (e.g., a cheap small model for routing/classification + a frontier model for hard reasoning). Reference live model/pricing pages rather than hard-coding a single model name, and add a note that model IDs change frequently.",
+          "lesson": "For a year-stamped course, avoid pinning to one model generation; teach the selection skill and point to live docs so content doesn't rot."
+        },
+        {
+          "issue": "Only the OpenAI Chat Completions API is taught; the Responses API (recommended successor for new agentic apps) and Structured Outputs strict mode are never covered.",
+          "fix": "Add a section (m1-l02 or a new lesson) introducing the Responses API and json_schema strict structured outputs, contrasting them with Chat Completions and JSON mode so learners know the current-recommended path.",
+          "lesson": "Teach the provider's current-recommended interface, not just the legacy one, especially for a course that will be used for 1-2 years."
+        },
+        {
+          "issue": "MCP (Model Context Protocol) is entirely absent from the Agents module despite being a standard 2026 JD requirement (spec 2025-11-25; stdio + Streamable HTTP transports).",
+          "fix": "Add an MCP lesson in Module 3: what MCP is, connecting to an MCP server, exposing tools via MCP vs raw function-calling, and when to use each. Include a short hands-on connecting an agent to one MCP server.",
+          "lesson": "Emerging-but-standardized infra (MCP) must be added promptly once it becomes table stakes in postings."
+        },
+        {
+          "issue": "Deprecated LangChain import paths: m2-l02 uses langchain.text_splitter while m2-l04 uses the newer langchain_text_splitters; m2-l04 uses langchain_community.vectorstores.Chroma instead of the dedicated langchain-chroma package. Also Chroma >=0.4 no longer needs an explicit .persist().",
+          "fix": "Standardize on langchain_text_splitters and langchain_chroma (from langchain_chroma import Chroma) across the module; remove manual .persist() guidance for modern Chroma and pin versions in requirements.",
+          "lesson": "Keep import paths consistent and current across sibling lessons; deprecated paths emit warnings and confuse learners."
+        },
+        {
+          "issue": "m4-l02 Dockerfile uses python:3.11-slim; by 2026 Python 3.12/3.13 are current and 3.11 is heading to maintenance-only. Also COPY . . runs before USER appuser, so files are root-owned.",
+          "fix": "Bump base image to python:3.12-slim (or 3.13-slim) and chown copied files to the non-root user (e.g., COPY --chown=appuser:appuser or chown after copy).",
+          "lesson": "Refresh base-image versions periodically and order Dockerfile COPY/USER so the non-root user owns app files."
+        },
+        {
+          "issue": "m4-l03 hard-codes gpt-4o-mini token prices as $0.00015/1K in and $0.0006/1K out. Prices change and the industry increasingly quotes per 1M tokens.",
+          "fix": "Quote per-1M tokens, label clearly as illustrative-and-subject-to-change, and link to the live pricing page; teach the cost-computation method rather than memorizable numbers.",
+          "lesson": "Avoid hard-coded prices that learners copy; teach the formula and link live pricing."
+        },
+        {
+          "issue": "m4-l04 lists Chroma Cloud as a managed vector store option. It is now available, but its production maturity vs Pinecone/Supabase pgvector should be qualified.",
+          "fix": "Keep Chroma Cloud but add a one-line note on relative maturity/use-case so learners pick appropriately for production vs prototyping.",
+          "lesson": "Qualify newer managed services with maturity context when recommending them for production."
+        }
+      ],
+      "jdComparison": {
+        "jdSources": [
+          "https://www.digitalapplied.com/blog/ai-developer-hiring-skills-that-matter-2026 — AI Developer Hiring 2026: Skills That Actually Matter (10 must-haves incl. LangGraph/CrewAI, MCP spec 2025-11-25, eval design, pgvector/Pinecone/Qdrant + hybrid search, cost optimization, OWASP LLM Top 10, observability stack, current frontier models)",
+          "https://www.ayautomate.com/blog/ai-engineer-skills-2026 — 15 AI Engineer Skills Every Hire Should Have in 2026 (Python+async, multi-provider LLM APIs + LiteLLM/Portkey, RAG/reranking, LangGraph/CrewAI, eval+observability, streaming/SSE, vector DBs, MLOps/Docker, tool calling, memory systems, guardrails, OTel tracing)",
+          "https://agentic-engineering-jobs.com/jobs/knowit-ai-engineerarchitect-llm-rag-and-applied-ai-K7FV_i — Knowit AI Engineer/Architect, LLM, RAG & Applied AI (Python, LLM app dev OpenAI + open-source, RAG + vector DBs, production-ready API/pipeline design, LangChain/LlamaIndex, agent-based workflows)",
+          "https://developers.openai.com/api/docs/guides/migrate-to-responses + https://developers.openai.com/api/docs/structured-outputs — OpenAI 2026 developer guidance (Responses API as agentic successor; Structured Outputs via text.format/json_schema; built-in tools + remote MCP servers)"
+        ],
+        "requirementsCovered": [
+          "Python fundamentals incl. async (asyncio/httpx)",
+          "Secure LLM API calls and key management (env vars, secrets managers)",
+          "Prompt engineering (roles, few-shot, delimiting/injection mitigation)",
+          "RAG architecture end-to-end (chunking, embeddings, vector store, retrieve/augment/generate)",
+          "Vector databases (Chroma, Pinecone, Weaviate/Qdrant/pgvector mentioned) + ANN (HNSW/IVF)",
+          "Hybrid search (BM25 + dense), re-ranking (cross-encoder), MMR, query transforms",
+          "Eval design / eval literacy (recall@k, faithfulness, RAGAS, golden datasets, LLM-as-judge)",
+          "Agents, tool/function calling, ReAct loop, guardrails",
+          "Multi-agent orchestration patterns (sequential/router/supervisor/parallel)",
+          "FastAPI backends with Pydantic + SSE streaming",
+          "HTTP status semantics, CORS, rate limiting, timeouts, auth",
+          "Docker containerization (slim image, layer caching, non-root) + cloud deploy (Cloud Run/Render/Railway/Fly.io/Vercel)",
+          "Production observability (Langfuse/Helicone/LangSmith) + structured logging + PII redaction",
+          "Cost optimization (caching mention, model routing, max_tokens budgets, per-feature cost)",
+          "Safety/guardrails (max iterations, human-in-the-loop, AST-safe eval, input validation)",
+          "Portfolio/capstone: deployable full-stack app + README + demo video"
+        ],
+        "requirementsMissing": [
+          "MCP (Model Context Protocol) — named in 2026 JDs, entirely absent",
+          "OpenAI Responses API and Structured Outputs (json_schema/strict) — superseded interface not taught",
+          "Multi-provider fluency (Anthropic Claude + AWS Bedrock) and abstraction layers (LiteLLM/Portkey) — course is OpenAI-only in practice",
+          "Current frontier-model fluency / model routing across GPT-5.x, Claude 4.x, Gemini 3.x",
+          "Hands-on LangGraph / CrewAI (named industry-standard frameworks) — only pseudocode",
+          "Prompt caching (Anthropic/OpenAI) and semantic caching for cost control",
+          "Fine-tuning / LoRA / QLoRA / RLHF exposure (explicit comp premium in JDs)",
+          "OpenTelemetry GenAI tracing / span instrumentation",
+          "Computer-use / vision-action agent deployment",
+          "Memory frameworks (Letta, mem0) beyond conceptual short/long-term memory",
+          "OWASP LLM Top 10 framing of guardrails (esp. excessive agency)",
+          "Parallel tool-call execution and idempotency design"
+        ],
+        "alignmentScore": 68
+      },
+      "sectionsToRedo": [
+        {
+          "section": "Module 1, Lesson 2 (Calling Your First LLM API) + Lesson 3 structured-output guidance",
+          "reason": "Refresh from gpt-4o-mini to current models with model-selection framing; add the OpenAI Responses API and true Structured Outputs (json_schema/strict) vs JSON mode; introduce at least one second provider (Anthropic) so the course isn't single-provider.",
+          "severity": "major"
+        },
+        {
+          "section": "Module 4, Lesson 1 (Building an API Backend with FastAPI)",
+          "reason": "Fix the async correctness bugs: use AsyncOpenAI + await (or run_in_threadpool) inside async routes and the streaming generator; resolve the duplicate /chat route collision. As written, the code blocks the event loop and contradicts the lesson's own async thesis.",
+          "severity": "major"
+        },
+        {
+          "section": "Module 3, Lesson 2 (Integrating External APIs as Agent Tools)",
+          "reason": "Bound the calculator's ast.Pow to prevent DoS, and fix the tool-schema format to the API-valid {type:function,function:{...}} wrapper to match m3-l04 and the real API.",
+          "severity": "major"
+        },
+        {
+          "section": "Module 3 (Agents, Tools, and APIs) — add an MCP lesson + LangGraph/CrewAI hands-on",
+          "reason": "MCP is a 2026 JD standard and is missing entirely; the multi-agent lesson stays at pseudocode while LangGraph/CrewAI are the named frameworks employers expect. Add a concrete framework walkthrough and an MCP integration.",
+          "severity": "major"
+        },
+        {
+          "section": "Module 2, Lesson 1 (Embeddings/Vector DBs) Pinecone claim + Lessons 2/4 import paths",
+          "reason": "Correct the outdated 'Pinecone requires pre-computed vectors' statement (Pinecone has integrated embeddings) and standardize on current LangChain packages (langchain_text_splitters, langchain_chroma); remove obsolete .persist().",
+          "severity": "minor"
+        },
+        {
+          "section": "Module 4, Lesson 3 (Monitoring/Cost) pricing + Lesson 2 Dockerfile",
+          "reason": "Quote prices per 1M tokens and link live pricing; bump base image to 3.12/3.13-slim and chown copied files to the non-root user.",
+          "severity": "minor"
+        }
+      ],
+      "topRecommendations": [
+        "Refresh all model references off the gpt-4o line and add a 'choosing and routing models' lesson spanning current OpenAI/Anthropic/Google frontier models; teach model selection as a skill and link live pricing so the content stops rotting.",
+        "Add an MCP (Model Context Protocol) lesson in Module 3 and convert the multi-agent lesson from pseudocode to a real LangGraph (and/or CrewAI) hands-on build — these three (MCP, LangGraph/CrewAI, frontier models) are the biggest table-stakes gaps vs 2026 JDs.",
+        "Teach the OpenAI Responses API and true Structured Outputs (json_schema/strict) alongside Chat Completions, and stop conflating JSON mode with schema adherence; structured output is central to the whole course.",
+        "Fix the confirmed code defects before any cohort runs the course: async-correct the FastAPI endpoints (AsyncOpenAI/await or run_in_threadpool), remove the duplicate /chat route, bound ast.Pow in the calculator, and wrap m3-l02 tool schemas in {type:function,function:{...}}.",
+        "Go multi-provider: add at least one Anthropic/Claude hands-on path and mention an abstraction layer (LiteLLM/Portkey), since 2026 postings explicitly state single-provider knowledge is insufficient.",
+        "Add a short fine-tuning/adaptation primer (LoRA/QLoRA concepts + when RAG vs fine-tune vs prompt) and a prompt-caching/cost section; these carry an explicit comp premium and cost-optimization is a named must-have.",
+        "Modernize library/runtime currency: standardize on langchain_text_splitters + langchain_chroma, bump Docker to python:3.12/3.13-slim with chown'd non-root files, quote prices per 1M tokens, and pin versions in requirements so examples run as written."
+      ]
+    }
+  },
+  {
+    "slug": "agentic-ai-engineer",
+    "role": "Agentic AI Engineer",
+    "courseGrade": "B",
+    "professorGrade": "B+",
+    "industryGrade": "B-",
+    "verdict": "significant-revisions",
+    "headline": "Pedagogically excellent agentic-AI course with a sound from-scratch spine, held back by two critical defects (insecure eval() taught against its own rule; no security/prompt-injection or MCP coverage) and a currency drift across the SDK/framework surface that must be fixed before it is production-current for a 2026 Agentic AI Engineer role.",
+    "jdAlignmentScore": 74,
+    "topRecommendations": [
+      "Replace every eval()-based calculator (m1-l03, m1-l04) with a genuinely safe evaluator (restricted ast-based numeric parser, simpleeval/numexpr) or a sandboxed executor (E2B/Modal) — both reviewers flag this as the most concrete security-accuracy defect, and as written the worked code directly contradicts the course's own 'never eval untrusted input' rule.",
+      "Add a first-class Security & Guardrails thread: prompt-injection / jailbreak / indirect-injection-via-retrieved-or-tool-content, tool-permission threat modeling, input validation, and output filtering — placed in m1-l02 and reinforced in m3-l04/m4-l04 for a course whose agents issue refunds and send email. Both reviewers rate this the biggest foundational gap.",
+      "Add a first-class MCP (Model Context Protocol) lesson — build a minimal MCP server and consume it as a tool source from the agent — plus a short A2A/ACP overview. The industry reviewer rates this the single biggest 2026 JD currency gap (most-cited protocol, entirely absent); the chair weights it as critical.",
+      "Fix the m2-l03 chunking tokens-vs-characters conflation (use from_tiktoken_encoder or relabel the prose as characters) — both reviewers flag this as a silent, foundational RAG bug that mis-sizes chunks ~4-6x and propagates into the capstone.",
+      "Run a currency pass on the SDK/framework surface: stable openai .parse (drop .beta), langchain_text_splitters import, langgraph.types Send import, modern interrupt()/Command(resume=) HITL idiom, narrow the retry helper to transient-only exceptions, soften the 'largely deprecated' wording, and add a forward-pointer to the Responses API and reasoning models; pin library versions and add a CI check that every code block runs.",
+      "Introduce a second agent framework (OpenAI Agents SDK, CrewAI, or PydanticAI) re-implementing the supervisor/multi-agent patterns plus a multi-provider example (Claude/Gemini with model routing/fallback) so graduates can credibly claim 2+ frameworks and provider-agnostic understanding for 2026 JDs."
+    ],
+    "sectionsToRedo": [
+      {
+        "section": "m1-l03 'Wiring Functions in Python' and m1-l04 'Anatomy of a Tool' calculator examples (replace eval with a safe parser or sandboxed executor; explain why restricted-__builtins__ eval is unsafe)",
+        "reason": "Both reviewers independently flag the eval(expression, {'__builtins__': {}}) calculator as a known-bypassable non-sandbox applied to untrusted model-generated input, directly contradicting the same lessons' 'never eval untrusted input' rule. Industry escalates to critical and ties it to the absent E2B/Modal sandboxing JDs name.",
+        "severity": "critical",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "New lesson: Tool Integration via MCP (build a minimal MCP server, consume it from a LangGraph/Agents-SDK agent) plus an A2A/ACP overview",
+        "reason": "MCP is the most-cited protocol in 2026 Agentic AI Engineer JDs and is entirely absent; without it candidates miss a baseline interview/keyword filter. Flagged critical by industry; the chair weights protocol currency for this target role heavily.",
+        "severity": "critical",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "New cross-cutting Security & Guardrails content (best in m1-l02, reinforced in m3-l04/m4-l04): prompt-injection, indirect injection via retrieved/tool content, tool-permission threat modeling, input validation, output filtering, behavioral monitoring",
+        "reason": "Neither prompt-injection nor agentic threat modeling appears anywhere in 16 lessons despite agents that issue refunds and send email. Both reviewers call this the single biggest foundational gap; it is the marquee agentic security threat least-privilege is meant to defend against.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "m2-l03 'Step 1: Chunking' code block and surrounding prose (reconcile tokens vs characters; switch to a token-based splitter or relabel prose as characters; fix the langchain.text_splitter import)",
+        "reason": "Prose specifies 300-800 tokens / 10-20% overlap but the code uses RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=80), which counts characters by default — yielding chunks ~4-6x smaller than intended. Both reviewers rate this major because it is silent and chunking is foundational to the whole RAG/capstone arc.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "m1-l01 structured-output, retry, and provider coverage: change beta.chat.completions.parse to stable .parse, narrow retry to transient errors (RateLimitError/APITimeoutError/APIConnectionError/5xx) instead of blanket APIError, soften 'largely deprecated', add a Responses-API forward pointer, and add a multi-provider (Claude/Gemini) routing/fallback example",
+        "reason": "Both reviewers flag the .beta path (may AttributeError on current SDKs), the over-broad APIError retry that masks permanent 4xx failures, and the GPT-only Chat-Completions-as-THE-standard framing. Industry additionally ties it to the missing Responses API and multi-provider JD requirements.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "Add a second agent framework module (OpenAI Agents SDK, CrewAI, or PydanticAI) re-implementing the supervisor/hierarchical/parallel patterns taught in LangGraph",
+        "reason": "2026 JDs near-universally want comfort with 2+ frameworks; teaching only LangGraph weakens hireability and portfolio breadth. Industry rates this major. (Professor frames the single-framework, from-scratch-first approach as a pedagogical strength, so this is a coverage/currency add rather than a correctness fix.)",
+        "severity": "major",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "m3-l04 human-in-the-loop section and m3-l03 Send import: add the modern interrupt()/Command(resume=) HITL idiom alongside the legacy interrupt_before+update_state pattern, and change 'from langgraph.constants import Send' to 'from langgraph.types import Send'",
+        "reason": "Both reviewers flag the legacy-only HITL idiom and the langgraph.constants Send import as currency drift; the Send import is also internally inconsistent with m3-l02 which already imports Command from langgraph.types.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "m2-l01 CoT accuracy claim and m1-l03 raw assistant-message append",
+        "reason": "Both reviewers note the unconditional 2022 'CoT improves accuracy' framing should be qualified for reasoning-tuned models (explicit step-by-step prompting often unnecessary/counterproductive; visible CoT may be provider-hidden). Both also flag that messages.append(msg) of the raw SDK response object is version-sensitive and should be serialized (model_dump/explicit dict) and tested against the pinned SDK.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      }
+    ],
+    "accuracyConcerns": [
+      "m2-l03 RAG chunking conflates tokens and characters: prose says 300-800 tokens / 10-20% overlap but RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=80) counts characters by default, silently producing chunks ~4-6x smaller than intended (both reviewers, major).",
+      "m1-l03 and m1-l04 teach a calculator using eval(expression, {'__builtins__': {}}) — a known-bypassable non-sandbox on untrusted model-generated input — while the same lessons say 'never eval untrusted input' (both reviewers; professor major, industry critical).",
+      "m1-l01 retry helper catches broad APIError and retries up to 5 times with backoff, silently retrying non-transient 4xx (auth/invalid-request) failures and masking permanent bugs (both reviewers, minor).",
+      "m2-l01 presents classic 2022 'let's think step by step' CoT as an unconditional accuracy booster without noting that reasoning-tuned models often make explicit CoT prompting unnecessary/counterproductive and may hide visible CoT (both reviewers, minor).",
+      "m1-l03 appends the raw SDK assistant response object (messages.append(msg)) before re-sending; whether the object can be re-appended directly is SDK-version-sensitive and should be serialized and tested against the pinned SDK (both reviewers, minor).",
+      "m3-l01 add_conditional_edges('model', should_continue) returns a node-name string or END sentinel with no explicit path-map; compiles in current LangGraph but should be confirmed against the pinned version (professor, minor)."
+    ],
+    "currencyConcerns": [
+      "client.beta.chat.completions.parse should be the stable client.chat.completions.parse — Structured Outputs graduated from beta and the .beta path may emit deprecation behavior or raise AttributeError on current SDKs (both reviewers; professor outdated, industry major).",
+      "RecursiveCharacterTextSplitter is imported from the deprecated langchain.text_splitter; canonical path is langchain_text_splitters (both reviewers).",
+      "Send is imported from langgraph.constants; canonical location is langgraph.types, and the course is internally inconsistent since m3-l02 already imports Command from langgraph.types (both reviewers).",
+      "HITL is taught only via the legacy interrupt_before + update_state + invoke(None) pattern; the modern idiom is interrupt() inside a node + Command(resume=) (both reviewers).",
+      "Chat Completions is framed as THE modern standard with legacy completions called 'largely deprecated' (overstated) and no mention of the Responses API now positioned as the agent primitive, nor reasoning-model families (both reviewers).",
+      "MCP (Model Context Protocol) is entirely absent — the most-cited protocol in 2026 JDs — along with A2A and ACP interoperability protocols (industry, critical).",
+      "Only LangGraph is taught; 2026 JDs want 2+ frameworks (CrewAI/AutoGen/PydanticAI/OpenAI Agents SDK) (industry, major).",
+      "Model examples are GPT-4o/4o-mini only with no Claude/Gemini code and no multi-provider routing/fallback, despite JDs listing multi-provider integration as a skill (industry, major)."
+    ],
+    "_prof": {
+      "grade": "B+",
+      "summary": "A genuinely strong, well-scaffolded agentic-AI curriculum that builds real, transferable mastery: it teaches the agent loop from scratch before introducing frameworks, progresses logically (API calls -> tools -> loops -> reasoning -> memory/RAG -> LangGraph orchestration -> eval/observability/deployment -> capstone), and is conceptually accurate on the hard parts (ReAct, reducers, supersteps/synchronization barriers, trajectory vs outcome metrics, LLM-as-judge bias mitigation, stateless horizontal scaling). Quizzes are well-constructed and the free-text answers are correct. The grade is held back from A-range by three recurring problems: (1) a small set of concrete code/accuracy defects that would bite a learner who copy-pastes (the tokens-vs-characters chunking conflation; the eval()-based calculator taught in the same lesson that says never eval untrusted input; the over-broad APIError retry); (2) currency drift in the rapidly-moving SDK/framework surface (beta.chat.completions.parse, langchain.text_splitter import, langgraph.constants Send import, interrupt_before/update_state HITL idiom, Chat Completions framed as THE standard with no mention of the Responses API or reasoning models); and (3) one notable foundational security gap: prompt-injection / tool-permission threat modeling is never taught anywhere, despite the course building agents that issue refunds and send email. None of these undermine the pedagogical spine, but they should be fixed before the course is presented as production-current.",
+      "strengths": [
+        "Excellent logical progression and scaffolding: Month 1 builds the raw agent loop by hand (m1-l04) BEFORE Month 3 introduces LangGraph, so learners understand what frameworks hide rather than cargo-culting them. Each project lesson (m2-l04, m3-l04, m4-l04) integrates prior concepts cleanly.",
+        "Conceptually accurate on the genuinely hard ideas: reducers and overwrite-vs-append semantics (m3-l01), the parallel 'superstep' and aggregator-as-synchronization-barrier (m3-l03), delegation vs handoff (m3-l02), outcome vs trajectory metrics and scoring argument-correctness separately (m4-l01), and stateless replicas + shared checkpointer for horizontal scaling (m4-l03) are all explained correctly and at appropriate depth.",
+        "LLM-as-judge lesson (m4-l01) is unusually rigorous for an intro course: it names position/verbosity/self-preference biases with concrete mitigations, insists on reference-guided grading and structured output, and correctly tells learners to calibrate the judge against human labels with Cohen's kappa.",
+        "Quizzes genuinely test understanding rather than recall (e.g. the 'same tool called 5x in a row -> which failure mode' scenario in m4-l02, the 'why must parallel channels use a reducer' question in m3-l03). All free-text answer keys I checked are correct and well-justified.",
+        "Strong, consistent emphasis on production discipline throughout: bounded loops/step limits, tracing every step, grounding/abstain instructions, least-privilege tools, eval-as-regression-tests, and durable checkpointers. This is the mindset an Agentic AI Engineer actually needs.",
+        "Citations to primary sources are accurate and well-chosen (ReAct Yao 2022, CoT Wei 2022, Generative Agents 2304.03442, MemGPT 2310.08560, Zheng MT-Bench 2306.05685)."
+      ],
+      "weaknesses": [
+        "Tokens-vs-characters conflation in the core RAG lesson (m2-l03): prose says 300-800 tokens / 10-20% overlap, but the code is RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=80), which counts CHARACTERS by default. A learner following the code gets chunks ~4-6x smaller than the prose intends. This is the single most damaging accuracy bug because RAG chunking is foundational and the error is silent.",
+        "Security self-contradiction in m1-l03 and m1-l04: both lessons list 'never eval untrusted input' as a best practice, yet both ship a worked calculator tool using eval(expression, {'__builtins__': {}}). Restricting __builtins__ is a known-bypassable non-sandbox, and tool inputs are exactly the untrusted-input case. Teaching the anti-pattern as the canonical example sends a mixed signal in a course about agents that take real actions.",
+        "No coverage of prompt injection / jailbreak / tool-permission threat modeling anywhere in 16 lessons. For agents that issue refunds (m3-l04) and send email, indirect prompt injection via retrieved/tool content is the marquee agentic security threat and is completely absent. Least-privilege is mentioned but never the injection threat it defends against.",
+        "Currency drift in the fast-moving SDK/framework layer: beta.chat.completions.parse (stable .parse now recommended), import from langchain.text_splitter (moved to langchain_text_splitters), import Send from langgraph.constants (canonical is langgraph.types), and HITL taught via interrupt_before+update_state without mentioning the modern interrupt()/Command(resume=) idiom.",
+        "The error-handling helper in m1-l01 retries on APIError broadly for 5 attempts, which would silently retry non-transient 4xx errors (auth failures, invalid requests) with backoff before failing — a poor robustness pattern presented as the 'production-grade' template.",
+        "CoT framing (m2-l01) is presented as 2022-classic universal truth ('improves accuracy on math, logic') without noting that current reasoning-tuned models often make explicit 'let's think step by step' prompting unnecessary or counterproductive, and that providers may hide chain-of-thought. The lesson does add a good production note about hiding visible CoT, but the accuracy claim is stated unconditionally.",
+        "Minor depth gaps for an engineer audience: RAG lesson omits embedding dimensionality/normalization and the text-embedding-3 'dimensions' parameter, and never discusses approximate-vs-exact ANN trade-offs; the deployment lesson (m4-l03) omits auth/rate-limiting/abuse protection (deferred to the capstone)."
+      ],
+      "accuracyIssues": [
+        {
+          "issue": "m2-l03 (RAG): prose specifies chunk size in TOKENS (300-800) and overlap as a percentage, but the code uses RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=80), where the units are CHARACTERS by default in LangChain. The two are conflated, so a learner copying the code produces far smaller chunks than the prose describes.",
+          "lesson": "age-m2-l03",
+          "severity": "major"
+        },
+        {
+          "issue": "m1-l03 and m1-l04 both teach a calculator tool using eval(expression, {'__builtins__': {}}) while the same lessons' best-practices list says 'never eval untrusted input.' Restricting __builtins__ is not a secure sandbox (documented bypasses exist), and tool arguments are untrusted model-generated input. The worked example contradicts the stated safety rule.",
+          "lesson": "age-m1-l03",
+          "severity": "major"
+        },
+        {
+          "issue": "Prompt-injection / jailbreak / indirect-injection-via-tool-content is never covered in any lesson, despite the course building agents that perform irreversible actions (issuing refunds in m3-l04, sending email). This is a foundational agentic-security omission, not merely a depth gap.",
+          "lesson": "age-m1-l02",
+          "severity": "major"
+        },
+        {
+          "issue": "m1-l01 retry helper catches APIError broadly and retries up to 5 times with exponential backoff. APIError subsumes non-transient errors (auth/invalid-request 4xx); retrying those is wasteful and masks permanent failures. Presented as the production-grade pattern.",
+          "lesson": "age-m1-l01",
+          "severity": "minor"
+        },
+        {
+          "issue": "m2-l01 states CoT 'improves accuracy on math, logic, and multi-constraint tasks' as an unconditional truth. With current reasoning-tuned models, explicit 'let's think step by step' prompting is often unnecessary or counterproductive and visible CoT may be provider-hidden. The classic 2022 framing is presented without that caveat (a good production note about hiding CoT exists, but the accuracy claim itself is unqualified).",
+          "lesson": "age-m2-l01",
+          "severity": "minor"
+        },
+        {
+          "issue": "m1-l03 agent loop does messages.append(msg) with the raw SDK response message object then re-sends. Whether the assistant message object can be appended directly is SDK-version-sensitive; some versions require converting to a dict/param shape. Worth verifying it runs as written on the pinned SDK.",
+          "lesson": "age-m1-l03",
+          "severity": "minor"
+        },
+        {
+          "issue": "m3-l01 add_conditional_edges('model', should_continue) where should_continue returns either a node name string or the END sentinel directly, with no explicit path-map argument. This compiles in current LangGraph but is worth confirming against the pinned version since many tutorials pass an explicit mapping.",
+          "lesson": "age-m3-l01",
+          "severity": "minor"
+        }
+      ],
+      "outdatedContent": [
+        {
+          "issue": "m1-l01 uses client.beta.chat.completions.parse(...) with a Pydantic model as response_format for structured output. Structured Outputs has graduated out of beta; the stable client.chat.completions.parse(...) is now the recommended path and the .beta namespace is the older form (may emit deprecation behavior / break on newer SDKs).",
+          "lesson": "Verify against the project's pinned openai SDK version, then change client.beta.chat.completions.parse to client.chat.completions.parse. Add a one-line note that Structured Outputs graduated from beta.",
+          "fix": "Replace client.beta.chat.completions.parse with the stable client.chat.completions.parse and note the graduation from beta."
+        },
+        {
+          "issue": "m1-l01 / m1-l03 present the Chat Completions API as THE modern standard and call legacy completions 'largely deprecated' (overstated — legacy/not-recommended, not formally removed). No mention of the Responses API (now positioned as the recommended agent primitive) or reasoning-model families.",
+          "lesson": "Soften 'largely deprecated' to 'legacy and not recommended for new work.' Add a short callout that OpenAI now offers the Responses API as an agent-oriented primitive, so learners aren't surprised by it in the wild.",
+          "fix": "Reword the deprecation claim and add a forward-pointer to the Responses API and reasoning models."
+        },
+        {
+          "issue": "m2-l03 imports RecursiveCharacterTextSplitter from langchain.text_splitter. The canonical import moved to langchain_text_splitters; the old path is deprecated and emits warnings.",
+          "lesson": "Update the import to 'from langchain_text_splitters import RecursiveCharacterTextSplitter'.",
+          "fix": "Change the import path to langchain_text_splitters."
+        },
+        {
+          "issue": "m3-l03 imports Send from langgraph.constants. The current canonical location is langgraph.types (langgraph.constants may still re-export). m3-l02 already correctly imports Command from langgraph.types, so the course is internally inconsistent.",
+          "lesson": "Change 'from langgraph.constants import Send' to 'from langgraph.types import Send' for consistency with m3-l02 and current docs.",
+          "fix": "Import Send from langgraph.types."
+        },
+        {
+          "issue": "m3-l04 teaches HITL exclusively via interrupt_before=[...] + update_state(...) + invoke(None). The modern LangGraph idiom is interrupt() inside a node + Command(resume=...). The older approach still works but the course never mentions the current one.",
+          "lesson": "Keep the interrupt_before example but add a short section showing the modern interrupt()/Command(resume=) pattern and when to prefer each. Quiz answer for 'how to resume' should acknowledge both.",
+          "fix": "Add coverage of the interrupt()/Command(resume=) idiom alongside the existing interrupt_before approach."
+        }
+      ],
+      "jdComparison": {
+        "jdSources": [
+          "Internal digest of covered skills (no external JD fetched; industry reviewer owns JD comparison)"
+        ],
+        "requirementsCovered": [
+          "LLM API integration and structured output",
+          "Tool/function calling and agent loops",
+          "ReAct / planning / decomposition",
+          "RAG (chunking, embeddings, retrieval, eval)",
+          "Short- and long-term memory",
+          "Multi-agent orchestration with LangGraph",
+          "Human-in-the-loop checkpoints",
+          "Agent evaluation (outcome/trajectory, LLM-as-judge)",
+          "Observability/tracing and debugging",
+          "Deployment (FastAPI, async, SSE, Docker, scaling, persistence)",
+          "Production capstone with portfolio packaging"
+        ],
+        "requirementsMissing": [
+          "Prompt-injection / agentic security threat modeling",
+          "Cost/token budgeting depth and FinOps for agents",
+          "Responses API / reasoning-model currency",
+          "Embedding dimensionality / ANN index trade-offs",
+          "Auth & abuse protection treated as a first-class deployment topic (deferred to capstone only)"
+        ],
+        "alignmentScore": 84
+      },
+      "sectionsToRedo": [
+        {
+          "section": "m2-l03 'Step 1: Chunking' code block and surrounding prose",
+          "reason": "Reconcile the tokens-vs-characters conflation. Either switch to a token-based splitter (e.g. RecursiveCharacterTextSplitter.from_tiktoken_encoder) and keep the 300-800 token guidance, or relabel the prose as characters. Also fix the deprecated langchain.text_splitter import. This is the highest-priority fix because chunking is foundational and the error is silent.",
+          "severity": "major"
+        },
+        {
+          "section": "m1-l03 'Wiring Functions in Python' and m1-l04 'Anatomy of a Tool' calculator examples",
+          "reason": "Replace the eval()-based calculator with an actually-safe evaluator (e.g. a restricted ast-based numeric evaluator or a library like simpleeval/numexpr) so the worked example stops contradicting the lessons' own 'never eval untrusted input' rule. As written it teaches the anti-pattern as canonical.",
+          "severity": "major"
+        },
+        {
+          "section": "New cross-cutting content on agentic security (best placed in m1-l02 and reinforced in m3-l04 / m4-l04)",
+          "reason": "Add prompt-injection and indirect-injection-via-retrieved-content coverage, plus tool-permission threat modeling, for a course whose agents issue refunds and send email. This is the most important foundational gap.",
+          "severity": "major"
+        },
+        {
+          "section": "m1-l01 structured-output and retry sections",
+          "reason": "Update beta.chat.completions.parse to the stable .parse, soften the 'largely deprecated' wording, add a Responses-API forward pointer, and narrow the retry helper to transient errors (RateLimitError, APIConnectionError, 5xx) rather than blanket APIError.",
+          "severity": "minor"
+        },
+        {
+          "section": "m3-l04 human-in-the-loop section and m3-l03 Send import",
+          "reason": "Add the modern interrupt()/Command(resume=) HITL idiom alongside the legacy interrupt_before pattern, and fix the langgraph.constants -> langgraph.types Send import for internal consistency with m3-l02.",
+          "severity": "minor"
+        }
+      ],
+      "topRecommendations": [
+        "Fix the m2-l03 chunking tokens-vs-characters conflation first — it is the highest-impact silent accuracy bug and chunking is foundational to the whole RAG/capstone arc.",
+        "Replace both eval()-based calculator examples (m1-l03, m1-l04) with a genuinely safe evaluator so worked code stops contradicting the stated 'never eval untrusted input' rule.",
+        "Add a dedicated prompt-injection / agentic-security thread (threat modeling, indirect injection via tool/retrieved content, tool-permission scoping) — the single biggest foundational gap for agents that take real actions.",
+        "Run a currency pass on the SDK/framework surface: stable openai .parse, langchain_text_splitters import, langgraph.types Send import, modern interrupt()/Command(resume=) HITL, and a forward-pointer to the Responses API and reasoning models.",
+        "Tighten the m1-l01 retry helper to transient-only exceptions, and qualify the m2-l01 CoT accuracy claim for the reasoning-model era so learners aren't taught a 2022 truth as timeless."
+      ]
+    },
+    "_industry": {
+      "grade": "B-",
+      "summary": "The \"agentic-ai-engineer\" course teaches a genuinely solid, well-sequenced foundation: API calls, structured output, tool/function calling, agent loops from scratch, ReAct/CoT/planning, memory, RAG with retrieval-quality techniques, LangGraph orchestration (supervisor/hierarchical/parallel/Send), HITL, evaluation (outcome vs trajectory, LLM-as-judge with bias mitigation), observability/tracing, and FastAPI+Docker+Postgres deployment culminating in a production multi-agent capstone with a CI regression gate. That breadth maps well to the \"backend-engineering-with-prompts-evals-observability\" reality of the role, and the from-scratch agent loop plus the eval/observability depth are above the bar for many bootcamps. However, against ACTUAL 2026 Agentic AI Engineer job descriptions the course has material currency and coverage gaps that will hurt a candidate: (1) it teaches ONLY LangGraph, while JDs near-universally want 2+ frameworks (LangGraph + CrewAI/AutoGen/PydanticAI/OpenAI Agents SDK); (2) MCP (Model Context Protocol) — now the single most-listed protocol requirement, with A2A/ACP close behind — is COMPLETELY ABSENT; (3) prompt-injection / jailbreak defense, an explicit \"Security & Guardrails\" must-have, is never taught despite the course building tools that take real actions; (4) sandboxed code execution (E2B/Modal) is named as a best practice but the course instead models insecure eval() in three lessons; (5) model examples are GPT-4o/4o-mini only with the legacy Chat Completions framing, no Claude/Gemini code, and no mention of the Responses API; (6) several concrete code paths are outdated and may not run as written (client.beta.chat.completions.parse, langchain.text_splitter import, interrupt_before/update_state legacy HITL idiom, token-vs-character chunking confusion). The capstone is interview-presentable as a portfolio artifact but is single-framework and lacks MCP/multi-framework/security depth that differentiates hires. Net: strong fundamentals, hireable for junior/mid roles after the candidate independently closes the MCP + second-framework + security gaps; not currently complete for a confident 2026 senior agentic role. Estimated hireability: B-.",
+      "strengths": [
+        "From-scratch observe-think-act/ReAct agent loop (m1-l04) teaches the core that frameworks hide — exactly what interviewers probe to distinguish real engineers from framework-gluers.",
+        "Strong, modern evaluation module (m4-l01): outcome vs trajectory metrics, tool-argument correctness scored separately, LLM-as-judge with position/verbosity/self-preference bias mitigation, Cohen's kappa calibration, and CI/CD regression gating — this matches JD 'eval pipelines' must-haves closely.",
+        "Observability lesson (m4-l02) covers traces/spans/OpenTelemetry, failure-mode taxonomy, loop detection by hashing (tool,args), and a 6-step debugging workflow — directly aligned with the 'observability (Langfuse/Phoenix/Helicone)' JD requirement.",
+        "Realistic production deployment (m4-l03): FastAPI async, AsyncPostgresSaver shared checkpointer, SSE streaming, Docker, stateless horizontal scaling, health/ready probes — strong backend-engineering signal.",
+        "LangGraph coverage is thorough and correct in concept: State/reducers, conditional edges, checkpointers, supervisor/hierarchical/parallel fan-out, Send API as a synchronization barrier.",
+        "RAG module is comprehensive: chunking, embeddings, cosine similarity, vector stores, hybrid/BM25, cross-encoder reranking, query rewriting, metadata filtering, and recall@k/precision@k/faithfulness with RAGAS — matches the JD 'hybrid retrieval + RAGAS' line item.",
+        "Capstone (m4-l04) packages a real portfolio artifact with auth, rate limiting, cost/latency budgets, citations, and a CI quality gate — interview-demonstrable.",
+        "Good engineering judgment throughout: least-privilege roles, deterministic-over-LLM routing, gating only irreversible actions, write-policy for long-term memory, same-embedding-model discipline."
+      ],
+      "weaknesses": [
+        "Single-framework: only LangGraph is taught. 2026 JDs explicitly want comfort with at least two of LangGraph/CrewAI/AutoGen/PydanticAI/OpenAI Agents SDK ('used in 85% of production agent systems').",
+        "MCP (Model Context Protocol) is entirely missing — it is the single most-cited protocol in current JDs (97M+ installs, Linux Foundation governance). A2A and ACP are also absent. This is the biggest currency gap.",
+        "No prompt-injection / jailbreak defense or tool-permission threat modeling, despite building action-taking agents — JDs list 'multi-layer guardrails (input validation, output filtering, behavioral monitoring) + prompt injection defense' as a core competency.",
+        "Insecure eval() is modeled in three lessons (m1-l03, m1-l04) as the calculator tool, directly contradicting the course's own 'never eval untrusted input' rule. No sandboxed execution (E2B/Modal) is taught though JDs name it.",
+        "Model/API currency: GPT-4o/4o-mini only; no Claude or Gemini code despite JDs listing multi-provider routing/fallback as a skill; teaches only Chat Completions, never mentions the Responses API now positioned as the agent primitive.",
+        "Outdated code that may not run as written: client.beta.chat.completions.parse (graduated out of beta), langchain.text_splitter import (moved to langchain_text_splitters), and the legacy interrupt_before/update_state HITL pattern (current idiom is interrupt()/Command(resume=)).",
+        "Token-vs-character confusion in RAG: prose says 300-800 tokens / 10-20% overlap but code uses RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=80) which counts characters — produces far smaller chunks than implied.",
+        "Retry helper retries broad APIError (including non-transient 4xx auth/invalid-request errors), which would silently retry permanent failures.",
+        "No reinforcement-learning / fine-tuning exposure, which several JDs list (though typically 'nice-to-have' for applied roles).",
+        "No graph-database/memory-graph (Neo4j/Memgraph) or voice/browser-agent exposure that appear in the most demanding JDs (reasonable to scope out, but worth noting)."
+      ],
+      "accuracyIssues": [
+        {
+          "issue": "m1-l01 teaches structured output via client.beta.chat.completions.parse(...) with response_format=<PydanticModel>. The .beta namespace path graduated to client.chat.completions.parse / client.responses.parse in current OpenAI SDKs and may raise AttributeError on up-to-date installs.",
+          "lesson": "Pin SDK versions in examples and verify the import/namespace path against the installed SDK; teach the current non-beta parse path and note version sensitivity.",
+          "severity": "major"
+        },
+        {
+          "issue": "m1-l03 and m1-l04 model the calculator tool as eval(expression, {'__builtins__': {}}, {}). Restricting __builtins__ is NOT a secure sandbox (well-known bypasses exist), and the same lessons say 'never eval untrusted input' — a directly self-contradictory pedagogical signal in a course that builds action-taking agents.",
+          "lesson": "Replace the eval demo with a safe arithmetic parser (e.g. ast.literal_eval-based or a tokenized evaluator) or a sandboxed executor (E2B/Modal), and explicitly explain why restricted-__builtins__ eval is unsafe.",
+          "severity": "major"
+        },
+        {
+          "issue": "m1-l03 agent loop appends the raw assistant response object (messages.append(msg)) before re-sending. Whether the SDK response message object is accepted directly back into messages is version-sensitive; in some SDK versions it must be converted to a dict first, so the example may not run as written.",
+          "lesson": "Append a serialized assistant message (model_dump or explicit dict with role/content/tool_calls) and test the loop end-to-end against the pinned SDK.",
+          "severity": "minor"
+        },
+        {
+          "issue": "m2-l03 conflates tokens and characters: prose specifies 300-800 tokens with 10-20% overlap, but RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=80) measures characters by default — yielding chunks roughly 4x smaller than the prose implies.",
+          "lesson": "Either use a token-based splitter (e.g. from_tiktoken_encoder) or restate the numbers as characters; make prose and code consistent so learners don't mis-size chunks.",
+          "severity": "major"
+        },
+        {
+          "issue": "m1-l01 retry helper catches (RateLimitError, APIError) and retries up to 5 times with backoff. APIError covers non-transient errors (auth failures, invalid requests); retrying 4xx client errors with backoff silently retries permanent failures and masks bugs.",
+          "lesson": "Retry only on RateLimitError/APITimeoutError/APIConnectionError and 5xx; let 4xx fail fast. Show selective exception handling.",
+          "severity": "minor"
+        },
+        {
+          "issue": "m1-l01 states the legacy completions API is 'largely deprecated.' It is legacy/not-recommended but, at time of writing, not formally fully deprecated/removed; the strong wording overstates the status.",
+          "lesson": "Soften to 'legacy, no longer recommended for new work' and cite the current official status.",
+          "severity": "minor"
+        },
+        {
+          "issue": "m2-l01 presents classic (2022) 'Let's think step by step' CoT as a general accuracy booster without noting that current reasoning-tuned models often make explicit CoT prompting unnecessary or counterproductive, and that providers may hide visible CoT.",
+          "lesson": "Add a note distinguishing prompt-elicited CoT (non-reasoning models) from native reasoning models, where explicit CoT cues add little.",
+          "severity": "minor"
+        }
+      ],
+      "outdatedContent": [
+        {
+          "issue": "m2-l03 imports RecursiveCharacterTextSplitter from langchain.text_splitter. In current LangChain the canonical path is langchain_text_splitters; the old path is deprecated and emits warnings.",
+          "fix": "Change import to 'from langchain_text_splitters import RecursiveCharacterTextSplitter' and add langchain-text-splitters to the dependency list across RAG lessons.",
+          "lesson": "langchain.text_splitter is deprecated; use the langchain_text_splitters package."
+        },
+        {
+          "issue": "m3-l04 teaches HITL using interrupt_before=[...] + graph.update_state(...) + graph.invoke(None, ...). Current LangGraph idiom favors the interrupt() function called inside a node plus Command(resume=value) to resume.",
+          "fix": "Add (or switch to) the interrupt()/Command(resume=...) pattern as the primary approach, keeping interrupt_before only as a legacy/alternative note.",
+          "lesson": "Modern LangGraph HITL uses dynamic interrupt()/Command(resume=); interrupt_before/update_state is the older pattern."
+        },
+        {
+          "issue": "m1-l01 and m1-l03 use only gpt-4o / gpt-4o-mini and frame Chat Completions as THE modern standard, with no mention of the Responses API now positioned as the recommended agent primitive, and no Claude/Gemini examples despite JD multi-provider requirements.",
+          "fix": "Add a short section on the Responses API and a provider-abstraction example showing the same call against Claude (Anthropic) and Gemini, plus model-routing/fallback.",
+          "lesson": "Teach provider-agnostic patterns and mention the Responses API; do not present a single vendor's Chat Completions as the whole field."
+        },
+        {
+          "issue": "m3-l03 states Send is imported from langgraph.constants. In current versions Send is commonly exposed via langgraph.types (langgraph.constants may still re-export it), so the import is version-sensitive.",
+          "fix": "Use 'from langgraph.types import Send' (note constants as a legacy fallback) and pin a LangGraph version in the lesson setup.",
+          "lesson": "Prefer langgraph.types for Send in current LangGraph; pin versions."
+        },
+        {
+          "issue": "Entire course omits MCP, A2A, and ACP — the protocols now dominating 2026 JDs (MCP especially). No lesson covers building or consuming an MCP server/client.",
+          "fix": "Add a lesson 'Tool Integration via MCP': build a minimal MCP server, connect it as a tool source to a LangGraph/Agents-SDK agent, and briefly cover A2A/ACP for agent interoperability.",
+          "lesson": "MCP is now a baseline Agentic AI Engineer requirement and must be a first-class lesson."
+        }
+      ],
+      "jdComparison": {
+        "jdSources": [
+          "https://agentic-engineering-jobs.com/what-is-agentic-engineering (What is Agentic AI Engineering? Definition, Skills & Tech Stack 2026 — 8 required competencies, tools, MCP/A2A protocols)",
+          "https://www.novelvista.com/blogs/ai-and-ml/agentic-ai-engineer-career-guide (Agentic AI Engineer: Job Description, Skills & Roadmap 2026 — frameworks, cloud deploy platforms, MCP, LLM-as-judge)",
+          "https://medium.com/data-science-collective/the-agentic-ai-engineer-roadmap-for-2026-skills-stack-and-order-fc1dfa17948d (Agentic AI Engineer Roadmap 2026 — stack and skill order)",
+          "https://theaicareerlab.com/blog/agentic-ai-jobs-guide-2026 (The Agentic-AI Job Guide: roles, pay, must-haves) and an aggregated May-2026 posting listing LangGraph/LangChain/LlamaIndex/MCP/A2A/RAGAS/Qdrant/E2B/Langfuse/judge calibration"
+        ],
+        "requirementsCovered": [
+          "Strong Python + software-engineering practices",
+          "Agent architecture: single vs multi-agent, supervisor/hierarchical/parallel topologies, LangGraph state graphs",
+          "Tool use / function calling with JSON Schema",
+          "Building agent loops (ReAct/observe-think-act) including from scratch",
+          "RAG pipeline engineering: chunking, embeddings, hybrid (BM25+vector) retrieval, reranking, query rewriting, metadata filtering",
+          "Vector databases (Chroma/FAISS/Pinecone/Weaviate/pgvector/Qdrant referenced)",
+          "Evaluation & testing: offline regression eval, recall@k/precision@k/faithfulness, RAGAS, LLM-as-judge with bias mitigation and calibration, CI/CD regression gating",
+          "Agent memory & state management (short-term window/summary, long-term vector memory, checkpointer persistence)",
+          "Human-in-the-loop approval gates / escalation",
+          "Observability & tracing (OpenTelemetry/LangSmith/Langfuse/Phoenix), debugging failure modes",
+          "Deployment: FastAPI async APIs, SSE streaming, Docker, Postgres-backed persistence, horizontal scaling, health probes",
+          "Cost/latency controls and step/token budgets",
+          "Multi-agent orchestration, handoffs/delegation, Send-based dynamic fan-out",
+          "Portfolio/capstone with auth + rate limiting"
+        ],
+        "requirementsMissing": [
+          "MCP (Model Context Protocol) — building/consuming MCP servers/clients (top JD protocol)",
+          "A2A and ACP agent-interoperability protocols",
+          "Second/third agent framework (CrewAI, AutoGen, PydanticAI, or OpenAI Agents SDK) — JDs want 2+",
+          "Prompt-injection / jailbreak defense and multi-layer guardrails (input validation, output filtering, behavioral monitoring)",
+          "Sandboxed code/tool execution (E2B/Modal) instead of eval()",
+          "Multi-provider integration with Claude/Gemini code and model routing/fallback",
+          "Responses API awareness (vs Chat-Completions-only)",
+          "Graph databases / memory graphs (Neo4j/Memgraph)",
+          "Cloud-native managed agent platforms (Amazon Bedrock AgentCore, Google Vertex AI Agent Builder)",
+          "Fine-tuning and reinforcement-learning-from-feedback fundamentals",
+          "Voice agents and browser agents (demanding-JD extras)",
+          "AI governance/compliance (ISO/IEC 42001) awareness"
+        ],
+        "alignmentScore": 68
+      },
+      "sectionsToRedo": [
+        {
+          "section": "New lesson: Tool Integration via MCP (and A2A/ACP overview)",
+          "reason": "MCP is the most-cited protocol in 2026 Agentic AI Engineer JDs and is entirely absent from the course. Without it, candidates miss a baseline interview/keyword filter.",
+          "severity": "critical"
+        },
+        {
+          "section": "m1-l03 / m1-l04 calculator tool (replace eval with safe parser or sandboxed executor) + new security content on sandboxed execution",
+          "reason": "Course models insecure eval() while preaching 'never eval untrusted input,' and omits E2B/Modal sandboxing that JDs name. Contradictory and a real security-accuracy defect.",
+          "severity": "critical"
+        },
+        {
+          "section": "New lesson or major addition: Prompt-injection & guardrails (input validation, output filtering, behavioral monitoring, tool-permission threat modeling)",
+          "reason": "Explicit JD 'Security & Guardrails' competency for action-taking agents is uncovered; major employer expectation and safety gap.",
+          "severity": "major"
+        },
+        {
+          "section": "Add a second framework module (CrewAI or OpenAI Agents SDK or PydanticAI) mapped to the same multi-agent patterns",
+          "reason": "JDs want comfort with 2+ frameworks; teaching LangGraph alone weakens hireability and portfolio breadth.",
+          "severity": "major"
+        },
+        {
+          "section": "m1-l01 structured-output + retry section and provider coverage",
+          "reason": "Outdated .beta.parse path, over-broad APIError retries, and GPT-only Chat-Completions framing without Responses API or Claude/Gemini examples; risk of non-running code and currency gaps.",
+          "severity": "major"
+        },
+        {
+          "section": "m2-l03 chunking code (token vs character) and m3-l04 HITL pattern + langchain_text_splitters / langgraph.types imports",
+          "reason": "Token/character mismatch mis-teaches chunk sizing; legacy HITL idiom and deprecated import paths reduce currency and may emit warnings or not run.",
+          "severity": "major"
+        }
+      ],
+      "topRecommendations": [
+        "Add a first-class MCP lesson (build a minimal MCP server, consume it as a tool source from a LangGraph/Agents-SDK agent) plus a short A2A/ACP overview — this closes the single biggest 2026 JD gap.",
+        "Add a Security & Guardrails lesson covering prompt-injection/jailbreak defense, input validation, output filtering, behavioral monitoring, and tool-permission threat modeling; replace every eval() calculator with a safe parser or an E2B/Modal-style sandboxed executor.",
+        "Introduce a second framework (recommend OpenAI Agents SDK or CrewAI) re-implementing the supervisor/multi-agent patterns so graduates can claim 2+ frameworks and show framework-agnostic understanding.",
+        "Modernize Month-1 API content: teach the current non-beta structured-output parse path, mention the Responses API, add a provider-abstraction example with Claude and Gemini plus model routing/fallback, and make retries selective (transient errors only).",
+        "Fix currency/correctness defects: update HITL to interrupt()/Command(resume=), switch imports to langchain_text_splitters and langgraph.types, and reconcile the token-vs-character chunking numbers; pin all library versions in lesson setups and add a CI check that every code block runs.",
+        "Strengthen the capstone to require at least one MCP-integrated tool, an explicit guardrail/injection-defense layer, and a multi-provider model config, so the portfolio artifact directly demonstrates the highest-demand 2026 skills in an interview."
+      ]
+    }
+  },
+  {
+    "slug": "kwasi-GenAI",
+    "role": "Applied GenAI Engineer (from Cloud Engineer)",
+    "courseGrade": "B+/A-",
+    "professorGrade": "A-",
+    "industryGrade": "B+",
+    "verdict": "minor-revisions",
+    "headline": "A current, well-sequenced GenAI course that ships as-is for the cloud-to-applied-GenAI transition, but needs a targeted minor-revision pass: fix the phantom Anthropic embeddings endpoint, add judge-bias + A/B significance rigor, and harden the concrete artifacts (Dockerfile, caching math, model-ID hygiene).",
+    "jdAlignmentScore": 85,
+    "topRecommendations": [
+      "DO NOT TOUCH the verified-current API surface. The pre-flight digest's headline 'model IDs and output_config.format/messages.parse are wrong' is a confirmed FALSE ALARM — independently corroborated by both reviewers AND verified by me against the live claude-api reference. claude-opus-4-8 / claude-sonnet-4-6 / claude-haiku-4-5, output_config.format, messages.parse/parsed_output, mcp_servers, the memory tool, and the large-max_tokens streaming guard are all canonical and current. Changing any of them would introduce errors, not fix them.",
+      "Fix the highest-confidence accuracy bug first (g2-l01 embeddings): both reviewers independently flagged it and the live API reference confirms Anthropic has no first-party embeddings endpoint. Remove the implied native endpoint and the dead docs.anthropic.com/.../embeddings link; point to real options (Voyage AI as Anthropic's recommended partner, Bedrock Titan, Azure OpenAI, open models like BGE/E5); state plainly that Anthropic offers no native embeddings API. This is a lesson-1-of-the-RAG-module trust breaker that also fails if a learner tries the call.",
+      "Close the two quantitative-rigor gaps both reviewers cite in the measurement month: (a) g4-l01 — name and mitigate LLM-as-judge biases (position/order, verbosity, self-preference when the judge shares the model family) with swap-A/B-and-average and held-out human calibration; (b) g4-l02 — give a concrete significance method (two-proportion z-test / confidence interval / sample-size rule of thumb) and fix the pairwise-judge example to randomize A/B order and reconcile the judge() signature with g4-l01. This is the difference between a graduate who can claim to measure quality and one who actually can in a technical screen.",
+      "Harden the concrete artifacts to match the course's stated security-engineer posture: make the g5-l04 Dockerfile non-root + multi-stage with build-time secrets (currently single-stage as root); add the g4-l03 prompt-caching break-even economics (write premium ~1.25x for 5-min / 2x for 1-hr, reads ~0.1x, ~2-request break-even, and the model-dependent minimum cacheable prefix — 4096 tokens on Opus 4.8, verified against the live reference); add the g2-l03 distance-metric/normalization caveat (cosine vs dot-product/inner-product vs L2 must match the embedding model).",
+      "Sweep the remaining currency/hygiene items: normalize date-suffixed model IDs (claude-haiku-4-5-20251001) to bare aliases per the canonical 'never append date suffixes' guidance; normalize all resource URLs to platform.claude.com with a link-check pass and remove the two non-existent first-party links (embeddings g2-l01, fine-tuning g2-l06); add a 'these are beta/dated APIs — pin and verify your SDK version' note to the MCP and memory lessons.",
+      "Decide on scope for the larger JD-coverage gaps the industry reviewer raised (hands-on LoRA/QLoRA fine-tuning, hybrid BM25+vector search, LangGraph/CrewAI, multimodal/vision). These are real 2026-JD line items and the most likely to surface in a technical screen, but they are additive curriculum expansion, not corrections — schedule them as a fast-follow content release rather than blocking the minor-revision ship of the accuracy/rigor fixes above."
+    ],
+    "sectionsToRedo": [
+      {
+        "section": "g2-l01-embeddings — resources list and the 'Getting an embedding from an API' framing",
+        "reason": "Implies a first-party Anthropic embeddings endpoint and links a dead docs.anthropic.com/.../embeddings URL. Verified against the live claude-api reference: Anthropic has no native embeddings API. Highest-confidence accuracy bug, in lesson one of the RAG module, and it fails if a learner attempts the call. Remove the implied endpoint + dead link; point to Voyage AI / Bedrock Titan / Azure OpenAI / open models; state Anthropic offers no first-party embeddings.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "g4-l01-evaluation — LLM-as-judge section",
+        "reason": "For the lesson whose entire purpose is reliable measurement, judge biases (position/order, verbosity, self-preference when the judge shares the answer model's family) are unnamed and the only mitigation offered is the too-weak 'spot-check the judge.' Add explicit bias treatment and standard mitigations: swap A/B order and average, use a different model family as judge where feasible, calibrate against human ratings on a held-out slice.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "g4-l02-prompt-ab-testing — 'Telling signal from noise' section and the pairwise-judge code example",
+        "reason": "Repeatedly tells learners to 'decide sample size up front' / 'avoid peeking' with no method to act on it (no two-proportion test, no confidence interval, no sample-size heuristic), so a learner cannot separate signal from noise on their own data. Additionally the pairwise example feeds A/B in a fixed order — embodying the position bias the lesson never warns about — and the judge() call signature contradicts its g4-l01 definition. Add a concrete significance method and fix the example to randomize/alternate order and reconcile the signature.",
+        "severity": "major",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "g2-l06-rag-vs-finetuning — resource label and link (plus optional hands-on fine-tuning lesson)",
+        "reason": "Resource 'Anthropic docs — Fine-tuning' + docs.anthropic.com/.../fine-tuning URL imply a first-party Anthropic fine-tuning product; fine-tuning is only via Amazon Bedrock (the lesson body states this correctly, but the label/link overstate availability and likely 404). Relabel/repoint to the real Bedrock destination. Separately, the industry reviewer notes there is zero hands-on LoRA/QLoRA practice anywhere — a real JD gap; an added practical fine-tuning lesson is recommended as a fast-follow, but the link/label fix is the in-scope correction.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "g4-l03-cost-optimization — 'Lever 1: prompt caching' section",
+        "reason": "Omits the break-even economics needed to estimate when caching pays off. Verified against the live reference: add write premium (~1.25x for 5-min TTL, 2x for 1-hr), read discount (~0.1x), ~2-request break-even (5-min), and the model-dependent minimum cacheable prefix (4096 tokens on Opus 4.8 — a short prefix silently won't cache). Also normalize the date-suffixed Haiku IDs that appear in this lesson's code.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "g5-l04-packaging — Dockerfile example",
+        "reason": "Single-stage, runs as root with no non-root USER directive, in a course that repeatedly positions the learner as a security-minded engineer — the concrete artifact contradicts the stated posture. Add a non-root USER, prefer a multi-stage (builder + slim runtime) build, reference Docker build secrets / pinned base image digest / healthcheck rather than only -e at runtime.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "g2-l03-vector-databases — distance-metric / 'three operations' guidance",
+        "reason": "Presents cosine as the metric 'usually' used with only vector_cosine_ops shown; no note that the metric must match the embedding model's training objective (cosine vs dot-product/inner-product vs L2) and no mention of vector normalization — a silent retrieval-quality footgun. Add a short matching-and-normalization caveat. (Industry reviewer additionally flags absent hybrid BM25+vector search here — additive, schedule as fast-follow.)",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "Resource-link hygiene across Months 2 and 4 + MCP/memory beta version notes",
+        "reason": "Months 2 and 4 use the legacy docs.anthropic.com host while Months 1 and 3 use the current platform.claude.com host, indicating un-reverified/stale link sets. Normalize every resource URL to platform.claude.com/docs/en/... and add a link-check step. Separately, the MCP and memory lessons rely on current-but-version-fragile beta surfaces and dated type strings (memory_20250818, beta tool_runner/async_mcp_tool import paths) — add a one-line 'targets SDK >= X.Y; these are beta APIs, verify your SDK version' note so learners re-verify after an SDK bump.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "g3-l03-orchestration-frameworks — add LangGraph and name CrewAI",
+        "reason": "Industry reviewer only: LangChain/LlamaIndex get one lesson while LangGraph (stateful/graph agents) and CrewAI — the frameworks 2026 Applied AI Engineer postings cite most — are barely surfaced; learners will meet them in JDs and interviews. Add a short LangGraph section and at least name CrewAI, mapping both back to the raw plan-act-observe loop the course already teaches. Additive currency fix, not a correction.",
+        "severity": "minor",
+        "whoFlagged": "industry"
+      }
+    ],
+    "accuracyConcerns": [
+      "VERIFIED FALSE ALARM (do not change): The digest's top-flagged 'errors' — that model IDs (claude-opus-4-8, claude-sonnet-4-6, claude-haiku-4-5) and the structured-output surface (output_config.format, messages.parse, parsed_output) are wrong — are NOT errors. Both reviewers independently refuted this and I confirmed it against the live claude-api reference: these are the canonical current model IDs and the recommended current structured-output mechanism (the old output_format is deprecated). mcp_servers, the memory tool, and the large-max_tokens streaming guard are likewise current. A reviewer working from an early-2026 mental model would wrongly flag these as forward-dated; they are real.",
+      "CONFIRMED (major): g2-l01 implies a first-party Anthropic embeddings endpoint and links a dead docs URL. Anthropic has no native embeddings API — verified by its absence from the live reference. Both reviewers flagged this independently; it is the single highest-confidence accuracy defect.",
+      "CONFIRMED (minor): g2-l06 resource label + docs.anthropic.com/.../fine-tuning URL imply a first-party Anthropic fine-tuning product. Fine-tuning is available only through Amazon Bedrock (the lesson body says this correctly); the resource label/link overstate first-party availability and likely 404.",
+      "CONFIRMED (minor): g4-l02 pairwise-judge code is internally inconsistent — judge() is defined as judge(question, reference, answer) in g4-l01 but called as judge(c, a, b) in g4-l02, and feeds A/B in a fixed order, demonstrating (without flagging) the position bias the lesson never warns about. Presented as a working pattern though it is illustrative pseudocode.",
+      "CONFIRMED (minor): g2-l03 teaches cosine as the metric 'usually' used with only vector_cosine_ops, no mention that the metric must match the embedding model's objective (dot-product/inner-product or L2) and no normalization caveat — a silent retrieval-degradation footgun with no error surfaced."
+    ],
+    "currencyConcerns": [
+      "CONFIRMED (minor): Date-suffixed model IDs (claude-haiku-4-5-20251001) appear in runnable code in g4-l03 and g5-l01, contradicting the canonical 'use bare aliases, never append date suffixes' guidance verified in the live reference. Note the suffixed string is the real full Haiku ID, so it is not invalid — but it is inconsistent with the alias convention used for Opus/Sonnet in the same lessons and reads as stale. Normalize to claude-haiku-4-5.",
+      "CONFIRMED (minor): Resource links use two hosts — Months 2 and 4 use legacy docs.anthropic.com/en/..., Months 1 and 3 use the current platform.claude.com/docs/en/.... The legacy host generally redirects, but the split indicates the Month-2/4 link sets were never re-verified. Normalize to platform.claude.com and add a link-check step; the two non-existent first-party links (embeddings, fine-tuning) must be removed/relabeled in the same pass.",
+      "CONFIRMED (minor): MCP and memory lessons depend on current-but-fast-moving beta surfaces and dated identifiers — memory tool type string memory_20250818, client.beta.messages.tool_runner, anthropic.lib.tools.mcp.async_mcp_tool, the mcp_servers request param. These are correct and current as written (verified) but are version-sensitive and break silently on SDK upgrades. Add an explicit 'targets SDK >= X.Y; these are beta APIs/dated type strings — check the SDK changelog' note so learners re-verify rather than assuming permanence.",
+      "CONFIRMED (minor): g4-l03 prompt-caching cost lesson omits the break-even inputs that decide whether caching pays off. Live-reference values: write premium ~1.25x (5-min TTL) / 2x (1-hr), reads ~0.1x, ~2-request break-even on 5-min, and a model-dependent minimum cacheable prefix of 4096 tokens on Opus 4.8 (a shorter prefix silently won't cache). The industry reviewer's 'minimum cacheable prefix ~4096 on Opus 4.8' is the precise figure; the professor's '1024-4096, model-dependent' is the right shape. Add these so the cost lesson is actionable.",
+      "SCOPE NOTE (not a correction): Agent-framework currency — LangGraph and CrewAI (the most-cited 2026 orchestration frameworks) are barely surfaced vs a single LangChain/LlamaIndex lesson. This is a framework-currency gap that drifts fastest of any course content; address as a fast-follow content refresh."
+    ],
+    "_prof": {
+      "grade": "A-",
+      "summary": "A rigorous, well-scaffolded 35-lesson course that takes a cloud/DevOps engineer from LLM mechanics to a deployed, layered GenAI system. Conceptual accuracy is high and the API surface is current: I verified the model IDs (claude-opus-4-8, claude-sonnet-4-6, claude-haiku-4-5), output_config.format / messages.parse, the mcp_servers parameter, the memory tool, and the SDK large-max_tokens timeout guard against the authoritative claude-api reference — all are correct and current, NOT the errors the digest's \"candidate issues\" suspected. A reviewer working from an early-2026 mental model would wrongly flag these; they are forward-dated but real. The genuine accuracy defects are narrower and concentrated in Month 2: the lessons imply a first-party Anthropic embeddings endpoint and a first-party Anthropic fine-tuning product (via resource links to docs.anthropic.com/.../embeddings and /.../fine-tuning), neither of which exists — Anthropic has no native embeddings API (it points to third parties such as Voyage AI) and fine-tuning is only via Amazon Bedrock. The lesson bodies are careful and provider-agnostic, but the resource labels and one \"whether you use Anthropic\" aside overstate availability. Pedagogy is the course's strength: tight tokenise-predict-sample-repeat through-line, a deliberate raw-API-before-frameworks progression, consistent and correct quizzes (0-indexed, answer:1 = second option throughout), and hands-on tasks every lesson. The real gaps are depth, not correctness: LLM-as-judge is taught without naming position/verbosity/self-preference bias and its swap-and-average mitigation; A/B testing tells learners to \"decide sample size up front\" without any method (no significance test, CI, or sample-size heuristic); prompt-caching cost economics omit minimum-cacheable-tokens, TTL, and the write premium; the Dockerfile runs as root single-stage in a course that repeatedly frames the learner as security-minded; and vector-DB distance-metric guidance is thin (cosine-only, no dot-product/L2 or normalization caveat). None of these undermine transferable mastery — a graduate would ship a working, grounded, evaluated, guard-railed RAG/agent system — but closing the judge-bias, sample-size, and Docker-hardening gaps would move this from a strong A- to an unambiguous A.",
+      "strengths": [
+        "Conceptual through-line is excellent: g1-l01 establishes tokenise→predict→sample→repeat and the rest of the course (hallucination, cost, latency, structure, RAG, agents) is framed as consequences of that one loop, giving genuine scaffolding rather than a topic list.",
+        "Deliberate pedagogical sequencing — raw Messages API and the manual tool_use loop (Month 1) are taught BEFORE frameworks (g3-l03), so LangChain/LlamaIndex are demystified as 'the same loop' rather than black boxes. This is the right order for durable understanding.",
+        "Quizzes are consistent and correct: 0-indexed with answer:1 reliably pointing to the second option, 'why' explanations are accurate, and the free-text questions test reasoning (e.g. RAG-vs-finetuning decision framework, when offline eval suffices) rather than recall.",
+        "Every lesson ends with a concrete, applied 'Your task' that builds toward the four module deliverables and the capstone — the course teaches by shipping, which fits the Applied GenAI Engineer target role.",
+        "Security and grounding are woven throughout (citations, tenant isolation in vector metadata, MCP credential boundary, prompt-injection defense-in-depth, OWASP LLM Top 10), correctly leveraging the learner's cloud/security background as the differentiator.",
+        "Cross-provider portability (Bedrock, Azure/Foundry) is stated accurately and repeatedly without overclaiming, which keeps the material useful beyond first-party Anthropic.",
+        "API code examples are current and runnable as written: output_config.format, messages.parse with Pydantic, the async MCP tool_runner, prompt caching via cache_control ephemeral, and streaming with get_final_message all match the live SDK surface."
+      ],
+      "weaknesses": [
+        "LLM-as-judge (g4-l01) and the pairwise judge (g4-l02) are taught as reliability tools without naming their well-known failure modes — position/order bias, verbosity bias, self-preference when the judge shares the model family — or the standard swap-A/B-and-average mitigation. 'Spot-check the judge' is too weak for a lesson whose entire purpose is trustworthy measurement.",
+        "A/B testing (g4-l02) repeatedly instructs 'decide the sample size up front' and 'avoid peeking' but gives no method to act on it: no two-proportion test, no confidence interval, no sample-size rule of thumb, no significance reference. The discipline is named without the tools to execute it, so a learner cannot actually separate signal from noise on their own data.",
+        "Two Month-2 lessons imply first-party Anthropic products that do not exist: a native embeddings endpoint (g2-l01 resource 'Anthropic docs — Embeddings' + 'whether you use Anthropic') and first-party fine-tuning (g2-l06 resource label). Both are mitigated by accurate body text but the resource links and asides are misleading.",
+        "Prompt-caching cost lesson (g4-l03) omits the practical break-even inputs — minimum cacheable prefix (1024–4096 tokens, model-dependent), cache TTL, and the write premium (~1.25× for 5-min, 2× for 1-hour) — so a learner cannot estimate when caching actually pays off.",
+        "The deploy Dockerfile (g5-l04) is single-stage and runs as root with no non-root USER directive, in a course that repeatedly positions the learner as a security-minded engineer — the concrete example contradicts the stated posture.",
+        "Vector-DB distance-metric guidance (g2-l03) is thin: cosine is presented as the metric 'usually' used with only vector_cosine_ops shown, no mention that some embedding models are tuned for dot-product/inner-product or L2, and no note on vector normalization — a silent-mismatch footgun.",
+        "Resource-link hygiene is inconsistent: Months 2 and 4 use the legacy docs.anthropic.com host while Months 1 and 3 use platform.claude.com, suggesting some links are stale or redirecting and were never normalised."
+      ],
+      "accuracyIssues": [
+        {
+          "issue": "g2-l01-embeddings lists 'Anthropic docs — Embeddings' (https://docs.anthropic.com/en/docs/build-with-claude/embeddings) as a resource and says the embeddings pattern is 'identical whether you use Anthropic, an OpenAI-compatible endpoint, or Amazon Bedrock Titan / Azure OpenAI', implying a first-party Anthropic embeddings API. Anthropic does not offer a native embeddings endpoint (it recommends third parties such as Voyage AI); the live claude-api documentation index has no embeddings resource. The link likely 404s/redirects and the framing overstates availability.",
+          "lesson": "g2-l01-embeddings",
+          "severity": "major"
+        },
+        {
+          "issue": "g2-l06-rag-vs-finetuning resource 'Anthropic docs — Fine-tuning Claude on Amazon Bedrock' points at https://docs.anthropic.com/en/docs/build-with-claude/fine-tuning, implying a first-party Anthropic fine-tuning doc/product. Anthropic fine-tuning is available only through Amazon Bedrock — which the lesson body states correctly ('through platforms like Amazon Bedrock') — but the resource label + docs.anthropic.com URL imply a native offering and the link is likely stale.",
+          "lesson": "g2-l06-rag-vs-finetuning",
+          "severity": "minor"
+        },
+        {
+          "issue": "g2-l03-vector-databases teaches cosine as the metric 'usually' used and shows only vector_cosine_ops, with no mention that some embedding models are tuned for dot-product/inner-product or Euclidean (L2) distance, and no mention of vector normalization. A learner could pair an embedding model with a mismatched metric and silently degrade retrieval quality with no error.",
+          "lesson": "g2-l03-vector-databases",
+          "severity": "minor"
+        },
+        {
+          "issue": "g4-l02-prompt-ab-testing pairwise-comparison code is internally inconsistent and demonstrates (without flagging) the position-bias problem: judge() is defined in g4-l01 as judge(question, reference, answer) but is called in g4-l02 as judge(c, a, b) returning 'A'/'B', and every comparison feeds A and B in the same fixed order — exactly the order/position bias the lesson never warns about. The code is illustrative pseudocode, not a runnable harness, and is presented as if it were a working pattern.",
+          "lesson": "g4-l02-prompt-ab-testing",
+          "severity": "minor"
+        }
+      ],
+      "outdatedContent": [
+        {
+          "issue": "Documentation resource links use two different hosts: Months 2 and 4 use legacy docs.anthropic.com/en/... (e.g. embeddings, fine-tuning, prompt-caching, evals) while Months 1 and 3 use the current platform.claude.com/docs/en/... host. The legacy host generally redirects, but the inconsistency indicates the Month-2/4 link sets were never re-verified.",
+          "fix": "Normalise every resource URL to the platform.claude.com/docs/en/... host and re-verify each link resolves to a live page; remove the two non-existent first-party links (embeddings, fine-tuning) or relabel them to the actual third-party / Bedrock destinations.",
+          "lesson": "Treat external resource lists as code that rots: pin them to one canonical host and add a link-check step so stale or redirecting URLs are caught before learners hit them."
+        },
+        {
+          "issue": "State/memory lessons reference dated beta type strings (e.g. the memory tool type 'memory_20250818') and the course relies on beta surfaces (client.beta.messages.tool_runner, anthropic.lib.tools.mcp, mcp_servers). These are CURRENT and correct as written, but the dated/beta identifiers are the kind of detail that breaks silently on SDK upgrades.",
+          "fix": "Add a one-line 'targets anthropic SDK >= X.Y; these are beta APIs and dated type strings may change — check the SDK changelog' note in the MCP and memory lessons so learners know to verify versions rather than assuming permanence.",
+          "lesson": "Dated beta identifiers (type strings, beta header dates) are accurate but fragile; flag them explicitly as version-sensitive so learners re-verify after an SDK bump."
+        }
+      ],
+      "jdComparison": {
+        "jdSources": [
+          "Inferred target role from course metadata: 'Applied GenAI Engineer (transition from Cloud Engineer)' — no external JD file was provided; the industry reviewer owns formal JD comparison."
+        ],
+        "requirementsCovered": [
+          "LLM fundamentals and the Messages API (tokens, context, sampling, roles, streaming, structured output, tool use)",
+          "RAG end-to-end (embeddings, chunking, vector DBs, retrieval, reranking, citation/grounding, RAG-vs-finetuning)",
+          "Agents and orchestration (agent loop, multi-step/parallel tools, frameworks, MCP, failure modes, state/memory, human-in-the-loop)",
+          "Production engineering (evaluation, A/B testing, cost, latency, observability, guardrails, prompt-injection defense)",
+          "Python for production (async/asyncio, FastAPI, Pydantic, packaging/containerization)",
+          "Capstone integration + cloud certs (AI-102 / MLA-C01) + portfolio/interview prep"
+        ],
+        "requirementsMissing": [
+          "Statistical literacy for experimentation (significance testing, sample sizing, confidence intervals) — named as a discipline but not actually taught",
+          "Quantitative evaluation rigor: judge-bias mitigation and inter-rater/calibration checks for LLM-as-judge",
+          "Production-hardening specifics that a hiring manager would probe: non-root/multi-stage container builds, cache cost break-even math, embedding distance-metric selection"
+        ],
+        "alignmentScore": 88
+      },
+      "sectionsToRedo": [
+        {
+          "section": "g4-l01-evaluation — LLM-as-judge section",
+          "reason": "Add an explicit treatment of judge biases (position/order, verbosity, self-preference) and the standard mitigations (swap A/B order and average, use a different model family as judge where feasible, calibrate the judge against human ratings on a held-out slice). The current 'spot-check the judge' is insufficient for the one lesson whose purpose is reliable measurement.",
+          "severity": "major"
+        },
+        {
+          "section": "g4-l02-prompt-ab-testing — 'Telling signal from noise' section",
+          "reason": "Give learners a concrete method to act on 'decide sample size up front': a two-proportion z-test or a paired sign/t-test, a simple sample-size rule of thumb, and a one-line note on confidence intervals and sequential-testing risk. Also fix the pairwise-judge example to randomise/alternate A/B order (and reconcile the judge() signature with g4-l01) so the code models the bias mitigation rather than embodying the bias.",
+          "severity": "major"
+        },
+        {
+          "section": "g2-l01-embeddings — resources and the 'Getting an embedding from an API' aside",
+          "reason": "Remove the non-existent first-party 'Anthropic — Embeddings' resource and the 'whether you use Anthropic' phrasing; state plainly that Anthropic has no native embeddings endpoint and point to the real options (Voyage AI, OpenAI, Bedrock Titan, Azure OpenAI). Prevents learners from attempting a call that cannot succeed.",
+          "severity": "major"
+        },
+        {
+          "section": "g4-l03-cost-optimization — 'Lever 1: prompt caching' section",
+          "reason": "Add the break-even economics: minimum cacheable prefix (model-dependent, ~1024–4096 tokens), the write premium (~1.25× for 5-min TTL, ~2× for 1-hour), and TTL/lifetime, so learners can estimate whether caching pays off rather than assuming it always does.",
+          "severity": "minor"
+        },
+        {
+          "section": "g5-l04-packaging — Dockerfile example",
+          "reason": "Make the example match the course's security framing: add a non-root USER, prefer a multi-stage (or slim + minimal-layer) build, and reference Docker build secrets rather than only -e at runtime. Currently the concrete artifact runs as root single-stage.",
+          "severity": "minor"
+        },
+        {
+          "section": "g2-l03-vector-databases — 'The three operations' / metric guidance",
+          "reason": "Add a short note that the distance metric must match the embedding model's training objective (cosine vs dot-product/inner-product vs L2) and mention normalization, so learners don't silently pair a mismatched metric and ops class.",
+          "severity": "minor"
+        }
+      ],
+      "topRecommendations": [
+        "Treat the digest's headline 'model IDs and output_config.format are wrong' flag as a FALSE ALARM — these are verified current against the live Anthropic SDK reference. Do not change claude-opus-4-8 / claude-sonnet-4-6 / claude-haiku-4-5, output_config.format, messages.parse, mcp_servers, or the streaming timeout-guard claim; they are correct.",
+        "Close the two quantitative-rigor gaps that most affect transferable mastery: name and mitigate LLM-as-judge biases (g4-l01) and give a concrete sample-size/significance method for A/B testing (g4-l02). These are the difference between a learner who can claim to measure quality and one who actually can.",
+        "Fix the Month-2 accuracy/links: remove the implied first-party Anthropic embeddings endpoint (g2-l01) and the fine-tuning resource overclaim (g2-l06), and normalise all resource URLs to platform.claude.com with a link-check pass.",
+        "Align the concrete artifacts with the course's stated security posture: harden the Dockerfile (non-root, multi-stage, build secrets) in g5-l04, and add the distance-metric/normalization caveat in g2-l03.",
+        "Add the prompt-caching break-even inputs (minimum cacheable tokens, TTL, write premium) to g4-l03 so the cost lesson is actionable, and add a 'these are beta/dated APIs — verify your SDK version' note to the MCP and memory lessons."
+      ]
+    },
+    "_industry": {
+      "grade": "B+",
+      "summary": "kwasi-GenAI is a genuinely current, well-sequenced 35-lesson curriculum that maps closely to what 2025-2026 employers actually ask of an Applied GenAI Engineer transitioning from cloud: LLM API fluency, RAG end-to-end (chunking, embeddings, vector DBs, reranking, citations), agents (loops, MCP, HITL, failure modes), and a full production-engineering month (evals, A/B testing, cost, latency, observability, guardrails, prompt-injection/OWASP-LLM), plus Python/FastAPI/Pydantic/packaging and a capstone+career arc. Crucially, the single highest-impact concern raised in the digest's candidateIssues — that the model IDs (claude-opus-4-8, claude-sonnet-4-6, claude-haiku-4-5) and the structured-output surface (output_config.format + messages.parse + parsed_output) are wrong — is FALSE. I verified both against the current Claude API reference (June 2026): those are the canonical current model IDs and the recommended current structured-output mechanism (the old output_format is deprecated). The course is more accurate than the pre-flight digest suspected. Real, confirmed weaknesses are narrower: (1) the embeddings lesson implies a first-party Anthropic embeddings endpoint and links a dead docs URL — Anthropic has no native embeddings API (recommends third parties like Voyage AI); (2) date-suffixed Haiku IDs (claude-haiku-4-5-20251001) appear in code despite the canonical guidance to never append date suffixes; (3) the LLM-as-judge and A/B lessons omit judge-bias and statistical-significance rigor; (4) the cost lesson omits caching break-even thresholds; (5) the Dockerfile runs as root / single-stage despite the course's security-engineer framing. Against current JDs the alignment is strong but has visible gaps: no fine-tuning hands-on (LoRA/QLoRA), no hybrid search (BM25+vector), thin multimodal coverage, and LangGraph/CrewAI named only in passing while LangChain/LlamaIndex get a single lesson. For hireability: the capstone + cloud/security differentiator + deployable-service framing is exactly the right portfolio strategy and would interview well; the missing fine-tuning and hybrid-search hands-on are the most likely gaps to surface in a technical screen. Overall a strong, employer-relevant course that needs a handful of accuracy and rigor fixes, not a structural redo.",
+      "strengths": [
+        "Model/API currency is correct and verified: claude-opus-4-8 / claude-sonnet-4-6 / claude-haiku-4-5 are the current canonical IDs, and output_config.format + messages.parse() + parsed_output is the current recommended structured-output mechanism (old output_format is deprecated). The course tracks the live API, not a stale snapshot.",
+        "RAG coverage is comprehensive and modern: chunking strategies up to Anthropic Contextual Retrieval, pgvector/Chroma/Pinecone, ANN/HNSW, metadata filtering, two-stage retrieve-then-rerank (bi- vs cross-encoder), grounding + citations, and an eval set as a regression guard — this is exactly the RAG depth JDs ask for.",
+        "Production-engineering month (evals, prompt A/B testing, cost optimization, latency/throughput, observability/tracing with LangSmith/Langfuse/OTel-GenAI, guardrails, prompt-injection/OWASP-LLM Top 10) directly matches the 2026 'eval + observability + guardrails mindset' that postings now treat as a core differentiator, not a nice-to-have.",
+        "Agents are taught from first principles (manual plan-act-observe loop in the raw Messages API) before frameworks, plus MCP (servers/tools/resources/prompts, transports, credential-in-server boundary), agent failure modes, state/memory, and human-in-the-loop approval gates keyed to reversibility — strong, current, and conceptually honest.",
+        "Career arc is well-judged: one deployable flagship capstone with Problem-Approach-Decisions-Results write-ups, cloud/security background positioned as the deploy-and-secure differentiator, prompt-injection mapped to classic injection threat-modeling, and certs (AI-102 / MLA-C01) correctly framed as anchors not the prize.",
+        "Pedagogically sound build order: raw API first so frameworks are transparent rather than black boxes; each module ends in a concrete deliverable that the capstone then integrates into one layered architecture with clean typed seams."
+      ],
+      "weaknesses": [
+        "No hands-on fine-tuning. RAG-vs-fine-tuning is taught as a decision framework, but there is zero LoRA/QLoRA/PEFT practice. Multiple 2025-2026 JDs list fine-tuning (LoRA/QLoRA) as a required or strongly-preferred skill; a candidate cannot speak to it from experience.",
+        "Embeddings lesson implies a native Anthropic embeddings endpoint and links a dead URL (docs.anthropic.com/.../embeddings). Anthropic has no first-party embeddings API; this is a confirmed accuracy error that would also fail if a learner tried to call it.",
+        "Hybrid search (BM25 + vector) is absent. Current vector-DB/RAG job descriptions explicitly call out hybrid search as a retrieval-quality standard; the course teaches pure vector search plus reranking only.",
+        "Agent-framework currency is thin: LangChain/LlamaIndex get one lesson, but LangGraph and CrewAI — the frameworks now named most often in 2026 Applied AI Engineer postings — are barely surfaced. Learners will see them in interviews and JDs.",
+        "Evaluation rigor gaps in a month whose whole point is reliable measurement: LLM-as-judge is taught without warning about position/order bias, self-preference (the example judges with the same Opus family that likely produced the answers), or verbosity bias and the standard swap-and-average mitigation; the A/B lesson preaches 'decide sample size up front' with no concrete method (no two-proportion test or confidence interval).",
+        "Multimodal (vision/image, document understanding) is essentially absent, while several JDs list multimodal/vision as a responsibility or nice-to-have.",
+        "Several smaller currency/quality issues: date-suffixed model IDs in code (claude-haiku-4-5-20251001) against the canonical 'never append date suffixes' guidance; cost lesson omits caching break-even economics (1.25x write premium, ~2-request break-even, minimum cacheable prefix); Dockerfile runs as root and is single-stage despite the security-engineer framing; MCP/memory examples lean on dated beta type-strings (memory_20250818) and beta import paths that drift."
+      ],
+      "accuracyIssues": [
+        {
+          "issue": "DIGEST CLAIM REFUTED: candidateIssues flagged the model IDs (claude-opus-4-8, claude-sonnet-4-6, claude-haiku-4-5) as not matching real Anthropic IDs. Verified against the current Claude API reference (June 2026): these ARE the canonical current model IDs. Not an error — the course is correct and current.",
+          "lesson": "Verify suspected currency issues against the live API/model catalog before flagging them; a knowledge-cutoff mismatch is not the same as a factual error. The course's model naming is right.",
+          "severity": "minor"
+        },
+        {
+          "issue": "DIGEST CLAIM REFUTED: candidateIssues flagged output_config.format + messages.parse + parsed_output as possibly unreal. Verified: this is the current, recommended structured-output mechanism on the Messages API; the older output_format is deprecated. g1-l05 is correct.",
+          "lesson": "The structured-output lesson teaches the right API. Strict tool use (strict:true on input_schema) and output_config.format are complementary, exactly as the course states — no contradiction to reconcile.",
+          "severity": "minor"
+        },
+        {
+          "issue": "g2-l01 embeddings lists 'Anthropic docs — Embeddings' (https://docs.anthropic.com/en/docs/build-with-claude/embeddings) and frames an Anthropic embeddings endpoint as available alongside Bedrock Titan/Azure OpenAI. Anthropic has no first-party embeddings API (it recommends third parties such as Voyage AI). The link is dead/misleading.",
+          "lesson": "Remove the implied native Anthropic embeddings endpoint and the dead link; point to Voyage AI, Bedrock Titan, Azure OpenAI, or open models (e.g., BGE/E5). The lesson body is provider-agnostic and the task already uses Bedrock/Azure, so only the framing and resource link need fixing.",
+          "severity": "major"
+        },
+        {
+          "issue": "Date-suffixed model IDs appear in runnable code (claude-haiku-4-5-20251001 in g4-l03 and g5-l01), contradicting the canonical guidance to use bare alias strings and never append date suffixes.",
+          "lesson": "Normalize all code to bare IDs (claude-haiku-4-5). Date-suffixed strings are brittle and inconsistent with the alias-based IDs used elsewhere in the same course.",
+          "severity": "minor"
+        },
+        {
+          "issue": "MCP/memory lessons depend on fast-moving beta surfaces (anthropic.lib.tools.mcp.async_mcp_tool, client.beta.messages.tool_runner, mcp_servers request param, memory tool type string memory_20250818). These remain real but are beta and version-pinned; exact import paths and dated type strings drift.",
+          "lesson": "Pin the SDK version the course targets and add a note that beta import paths/type strings change; verify against the SDK release at publish time. The concepts are correct; only the exact bindings are volatile.",
+          "severity": "minor"
+        }
+      ],
+      "outdatedContent": [
+        {
+          "issue": "g2-l01 implies a native Anthropic embeddings API and links a non-resolving docs URL.",
+          "fix": "Replace the Anthropic embeddings resource with Voyage AI (Anthropic's recommended partner), keep Bedrock Titan / Azure OpenAI, and add an open-model option (BGE-M3 / E5). State plainly that Anthropic does not offer a first-party embeddings endpoint.",
+          "lesson": "A dead or misleading resource link in lesson one of the RAG module undermines trust; embeddings provider guidance must name a real, reachable endpoint."
+        },
+        {
+          "issue": "Code samples use date-suffixed claude-haiku-4-5-20251001.",
+          "fix": "Change to bare claude-haiku-4-5 everywhere; align with the alias convention already used for Opus/Sonnet in the same lessons.",
+          "lesson": "Use bare alias model IDs consistently; date suffixes are deployment identifiers, not the public alias, and read as stale."
+        },
+        {
+          "issue": "g4-l03 cost lesson presents prompt caching with cache_control ephemeral but omits the economics that decide whether it pays off.",
+          "fix": "Add the break-even math: cache writes cost ~1.25x (5-min TTL), reads ~0.1x, so ~2 reads break even; note the minimum cacheable prefix (model-dependent, e.g. ~4096 tokens on Opus 4.8) and that a short prefix silently won't cache.",
+          "lesson": "A cost lesson that omits break-even thresholds leaves learners unable to estimate whether an optimization actually saves money."
+        },
+        {
+          "issue": "g5-l04 Dockerfile runs as root and is single-stage, contradicting the course's repeated security-engineer framing.",
+          "fix": "Add a non-root USER, use a multi-stage build (builder + slim runtime), and keep the existing runtime-secret guidance. Mention healthcheck and pinned base image digest.",
+          "lesson": "When the course sells the learner's security background as the edge, the concrete artifacts (Dockerfile) must model that standard."
+        },
+        {
+          "issue": "Agent-orchestration coverage centers LangChain/LlamaIndex; LangGraph and CrewAI (now dominant in 2026 JDs) are not taught.",
+          "fix": "Add a short LangGraph (graph/state-machine agents) section and at least name CrewAI; map both back to the raw plan-act-observe loop the course already teaches.",
+          "lesson": "Framework currency drifts fastest; the orchestration lesson should track which frameworks employers are actually naming this year."
+        }
+      ],
+      "jdComparison": {
+        "jdSources": [
+          "https://resources.rework.com/libraries/job-description-templates/generative-ai-developer (Generative AI Developer/Engineer JD template, 2026 hiring guide)",
+          "https://www.digitalapplied.com/blog/ai-developer-hiring-skills-that-matter-2026 (2026 AI engineer skills: agent orchestration, MCP, evals, vector DB/RAG, cost, guardrails, observability, frontier-model fluency)",
+          "https://www.gresearch.com/vacancies/ai-engineer/ (G-Research Applied AI Engineer — LLMs in production, agents + RAG, LangGraph/Pydantic AI, eval & observability)",
+          "https://www.upgrad.com/blog/rag-engineer-job-description/ and Indeed/Dice GenAI Engineer postings (LLM APIs incl. Anthropic Claude/Azure OpenAI/Bedrock, LangChain/LlamaIndex, FAISS/Pinecone/Milvus, FastAPI, RAG pipelines, 1-2 yrs LLM/RAG in production)"
+        ],
+        "requirementsCovered": [
+          "Strong Python + software-engineering practices (async/asyncio, packaging, venv, Docker, Git/CI implied)",
+          "Hands-on LLM API application building (Anthropic Messages API: roles, system, content blocks, streaming, tool use, structured output)",
+          "Prompt engineering (system vs user roles, few-shot, structured/JSON output)",
+          "RAG architecture end-to-end: embeddings + cosine similarity, chunking strategies, vector DBs (pgvector/Chroma/Pinecone), retrieval pipeline, reranking, citation/grounding",
+          "Vector databases incl. ANN/HNSW indexing and metadata filtering",
+          "Agentic workflows: agent loops, multi-step/parallel tool use, MCP integration, failure modes/guardrails, human-in-the-loop",
+          "Evaluation frameworks (golden datasets, LLM-as-judge, regression tests in CI) and prompt A/B testing",
+          "Production reliability: cost optimization (caching, routing, compression), latency/throughput (TTFT, streaming, batch), observability/tracing (LangSmith/Langfuse/OTel-GenAI)",
+          "Safety/guardrails: output validation (Pydantic), allow/deny, OWASP LLM Top 10, prompt-injection (direct + indirect) defense",
+          "FastAPI services with Pydantic-typed request/response, async endpoints, uvicorn, OpenAPI docs",
+          "Cloud AI services awareness (Amazon Bedrock, Azure/Microsoft Foundry) and certifications (AI-102, MLA-C01)",
+          "Deployment + containerization + secrets management; portfolio/capstone + interview prep"
+        ],
+        "requirementsMissing": [
+          "Hands-on model fine-tuning (LoRA / QLoRA / PEFT, optionally RLHF) — listed as required/preferred in multiple JDs; course only frames RAG-vs-fine-tuning as a decision, no practice",
+          "Hybrid search (BM25 + vector / sparse-dense fusion) — explicitly named in 2026 vector-DB/RAG JDs; course teaches pure vector + rerank",
+          "LangGraph / CrewAI agent frameworks — named in G-Research and 2026 skills lists; course centers LangChain/LlamaIndex with only passing mention",
+          "Multimodal / vision and document-understanding application work — appears as responsibility/nice-to-have in JDs; minimal in course",
+          "PyTorch / Hugging Face ecosystem familiarity — listed in several JDs; course is API-first with no model-internals/HF practice",
+          "Kubernetes (course covers Docker but not orchestration, which some JDs list alongside containerization)",
+          "Statistical rigor for online experiments (significance testing/sample-size method) — implied by 'search relevance evaluation' and A/B responsibilities but not taught concretely"
+        ],
+        "alignmentScore": 82
+      },
+      "sectionsToRedo": [
+        {
+          "section": "g2-l01 — Embeddings & cosine similarity (resources + the 'Getting an embedding from an API' framing)",
+          "reason": "Implies a first-party Anthropic embeddings endpoint and links a dead docs URL; Anthropic has no native embeddings API. Confirmed accuracy error in the opening lesson of the RAG module.",
+          "severity": "major"
+        },
+        {
+          "section": "g4-l01 — Evaluation (LLM-as-judge) and g4-l02 — Prompt A/B testing",
+          "reason": "For a production-measurement module, LLM-as-judge omits the well-known judge biases (position/order, self-preference, verbosity) and the swap-and-average mitigation, and the A/B lesson gives no concrete sample-size or significance method. Learners cannot reliably tell signal from noise — a credibility gap in a technical screen.",
+          "severity": "major"
+        },
+        {
+          "section": "g2-l06 — RAG vs fine-tuning (and a new fine-tuning hands-on lesson)",
+          "reason": "Fine-tuning is taught only as a decision framework. Multiple JDs require LoRA/QLoRA hands-on. Add at least one practical fine-tuning lesson (LoRA/QLoRA on a small open model via Bedrock or HF) so candidates can speak to it from experience.",
+          "severity": "major"
+        },
+        {
+          "section": "g3-l03 — Orchestration frameworks",
+          "reason": "Add LangGraph (stateful/graph agents) and name CrewAI; these are the frameworks 2026 postings cite most, and the lesson currently underweights them relative to LangChain/LlamaIndex.",
+          "severity": "minor"
+        },
+        {
+          "section": "g5-l04 — Packaging & containerization (Dockerfile)",
+          "reason": "Single-stage, root-user Dockerfile contradicts the course's security-engineer positioning; should model non-root + multi-stage to match the stated standard.",
+          "severity": "minor"
+        },
+        {
+          "section": "g4-l03 — Cost optimization",
+          "reason": "Add prompt-caching break-even economics (write premium, read discount, minimum cacheable prefix) so the 'measure it' task is anchored in real numbers; also normalize date-suffixed Haiku IDs.",
+          "severity": "minor"
+        }
+      ],
+      "topRecommendations": [
+        "Fix the embeddings lesson now (highest-confidence accuracy bug): drop the implied native Anthropic embeddings endpoint and dead link; point to Voyage AI / Bedrock Titan / Azure OpenAI / open models, and state Anthropic has no first-party embeddings API.",
+        "Add hands-on fine-tuning (LoRA/QLoRA on a small open model, e.g. via Bedrock or Hugging Face) — the single biggest JD-vs-curriculum gap that will surface in technical screens; keep the existing RAG-vs-fine-tuning decision lesson as the framing.",
+        "Harden the measurement module: teach LLM-judge biases (position/self-preference/verbosity) + swap-and-average, and give the A/B lesson a concrete significance method (two-proportion test / confidence interval / sample-size rule). This is the difference between 'knows evals exist' and 'can run them' in an interview.",
+        "Refresh agent-framework currency: add a LangGraph section and name CrewAI, mapping both back to the raw plan-act-observe loop already taught, so the course matches the frameworks employers list in 2026.",
+        "Add hybrid search (BM25 + vector fusion) to the retrieval/reranking lessons and a short multimodal/vision unit — both are now standard JD line items the course doesn't cover.",
+        "Sweep the small currency/quality items: normalize date-suffixed model IDs to bare aliases, add prompt-caching break-even economics to the cost lesson, make the Dockerfile non-root/multi-stage, and pin the SDK version for the MCP/memory beta examples. Note for the author: the digest's top-flagged 'errors' (model IDs and output_config.format/messages.parse) are actually CORRECT and current — do not change those."
+      ]
+    }
+  },
+  {
+    "slug": "helpdesk-tier1-2",
+    "role": "IT Helpdesk / Desktop Support Technician (Tier 1-2)",
+    "courseGrade": "B+/A-",
+    "professorGrade": "A-",
+    "industryGrade": "B+",
+    "verdict": "minor-revisions",
+    "headline": "A modern, cert-aligned Tier 1-2 helpdesk curriculum that is publication-ready after a short errata pass: one verified PowerShell error and one missing Windows 10 EOL date are the only must-fix blockers.",
+    "jdAlignmentScore": 86,
+    "topRecommendations": [
+      "Fix the verified technical error in hd3-l07 immediately: replace the Server-only `Get-WindowsFeature -Name FS-Data-Deduplication` snippet (presented as a File History status check) with a valid client-side method (configure File History in Settings; verify via the FileHistory Control Panel applet or fhmanagew.exe). Confirmed in source at lines ~90-95. Both reviewers rank this the #1 blocker — it errors on the target OS and teaches a false association.",
+      "Close the currency gap in hd1-l05: the lifecycle section (confirmed at lines ~114-120) teaches date-tracking as a skill but states no dates and tells learners to 'look up online.' Add the concrete callout — Windows 10 end of support 14 Oct 2025 (ESU/upgrade/replace decision), Windows 11 as the supported client with annual H2 cadence — and a Microsoft Lifecycle/Learn link so it ages gracefully. This is the single most-asked support-currency fact in 2026.",
+      "Run a precision pass on the defensible-but-loose A+/Network+ simplifications that both reviewers flagged: add the ~55 m Cat6 10GbE figure (hd2-l08), note same-vendor generational socket differences e.g. LGA1700 vs LGA1851 (hd1-l02), list the shared-mailbox licensing exceptions of litigation hold/archive/>50 GB (hd6-l03), and add the DNS caching/stub-resolver and TCP/DoH nuance (hd2-l04/l05). None change a quiz key; all sharpen exam and interview readiness.",
+      "Bridge the on-prem and cloud-managed halves: in hd3-l06 add a one-line note that local `net accounts` lockout is largely superseded by Entra smart lockout / Intune in the cloud-managed world the later modules teach, plus the NIST caution that aggressive lockout thresholds enable denial-of-service.",
+      "Strongly consider (industry-only major) converting the existing capstones (hd4-l10, hd6-l09) and the job-search lesson (hd6-l10) into shippable portfolio artifacts — a worked ticket trail, a KCS-format KB article, and a documented Intune/Autopilot or AD home-lab write-up — so candidates leave with interview-ready deliverables, closing the loop the course already recommends.",
+      "Preserve what is verified-strong: the CompTIA 7-step malware list, the 93-day vs 30-day SharePoint soft-delete distinction, the capstone containment ordering, accurate quiz keys, and the concept -> command -> hands-on-task scaffolding. Do not touch these during the errata pass."
+    ],
+    "sectionsToRedo": [
+      {
+        "section": "hd3-l07 — Backup, recovery and imaging: the File History 'check status' code block (Get-WindowsFeature -Name FS-Data-Deduplication, lines ~90-95)",
+        "reason": "Verified in source: Get-WindowsFeature is a Windows Server ServerManager cmdlet absent on client Windows, and FS-Data-Deduplication is unrelated to File History. The snippet errors on the target client OS and teaches a false association. Replace with a valid client check (File History in Settings; verify via the FileHistory Control Panel applet or fhmanagew.exe) and test on a client OS before publishing.",
+        "severity": "critical",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "hd1-l05 — Operating systems overview: 'Choosing an OS and the support lifecycle' section + the task (lines ~114-120)",
+        "reason": "Verified: the section teaches lifecycle/EOL tracking as a core skill but names no concrete date and tells learners to 'look up online.' In a 2026-dated course it must state Windows 10 end of support (14 Oct 2025), the ESU/upgrade/replace decision, and Windows 11 supported status with annual H2 cadence, plus a Microsoft Lifecycle/Learn pointer to stay maintainable.",
+        "severity": "critical",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "Capstones (hd4-l10, hd6-l09) and job-search lesson (hd6-l10) — portfolio output",
+        "reason": "Industry reviewer (major) notes the capstones are guided scenario walk-throughs that produce nothing showable, while the job-search lesson itself tells candidates to build a home lab and show their work. Convert them into deliverable artifacts: a worked ticket trail, a KCS-format KB article, and a documented Intune/Autopilot or AD home-lab write-up. Professor did not flag this (out of accuracy scope), so it is an enhancement, not a correctness blocker.",
+        "severity": "major",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "hd3-l06 — Security best practices: the local 'net accounts' lockout demonstration",
+        "reason": "Both reviewers note the lesson teaches `net accounts /lockoutthreshold` as best practice without (a) the NIST caution that aggressive lockout enables denial-of-service and (b) noting it is largely superseded by Entra smart lockout / Intune in the cloud-managed environments taught in Modules 5-6. Add a one-line bridge for tool-selection and on-prem/cloud consistency.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "hd6-l03 — Exchange Online: shared-mailbox licensing claim ('no licence under 50 GB')",
+        "reason": "Both reviewers: the rule is correct only on the size dimension. A licence is also required when the shared mailbox is on litigation hold, has an in-place/online archive enabled, or exceeds 50 GB. Append the exceptions so learners do not assume shared mailboxes are always free (also relevant to MS-102).",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "hd2-l08 — Cabling and connectors: Cat6 10GbE distance",
+        "reason": "Both reviewers: Cat6 10G is given as 'short runs' without the ~55 m figure (vs Cat6a at 100 m). The lesson does teach the Cat6-vs-Cat6a contrast, so impact is low, but A+/Network+ test the exact figure. Add ~55 m for precision.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "hd1-l02 — Inside the PC: CPU socket compatibility claim",
+        "reason": "Both reviewers: 'an Intel chip won't fit an AMD socket' is framed as if sockets divide only by vendor, ignoring that same-vendor sockets differ by generation (LGA1700 vs LGA1851, AM4 vs AM5) — a frequent real upgrade-ticket failure. Reframe as generation+vendor specific.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "hd2-l04 / hd2-l05 — DNS resolution model",
+        "reason": "Industry reviewer: DNS is presented as a full root->TLD->authoritative walk on every lookup and 'UDP because speed,' omitting recursive/stub resolver caching and TCP use for large responses/zone transfers (and DoT/DoH). Flag the simplification and add the caching/TCP nuance, which is commonly probed and prevents mis-troubleshooting.",
+        "severity": "minor",
+        "whoFlagged": "industry"
+      },
+      {
+        "section": "hd5-l07 — Windows Update for Business: '23H2 to 24H2' feature-update example",
+        "reason": "Both reviewers: correct as of the 2026 course date but date-sensitive and will drift. Anchor it with a 'current as of' note and a Microsoft Learn 'verify current supported version' pointer so it ages gracefully.",
+        "severity": "minor",
+        "whoFlagged": "both"
+      },
+      {
+        "section": "hd3-l08 — Virtualization and cloud basics: client Hyper-V labelled 'type 1 hypervisor'",
+        "reason": "Professor only, flagged for nuance not error: architecturally defensible (Hyper-V installs a type-1 hypervisor beneath the host OS) and the quiz key is correct, but the flat claim invites debate. Add a one-line nuance ('the host Windows becomes a privileged partition') to pre-empt confusion. Not a correctness blocker.",
+        "severity": "minor",
+        "whoFlagged": "professor"
+      }
+    ],
+    "accuracyConcerns": [
+      "VERIFIED CRITICAL — hd3-l07: `Get-WindowsFeature -Name FS-Data-Deduplication | Format-Table` presented as the way to check File History status. Confirmed in source (lines ~90-95). Server-only ServerManager cmdlet, unrelated to File History; errors on client Windows and teaches a false association. Flagged by both reviewers as the single most important pre-publication fix.",
+      "hd6-l03: shared-mailbox 'no licence under 50 GB' omits the litigation-hold / in-place-archive / >50 GB licensing exceptions (both reviewers, minor).",
+      "hd2-l08: Cat6 10GbE given as 'short runs' rather than the standard ~55 m figure; lesson does contrast Cat6a-over-100m so impact is low (both reviewers, minor).",
+      "hd1-l02: CPU socket compatibility framed as purely vendor-divided ('Intel chip won't fit an AMD socket'), ignoring same-vendor generational socket differences (LGA1700 vs LGA1851, AM4 vs AM5) (both reviewers, minor).",
+      "hd2-l04/l05: DNS oversimplified as full root->TLD->authoritative walk per lookup and 'UDP because speed,' omitting resolver caching, stub resolvers, and TCP/DoH fallback (industry only, minor).",
+      "hd3-l08: client Hyper-V flatly called a 'type 1 hypervisor' alongside VirtualBox as type 2 — architecturally defensible and quiz key correct, but invites debate; nuance recommended (professor only, minor — not an error)."
+    ],
+    "currencyConcerns": [
+      "VERIFIED CRITICAL — hd1-l05: lifecycle section teaches EOL-tracking as a skill but states no concrete date and instructs learners to 'look up online.' Confirmed in source (lines ~114-120). Missing Windows 10 end of support (14 Oct 2025) — the most-asked support-currency fact in 2026 — and no current Windows 11 servicing version. Both reviewers rank this a major currency gap in a 2026-dated course.",
+      "hd5-l07: '23H2 to 24H2' feature-update example is correct as of the 2026 course date but will silently drift as new H2 releases ship; needs a 'current as of' note and a Microsoft Learn verify-current pointer (both reviewers).",
+      "hd3-l06: local `net accounts` lockout taught as best practice without bridging to its modern Entra smart-lockout / Intune equivalent that the later cloud-managed modules assume, leaving an on-prem/cloud currency-consistency gap (both reviewers)."
+    ],
+    "_prof": {
+      "grade": "A-",
+      "summary": "This is a rigorous, well-architected Tier 1-2 helpdesk curriculum of 60 lessons across six modules that map cleanly onto a sensible certification ladder (A+ Core 1 hardware/networking, A+ Core 2 Windows/security, ITIL/soft skills, MD-102 Intune, MS-102 M365). I verified roughly a dozen lessons against their source files, focusing on every flagged candidate issue. Conceptual accuracy is genuinely high: the CompTIA 7-step malware procedure matches the published 220-1102 objectives verbatim; the OSI/TCP-IP mapping, DORA, DNS record types, port table, NTFS/share permission precedence, BitLocker/TPM, the A+ 6-step methodology, ITIL incident-vs-problem, and the M365 Teams/SharePoint/OneDrive storage model are all correct. The 93-day item Recycle Bin vs 30-day group soft-delete figures are correctly distinguished (not a confusion). Every quiz answer key I checked (15+ questions across 8 lessons) was correct, and the open-ended quiz items genuinely test reasoning (scope a fault, choose a recovery method, distinguish DNS from connectivity) rather than recall alone. Pedagogy is strong throughout: each lesson scaffolds concept -> command -> hands-on task, uses concrete analogies (port = apartment number, RAM = desk), and the AI module responsibly stresses verify-before-trust and never-paste-secrets. The grade is held below A by two concrete defects: one genuine technical error (a Server-only cmdlet wrongly presented as checking File History on a client) and a real currency gap (a lesson built around the OS support lifecycle that never mentions Windows 10 end of support in Oct 2025 or names current Windows 11 builds, in a course dated 2026). Several other simplifications are defensible for the Tier 1-2 audience but worth a precision pass. The course builds real, transferable mastery and is close to publication-ready after a short errata fix.",
+      "strengths": [
+        "Tight alignment to a coherent cert ladder (A+ -> Network+ -> MD-102 -> MS-102 -> AI-900) with each module scoped to the right exam, giving learners a clear, marketable progression.",
+        "High conceptual accuracy on the load-bearing fundamentals: CompTIA 7-step malware removal matches 220-1102 exactly; OSI/TCP-IP layer mapping, DORA, RFC 1918 ranges, APIPA, DNS record types, port/protocol table, and NTFS-vs-share most-restrictive-wins are all correct.",
+        "Consistent, effective lesson scaffolding: concept -> verified command/CLI example -> concrete hands-on task, with realistic sample output (e.g. netstat LISTENING/ESTABLISHED, manage-bde status) that lets learners self-check.",
+        "Quiz quality is good and answer keys are accurate across the lessons sampled; open-response items test applied reasoning (scope a fault to one/many/all users, pick a recovery method, isolate DNS vs connectivity) rather than rote recall.",
+        "Modern, responsible treatment of security and AI: NIST/Microsoft length-over-rotation password guidance, MFA framed by attack stage, and the AI modules repeatedly warn about hallucinated cmdlets/KB numbers, -WhatIf safety, and never pasting secrets/PII into LLMs.",
+        "Strong real-world helpdesk realism: identity verification before account changes (social-engineering target), clean escalation handover content, ticket-hygiene, impact x urgency priority matrix, and a genuine Tier-2 account-compromise capstone with correct containment ordering (reset -> revoke sessions -> re-confirm MFA)."
+      ],
+      "weaknesses": [
+        "One genuine technical error in the backup lesson (hd3-l07): Get-WindowsFeature -Name FS-Data-Deduplication is presented as a way to 'check status' of File History. It is a Windows Server-only cmdlet, unavailable on client Windows, and unrelated to File History.",
+        "Notable currency gap: the OS-overview lesson (hd1-l05) is explicitly built around tracking end-of-life dates yet never states Windows 10 end of support (14 Oct 2025) or names current Windows 11 versions, despite a 2026 course date. No specific lifecycle date appears anywhere in the lesson.",
+        "Several correct-but-imprecise simplifications a rigorous learner could over-generalise from: Cat6 10G distance given as 'short runs' rather than the standard ~55 m (the lesson does teach the nuance, so minor); 'Intel chip won't fit an AMD socket' framed as if sockets are only vendor-divided (same-vendor generational sockets also differ); shared-mailbox 'no licence under 50 GB' omits the litigation-hold/archive licensing exceptions.",
+        "Minor consistency gap between the on-prem and cloud-managed halves of the course: hd3-l06 demonstrates local 'net accounts' lockout policy as best practice without noting NIST's DoS caution on aggressive lockout, or that local policy is largely superseded by Entra/Intune as taught in Modules 5-6."
+      ],
+      "accuracyIssues": [
+        {
+          "issue": "hd3-l07 backup lesson presents 'Get-WindowsFeature -Name FS-Data-Deduplication | Format-Table' as the way to 'Check status' of File History. Get-WindowsFeature ships only with the Windows Server ServerManager module (not present on Windows 10/11 client), and FS-Data-Deduplication is the Server data-deduplication role feature, wholly unrelated to client File History. The command errors on a client and reports the wrong thing on Server. Confirmed by reading the lesson file.",
+          "lesson": "hd3-l07 Backup, recovery and imaging",
+          "severity": "major"
+        },
+        {
+          "issue": "hd1-l02 states flatly 'an Intel chip will not fit an AMD socket, and vice versa,' implying sockets are purely vendor-divided. Correct as a generalisation but misleading on real socket-compatibility tickets, where same-vendor generational sockets differ (e.g. LGA1700 vs LGA1851, AM4 vs AM5). Confirmed in lesson prose.",
+          "lesson": "hd1-l02 Inside the PC: CPU, RAM, motherboard & power supply",
+          "severity": "minor"
+        },
+        {
+          "issue": "hd6-l03 says a shared mailbox 'has no license requirement (under 50 GB).' True for the size dimension only; Microsoft also requires a licence when a shared mailbox is on litigation hold, has an in-place archive enabled, or exceeds 50 GB. The parenthetical covers only size. Confirmed in lesson and quiz.",
+          "lesson": "hd6-l03 Exchange Online and email support",
+          "severity": "minor"
+        },
+        {
+          "issue": "hd2-l08 quiz and prose teach Cat6 10G as 'short runs' without the commonly cited ~55 m figure; the lesson does correctly contrast Cat6 vs Cat6a-over-100m, so impact is low, but the specific distance would improve precision and exam readiness. Confirmed in lesson.",
+          "lesson": "hd2-l08 Cabling and connectors",
+          "severity": "minor"
+        },
+        {
+          "issue": "hd3-l08 calls client Hyper-V on Windows Pro/Enterprise a 'type 1 hypervisor' alongside listing VirtualBox as type 2. Architecturally defensible (Hyper-V installs a type-1 hypervisor beneath the host OS) and the quiz key is correct, but the flat claim invites debate; a one-line nuance ('the host Windows becomes a privileged partition') would pre-empt confusion. Verified; flagged for nuance only, not a hard error.",
+          "lesson": "hd3-l08 Virtualization and cloud basics",
+          "severity": "minor"
+        }
+      ],
+      "outdatedContent": [
+        {
+          "issue": "hd1-l05 (OS overview) is structured around the vendor support lifecycle and end-of-life risk but names no concrete date: no mention of Windows 10 end of support (14 Oct 2025) and no current Windows 11 version/build, despite the course being dated 2026.",
+          "fix": "Add a short, dated lifecycle callout: Windows 10 reached end of support on 14 Oct 2025 (paid ESU as a bridge); Windows 11 is the supported client with an annual H2 feature-update cadence. Link the Microsoft Lifecycle/Learn page rather than hard-coding a build that ages out.",
+          "lesson": "hd1-l05 Operating systems overview"
+        },
+        {
+          "issue": "hd5-l07 uses '23H2 to 24H2' as the feature-update example. Correct as of the 2026 course date but date-sensitive and will drift as new H2 releases ship.",
+          "fix": "Phrase the example generically ('e.g. last year's H2 to this year's H2') or pin it to a Microsoft Learn link, so the lesson does not silently go stale when the next feature update releases.",
+          "lesson": "hd5-l07 Windows Update for Business and patching"
+        }
+      ],
+      "jdComparison": {
+        "jdSources": [
+          "Inferred from course target role only (IT Helpdesk / Desktop Support Technician, Tier 1-2); industry reviewer owns the formal JD comparison."
+        ],
+        "requirementsCovered": [
+          "Hardware/peripheral troubleshooting and PC build",
+          "OS install/config and Windows administration",
+          "Networking fundamentals and CLI diagnostics",
+          "Active Directory / Entra identity, account lockout/reset",
+          "Ticketing, ITIL incident/problem/change, SLAs and escalation",
+          "Customer-service/communication and remote support",
+          "Microsoft 365 / Exchange / Teams admin and Intune endpoint management",
+          "Security fundamentals (MFA, BitLocker, malware remediation, phishing)"
+        ],
+        "requirementsMissing": [
+          "Explicit current Windows lifecycle/EOL dates a tech is expected to act on",
+          "Deeper hands-on mobile MDM enrolment beyond concept level (acceptable for Tier 1-2)"
+        ],
+        "alignmentScore": 90
+      },
+      "sectionsToRedo": [
+        {
+          "section": "hd3-l07 'File backups vs system images' code block (the FileHistory / Get-WindowsFeature snippet)",
+          "reason": "Get-WindowsFeature -Name FS-Data-Deduplication is a Server-only cmdlet unrelated to File History and will fail or mislead on client Windows. Replace with a correct client check (configure File History in Settings and verify via the FileHistory control panel or a supported config/registry path) so the snippet accurately reflects how to confirm File History is on.",
+          "severity": "major"
+        },
+        {
+          "section": "hd1-l05 'Choosing an OS and the support lifecycle' section",
+          "reason": "The section's whole point is lifecycle awareness but it gives no dates. Add the Windows 10 EOL (Oct 2025) fact and current Windows 11 supported status so the lesson actually models the date-tracking skill it teaches.",
+          "severity": "major"
+        },
+        {
+          "section": "hd3-l06 'Passwords and account policy' lockout demonstration",
+          "reason": "Add a one-line note that overly aggressive lockout can enable denial-of-service (NIST caution) and that in cloud-managed environments this local 'net accounts' policy is superseded by Entra smart lockout / Intune, linking it forward to Modules 5-6 for consistency.",
+          "severity": "minor"
+        },
+        {
+          "section": "hd6-l03 shared-mailbox licensing claim",
+          "reason": "Append the licensing exceptions (litigation hold, in-place archive, >50 GB require a licence) so learners do not assume shared mailboxes are always free.",
+          "severity": "minor"
+        }
+      ],
+      "topRecommendations": [
+        "Fix the one genuine technical error in hd3-l07: replace the Server-only Get-WindowsFeature File History snippet with a correct client-side way to enable and verify File History. This is the single most important correction before publication.",
+        "Close the currency gap in hd1-l05 by adding dated lifecycle facts (Windows 10 EOL 14 Oct 2025; Windows 11 supported, annual H2 cadence) and generalise the hd5-l07 feature-update example so it does not go stale, ideally pointing to the Microsoft Lifecycle/Learn pages.",
+        "Do a precision pass on the defensible-but-loose simplifications: add the ~55 m figure for Cat6 10G, note that same-vendor generational sockets also differ, list the shared-mailbox licensing exceptions, and add a one-line nuance on client Hyper-V being type-1. None change a quiz key; all sharpen exam readiness.",
+        "Add a brief consistency bridge between the on-prem A+ material and the cloud-managed MD-102/MS-102 material (e.g. note where local policy/AD gives way to Entra/Intune) so learners see the management-plane shift rather than treating the two halves as unrelated.",
+        "Preserve what is working: keep the verified-correct content (CompTIA 7-step list, the 93-day vs 30-day SharePoint distinction, the capstone containment ordering, and the accurate quiz keys) and the concept -> command -> task scaffolding, which is the course's main pedagogical strength."
+      ]
+    },
+    "_industry": {
+      "grade": "B+",
+      "summary": "\"helpdesk-tier1-2\" is a strong, unusually modern 60-lesson curriculum that maps cleanly onto the real 2026 Tier 1-2 hiring stack. It covers the full A+ Core 1/Core 2 + Network+ foundation AND, critically, the modern cloud-managed reality that most legacy helpdesk courses miss: Microsoft Entra ID, Intune/Autopilot (MD-102), Microsoft 365 admin (MS-102), Defender, Conditional Access, RMM (NinjaOne), ITIL 4, ticketing (ServiceNow/Jira/Zendesk), and AI-assisted support with appropriate hallucination/PII guardrails. This alignment with what employers actually list in 2026 is its biggest strength and is what lifts it above a typical A+ cram course. The course also embeds real CLI/PowerShell throughout and has two genuine capstone-style labs (day-in-the-life triage; Tier 2 account-compromise incident). Hireability is held back from an A by a handful of confirmed technical errors (notably a wrong PowerShell command presented as 'check File History status'), a currency gap (a lifecycle-focused OS lesson that never names the Windows 10 end-of-support date of Oct 14 2025 — the single most-asked support-currency fact in 2026), and a portfolio/practical gap: the labs are scenario walk-throughs rather than artifacts a candidate can show in an interview (no resume-ready ticket samples, KB articles, or a documented home-lab build the job-search lesson itself recommends). Fix the errors, inject 2025-2026 version/date specifics, and turn the capstones into shippable portfolio artifacts and this becomes an A-grade, genuinely job-ready program.",
+      "strengths": [
+        "Curriculum currency is excellent: it teaches the modern cloud-managed endpoint stack (Entra ID, Intune, Autopilot, Conditional Access, Defender for Endpoint/Office 365, Windows Update for Business/Autopatch) that 2026 Tier 1-2 postings now explicitly demand — most competing helpdesk courses still stop at on-prem AD and imaging.",
+        "Maps directly to a coherent, marketable certification ladder (A+ -> Network+ -> MD-102 -> MS-102 -> AI-900) that matches the certs employers list as preferred/valued.",
+        "Heavy, realistic hands-on CLI throughout (ipconfig/ping/tracert/nslookup/netstat, sfc/DISM/chkdsk, icacls, manage-bde, dsregcmd, Connect-ExchangeOnline, Get-MessageTrace, Revoke-MgUserSignInSession) — this is the practical muscle interviews probe.",
+        "Strong professional/soft-skill and ITIL coverage (incident vs problem vs change, SLAs, impact x urgency priority matrix, escalation handover, KCS documentation, de-escalation) — directly mirrors the customer-service and ticketing requirements in every JD reviewed.",
+        "AI-for-support module is forward-looking and responsibly taught: Copilot variants, ticket triage, AI-assisted PowerShell/Graph scripting, with explicit hallucination warnings, -WhatIf safety, least-privilege Graph scopes, and 'never paste PII/passwords into a public LLM' — a real 2026 differentiator.",
+        "Two integrative capstones (day-in-the-life queue triage and an end-to-end Tier 2 account-compromise incident) plus a closing job-search/STAR/resume-ATS lesson connect skills to actual interview performance."
+      ],
+      "weaknesses": [
+        "Confirmed technical error in hd3-l07: it instructs learners to 'check status from PowerShell' of File History using `Get-WindowsFeature -Name FS-Data-Deduplication` — a Windows Server (ServerManager) cmdlet that does not exist on a client OS and has nothing to do with File History. A learner running this on a client gets an error, and it teaches a false association.",
+        "Currency gap in hd1-l05: the lesson is built entirely around tracking OS end-of-support but names no concrete date — most importantly it omits Windows 10 end of support (14 October 2025), the single most common real-world lifecycle ticket driver in 2026, and never states which Windows 11 versions are current.",
+        "Portfolio/interview-readiness gap: the capstones are guided scenario walk-throughs, not artifacts. The job-search lesson tells candidates to build a home lab and show their work, but the course never has them produce a sample ticket trail, a written KB article, a documented Autopilot/Intune lab, or a Tier 2 incident write-up they can bring to an interview.",
+        "Several precise technical figures are softened where interviewers (and the A+ exam) expect exactness: Cat6 10GbE distance is given as 'short runs' rather than ~55 m; DNS is framed as a full root->TLD->authoritative walk every lookup and 'UDP because speed' without noting caching/stub resolvers or TCP/DoH; shared-mailbox licensing exceptions (litigation hold, archive, >50 GB) are omitted.",
+        "On-prem vs cloud consistency: hd3-l06 still teaches `net accounts /lockoutthreshold` as best practice without noting it is largely superseded by Entra/Intune password and lockout policy in the cloud-managed world the later modules teach, and without the NIST caution that aggressive lockout enables DoS.",
+        "Socket-compatibility oversimplification (hd1-l02): 'an Intel chip won't fit an AMD socket' is framed as if sockets are purely vendor-divided, ignoring that same-vendor sockets differ by generation (LGA1700 vs LGA1851) — a real source of upgrade-ticket mistakes."
+      ],
+      "accuracyIssues": [
+        {
+          "issue": "hd3-l07 (Backup/recovery/imaging) tells learners to 'Check status from PowerShell' of File History using `Get-WindowsFeature -Name FS-Data-Deduplication | Format-Table`. Get-WindowsFeature is a Windows Server ServerManager cmdlet, absent on client Windows, and Data Deduplication is unrelated to File History. Confirmed in the lesson source (lines ~91-95).",
+          "lesson": "Verify every demonstrated command on the actual target OS (client vs Server) before publishing; a command that errors out or checks an unrelated feature destroys learner trust and teaches a false fact.",
+          "severity": "major"
+        },
+        {
+          "issue": "hd1-l05 (OS overview) is structured around tracking OS end-of-support yet gives no dates — omitting Windows 10 end of support (14 Oct 2025) and not naming the current Windows 11 servicing version. Confirmed: the lesson only says 'look up online' the EOL date.",
+          "lesson": "A lifecycle lesson must state the concrete, current EOL dates for the OSes learners will actually support; 'go look it up' is insufficient for an exam-and-interview-critical fact.",
+          "severity": "major"
+        },
+        {
+          "issue": "hd6-l03 (Exchange Online) states a shared mailbox 'needs no license under 50 GB' without the standard exceptions: a license IS required if the mailbox is on litigation hold, has an online archive enabled, or exceeds 50 GB. Confirmed in lesson (lines ~26, ~93).",
+          "lesson": "When teaching licensing rules, include the common exceptions — partial rules become wrong answers on real tickets and on MS-102.",
+          "severity": "minor"
+        },
+        {
+          "issue": "hd2-l08 (Cabling): Cat6 10GbE capability described as 'short runs' rather than the specific ~55 m limit (vs Cat6a at 100 m). Imprecise for A+/Network+ expectations.",
+          "lesson": "Give exact standards figures (distances, speeds) where the certification exams test them verbatim.",
+          "severity": "minor"
+        },
+        {
+          "issue": "hd2-l04 / hd2-l05 (DNS): DNS resolution is implied to walk root->TLD->authoritative on every lookup and to 'use UDP because speed matters', omitting recursive/stub resolver caching and TCP use for large responses/zone transfers (and DoT/DoH). Oversimplified.",
+          "lesson": "Flag simplifications as simplifications; the caching model and TCP fallback are commonly probed and prevent mis-troubleshooting.",
+          "severity": "minor"
+        },
+        {
+          "issue": "hd1-l02 (CPU/socket): 'an Intel chip won't fit an AMD socket' is framed as if sockets divide only by vendor, ignoring generational socket differences within a vendor (LGA1700 vs LGA1851).",
+          "lesson": "Teach socket compatibility as generation+vendor specific, since same-vendor mismatches are a frequent real upgrade failure.",
+          "severity": "minor"
+        }
+      ],
+      "outdatedContent": [
+        {
+          "issue": "hd1-l05 never states Windows 10 end of support (14 Oct 2025) nor the current Windows 11 version, despite the lesson being about lifecycle tracking. In 2026 this is the dominant lifecycle/migration ticket.",
+          "fix": "Add a concrete callout: 'Windows 10 reached end of support on 14 October 2025; unsupported devices need Windows 11 upgrade, an ESU subscription, or replacement. Windows 11 ships annual H2 feature updates (e.g. 24H2). Verify current supported builds on Microsoft Learn.'",
+          "lesson": "Date-sensitive lifecycle facts must be stated explicitly and dated, with a 'verify current' pointer, so the content stays both useful and maintainable."
+        },
+        {
+          "issue": "hd3-l06 teaches local `net accounts /lockoutthreshold:5` lockout as best practice without noting it is largely superseded by Entra/Intune-managed lockout and password protection in the cloud world the course later teaches, and without the NIST DoS caution.",
+          "fix": "Add a note: 'On cloud-joined/managed devices, lockout and password policy are set in Entra ID / Intune, not local net accounts. NIST cautions that aggressive lockout thresholds can enable denial-of-service; favour smart lockout.'",
+          "lesson": "Keep on-prem foundational tooling but explicitly bridge it to the modern cloud-managed equivalent the rest of the course assumes, so learners pick the right tool per environment."
+        },
+        {
+          "issue": "hd5-l07 uses '23H2 to 24H2' as the feature-update example — correct as of the course date but will drift.",
+          "fix": "Keep the example but add 'check Microsoft Learn for the current supported feature-update version' so it ages gracefully.",
+          "lesson": "Anchor version-specific examples with a 'current as of' note and a verify-against-docs pointer to reduce maintenance churn."
+        }
+      ],
+      "jdComparison": {
+        "jdSources": [
+          "Robert Half — Help Desk Technician role profile (positions-we-place/help-desk-technician), tiers/experience/skills breakdown, 2026",
+          "Kite Technology Group — Tier 1 Help Desk Technician posting (kitetechgroup.com/career/tier-1-help-desk-technician), concrete skills/tools/certs (ConnectWise, A+/Net+, SC-900, MS-900), 2026",
+          "Dice.com / ZipRecruiter aggregate Tier 1 Helpdesk postings (Jun 2026) — recurring requirements: Active Directory, Microsoft Entra/Intune, Microsoft 365 admin, ServiceNow/Jira ticketing, Windows/macOS, remote support, PowerShell/SCCM, CompTIA A+",
+          "Indeed / Salary.com Help Desk Support Specialist II (Tier 2) descriptions — escalation handling, deeper systems/applications knowledge, dispatch/ticket generation"
+        ],
+        "requirementsCovered": [
+          "Windows and macOS OS support (also Linux)",
+          "Hardware/peripheral/printer install, repair, troubleshooting",
+          "Active Directory administration (accounts, groups, OUs, reset/unlock)",
+          "Microsoft Entra ID and Intune / MDM endpoint management",
+          "Microsoft 365 administration (Exchange Online, Teams/SharePoint/OneDrive, identity)",
+          "Ticketing systems and lifecycle (ServiceNow, Jira, Zendesk)",
+          "Networking fundamentals and CLI troubleshooting",
+          "Remote support tools, consent and session security",
+          "ITIL incident/problem/change, SLAs, priority/escalation",
+          "Customer service, active listening, de-escalation, documentation/KB",
+          "PowerShell scripting (and AI-assisted scripting/Graph)",
+          "CompTIA A+/Network+ and MD-102/MS-102 certification alignment",
+          "Tier 2 incident handling / escalation depth (account compromise capstone)",
+          "RMM fleet management (NinjaOne)"
+        ],
+        "requirementsMissing": [
+          "Hands-on with a specific enterprise ticketing platform as a graded exercise (course teaches ServiceNow/Jira conceptually but no learner builds/works a real queue artifact)",
+          "ConnectWise / SCCM (ConfigMgr) named in postings — SCCM only implied via Intune; co-management not covered",
+          "Portfolio artifacts a candidate can show in interview (sample tickets, written KB articles, documented home-lab build) — recommended but never produced",
+          "Explicit current OS lifecycle dates (Windows 10 EOL Oct 2025) that drive real 2026 tickets",
+          "On-call rotation / field-dispatch and asset/inventory workflow practice",
+          "macOS depth and mobile (iOS/Android) MDM enrollment hands-on beyond conceptual"
+        ],
+        "alignmentScore": 82
+      },
+      "sectionsToRedo": [
+        {
+          "section": "hd3-l07 — Backup, recovery and imaging (File History PowerShell example)",
+          "reason": "Contains a confirmed wrong command (Get-WindowsFeature -Name FS-Data-Deduplication presented as a way to check File History status). Replace with valid client commands (e.g., FhManagew.exe, or 'fhmanagew', or checking the FileHistory service / Settings) and verify on a client OS.",
+          "severity": "major"
+        },
+        {
+          "section": "hd1-l05 — Operating systems overview / support lifecycle",
+          "reason": "Lifecycle lesson with no concrete dates; must add Windows 10 EOL (14 Oct 2025), current Windows 11 servicing context, and an ESU/upgrade decision note to be currency-credible for 2026 hiring.",
+          "severity": "major"
+        },
+        {
+          "section": "Capstones (hd4-l10, hd5/hd6 capstones) + hd6-l10 job-search lesson — portfolio output",
+          "reason": "Convert the guided scenarios into deliverable artifacts: a completed sample ticket trail, a KCS-format KB article, and a documented Intune/Autopilot or AD home-lab write-up the candidate can attach to a resume/portfolio. Currently strong on practice but produces nothing showable.",
+          "severity": "major"
+        },
+        {
+          "section": "hd6-l03 — Exchange Online shared mailbox licensing; hd2-l08 Cat6 distance; hd2-l04/05 DNS model",
+          "reason": "Tighten precision: add shared-mailbox licensing exceptions (litigation hold/archive/>50GB), the ~55 m Cat6 10GbE figure, and a DNS caching/TCP nuance note so claims survive interviewer/exam scrutiny.",
+          "severity": "minor"
+        }
+      ],
+      "topRecommendations": [
+        "Fix the confirmed technical error in hd3-l07 immediately (the Get-WindowsFeature/Data-Deduplication File History command) — it errors on the target OS and teaches a false association; replace with a valid client-side check.",
+        "Inject concrete 2025-2026 currency into hd1-l05: state Windows 10 end of support (14 Oct 2025), the Windows 11 upgrade/ESU/replace decision, and current servicing version — this is the most-asked lifecycle fact on the job in 2026.",
+        "Make the course portfolio-generating: have learners produce a real ticket trail, a KCS KB article, and a documented Intune/AD home-lab write-up from the existing capstones, so they walk into interviews with artifacts (the job-search lesson already tells them to — close the loop).",
+        "Add a graded hands-on ticketing exercise in a real or simulated ServiceNow/Jira queue (and at least name ConnectWise/SCCM co-management) to match the specific platforms employers list.",
+        "Tighten exam-precision details across A+/Network+ topics (Cat6 ~55 m, DNS caching/TCP nuance, CPU socket generations, shared-mailbox licensing exceptions) and bridge on-prem tooling (net accounts lockout) to its Entra/Intune equivalent for consistency with the modern modules."
+      ]
+    }
+  }
+]
