@@ -57,8 +57,10 @@ app.http('stats', {
         },
       };
     } catch (err) {
+      // Detail stays in the server log only — even admin-facing responses
+      // shouldn't echo driver/stack internals.
       context.error('stats error', err);
-      return { status: 500, jsonBody: { error: 'server_error', detail: String((err && err.message) || err) } };
+      return { status: 500, jsonBody: { error: 'server_error' } };
     }
   },
 });
