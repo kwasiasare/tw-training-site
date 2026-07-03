@@ -64,7 +64,7 @@ quiz:
   why: A helpdesk toolkit mixes mechanical tools (screwdrivers, spudger), safety gear (wrist strap), and
     diagnostic tools (multimeter, cable tester) plus cleaning supplies.
 resources:
-- label: CompTIA — A+ Certification (Core 1 220-1101)
+- label: CompTIA — A+ Certification (Core 1 220-1201)
   url: https://www.comptia.org/certifications/a
 - label: OSHA — Occupational Safety and Health Administration
   url: https://www.osha.gov

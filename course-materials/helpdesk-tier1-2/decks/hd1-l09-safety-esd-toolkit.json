@@ -23,7 +23,7 @@
     {"q": "Name two tools you would expect in a basic technician's toolkit and say what each is for.", "answer": "Examples: a screwdriver set for removing case and component screws, an anti-static wrist strap to prevent ESD, a spudger for prying clips without scratching, a flashlight to see inside the case, or compressed air to clear dust.", "why": "A helpdesk toolkit mixes mechanical tools (screwdrivers, spudger), safety gear (wrist strap), and diagnostic tools (multimeter, cable tester) plus cleaning supplies."}
   ],
   "resources": [
-    {"label": "CompTIA — A+ Certification (Core 1 220-1101)", "url": "https://www.comptia.org/certifications/a"},
+    {"label": "CompTIA — A+ Certification (Core 1 220-1201)", "url": "https://www.comptia.org/certifications/a"},
     {"label": "OSHA — Occupational Safety and Health Administration", "url": "https://www.osha.gov"},
     {"label": "Wikipedia — Electrostatic discharge", "url": "https://en.wikipedia.org/wiki/Electrostatic_discharge"},
     {"label": "Wikipedia — Antistatic wrist strap", "url": "https://en.wikipedia.org/wiki/Antistatic_wrist_strap"}

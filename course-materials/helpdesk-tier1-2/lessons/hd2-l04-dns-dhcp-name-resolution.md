@@ -115,7 +115,7 @@ Name:     example.com
 Address:  93.184.216.34
 ```
 
-That tells you which DNS server answered and the IP it returned. If `nslookup` fails but `ping 8.8.8.8` works, you have a **DNS problem**, not a connectivity problem.
+(The IP shown is illustrative — example.com's real address changes over time; what matters is the shape of the answer.) That tells you which DNS server answered and the IP it returned. If `nslookup` fails but `ping 8.8.8.8` works, you have a **DNS problem**, not a connectivity problem.
 
 ## Fixing common faults
 

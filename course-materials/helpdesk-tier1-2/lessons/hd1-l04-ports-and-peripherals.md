@@ -66,7 +66,7 @@ quiz:
 resources:
 - label: USB-IF — Official USB Implementers Forum (USB types & speeds)
   url: https://www.usb.org
-- label: CompTIA A+ Certification (Core 1 220-1101)
+- label: CompTIA A+ Certification (Core 1 220-1201)
   url: https://www.comptia.org/certifications/a
 - label: Microsoft Learn — Get help with USB-C on Windows
   url: https://learn.microsoft.com/en-us/windows-hardware/drivers/usbcon/

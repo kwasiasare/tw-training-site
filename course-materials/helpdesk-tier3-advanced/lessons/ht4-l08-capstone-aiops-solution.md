@@ -60,9 +60,9 @@ quiz:
     (including Azure OpenAI and agent integrations), which matches a builder's goal.
 - q: Propose a sensible 12-month certification sequence for a Tier 2 tech moving into senior endpoint/AIOps
     engineering, and briefly justify the order.
-  answer: Start with MS-102 (Microsoft 365 Administrator) to solidify the tenant/Intune/identity baseline,
+  answer: Start with MD-102 (Endpoint Administrator) — the role's anchor cert — then MS-102 (Microsoft 365 Administrator) to solidify the tenant/identity baseline (and earn Administrator Expert with the MD-102 pairing),
     then SC-200 to master Defender/Sentinel/KQL security operations, then AZ-104 for Azure platform and
-    monitoring depth, then AI-900 followed by AI-102 to add applied AI/agent skills, with AZ-500 as the
+    monitoring depth, then AI-900 followed by AI-102 to add applied AI/agent skills, with SC-500 (AZ-500's successor) as the
     security-engineering capstone. The order moves from the endpoint platform you already work in, to
     security operations, to the Azure platform underneath, to AI, then to advanced security engineering
     — each step building on the last.
@@ -129,19 +129,22 @@ These turn 'we added AI' into 'we reduced MTTR by X% with zero unapproved fleet 
 Certifications signal verified skill. Sequence them so each builds on the last, starting where you already operate.
 
 ```text
-1. MS-102  Microsoft 365 Administrator  -> tenant, Intune, identity baseline
-2. SC-200  Security Operations Analyst  -> Defender, Sentinel, KQL (core of this module)
-3. AZ-104  Azure Administrator          -> Azure platform, Monitor, Log Analytics depth
-4. AI-900  AI Fundamentals              -> concepts and vocabulary
-5. AI-102  Azure AI Engineer            -> building AI solutions and agent integrations
-6. AZ-500  Azure Security Engineer      -> advanced identity and security engineering (capstone)
+1. MD-102  Endpoint Administrator       -> the anchor cert for this role: deployment, Intune, device security
+2. MS-102  Microsoft 365 Administrator  -> tenant, Intune, identity baseline (with MD-102 it earns
+                                           Microsoft 365 Certified: Administrator Expert)
+3. SC-200  Security Operations Analyst  -> Defender, Sentinel, KQL (core of this module)
+4. AZ-104  Azure Administrator          -> Azure platform, Monitor, Log Analytics depth
+5. AI-900  AI Fundamentals              -> concepts and vocabulary
+6. AI-102  Azure AI Engineer            -> building AI solutions and agent integrations
+7. SC-500  Cloud and AI Security Engineer -> advanced cloud/AI security engineering (capstone;
+                                           successor to the retiring AZ-500)
 ```
 
-This order moves from the endpoint platform you know, to security operations, to the Azure platform beneath, into applied AI, and finishes with deeper security engineering.
+This order starts at the endpoint platform you own (MD-102 is the role-defining associate cert — Module 5 builds your portfolio around it), pairs it with the tenant baseline (MS-102 alone does not grant the Administrator Expert badge; it requires a qualifying associate such as MD-102), moves through security operations and the Azure platform, into applied AI, and finishes with deeper cloud/AI security engineering (SC-500, which replaces AZ-500).
 
 ## Senior career guidance
 
-Three common senior destinations open from here. **Endpoint / modern-management engineer** — owning Intune, automation, and AIOps for a fleet (MS-102, SC-200, AI-102). **Security operations analyst / SecOps** — Defender and Sentinel investigation at depth (SC-200, AZ-500). **Platform / SRE-style endpoint reliability** — SLOs, observability, automation safety (AZ-104, AZ-500). Across all three, what actually earns the title is **demonstrated impact and judgement**: a documented portfolio (this capstone counts), ownership of measurable outcomes, and the visible discipline of safe automation. Certifications open doors; delivered reliability and sound risk judgement walk you through them.
+Three common senior destinations open from here. **Endpoint / modern-management engineer** — owning Intune, automation, and AIOps for a fleet (MD-102, MS-102, AI-102). **Security operations analyst / SecOps** — Defender and Sentinel investigation at depth (SC-200, SC-500). **Platform / SRE-style endpoint reliability** — SLOs, observability, automation safety (AZ-104, SC-500). Across all three, what actually earns the title is **demonstrated impact and judgement**: a documented portfolio (this capstone counts), ownership of measurable outcomes, and the visible discipline of safe automation. Certifications open doors; delivered reliability and sound risk judgement walk you through them.
 
 ## Your task
 

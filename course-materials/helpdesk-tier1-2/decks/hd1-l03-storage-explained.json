@@ -23,7 +23,7 @@
     {"q": "In one sentence, what does formatting a drive actually do, and why must you be careful?", "answer": "Formatting writes a fresh, empty file system onto a partition, which erases the data that was there, so you must always confirm you have selected the correct disk.", "why": "Formatting prepares a volume for use but wipes existing files, so picking the wrong disk in a tool like Disk Management or diskpart can destroy data permanently."}
   ],
   "resources": [
-    {"label": "CompTIA A+ Certification (220-1101 / 220-1102)", "url": "https://www.comptia.org/certifications/a"},
+    {"label": "CompTIA A+ Certification (220-1201 / 220-1202)", "url": "https://www.comptia.org/certifications/a"},
     {"label": "Microsoft Learn — Overview of Disk Management", "url": "https://learn.microsoft.com/en-us/windows-server/storage/disk-management/overview-of-disk-management"},
     {"label": "Crucial — SSD vs HDD: What's the difference?", "url": "https://www.crucial.com/articles/about-ssd/ssd-vs-hdd"},
     {"label": "Wikipedia — NTFS file system", "url": "https://en.wikipedia.org/wiki/NTFS"}

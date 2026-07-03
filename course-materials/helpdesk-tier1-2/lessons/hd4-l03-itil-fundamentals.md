@@ -110,6 +110,10 @@ A **change** is the addition, modification, or removal of anything that could af
 
 Not every contact is an incident. When a user wants something provided as a normal offering — software installed, access to a mailbox, a new monitor — that is a **service request**, handled through **request fulfilment**. The test is simple: *is something broken, or does the user want something provided?* Broken means incident; provide means request.
 
+## Scope note: practices, not the full Foundation syllabus
+
+This course teaches the ITIL 4 **practices** a helpdesk lives by (incident, problem, change enablement, service request, SLM). The **ITIL 4 Foundation exam** also tests the service value system, the service value chain, and the seven guiding principles — study those separately (official ITIL 4 Foundation syllabus) if you plan to sit the exam.
+
 ## Your task
 
 For each of the following, label it Incident, Problem, Change, or Service Request, and write one sentence justifying your choice:

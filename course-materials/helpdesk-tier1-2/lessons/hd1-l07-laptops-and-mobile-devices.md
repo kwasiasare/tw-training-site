@@ -65,7 +65,7 @@ quiz:
   why: Lithium-ion batteries age faster under high heat and when held at very high or very low charge
     for long periods, so moderate charge levels and good cooling extend their useful life.
 resources:
-- label: CompTIA A+ Certification (220-1101 / 220-1102)
+- label: CompTIA A+ Certification (220-1201 / 220-1202)
   url: https://www.comptia.org/certifications/a
 - label: Microsoft Learn — powercfg command-line options
   url: https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/powercfg-command-line-options

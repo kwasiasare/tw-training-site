@@ -103,6 +103,14 @@ New-MgGroupMember -GroupId $groupId -DirectoryObjectId $user.Id
 
 Always act on the **object id**, not the `userPrincipalName`. UPNs get renamed; the id never changes and relationship endpoints expect it.
 
+Devices need one extra hop. A `managedDevice` from Intune exposes `AzureAdDeviceId`, which is the Entra **deviceId** — a different GUID from the directory **object id** that relationship calls such as `New-MgGroupMember` require. Resolve the directory object first:
+
+```powershell
+# managedDevice -> Entra directory object -> group membership
+$dev = Get-MgDevice -Filter "deviceId eq '$($managed.AzureAdDeviceId)'"
+New-MgGroupMember -GroupId $groupId -DirectoryObjectId $dev.Id
+```
+
 ## Dynamic vs assigned groups
 
 An **assigned group** is one you add and remove members from by hand (or by script). A **dynamic group** recalculates its membership from a **membership rule** — for example, all Windows devices. You manage assigned groups with `New-MgGroupMember`; you manage dynamic ones by editing the rule.

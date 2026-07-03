@@ -80,8 +80,8 @@ resources:
   url: https://learn.microsoft.com/en-us/defender-endpoint/respond-machine-alerts
 - label: Microsoft Learn — Investigate entities on devices using live response
   url: https://learn.microsoft.com/en-us/defender-endpoint/live-response
-- label: NIST SP 800-61 Rev. 2 — Computer Security Incident Handling Guide
-  url: https://csrc.nist.gov/pubs/sp/800/61/r2/final
+- label: NIST SP 800-61 Rev. 3 — Incident Response Recommendations (CSF 2.0-aligned)
+  url: https://csrc.nist.gov/pubs/sp/800/61/r3/final
 ---
 
 ## From signatures to behaviour
@@ -92,7 +92,7 @@ For an endpoint engineer the practical shift is this: the device is now a sensor
 
 ## The NIST incident response lifecycle
 
-Discipline beats heroics. **NIST SP 800-61** defines a repeatable lifecycle that keeps responders calm and consistent:
+Discipline beats heroics. **NIST SP 800-61** defines a repeatable lifecycle that keeps responders calm and consistent (the classic Rev. 2 phase model below is still how most SOCs operate day to day; note that **Rev. 3, April 2025**, reframes the same activities around the CSF 2.0 functions — know both names for interviews):
 
 ```text
 1. Preparation          build tooling, runbooks, contacts, baselines

@@ -92,8 +92,8 @@ resources:
   url: https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-overview
 - label: Microsoft Learn — Take response actions on a device (including isolate device)
   url: https://learn.microsoft.com/en-us/defender-endpoint/respond-machine-alerts
-- label: NIST SP 800-61 Rev. 2 — Computer Security Incident Handling Guide
-  url: https://csrc.nist.gov/pubs/sp/800/61/r2/final
+- label: NIST SP 800-61 Rev. 3 — Incident Response Recommendations (CSF 2.0-aligned)
+  url: https://csrc.nist.gov/pubs/sp/800/61/r3/final
 ---
 
 ## The scenario
@@ -116,7 +116,10 @@ AADSignInEventsBeta
     | where Timestamp > ago(window)
     | where InitiatingProcessFileName in~ ("powershell.exe", "cmd.exe", "mshta.exe")
     | where ProcessCommandLine has_any ("DownloadString", "-enc", "Invoke-WebRequest")
-    | project Timestamp, DeviceName, AccountName, ProcessCommandLine, RemoteUrl=InitiatingProcessRemoteSessionDeviceName
+    | project Timestamp, DeviceName, AccountName, ProcessCommandLine,
+        RemoteSessionDevice=InitiatingProcessRemoteSessionDeviceName
+// DeviceName is a coarse join key for this lab; in production also correlate
+// on account and a bounded time window to avoid cross-user false joins.
 ) on DeviceName
 | order by Timestamp asc
 ```

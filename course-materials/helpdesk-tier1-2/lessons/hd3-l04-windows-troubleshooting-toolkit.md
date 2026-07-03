@@ -72,7 +72,7 @@ resources:
   url: https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/repair-a-windows-image
 - label: Microsoft Support — Start your PC in Safe Mode in Windows
   url: https://support.microsoft.com/en-us/windows/start-your-pc-in-safe-mode-in-windows-92c27cff-db89-8644-1ce4-b3e5e56fe234
-- label: CompTIA — A+ Core 2 (220-1102) exam objectives
+- label: CompTIA — A+ Core 2 (220-1202) exam objectives
   url: https://www.comptia.org/certifications/a
 ---
 
@@ -88,6 +88,8 @@ Vague symptoms ("it just crashes") hide specific errors in the logs. Open **Even
 
 ```powershell
 Get-EventLog -LogName System -EntryType Error -Newest 5
+# Get-EventLog exists only in Windows PowerShell 5.1. In PowerShell 7 use:
+# Get-WinEvent -FilterHashtable @{ LogName='System'; Level=2 } -MaxEvents 5
 
 Index Time          Source        Message
 ----- ----          ------        -------

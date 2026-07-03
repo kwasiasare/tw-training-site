@@ -146,8 +146,8 @@ List what is true for you. Pin the terms that match your target postings near th
 
 Certifications tell a story; present them as a ladder mapped to the work:
 
-- **CompTIA A+** - the entry-level foundation (hardware, OS, core troubleshooting). The baseline most helpdesk postings expect.
-- **CompTIA Network+** - networking foundations (DNS, DHCP, subnets) that let you reason about connectivity issues.
+- **CompTIA A+ (220-1201 & 220-1202)** - the entry-level foundation (hardware, OS, core troubleshooting). The baseline most helpdesk postings expect. Cite the current exam codes; the 220-1101/1102 series retired in September 2025.
+- **CompTIA Network+ (N10-009)** - networking foundations (DNS, DHCP, subnets) that let you reason about connectivity issues.
 - **Microsoft MD-102 (Endpoint Administrator Associate)** - deploying and securing Windows devices with Intune; maps directly to desktop-support and modern-management roles.
 - **Microsoft MS-102 (Microsoft 365 Administrator)** - tenant administration: identity, licensing, Exchange Online, security and compliance. Note honestly that passing MS-102 earns the **Microsoft 365 Certified: Administrator Expert** certification only when you also hold a qualifying associate cert such as MD-102, so MS-102 plus MD-102 is the natural pairing for a Tier 2 / M365 path.
 

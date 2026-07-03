@@ -98,7 +98,7 @@ Here is the ladder this course points you toward:
 
 ## Which cert to chase, and when
 
-**CompTIA A+** is the foundation. If you are brand new, start here: hardware, operating systems, and the troubleshooting mindset every helpdesk role assumes. **CompTIA Network+** is the natural second step — DNS, DHCP, subnets, and the network knowledge that turns "it's broken" into "it's a DNS issue."
+**CompTIA A+** is the foundation. If you are brand new, start here: hardware, operating systems, and the troubleshooting mindset every helpdesk role assumes. The current exam series is **220-1201 (Core 1) and 220-1202 (Core 2)** — book those codes; the older 220-1101/1102 series retired in September 2025. **CompTIA Network+** (current exam **N10-009**) is the natural second step — DNS, DHCP, subnets, and the network knowledge that turns "it's broken" into "it's a DNS issue."
 
 From there you specialise. **Microsoft MD-102 (Endpoint Administrator)** validates deploying and securing Windows devices with **Intune** — ideal if you want a device-management or modern-desktop role. **Microsoft MS-102 (Microsoft 365 Administrator)** is your current target: tenant identity, licensing, Exchange Online, and security and compliance. It maps directly to the Tier 2 / M365 admin work you have practiced all month.
 
