@@ -28,34 +28,41 @@ const devUrl = import.meta.env.DEV ? videoUrl(src) : undefined;
   </div>
 )}
 
+{/* Static (no define:vars) so the script text — and therefore its CSP sha256
+    hash — is identical on every page. The lesson id is read from the player's
+    data-lesson attribute instead of being interpolated. */}
 {hasVideo && !devUrl && (
-  <script is:inline define:vars={{ lessonId }}>
+  <script is:inline>
     (function () {
-      var v = document.querySelector('video[data-video][data-lesson="' + lessonId + '"]');
-      if (!v) return;
-      var status = document.querySelector('[data-video-status]');
-      function show(html) { if (status) { status.innerHTML = html; status.hidden = false; } }
-      function clear() { if (status) { status.textContent = ''; status.hidden = true; } }
+      document.querySelectorAll('video[data-video][data-lesson]').forEach(function (v) {
+        if (v.dataset.videoInit) return; // idempotent if several players render
+        v.dataset.videoInit = '1';
+        var lessonId = v.getAttribute('data-lesson');
+        var wrap = v.closest('.video-wrap');
+        var status = wrap ? wrap.querySelector('[data-video-status]') : null;
+        function show(html) { if (status) { status.innerHTML = html; status.hidden = false; } }
+        function clear() { if (status) { status.textContent = ''; status.hidden = true; } }
 
-      fetch('/api/video?lesson=' + encodeURIComponent(lessonId), { headers: { accept: 'application/json' } })
-        .then(function (r) {
-          if (r.status === 401 || r.status === 403) {
-            var back = encodeURIComponent(location.pathname);
-            show('Sign in to watch this lesson. <a href="/.auth/login/entraExternalId?post_login_redirect_uri=' + back + '">Sign in</a>');
-            return null;
-          }
-          return r.ok ? r.json() : null;
-        })
-        .then(function (d) {
-          if (d && d.url) {
-            v.preload = 'metadata';
-            v.src = d.url;
-            clear();
-          } else if (status && !status.hidden && status.textContent === 'Loading video…') {
-            show('Video is temporarily unavailable. Please refresh the page.');
-          }
-        })
-        .catch(function () { show('Video is temporarily unavailable. Please refresh the page.'); });
+        fetch('/api/video?lesson=' + encodeURIComponent(lessonId), { headers: { accept: 'application/json' } })
+          .then(function (r) {
+            if (r.status === 401 || r.status === 403) {
+              var back = encodeURIComponent(location.pathname);
+              show('Sign in to watch this lesson. <a href="/.auth/login/entraExternalId?post_login_redirect_uri=' + back + '">Sign in</a>');
+              return null;
+            }
+            return r.ok ? r.json() : null;
+          })
+          .then(function (d) {
+            if (d && d.url) {
+              v.preload = 'metadata';
+              v.src = d.url;
+              clear();
+            } else if (status && !status.hidden && status.textContent === 'Loading video…') {
+              show('Video is temporarily unavailable. Please refresh the page.');
+            }
+          })
+          .catch(function () { show('Video is temporarily unavailable. Please refresh the page.'); });
+      });
     })();
   </script>
 )}
