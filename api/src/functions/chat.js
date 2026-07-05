@@ -15,9 +15,9 @@ const { app } = require('@azure/functions');
 // pattern that reliably registers on SWA).
 
 const OFF_TOPIC_REPLY =
-  "I can help with questions about our courses and the topics they teach — for example " +
-  "'Which course covers Kubernetes?' or 'What's the difference between the ML Engineer and " +
-  "MLOps tracks?'. For anything else, please contact support.";
+  "I can help with questions about our courses and how the site works — for example " +
+  "'Which course covers Kubernetes?', 'What's the difference between the ML Engineer and " +
+  "MLOps tracks?', or 'How do certificates work?'. For anything else, please contact support.";
 
 const NO_MATCH_REPLY =
   "I couldn't find that in our current course material. You can browse all courses on the " +
@@ -83,7 +83,7 @@ app.http('chat', {
         });
       }
 
-      const { selectLessons, answerCourseQuestion } = require('../shared/chat');
+      const { selectLessons, answerCourseQuestion, answerSiteHelpQuestion } = require('../shared/chat');
       const selection = await selectLessons({ messages: convo });
 
       if (selection.status === 'off_topic') {
@@ -100,6 +100,24 @@ app.http('chat', {
           status: 200,
           headers: { 'cache-control': 'private, no-store' },
           jsonBody: { reply: selection.message, lessons: [] },
+        });
+      }
+      if (selection.status === 'site_help') {
+        let siteResult;
+        try {
+          siteResult = await answerSiteHelpQuestion({ messages: convo });
+        } catch (err) {
+          if (err && err.code === 'refusal') {
+            outcome = 'refused_model_sitehelp';
+            return trace({ status: 422, jsonBody: { error: 'cannot_answer' } });
+          }
+          throw err;
+        }
+        outcome = 'site_help';
+        return trace({
+          status: 200,
+          headers: { 'cache-control': 'private, no-store' },
+          jsonBody: { reply: siteResult.reply, lessons: [] },
         });
       }
 
