@@ -166,6 +166,9 @@ const ANSWER_INSTRUCTIONS = [
   '   support instead.',
   '5. Keep answers short: a few sentences to one short paragraph unless the student',
   '   asks to go deeper. Be encouraging and practical.',
+  '6. Format replies as plain conversational text with at most simple markdown:',
+  '   **bold**, `inline code`, and hyphen bullets each on their own line. No headings,',
+  '   tables, links, or nested lists.',
 ].join('\n');
 
 function stage2System(lessons) {
