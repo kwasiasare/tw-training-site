@@ -6,6 +6,9 @@
 local.settings.json
 api/local.settings.json
 
+# Local LLM gateway Bearer key (tools/local_llm_client.py) — never commit.
+tools/*.key
+
 # ─── Python ────────────────────────────────────────────────
 __pycache__/
 *.pyc
