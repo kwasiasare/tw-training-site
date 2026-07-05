@@ -79,6 +79,33 @@ requests | where timestamp > ago(24h)
 pageViews | where timestamp > ago(7d) | summarize views=count() by name | order by views desc
 ```
 
+## Chatbot (TW-117)
+
+The cross-course chatbot (`POST /api/chat`) logs one structured trace event per
+request via `context.log(JSON.stringify({...}))` — auto-collected into `traces`
+by the same Functions telemetry as everything else, no new dependency. The
+question text itself is NEVER logged, only its character length (`qLen`).
+
+```kql
+// Chatbot volume + outcome mix, last 7d
+traces | where message has '"event":"chat_query"'
+| extend d = parse_json(message)
+| summarize n=count() by tostring(d.outcome), bin(timestamp, 1d)
+```
+```kql
+// Rough topic distribution (Phase-2 input)
+traces | where message has '"event":"chat_query"'
+| extend d = parse_json(message)
+| mv-expand course = d.courses
+| summarize n=count() by tostring(course) | order by n desc
+```
+```kql
+// Refusal rate
+traces | where message has '"event":"chat_query"'
+| extend o = tostring(parse_json(message).outcome)
+| summarize refusals=countif(o startswith "refused"), total=count() by bin(timestamp, 1d)
+```
+
 ## Re-provisioning (reference)
 
 ```bash

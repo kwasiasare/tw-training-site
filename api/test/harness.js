@@ -34,7 +34,7 @@ function setCache(absId, exports) {
 // Load a function module in isolation. Returns { handlers, exports } where
 // `handlers` maps each registered name to its options object (incl. handler),
 // and `exports` is the module's own exports (used by the sync test).
-function loadFunction(name, { cosmosContainer, r2, advisor, resumes, notify, tutor, lessons, grader } = {}) {
+function loadFunction(name, { cosmosContainer, r2, advisor, resumes, notify, tutor, lessons, grader, chat, ratelimit } = {}) {
   const azFuncId = require.resolve('@azure/functions', { paths: [FUNCTIONS_DIR] });
   const cosmosId = path.join(SHARED_DIR, 'cosmos.js');
   const r2Id = path.join(SHARED_DIR, 'r2.js');
@@ -44,6 +44,8 @@ function loadFunction(name, { cosmosContainer, r2, advisor, resumes, notify, tut
   const tutorId = path.join(SHARED_DIR, 'tutor.js');
   const lessonsId = path.join(SHARED_DIR, 'lessons.js');
   const graderId = path.join(SHARED_DIR, 'grader.js');
+  const chatId = path.join(SHARED_DIR, 'chat.js');
+  const ratelimitId = path.join(SHARED_DIR, 'ratelimit.js');
   const principalId = path.join(SHARED_DIR, 'principal.js');
   const fnId = path.join(FUNCTIONS_DIR, name + '.js');
 
@@ -76,7 +78,19 @@ function loadFunction(name, { cosmosContainer, r2, advisor, resumes, notify, tut
   // AI tutor stubs (the real tutor.js hits the Anthropic API; lessons.js reads the
   // committed lesson index). Default lessons stub returns a generic lesson so tests
   // that don't care about lookup still exercise the handler.
+  //
+  // Only `answerLessonQuestion` (the Anthropic-calling half) is faked here — the
+  // real `normalizeMessages`/`MAX_HISTORY` are preserved and merged in, because
+  // chat.js's handler (TW-117) imports those directly from shared/tutor.js and
+  // would otherwise see them as undefined once this stub replaces the module.
+  let tutorReal;
+  try {
+    tutorReal = require(tutorId);
+  } catch {
+    tutorReal = {};
+  }
   setCache(tutorId, {
+    ...tutorReal,
     answerLessonQuestion: tutor || (async () => ({ reply: 'stubbed reply' })),
   });
   setCache(lessonsId, {
@@ -89,9 +103,21 @@ function loadFunction(name, { cosmosContainer, r2, advisor, resumes, notify, tut
         ],
       })),
     countLessons: (lessons && lessons.countLessons) || (() => 3),
+    listLessonMeta: (lessons && lessons.listLessonMeta) || (() => []),
   });
   setCache(graderId, {
     gradeAnswer: grader || (async () => ({ verdict: 'correct', score: 90, feedback: 'Nice.' })),
+  });
+  // Chatbot stubs (TW-117): chat.js hits the Anthropic API twice per query;
+  // ratelimit.js hits Cosmos. Default ratelimit stub is always-allowed so tests
+  // that don't care about limiting still exercise the handler.
+  setCache(chatId, {
+    selectLessons: (chat && chat.selectLessons) || (async () => ({ status: 'no_match', lessonIds: [], message: '' })),
+    answerCourseQuestion: (chat && chat.answerCourseQuestion) || (async () => ({ reply: 'stubbed chat reply' })),
+  });
+  setCache(ratelimitId, {
+    checkLimit: (ratelimit && ratelimit.checkLimit) || (async () => ({ allowed: true, retryAfterSeconds: 0 })),
+    checkChatLimits: (ratelimit && ratelimit.checkChatLimits) || (async () => ({ allowed: true })),
   });
 
   // Real principal + fresh function module each load.

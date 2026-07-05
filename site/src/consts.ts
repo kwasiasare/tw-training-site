@@ -27,6 +27,12 @@ export const APPINSIGHTS_CONNECTION_STRING =
 export const CUSTOM_ADVISOR_ENABLED =
   import.meta.env.PUBLIC_CUSTOM_ADVISOR_ENABLED === 'true';
 
+// Cross-course Q&A chatbot (TW-117, Phase 1 / Tier A). Gated behind a build-time
+// flag so the global widget stays hidden until its backend (rate limiter +
+// ANTHROPIC_API_KEY) is wired in the target environment. Set
+// PUBLIC_CHATBOT_ENABLED=true to turn it on.
+export const CHATBOT_ENABLED = import.meta.env.PUBLIC_CHATBOT_ENABLED === 'true';
+
 // Course-level catalog metadata. The per-module/lesson tree is derived from the
 // lessons themselves (see courseModules / courseOrder below) so it never drifts.
 export type Course = {

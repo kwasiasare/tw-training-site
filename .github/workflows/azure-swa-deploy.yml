@@ -36,6 +36,7 @@ jobs:
           PUBLIC_AUTH_ENABLED: ${{ vars.PUBLIC_AUTH_ENABLED }}
           PUBLIC_APPINSIGHTS_CONNECTION_STRING: ${{ vars.PUBLIC_APPINSIGHTS_CONNECTION_STRING }}
           PUBLIC_CUSTOM_ADVISOR_ENABLED: ${{ vars.PUBLIC_CUSTOM_ADVISOR_ENABLED }}
+          PUBLIC_CHATBOT_ENABLED: ${{ vars.PUBLIC_CHATBOT_ENABLED }}
         run: |
           npm ci
           npm run build

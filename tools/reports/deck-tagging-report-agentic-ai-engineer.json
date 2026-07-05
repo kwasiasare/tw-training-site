@@ -1,0 +1,289 @@
+{
+  "generated_at": "2026-07-04T13:18:43.201316Z",
+  "tier": "fast",
+  "endpoint": "/v1/classify",
+  "ticket": "TW-115",
+  "stats": {
+    "tracks_processed": 1,
+    "lessons_attempted": 20,
+    "lessons_succeeded": 20,
+    "lessons_failed": 0,
+    "lessons_with_flags": 0,
+    "total_flags": 0
+  },
+  "tracks": [
+    {
+      "track": "agentic-ai-engineer",
+      "target_skills": [
+        "python",
+        "llm apis",
+        "multi-agent systems",
+        "agent orchestration",
+        "tool use",
+        "planning and reasoning",
+        "memory",
+        "rag",
+        "evaluation",
+        "langgraph",
+        "deployment"
+      ],
+      "lessons": [
+        {
+          "lesson": "agentic-ai-engineer/lessons/age-m1-l01-calling-llm-apis-in-python-completions-chat-and-.md",
+          "tags": [
+            "python",
+            "llm apis",
+            "tool use",
+            "deployment"
+          ],
+          "currency_flags": [],
+          "truncated": false,
+          "warnings": []
+        },
+        {
+          "lesson": "agentic-ai-engineer/lessons/age-m1-l02-prompt-engineering-and-system-design-for-agent-b.md",
+          "tags": [
+            "python",
+            "llm apis",
+            "tool use",
+            "memory",
+            "deployment"
+          ],
+          "currency_flags": [],
+          "truncated": false,
+          "warnings": []
+        },
+        {
+          "lesson": "agentic-ai-engineer/lessons/age-m1-l03-defining-and-wiring-tools-with-function-calling.md",
+          "tags": [
+            "python",
+            "tool use",
+            "function calling"
+          ],
+          "currency_flags": [],
+          "truncated": true,
+          "warnings": []
+        },
+        {
+          "lesson": "agentic-ai-engineer/lessons/age-m1-l04-build-a-single-tool-using-agent-loop-from-scratc.md",
+          "tags": [
+            "python",
+            "llm apis",
+            "agent orchestration",
+            "tool use"
+          ],
+          "currency_flags": [],
+          "truncated": true,
+          "warnings": []
+        },
+        {
+          "lesson": "agentic-ai-engineer/lessons/age-m2-l01-planning-and-reasoning-react-chain-of-thought-an.md",
+          "tags": [
+            "python",
+            "llm apis",
+            "tool use",
+            "planning and reasoning",
+            "observability"
+          ],
+          "currency_flags": [],
+          "truncated": true,
+          "warnings": []
+        },
+        {
+          "lesson": "agentic-ai-engineer/lessons/age-m2-l02-short-term-and-long-term-memory-for-agents.md",
+          "tags": [
+            "agent orchestration",
+            "tool use",
+            "memory"
+          ],
+          "currency_flags": [],
+          "truncated": true,
+          "warnings": []
+        },
+        {
+          "lesson": "agentic-ai-engineer/lessons/age-m2-l03-building-a-rag-pipeline-chunking-embeddings-and-.md",
+          "tags": [
+            "python",
+            "llm apis",
+            "embedding models",
+            "vector databases",
+            "memory"
+          ],
+          "currency_flags": [],
+          "truncated": true,
+          "warnings": []
+        },
+        {
+          "lesson": "agentic-ai-engineer/lessons/age-m2-l04-project-a-research-assistant-agent-with-rag-and-.md",
+          "tags": [
+            "python",
+            "llm apis",
+            "rag",
+            "memory",
+            "deployment"
+          ],
+          "currency_flags": [],
+          "truncated": true,
+          "warnings": []
+        },
+        {
+          "lesson": "agentic-ai-engineer/lessons/age-m3-l01-introduction-to-langgraph-state-nodes-and-edges.md",
+          "tags": [
+            "python",
+            "llm apis",
+            "tool use",
+            "deployment"
+          ],
+          "currency_flags": [],
+          "truncated": false,
+          "warnings": []
+        },
+        {
+          "lesson": "agentic-ai-engineer/lessons/age-m3-l02-designing-multi-agent-systems-roles-handoffs-and.md",
+          "tags": [
+            "python",
+            "llm apis",
+            "multi-agent systems",
+            "agent orchestration",
+            "tool use",
+            "deployment"
+          ],
+          "currency_flags": [],
+          "truncated": false,
+          "warnings": []
+        },
+        {
+          "lesson": "agentic-ai-engineer/lessons/age-m3-l03-orchestration-patterns-supervisor-hierarchical-a.md",
+          "tags": [
+            "python",
+            "llm apis",
+            "tool use",
+            "deployment",
+            "memory"
+          ],
+          "currency_flags": [],
+          "truncated": true,
+          "warnings": []
+        },
+        {
+          "lesson": "agentic-ai-engineer/lessons/age-m3-l04-project-a-multi-agent-workflow-with-human-in-the.md",
+          "tags": [
+            "multi-agent systems",
+            "agent orchestration",
+            "tool use",
+            "checkpointing",
+            "planning and reasoning"
+          ],
+          "currency_flags": [],
+          "truncated": true,
+          "warnings": []
+        },
+        {
+          "lesson": "agentic-ai-engineer/lessons/age-m4-l01-evaluating-agents-metrics-trajectories-and-llm-a.md",
+          "tags": [
+            "python",
+            "agent orchestration",
+            "tool use",
+            "evaluation"
+          ],
+          "currency_flags": [],
+          "truncated": true,
+          "warnings": []
+        },
+        {
+          "lesson": "agentic-ai-engineer/lessons/age-m4-l02-observability-tracing-and-debugging-agent-failur.md",
+          "tags": [
+            "python",
+            "llm apis",
+            "tool use",
+            "memory",
+            "evaluation"
+          ],
+          "currency_flags": [],
+          "truncated": false,
+          "warnings": []
+        },
+        {
+          "lesson": "agentic-ai-engineer/lessons/age-m4-l03-deploying-agents-as-apis-with-persistence-and-sc.md",
+          "tags": [
+            "python",
+            "llm apis",
+            "tool use",
+            "deployment"
+          ],
+          "currency_flags": [],
+          "truncated": false,
+          "warnings": []
+        },
+        {
+          "lesson": "agentic-ai-engineer/lessons/age-m4-l04-capstone-design-build-and-deploy-a-production-mu.md",
+          "tags": [
+            "python",
+            "llm apis",
+            "multi-agent systems",
+            "agent orchestration",
+            "tool use",
+            "memory",
+            "rag"
+          ],
+          "currency_flags": [],
+          "truncated": false,
+          "warnings": []
+        },
+        {
+          "lesson": "agentic-ai-engineer/lessons/age-m5-l01-capstone-ship-a-multi-agent-system.md",
+          "tags": [
+            "python",
+            "tool use",
+            "memory",
+            "agent orchestration",
+            "evaluation"
+          ],
+          "currency_flags": [],
+          "truncated": true,
+          "warnings": []
+        },
+        {
+          "lesson": "agentic-ai-engineer/lessons/age-m5-l02-building-your-agentic-ai-portfolio.md",
+          "tags": [
+            "python",
+            "llm apis",
+            "tool use",
+            "retrieval grounding",
+            "multi-agent systems"
+          ],
+          "currency_flags": [],
+          "truncated": true,
+          "warnings": []
+        },
+        {
+          "lesson": "agentic-ai-engineer/lessons/age-m5-l03-resume-and-ats-for-agentic-ai-engineers.md",
+          "tags": [
+            "python",
+            "llm-apis",
+            "tool-use",
+            "evaluation",
+            "agentic-systems"
+          ],
+          "currency_flags": [],
+          "truncated": true,
+          "warnings": []
+        },
+        {
+          "lesson": "agentic-ai-engineer/lessons/age-m5-l04-linkedin-and-the-agentic-ai-job-search.md",
+          "tags": [
+            "python",
+            "llm apis",
+            "tool use",
+            "deployment",
+            "agent orchestration"
+          ],
+          "currency_flags": [],
+          "truncated": true,
+          "warnings": []
+        }
+      ],
+      "failures": []
+    }
+  ]
+}

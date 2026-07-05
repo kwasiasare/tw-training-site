@@ -1,8 +1,9 @@
 ---
 // In-lesson AI tutor (TW-67). A collapsible chat panel that asks /api/tutor a
 // question grounded in THIS lesson. Auth-gated server-side; signed-out users get a
-// sign-in prompt. Model replies are rendered as plain text (never innerHTML) so a
-// reply can't inject markup.
+// sign-in prompt. Model replies are rendered with a safe, DOM-building markdown
+// renderer (chat-panel.ts's renderMarkdownInto) — never innerHTML — so a reply
+// can't inject markup while still displaying **bold**/`code`/bullets correctly.
 interface Props {
   course?: string;
   lesson?: string; // lesson id (topic.id)
@@ -60,8 +61,37 @@ const { course, lesson } = Astro.props;
   .tutor-log { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 0.75rem; }
   .tutor-msg { padding: 0.6rem 0.85rem; border-radius: 10px; white-space: pre-wrap; line-height: 1.5; }
   .tutor-msg.user { background: var(--accent-soft, #2a2440); align-self: flex-end; max-width: 85%; }
-  .tutor-msg.bot { background: var(--surface, #1e1e27); align-self: flex-start; max-width: 95%; }
+  .tutor-msg.bot { background: var(--surface, #1e1e27); align-self: flex-start; max-width: 95%; white-space: normal; }
   .tutor-msg.err { background: #3a1e1e; color: #ffb4b4; align-self: stretch; }
+
+  /* Rendered-markdown bot bubbles (TW-126). Message bubbles are created at
+     runtime by chat-panel.ts, so they never receive Astro's scoped
+     data-astro-cid-* attribute that the plain selectors above rely on —
+     these descendant rules are wrapped in :global() (anchored on the
+     statically-rendered .tutor-log ancestor) so they actually match. */
+  .tutor-log :global(.tutor-msg.bot p),
+  .tutor-log :global(.tutor-msg.bot ul),
+  .tutor-log :global(.tutor-msg.bot ol) {
+    margin: 0 0 0.5rem;
+  }
+  .tutor-log :global(.tutor-msg.bot p:last-child),
+  .tutor-log :global(.tutor-msg.bot ul:last-child),
+  .tutor-log :global(.tutor-msg.bot ol:last-child) {
+    margin-bottom: 0;
+  }
+  .tutor-log :global(.tutor-msg.bot ul),
+  .tutor-log :global(.tutor-msg.bot ol) {
+    padding-left: 1.25rem;
+  }
+  .tutor-log :global(.tutor-msg.bot li) {
+    margin: 0.15rem 0;
+  }
+  .tutor-log :global(.tutor-msg.bot code) {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    padding: 0.05rem 0.3rem;
+    font-size: 0.9em;
+  }
   .tutor-form { display: flex; gap: 0.5rem; align-items: flex-end; }
   .tutor-form textarea {
     flex: 1;
@@ -77,84 +107,26 @@ const { course, lesson } = Astro.props;
 </style>
 
 <script>
+  import { attachChatPanel } from '../scripts/chat-panel';
+
   document.querySelectorAll('[data-tutor]').forEach((root) => {
     const lesson = root.getAttribute('data-lesson');
-    const log = root.querySelector('[data-tutor-log]');
-    const form = root.querySelector('[data-tutor-form]');
-    const input = root.querySelector('[data-tutor-input]');
-    const send = root.querySelector('[data-tutor-send]');
-    if (!lesson || !log || !form || !input || !send) return;
+    if (!lesson) return;
 
-    const history = []; // {role:'user'|'assistant', content}
-
-    function addMsg(cls, text) {
-      const el = document.createElement('div');
-      el.className = 'tutor-msg ' + cls;
-      el.textContent = text; // plain text only — never innerHTML
-      log.appendChild(el);
-      log.scrollTop = log.scrollHeight;
-      return el;
-    }
-
-    async function ask(question) {
-      addMsg('user', question);
-      history.push({ role: 'user', content: question });
-      const pending = addMsg('bot', 'Thinking…');
-      send.setAttribute('disabled', 'true');
-      input.setAttribute('disabled', 'true');
-
-      try {
-        const r = await fetch('/api/tutor', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ lesson, messages: history.slice(-8) }),
-        });
-        if (r.status === 401 || r.status === 403) {
-          const back = encodeURIComponent(location.pathname);
-          pending.className = 'tutor-msg err';
-          pending.textContent = 'Please sign in to use the tutor.';
-          const a = document.createElement('a');
-          a.href = '/.auth/login/entraExternalId?post_login_redirect_uri=' + back;
-          a.textContent = ' Sign in';
-          pending.appendChild(a);
-          history.pop();
-          return;
-        }
-        const d = r.ok ? await r.json().catch(() => null) : null;
-        if (d && d.reply) {
-          pending.textContent = d.reply;
-          history.push({ role: 'assistant', content: d.reply });
-        } else {
-          pending.className = 'tutor-msg err';
-          pending.textContent = r.status === 422
-            ? "I couldn't answer that one — try rephrasing or asking something about this lesson."
-            : 'Something went wrong. Please try again in a moment.';
-          history.pop();
-        }
-      } catch (e) {
-        pending.className = 'tutor-msg err';
-        pending.textContent = 'Network error. Please try again.';
-        history.pop();
-      } finally {
-        send.removeAttribute('disabled');
-        input.removeAttribute('disabled');
-        input.focus();
-      }
-    }
-
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const q = (input.value || '').trim();
-      if (!q) return;
-      input.value = '';
-      ask(q);
-    });
-    // Enter to send, Shift+Enter for newline.
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        form.requestSubmit();
-      }
+    attachChatPanel({
+      root,
+      endpoint: '/api/tutor',
+      buildBody: (history) => ({ lesson, messages: history }),
+      maxHistory: 8,
+      signInMessage: 'Please sign in to use the tutor.',
+      cannotAnswerMessage: "I couldn't answer that one — try rephrasing or asking something about this lesson.",
+      selectors: {
+        log: '[data-tutor-log]',
+        form: '[data-tutor-form]',
+        input: '[data-tutor-input]',
+        send: '[data-tutor-send]',
+      },
+      msgClassPrefix: 'tutor-msg',
     });
   });
 </script>

@@ -1,0 +1,197 @@
+{
+  "generated_at": "2026-07-04T12:23:20.948733Z",
+  "tier": "fast",
+  "endpoint": "/v1/classify",
+  "ticket": "TW-115",
+  "stats": {
+    "tracks_processed": 1,
+    "lessons_attempted": 16,
+    "lessons_succeeded": 16,
+    "lessons_failed": 0,
+    "lessons_with_flags": 0,
+    "total_flags": 0
+  },
+  "tracks": [
+    {
+      "track": "junior-digital-marketing",
+      "target_skills": [
+        "Meta Ads",
+        "Google Ads",
+        "SEO",
+        "keyword research",
+        "Google Analytics",
+        "social media analytics",
+        "copywriting",
+        "Canva",
+        "short-form video",
+        "email marketing",
+        "Mailchimp",
+        "campaign planning",
+        "performance measurement",
+        "portfolio building"
+      ],
+      "lessons": [
+        {
+          "lesson": "junior-digital-marketing/lessons/dm-m1-l01-the-digital-marketing-landscape-the-assistant-ro.md",
+          "tags": [
+            "digital-marketing",
+            "social-media",
+            "content-creation"
+          ],
+          "currency_flags": [],
+          "truncated": false
+        },
+        {
+          "lesson": "junior-digital-marketing/lessons/dm-m1-l02-copywriting-that-converts-for-social-and-ads.md",
+          "tags": [
+            "copywriting",
+            "social_media_ads",
+            "frameworks"
+          ],
+          "currency_flags": [],
+          "truncated": false
+        },
+        {
+          "lesson": "junior-digital-marketing/lessons/dm-m1-l03-designing-branded-graphics-in-canva.md",
+          "tags": [
+            "Canva",
+            "social-media-marketing",
+            "branding"
+          ],
+          "currency_flags": [],
+          "truncated": false
+        },
+        {
+          "lesson": "junior-digital-marketing/lessons/dm-m1-l04-producing-short-form-video-for-reels-tiktok-shor.md",
+          "tags": [
+            "social-media-marketing",
+            "short-form-video"
+          ],
+          "currency_flags": [],
+          "truncated": false
+        },
+        {
+          "lesson": "junior-digital-marketing/lessons/dm-m2-l01-campaign-planning-setting-smart-objectives.md",
+          "tags": [
+            "campaign-planning",
+            "campaign-brief",
+            "meta-ads",
+            "google-ads"
+          ],
+          "currency_flags": [],
+          "truncated": false
+        },
+        {
+          "lesson": "junior-digital-marketing/lessons/dm-m2-l02-launching-your-first-meta-ads-campaign.md",
+          "tags": [
+            "MetaAds",
+            "GoogleAds",
+            "advertising"
+          ],
+          "currency_flags": [],
+          "truncated": false
+        },
+        {
+          "lesson": "junior-digital-marketing/lessons/dm-m2-l03-running-search-campaigns-with-google-ads.md",
+          "tags": [
+            "GoogleAds",
+            "SEO",
+            "keywordresearch"
+          ],
+          "currency_flags": [],
+          "truncated": false
+        },
+        {
+          "lesson": "junior-digital-marketing/lessons/dm-m2-l04-optimizing-ad-performance-a-b-testing.md",
+          "tags": [
+            "meta-ads",
+            "google-ads",
+            "a/b-testing"
+          ],
+          "currency_flags": [],
+          "truncated": false
+        },
+        {
+          "lesson": "junior-digital-marketing/lessons/dm-m3-l01-keyword-research-search-intent.md",
+          "tags": [
+            "SEO",
+            "keyword_research",
+            "intent"
+          ],
+          "currency_flags": [],
+          "truncated": false
+        },
+        {
+          "lesson": "junior-digital-marketing/lessons/dm-m3-l02-on-page-seo-fundamentals.md",
+          "tags": [
+            "SEO",
+            "on-page-seo",
+            "content-marketing"
+          ],
+          "currency_flags": [],
+          "truncated": false
+        },
+        {
+          "lesson": "junior-digital-marketing/lessons/dm-m3-l03-measuring-traffic-with-google-analytics-4.md",
+          "tags": [
+            "GoogleAnalytics4",
+            "GA4"
+          ],
+          "currency_flags": [],
+          "truncated": true
+        },
+        {
+          "lesson": "junior-digital-marketing/lessons/dm-m3-l04-social-media-analytics-reporting.md",
+          "tags": [
+            "SEO",
+            "social-media-analytics",
+            "performance-measurement"
+          ],
+          "currency_flags": [],
+          "truncated": false
+        },
+        {
+          "lesson": "junior-digital-marketing/lessons/dm-m4-l01-email-marketing-strategy-list-building.md",
+          "tags": [
+            "email-marketing",
+            "permission-email",
+            "lead-magnet",
+            "list-building"
+          ],
+          "currency_flags": [],
+          "truncated": false
+        },
+        {
+          "lesson": "junior-digital-marketing/lessons/dm-m4-l02-building-automated-campaigns-in-mailchimp.md",
+          "tags": [
+            "email-marketing",
+            "mailchimp"
+          ],
+          "currency_flags": [],
+          "truncated": false
+        },
+        {
+          "lesson": "junior-digital-marketing/lessons/dm-m4-l03-integrated-capstone-a-full-multi-channel-campaig.md",
+          "tags": [
+            "email-marketing",
+            "seo",
+            "campaign-management"
+          ],
+          "currency_flags": [],
+          "truncated": false
+        },
+        {
+          "lesson": "junior-digital-marketing/lessons/dm-m4-l04-building-your-portfolio-landing-the-job.md",
+          "tags": [
+            "email-marketing",
+            "resume-building",
+            "portfolio-creation"
+          ],
+          "currency_flags": [],
+          "truncated": true
+        }
+      ],
+      "failures": []
+    }
+  ]
+}

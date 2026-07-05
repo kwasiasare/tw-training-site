@@ -1,0 +1,258 @@
+---
+// Global floating course-chatbot widget (TW-117, Phase 1 / Tier A). Present on
+// every page via BaseLayout, gated by CHATBOT_ENABLED. Talks to /api/chat,
+// which is auth-gated and grounds answers server-side in the course catalog —
+// the client never supplies lesson content, and replies are rendered with a
+// safe, DOM-building markdown renderer (chat-panel.ts's renderMarkdownInto)
+// — never innerHTML — so a reply can't inject markup while still displaying
+// **bold**/`code`/bullets correctly.
+//
+// Fixed-position, self-contained: its own namespaced `.cw-*` root/classes, no
+// shared IDs or global state, so it never collides with the per-lesson Tutor
+// panel (an inline <details> element scoped to one lesson's content).
+---
+
+<div class="cw-root" data-cw>
+  <button type="button" class="cw-launcher" data-cw-toggle aria-expanded="false" aria-controls="cw-panel">
+    💬 Ask about our courses
+  </button>
+
+  <section id="cw-panel" class="cw-panel" data-cw-panel hidden>
+    <header class="cw-header">
+      <span class="cw-title">Ask about our courses</span>
+      <button type="button" class="cw-close" data-cw-close aria-label="Close chat">&times;</button>
+    </header>
+
+    <div class="cw-log" data-log aria-live="polite"></div>
+
+    <form class="cw-form" data-form>
+      <textarea
+        data-input
+        rows="2"
+        maxlength="2000"
+        placeholder="e.g. Which course covers Kubernetes?"
+        aria-label="Ask a question about our courses"
+      ></textarea>
+      <button class="cw-send" type="submit" data-send>Ask</button>
+    </form>
+    <p class="cw-foot">Answers come from our course materials and can make mistakes.</p>
+  </section>
+</div>
+
+<style>
+  .cw-root { position: fixed; right: 1rem; bottom: 1rem; z-index: 900; }
+
+  .cw-launcher {
+    border: 1px solid var(--border, #2a2a35);
+    background: var(--card, #16161d);
+    color: inherit;
+    border-radius: 999px;
+    padding: 0.7rem 1.1rem;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  }
+
+  .cw-panel {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 0.6rem);
+    width: 360px;
+    max-width: calc(100vw - 2rem);
+    height: 480px;
+    max-height: calc(100vh - 6rem);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border, #2a2a35);
+    border-radius: 12px;
+    background: var(--card, #16161d);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+  }
+  .cw-panel[hidden] { display: none; }
+
+  .cw-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--border, #2a2a35);
+  }
+  .cw-title { font-weight: 600; }
+  .cw-close {
+    border: none;
+    background: none;
+    color: inherit;
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.1rem 0.4rem;
+  }
+
+  .cw-log {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem;
+  }
+  .cw-msg { padding: 0.6rem 0.85rem; border-radius: 10px; white-space: pre-wrap; line-height: 1.5; }
+  .cw-msg.user { background: var(--accent-soft, #2a2440); align-self: flex-end; max-width: 85%; }
+  .cw-msg.bot { background: var(--surface, #1e1e27); align-self: flex-start; max-width: 95%; white-space: normal; }
+  .cw-msg.err { background: #3a1e1e; color: #ffb4b4; align-self: stretch; }
+
+  /* Rendered-markdown bot bubbles (TW-126). Message bubbles are created at
+     runtime by chat-panel.ts, so they never receive Astro's scoped
+     data-astro-cid-* attribute that the plain selectors above rely on —
+     these descendant rules are wrapped in :global() (anchored on the
+     statically-rendered .cw-log ancestor) so they actually match. */
+  .cw-log :global(.cw-msg.bot p),
+  .cw-log :global(.cw-msg.bot ul),
+  .cw-log :global(.cw-msg.bot ol) {
+    margin: 0 0 0.5rem;
+  }
+  .cw-log :global(.cw-msg.bot p:last-child),
+  .cw-log :global(.cw-msg.bot ul:last-child),
+  .cw-log :global(.cw-msg.bot ol:last-child) {
+    margin-bottom: 0;
+  }
+  .cw-log :global(.cw-msg.bot ul),
+  .cw-log :global(.cw-msg.bot ol) {
+    padding-left: 1.25rem;
+  }
+  .cw-log :global(.cw-msg.bot li) {
+    margin: 0.15rem 0;
+  }
+  .cw-log :global(.cw-msg.bot code) {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    padding: 0.05rem 0.3rem;
+    font-size: 0.9em;
+  }
+  .cw-msg-sources {
+    align-self: flex-start;
+    max-width: 95%;
+    font-size: 0.8rem;
+    color: var(--grey, #9fb0c0);
+    padding: 0 0.15rem;
+  }
+  .cw-msg-sources a { margin: 0 0.15rem; }
+
+  .cw-form { display: flex; gap: 0.5rem; align-items: flex-end; padding: 0 1rem 0.85rem; }
+  .cw-form textarea {
+    flex: 1;
+    resize: vertical;
+    border-radius: 10px;
+    border: 1px solid var(--border, #2a2a35);
+    background: var(--surface, #1e1e27);
+    color: inherit;
+    padding: 0.6rem 0.75rem;
+    font: inherit;
+  }
+  .cw-send {
+    border: 1px solid var(--border, #2a2a35);
+    background: var(--accent-soft, #2a2440);
+    color: inherit;
+    border-radius: 8px;
+    padding: 0.55rem 0.9rem;
+    font: inherit;
+    cursor: pointer;
+  }
+  .cw-foot { font-size: 0.72rem; margin: 0 1rem 0.85rem; color: var(--grey, #9fb0c0); }
+
+  /* Full-width bottom sheet on small viewports. */
+  @media (max-width: 480px) {
+    .cw-root { right: 0.5rem; bottom: 0.5rem; left: 0.5rem; }
+    .cw-panel {
+      position: fixed;
+      left: 0.5rem;
+      right: 0.5rem;
+      bottom: calc(100% + 0.6rem);
+      width: auto;
+      max-width: none;
+    }
+  }
+</style>
+
+<script>
+  import { attachChatPanel } from '../scripts/chat-panel';
+
+  const STORAGE_KEY = 'tw-chat-history';
+
+  function loadHistory() {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return []; // sessionStorage can throw in some contexts (private browsing, etc.)
+    }
+  }
+
+  function saveHistory(history) {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+    } catch {
+      /* best-effort persistence only */
+    }
+  }
+
+  const root = document.querySelector('[data-cw]');
+  if (root) {
+    const toggle = root.querySelector('[data-cw-toggle]');
+    const panel = root.querySelector('[data-cw-panel]');
+    const closeBtn = root.querySelector('[data-cw-close]');
+    const log = root.querySelector('[data-log]');
+
+    function setOpen(open) {
+      if (!panel || !toggle) return;
+      panel.hidden = !open;
+      toggle.setAttribute('aria-expanded', String(open));
+      if (open) {
+        // panel.hidden must flip to false (removing display:none) before focus()
+        // can land, so defer to the next frame rather than focusing synchronously.
+        requestAnimationFrame(() => {
+          const input = panel.querySelector('[data-input]');
+          input?.focus();
+        });
+      }
+    }
+
+    toggle?.addEventListener('click', () => setOpen(!!panel && panel.hidden));
+    closeBtn?.addEventListener('click', () => setOpen(false));
+
+    attachChatPanel({
+      root,
+      endpoint: '/api/chat',
+      buildBody: (history) => ({ messages: history }),
+      maxHistory: 8,
+      signInMessage: 'Please sign in to ask about our courses.',
+      msgClassPrefix: 'cw-msg',
+      initialHistory: loadHistory(),
+      onHistoryChange: saveHistory,
+      onReply: (data, addMsg) => {
+        if (!data || !Array.isArray(data.lessons) || !data.lessons.length || !log) return;
+        const footer = document.createElement('div');
+        footer.className = 'cw-msg-sources';
+        footer.appendChild(document.createTextNode('Based on: '));
+        let appended = 0;
+        data.lessons.forEach((lesson) => {
+          if (!lesson || typeof lesson.id !== 'string' || typeof lesson.title !== 'string') return;
+          // Only add the separator once we know a valid link follows it, so a
+          // malformed entry can never leave a dangling ", " with nothing after it.
+          if (appended > 0) footer.appendChild(document.createTextNode(', '));
+          const a = document.createElement('a');
+          a.href = `/topics/${lesson.id}/`;
+          a.textContent = lesson.title; // textContent only — never innerHTML
+          footer.appendChild(a);
+          appended += 1;
+        });
+        log.appendChild(footer);
+        log.scrollTop = log.scrollHeight;
+      },
+    });
+  }
+</script>
