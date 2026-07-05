@@ -33,4 +33,17 @@ function countLessons(courseSlug) {
   return counts[courseSlug] || 0;
 }
 
-module.exports = { getLesson, countLessons };
+// Compact catalog metadata for all lessons (TW-117 chatbot Stage-1 retrieval):
+// just {id, course, title} — no objectives/body, so it's cheap to hand to the
+// model as system-prompt context. Derived from the same already-loaded index;
+// no new generated file, no build-script change. Cached in module scope.
+let meta;
+function listLessonMeta() {
+  if (!meta) {
+    const idx = load();
+    meta = Object.keys(idx).map((id) => ({ id, course: idx[id].course, title: idx[id].title }));
+  }
+  return meta;
+}
+
+module.exports = { getLesson, countLessons, listLessonMeta };

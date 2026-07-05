@@ -1,7 +1,8 @@
 ---
 import '../styles/global.css';
-import { SITE, AUTH_ENABLED, CUSTOM_ADVISOR_ENABLED } from '../consts';
+import { SITE, AUTH_ENABLED, CUSTOM_ADVISOR_ENABLED, CHATBOT_ENABLED } from '../consts';
 import Analytics from '../components/Analytics.astro';
+import ChatWidget from '../components/ChatWidget.astro';
 
 interface Props {
   title?: string;
@@ -103,5 +104,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://www.sall
       </script>
     )}
     {AUTH_ENABLED && <script is:inline src="/progress.js" defer></script>}
+    {CHATBOT_ENABLED && <ChatWidget />}
   </body>
 </html>

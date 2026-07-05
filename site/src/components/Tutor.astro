@@ -77,84 +77,26 @@ const { course, lesson } = Astro.props;
 </style>
 
 <script>
+  import { attachChatPanel } from '../scripts/chat-panel';
+
   document.querySelectorAll('[data-tutor]').forEach((root) => {
     const lesson = root.getAttribute('data-lesson');
-    const log = root.querySelector('[data-tutor-log]');
-    const form = root.querySelector('[data-tutor-form]');
-    const input = root.querySelector('[data-tutor-input]');
-    const send = root.querySelector('[data-tutor-send]');
-    if (!lesson || !log || !form || !input || !send) return;
+    if (!lesson) return;
 
-    const history = []; // {role:'user'|'assistant', content}
-
-    function addMsg(cls, text) {
-      const el = document.createElement('div');
-      el.className = 'tutor-msg ' + cls;
-      el.textContent = text; // plain text only — never innerHTML
-      log.appendChild(el);
-      log.scrollTop = log.scrollHeight;
-      return el;
-    }
-
-    async function ask(question) {
-      addMsg('user', question);
-      history.push({ role: 'user', content: question });
-      const pending = addMsg('bot', 'Thinking…');
-      send.setAttribute('disabled', 'true');
-      input.setAttribute('disabled', 'true');
-
-      try {
-        const r = await fetch('/api/tutor', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ lesson, messages: history.slice(-8) }),
-        });
-        if (r.status === 401 || r.status === 403) {
-          const back = encodeURIComponent(location.pathname);
-          pending.className = 'tutor-msg err';
-          pending.textContent = 'Please sign in to use the tutor.';
-          const a = document.createElement('a');
-          a.href = '/.auth/login/entraExternalId?post_login_redirect_uri=' + back;
-          a.textContent = ' Sign in';
-          pending.appendChild(a);
-          history.pop();
-          return;
-        }
-        const d = r.ok ? await r.json().catch(() => null) : null;
-        if (d && d.reply) {
-          pending.textContent = d.reply;
-          history.push({ role: 'assistant', content: d.reply });
-        } else {
-          pending.className = 'tutor-msg err';
-          pending.textContent = r.status === 422
-            ? "I couldn't answer that one — try rephrasing or asking something about this lesson."
-            : 'Something went wrong. Please try again in a moment.';
-          history.pop();
-        }
-      } catch (e) {
-        pending.className = 'tutor-msg err';
-        pending.textContent = 'Network error. Please try again.';
-        history.pop();
-      } finally {
-        send.removeAttribute('disabled');
-        input.removeAttribute('disabled');
-        input.focus();
-      }
-    }
-
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const q = (input.value || '').trim();
-      if (!q) return;
-      input.value = '';
-      ask(q);
-    });
-    // Enter to send, Shift+Enter for newline.
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        form.requestSubmit();
-      }
+    attachChatPanel({
+      root,
+      endpoint: '/api/tutor',
+      buildBody: (history) => ({ lesson, messages: history }),
+      maxHistory: 8,
+      signInMessage: 'Please sign in to use the tutor.',
+      cannotAnswerMessage: "I couldn't answer that one — try rephrasing or asking something about this lesson.",
+      selectors: {
+        log: '[data-tutor-log]',
+        form: '[data-tutor-form]',
+        input: '[data-tutor-input]',
+        send: '[data-tutor-send]',
+      },
+      msgClassPrefix: 'tutor-msg',
     });
   });
 </script>
