@@ -1,13 +1,24 @@
 # Student-Facing Course Chatbot + Help Tool — Plan
 
-Status: **PROPOSAL — NOT APPROVED FOR IMPLEMENTATION.** This document proposes the
-platform's first expansion of its public, student-facing AI surface since the
-Custom Training Advisor / tutor / grader boundary (TW-61 and its sibling tickets
-TW-64/67/68). Sections 1 and 2 in particular (scope boundary, engine choice) are
-consequential, hard-to-reverse decisions and **must not be implemented without
-Kwasi's explicit sign-off**, in the same way the internal LLM platform's
-app-registration step (TW-111) was gated behind explicit approval. See the
-companion Jira epic for the formal gate.
+Status: **APPROVED AND SHIPPED (Phase 1).** Kwasi approved the scope boundary
+(§1, Tier A only) and engine choice (§2, Claude) on 2026-07-05 (see the
+approval comment on Jira epic TW-116). Phase 1 (TW-117, cross-course course
+Q&A) is implemented, reviewed (Sonnet → Opus → five-persona review → live
+production verification), merged to `master`, and live in production at
+`www.salloma.com` with the `PUBLIC_CHATBOT_ENABLED` feature flag on.
+
+One revision made during implementation planning: the model tier originally
+recommended in this document (`claude-opus-4-8` throughout) was revised to a
+two-stage routing — `claude-haiku-4-5` for intent classification/lesson
+selection, `claude-sonnet-5` for the actual grounded answer — after a
+cost review concluded neither sub-task requires Opus-tier reasoning (see §2
+and §7 for the updated detail). This was exactly the cost-optimization
+comparison flagged as a to-do in the original §2 text below; references to
+`claude-opus-4-8` further in this document reflect the pre-revision proposal
+and are kept for historical context.
+
+Phases 2 (site help/FAQ) and 3 (account/progress-aware help) remain
+unstarted — Phase 3 still requires its own separate approval gate per §1.
 
 ---
 
@@ -83,10 +94,11 @@ approval this doc calls for.
 
 ## 2. Engine choice: Claude vs. the internal local LLM
 
-**Recommendation: Claude (`claude-opus-4-8`), matching the existing tutor's
-bar. Do not use the internal local LLM (Ollama/Chroma on the Tailscale-only
-box) for this.** This is a clear recommendation, not a coin-flip — three
-independent reasons all point the same way:
+**Recommendation: Claude, not the internal local LLM (Ollama/Chroma on the
+Tailscale-only box).** This is a clear recommendation, not a coin-flip —
+three independent reasons all point the same way. (Which Claude model
+tier to use is a separate, since-revised question — see the shipped-status
+note at the top of this document and the update at the end of this section.)
 
 1. **Reachability is a hard blocker, not a preference.** The local LLM
    gateway (`100.119.240.75:8000`) is Tailscale-only by design (that was the
@@ -121,10 +133,20 @@ truncation, and §6 recommends the same pattern here plus rate limiting
 real problem, the right lever is tightening those bounds or evaluating a
 cheaper Claude model tier for the high-volume/low-complexity "site help"
 tier — not routing student-facing answers through a slower, lower-quality,
-unreachable-without-new-infra backend. **Flag for Kwasi:** worth a quick
-comparison of `claude-opus-4-8` vs. a smaller Claude model for tier B (site
-help / FAQ) traffic specifically, as a cost optimization within the
-Claude-only recommendation — not a reason to reconsider the local LLM.
+unreachable-without-new-infra backend.
+
+**Update (2026-07-05, during implementation planning):** this exact
+comparison was done for Phase 1 before Sonnet implemented it. Verdict: the
+two sub-tasks in the two-stage pipeline (§5) have very different shapes —
+classifying intent and picking 1-3 lesson IDs from a title list is a narrow
+routing task, and answering from already-retrieved lesson text is
+"synthesize from provided context," not open-ended reasoning. Neither is
+Opus-shaped work. Shipped routing: `claude-haiku-4-5` (no `effort` param —
+unsupported on Haiku) for Stage 1, `claude-sonnet-5` with `effort: 'low'`
+for Stage 2. This roughly halves per-query cost versus all-Opus with no
+observed quality loss, and off-topic/no-match questions never reach Stage 2
+at all, keeping that traffic nearly free. Live-verified in production
+(Jira TW-117).
 
 ---
 
@@ -296,12 +318,15 @@ Recommend a phased rollout, not a big-bang launch — this is the platform's
 first public-AI-surface expansion since TW-61, and phasing lets real usage
 data inform each subsequent step.
 
-**Phase 1 — Course Q&A (small–medium).** Tier A only (§1): cross-course
+**Phase 1 — Course Q&A (small–medium). SHIPPED (2026-07-05, Jira TW-117),
+live in production at `www.salloma.com`.** Tier A only (§1): cross-course
 content Q&A grounded in the two-stage lookup from §5, global floating widget
 (§4), signed-in students only, rate limiting shipped from day one (§6), on
-Claude `claude-opus-4-8` (§2). Ship Application Insights logging of query
-volume, refusal rate, and rough topic distribution before deciding Phase 2
-scope in detail.
+Claude — `claude-haiku-4-5` for classification/lesson-selection,
+`claude-sonnet-5` for the grounded answer (see the cost-revision note in §2;
+the `claude-opus-4-8` reference here reflects the original pre-revision
+proposal). Application Insights logging of query volume, refusal rate, and
+rough topic distribution is live; use it to inform Phase 2 scope in detail.
 
 **Phase 2 — Site help / FAQ (small–medium).** Extend to tier B (§1):
 non-personal "how the site works" questions (enrollment, certificates,

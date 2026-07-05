@@ -124,14 +124,19 @@ The API key never leaves the server — it is read from a local file on the box 
 also runs the gateway, and the SSH session only ever sends the `--key-file` *path*,
 never the key itself.
 
-## Known limitation: orphaned chunks
+## Cleaning up orphaned chunks
 
 `ingest_docs.py` upserts by a stable `<relpath>::<chunk_index>` ID, so re-ingesting an
-edited file safely overwrites its old chunks. But there is no delete endpoint on the
-gateway: if a lesson file shrinks, is renamed, or is deleted (e.g. a track is retired
-or a lesson is merged into another), its old chunk IDs are **not** removed from
-Chroma and become stale orphans. If that happens, a gateway-side delete/reset endpoint
-would be needed — this ingestion step alone cannot clean that up.
+edited file safely overwrites its old chunks. If a lesson file shrinks, is renamed, or
+is deleted (e.g. a track is retired or a lesson is merged into another), its old chunk
+IDs are **not** automatically removed from Chroma and become stale orphans.
+
+As of LPL-6, the gateway has a delete endpoint for exactly this case: `POST /v1/delete`
+with `{"collection": "<name>", "source_prefix": "<relpath>::"}` removes every chunk
+whose ID starts with that file's prefix, regardless of how many chunks it currently
+has. (The endpoint also supports deleting by exact `ids` list, or clearing an entire
+collection via `{"all": true, "confirm": true}`.) Requires the app's own Bearer key,
+same auth/collection-isolation rules as every other endpoint.
 
 ## Re-running after content changes
 

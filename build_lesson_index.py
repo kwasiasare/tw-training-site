@@ -23,6 +23,13 @@ import yaml
 OUT = os.path.join("api", "src", "shared", "lessons.generated.json")
 BODY_CHAR_CAP = 8000  # bound grounding tokens; lessons are well under this
 
+# dami-ai-career is unpublished (superseded by ai-app-developer-2026); its
+# content stays in the repo but is excluded from the build. Must mirror the
+# `!dami-ai-career/lessons/**` exclusion in site/src/content.config.ts — if the
+# two drift, the tutor/chatbot's lesson index (this script's output) can cite
+# lessons that don't correspond to any real page on the live site (TW-117).
+UNPUBLISHED_COURSES = {"dami-ai-career"}
+
 
 def parse_lesson(path):
     """Return (lesson_id, data) or None if unparseable."""
@@ -65,6 +72,9 @@ def parse_lesson(path):
 def main():
     index = {}
     for md in sorted(glob.glob(os.path.join("course-materials", "*", "lessons", "*.md"))):
+        course_slug = os.path.basename(os.path.dirname(os.path.dirname(md)))
+        if course_slug in UNPUBLISHED_COURSES:
+            continue
         parsed = parse_lesson(md)
         if not parsed:
             continue
