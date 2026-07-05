@@ -7,7 +7,7 @@
 // questions from anywhere on the site.
 //
 // Stage 1 (selectLessons) is a narrow retrieval/classification task — pick 0-3
-// relevant lesson ids out of the full 391-lesson catalog and classify the
+// relevant lesson ids out of the full 326-lesson catalog and classify the
 // question as ok/no_match/off_topic/clarify — so it runs on the cheapest model,
 // claude-haiku-4-5, which keeps off-topic/no-match traffic (routed to a fixed
 // reply with no Stage-2 call) nearly free. `output_config.effort` is NOT
