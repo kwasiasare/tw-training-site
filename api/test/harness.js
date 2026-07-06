@@ -108,12 +108,14 @@ function loadFunction(name, { cosmosContainer, r2, advisor, resumes, notify, tut
   setCache(graderId, {
     gradeAnswer: grader || (async () => ({ verdict: 'correct', score: 90, feedback: 'Nice.' })),
   });
-  // Chatbot stubs (TW-117): chat.js hits the Anthropic API twice per query;
-  // ratelimit.js hits Cosmos. Default ratelimit stub is always-allowed so tests
-  // that don't care about limiting still exercise the handler.
+  // Chatbot stubs (TW-117, Phase 2 / TW-118): chat.js hits the Anthropic API up
+  // to twice per query; ratelimit.js hits Cosmos. Default ratelimit stub is
+  // always-allowed so tests that don't care about limiting still exercise the
+  // handler.
   setCache(chatId, {
     selectLessons: (chat && chat.selectLessons) || (async () => ({ status: 'no_match', lessonIds: [], message: '' })),
     answerCourseQuestion: (chat && chat.answerCourseQuestion) || (async () => ({ reply: 'stubbed chat reply' })),
+    answerSiteHelpQuestion: (chat && chat.answerSiteHelpQuestion) || (async () => ({ reply: 'stubbed site-help reply' })),
   });
   setCache(ratelimitId, {
     checkLimit: (ratelimit && ratelimit.checkLimit) || (async () => ({ allowed: true, retryAfterSeconds: 0 })),

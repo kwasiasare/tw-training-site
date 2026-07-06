@@ -79,21 +79,28 @@ requests | where timestamp > ago(24h)
 pageViews | where timestamp > ago(7d) | summarize views=count() by name | order by views desc
 ```
 
-## Chatbot (TW-117)
+## Chatbot (TW-117, Phase 2 / TW-118)
 
 The cross-course chatbot (`POST /api/chat`) logs one structured trace event per
 request via `context.log(JSON.stringify({...}))` — auto-collected into `traces`
 by the same Functions telemetry as everything else, no new dependency. The
 question text itself is NEVER logged, only its character length (`qLen`).
 
+Outcomes: `answered` (course question, Tier A), `site_help` (Phase 2 — FAQ
+question, Tier B, `courses`/`lessonIds` empty), `no_match`, `refused_offtopic`,
+`clarify`, `refused_model` (course-path Stage 2 refusal), `refused_model_sitehelp`
+(site-help-path Stage 2 refusal — kept distinct from `refused_model` so refusal
+rate can be attributed to a tier), `rate_limited_user`, `rate_limited_ip`,
+`bad_request`, `unauthenticated`, `error`.
+
 ```kql
-// Chatbot volume + outcome mix, last 7d
+// Chatbot volume + outcome mix, last 7d — now breaks out site_help traffic
 traces | where message has '"event":"chat_query"'
 | extend d = parse_json(message)
 | summarize n=count() by tostring(d.outcome), bin(timestamp, 1d)
 ```
 ```kql
-// Rough topic distribution (Phase-2 input)
+// Rough topic distribution (course questions only; site_help has no course)
 traces | where message has '"event":"chat_query"'
 | extend d = parse_json(message)
 | mv-expand course = d.courses
@@ -105,6 +112,13 @@ traces | where message has '"event":"chat_query"'
 | extend o = tostring(parse_json(message).outcome)
 | summarize refusals=countif(o startswith "refused"), total=count() by bin(timestamp, 1d)
 ```
+
+`site_help` answers should be the cheapest "answered" category in cost terms:
+Stage 2 grounds on the entire curated `faq.json` (a few KB) behind a
+`cache_control: ephemeral` block, so after the first call in a cache window
+that block is served from Anthropic's prompt cache rather than repriced in
+full each time — unlike course answers, which vary their lesson-material block
+per request and so cache-hit less often.
 
 ## Re-provisioning (reference)
 

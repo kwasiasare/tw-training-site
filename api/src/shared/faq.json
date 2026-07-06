@@ -1,0 +1,110 @@
+[
+  {
+    "id": "getting-started",
+    "topic": "Getting started",
+    "question": "How do I start a course?",
+    "answer": "Go to **Courses** in the site header, pick a track, and open its first lesson — no sign-up needed to start. Your progress saves automatically as you go once you're signed in."
+  },
+  {
+    "id": "free-preview-lessons",
+    "topic": "Free preview",
+    "question": "Can I try a course before signing in?",
+    "answer": "Yes — the first two lessons of every course are open to preview without signing in, so you can get a feel for a track before creating an account."
+  },
+  {
+    "id": "sign-in-account-creation",
+    "topic": "Sign in",
+    "question": "How do I sign in or create an account?",
+    "answer": "Click **Sign in** in the site header. You'll be taken through a secure sign-in flow where you can create an account if you don't already have one — no separate password to set up on our side."
+  },
+  {
+    "id": "progress-tracking",
+    "topic": "Progress tracking",
+    "question": "How does progress tracking work?",
+    "answer": "Once you're signed in, finishing a lesson marks it complete automatically. Your **Account** page shows how many lessons you've completed in each course you've started."
+  },
+  {
+    "id": "certificate-eligibility",
+    "topic": "Certificates",
+    "question": "How do I earn a certificate?",
+    "answer": "Complete every lesson in a course track, and a certificate of completion becomes available for that course. There's no separate exam or application step."
+  },
+  {
+    "id": "certificate-access",
+    "topic": "Certificates",
+    "question": "Where can I find or view my certificate?",
+    "answer": "On your **Account** page, each course you've enrolled in has a 🎓 **Certificate** link next to it. It becomes active once that course is fully complete."
+  },
+  {
+    "id": "custom-training-overview",
+    "topic": "Custom training",
+    "question": "What is Custom Training?",
+    "answer": "Custom Training builds a personalized learning plan by matching your background against our course catalog — useful if you're not sure which track fits your goals."
+  },
+  {
+    "id": "custom-training-start",
+    "topic": "Custom training",
+    "question": "How do I build my custom training plan?",
+    "answer": "Sign in, then open **Custom training** from the site header. From there you can upload your résumé and get a personalized course recommendation."
+  },
+  {
+    "id": "custom-training-data-deletion",
+    "topic": "Custom training",
+    "question": "Can I delete the résumé/data I uploaded for custom training?",
+    "answer": "Yes — your **Account** page has an option to delete your uploaded résumé and custom training data at any time. This can't be undone once confirmed."
+  },
+  {
+    "id": "account-page-overview",
+    "topic": "Account",
+    "question": "What can I see or do on my Account page?",
+    "answer": "Your **Account** page shows your profile (email, display name), the courses you've started with a completed-lesson count for each, and certificate links for any you've finished."
+  },
+  {
+    "id": "display-name",
+    "topic": "Account",
+    "question": "How do I change my display name?",
+    "answer": "On your **Account** page, edit the **Display name** field and click **Save**. This is separate from the email tied to your sign-in."
+  },
+  {
+    "id": "course-cost",
+    "topic": "Pricing",
+    "question": "Do I have to pay for courses?",
+    "answer": "No — every course and lesson on the platform is free to access."
+  },
+  {
+    "id": "multiple-courses",
+    "topic": "Courses",
+    "question": "Can I take more than one course at a time?",
+    "answer": "Yes — you can start and progress through as many courses as you like. Each course tracks its own completion count independently on your **Account** page."
+  },
+  {
+    "id": "quizzes-overview",
+    "topic": "Quizzes",
+    "question": "Are there quizzes, and how do they work in general?",
+    "answer": "Many lessons include a short quiz to check your understanding as you go. They're part of the lesson flow — answer inline and get feedback right away."
+  },
+  {
+    "id": "sign-out",
+    "topic": "Account",
+    "question": "How do I sign out?",
+    "answer": "Click **Sign out**, available from your **Account** page or the account menu in the site header."
+  },
+  {
+    "id": "chatbot-vs-tutor",
+    "topic": "Site help",
+    "question": "What's the difference between this chat and the tutor on a lesson page?",
+    "answer": "I (this assistant) can answer questions about any course or how the site works, from anywhere on the site. Each lesson also has its own tutor panel, which goes deep on just that lesson's material — use whichever fits what you need."
+  },
+  {
+    "id": "contact-support",
+    "topic": "Support",
+    "question": "How do I contact support?",
+    "answer": "For anything I can't resolve here — an account problem, a bug, or something else specific to you — please contact support directly rather than relying on my answer, since I don't have access to support tickets or your account details."
+  },
+  {
+    "id": "dark-mode-toggle",
+    "topic": "Site",
+    "question": "How do I switch between light and dark mode?",
+    "answer": "Use the theme toggle button in the site header (the sun/moon icon) — it switches instantly and remembers your choice for next time."
+  }
+]
