@@ -1,11 +1,15 @@
 # Student-Facing Course Chatbot + Help Tool — Plan
 
-Status: **APPROVED AND SHIPPED (Phase 1).** Kwasi approved the scope boundary
-(§1, Tier A only) and engine choice (§2, Claude) on 2026-07-05 (see the
-approval comment on Jira epic TW-116). Phase 1 (TW-117, cross-course course
-Q&A) is implemented, reviewed (Sonnet → Opus → five-persona review → live
+Status: **APPROVED AND SHIPPED (Phases 1 & 2).** Kwasi approved the scope
+boundary (§1, Tier A only) and engine choice (§2, Claude) on 2026-07-05 (see
+the approval comment on Jira epic TW-116). Phase 1 (TW-117, cross-course
+course Q&A) and Phase 2 (TW-118, site-help/FAQ) are both implemented,
+reviewed (Sonnet → Opus → five-persona review → Fable test pass → live
 production verification), merged to `master`, and live in production at
-`www.salloma.com` with the `PUBLIC_CHATBOT_ENABLED` feature flag on.
+`www.salloma.com` with the `PUBLIC_CHATBOT_ENABLED` feature flag on. Phase 2
+shipped 2026-07-06, riding the same flag as Phase 1 (no new flag was needed —
+it extends the existing Stage-1 classifier with a `site_help` status, grounded
+in a new curated `api/src/shared/faq.json`, still zero live-data reads).
 
 One revision made during implementation planning: the model tier originally
 recommended in this document (`claude-opus-4-8` throughout) was revised to a
@@ -17,8 +21,9 @@ comparison flagged as a to-do in the original §2 text below; references to
 `claude-opus-4-8` further in this document reflect the pre-revision proposal
 and are kept for historical context.
 
-Phases 2 (site help/FAQ) and 3 (account/progress-aware help) remain
-unstarted — Phase 3 still requires its own separate approval gate per §1.
+Phase 3 (account/progress-aware help) remains unstarted and still requires
+its own separate approval gate per §1 — it has not been requested or
+approved.
 
 ---
 
@@ -328,11 +333,16 @@ the `claude-opus-4-8` reference here reflects the original pre-revision
 proposal). Application Insights logging of query volume, refusal rate, and
 rough topic distribution is live; use it to inform Phase 2 scope in detail.
 
-**Phase 2 — Site help / FAQ (small–medium).** Extend to tier B (§1):
-non-personal "how the site works" questions (enrollment, certificates,
-support), grounded in a small new curated FAQ knowledge source (a
-`HOWTO`-style doc or structured FAQ list, same size class as the tier-A
-catalog metadata) — still zero new Cosmos read paths.
+**Phase 2 — Site help / FAQ (small–medium). SHIPPED (2026-07-06, Jira TW-118),
+live in production at `www.salloma.com`.** Extended tier B (§1): non-personal
+"how the site works" questions (enrollment, certificates, custom training,
+support), grounded in a new curated FAQ knowledge source
+(`api/src/shared/faq.json`, 18 entries) via a 5th Stage-1 classification
+status (`site_help`) and a new whole-FAQ-grounded Stage 2
+(`answerSiteHelpQuestion`) — still zero new Cosmos read paths. Personal-account
+questions route here too and get a generic explanation + Account/support
+redirect, never fabricated data. Rides the same `PUBLIC_CHATBOT_ENABLED` flag
+as Phase 1.
 
 **Phase 3 — Account/progress-aware help (medium–large, requires a fresh,
 separate approval gate).** Tier C (§1): read-only access to the signed-in
