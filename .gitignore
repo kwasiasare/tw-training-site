@@ -39,3 +39,9 @@ videos/M1_Functions/
 .DS_Store
 Thumbs.db
 *.swp
+
+# ─── Stray uploads ──────────────────────────────────────────
+# Original company-logo upload (TW-133); canonical copy lives at
+# site/public/spreadcom-logo.jpg. (.gitignore patterns are literal — no quoting
+# needed/supported for the embedded spaces.)
+spreadcom logo 1 (1).jpg

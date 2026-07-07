@@ -38,6 +38,7 @@
     { "route": "/api/chat", "allowedRoles": ["anonymous", "authenticated"] },
     { "route": "/api/grade", "allowedRoles": ["anonymous", "authenticated"] },
     { "route": "/api/certificate", "allowedRoles": ["anonymous", "authenticated"] },
+    { "route": "/api/complaint", "allowedRoles": ["anonymous", "authenticated"] },
     { "route": "/api/stats", "allowedRoles": ["authenticated"] },
     { "route": "/api/profile", "allowedRoles": ["authenticated"] },
     { "route": "/api/*", "allowedRoles": ["authenticated"] },

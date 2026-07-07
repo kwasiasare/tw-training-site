@@ -87,6 +87,50 @@ function ipKey(rawHeader) {
   return `rl:chat:ip:${hash}`;
 }
 
+// Same IP hashing as ipKey, but a distinct key prefix so the complaint form's
+// bucket (TW-133) never collides with the chatbot's.
+function feedbackIpKey(rawHeader) {
+  const ip = extractIp(rawHeader);
+  if (!ip) return null;
+  const hash = crypto.createHash('sha256').update(ip).digest('hex').slice(0, 32);
+  return `rl:feedback:ip:${hash}`;
+}
+
+function readFeedbackLimits() {
+  return {
+    ipMax: Number(process.env.FEEDBACK_RL_IP_MAX) || 5,
+    ipWindowMs: Number(process.env.FEEDBACK_RL_IP_WINDOW_MS) || 3600000,
+  };
+}
+
+// IP-only limiter for the anonymous complaints/suggestions endpoint (TW-133) —
+// there is no logged-in user to key on. Fails open on any Cosmos error, same
+// posture as checkChatLimits.
+async function checkFeedbackLimit({ ip, now = Date.now() } = {}) {
+  const ipK = ip ? feedbackIpKey(ip) : null;
+  if (!ipK) return { allowed: true };
+
+  const { ipMax, ipWindowMs } = readFeedbackLimits();
+
+  let container;
+  try {
+    const { getContainer } = require('./cosmos');
+    container = getContainer();
+  } catch (err) {
+    console.error('ratelimit: cosmos unavailable, failing open', err);
+    return { allowed: true };
+  }
+
+  try {
+    const result = await checkLimit(container, ipK, { max: ipMax, windowMs: ipWindowMs, now });
+    if (!result.allowed) return { allowed: false, retryAfterSeconds: result.retryAfterSeconds };
+    return { allowed: true };
+  } catch (err) {
+    console.error('ratelimit: cosmos call failed, failing open', err);
+    return { allowed: true };
+  }
+}
+
 // Composite: checks the per-user limit AND the per-IP limit, returns the first
 // violation found ({allowed:false, scope:'user'|'ip', retryAfterSeconds}).
 // `now` is optional and only meant for test injection of a fixed clock.
@@ -124,4 +168,4 @@ async function checkChatLimits({ userId, ip, now = Date.now() } = {}) {
   }
 }
 
-module.exports = { checkLimit, checkChatLimits };
+module.exports = { checkLimit, checkChatLimits, checkFeedbackLimit };
