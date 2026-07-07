@@ -9,6 +9,17 @@ export const SITE = {
   videoCdnBase: import.meta.env.PUBLIC_VIDEO_CDN_BASE ?? '/videos',
 };
 
+// Operating company (TW-133). Used by the site footer and the contact/feedback
+// page. Static — no build-time env override needed, unlike SITE above.
+export const COMPANY = {
+  name: 'Spreadcom LLC',
+  website: 'https://www.spreadcomgh.com',
+  email: 'kasare@spreadcomgh.com',
+  phone: '+1 (774) 570-0034',
+  phoneHref: 'tel:+17745700034',
+  location: 'United States',
+};
+
 // Authentication (Entra External ID) is gated behind a build-time flag so the
 // sign-in UI only appears once the provider is wired. Set PUBLIC_AUTH_ENABLED=true
 // (a GitHub Actions variable) to turn it on.

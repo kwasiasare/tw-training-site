@@ -1,0 +1,139 @@
+---
+// Public complaints/suggestions form (TW-133). Posts to /api/complaint, which
+// is anonymous (no sign-in required) and rate-limited by IP. See
+// api/src/functions/complaint.js for the server-side contract.
+---
+
+<form id="cf-form" class="card cf-form" novalidate>
+  <p>
+    <label for="cf-kind">Type</label><br />
+    <select id="cf-kind" name="kind" class="search-input">
+      <option value="complaint">Complaint</option>
+      <option value="suggestion">Suggestion</option>
+    </select>
+  </p>
+
+  <p>
+    <label for="cf-name">Name <span class="theme">(optional)</span></label><br />
+    <input id="cf-name" name="name" type="text" maxlength="100" class="search-input" autocomplete="name" />
+  </p>
+
+  <p>
+    <label for="cf-email">Email <span class="theme">(optional — so we can reply)</span></label><br />
+    <input id="cf-email" name="email" type="email" maxlength="200" class="search-input" autocomplete="email" />
+  </p>
+
+  <p>
+    <label for="cf-message">Message</label><br />
+    <textarea
+      id="cf-message"
+      name="message"
+      rows="6"
+      minlength="10"
+      maxlength="5000"
+      required
+      class="search-input"
+      placeholder="Tell us what's on your mind — the more detail, the better we can help."
+    ></textarea>
+  </p>
+
+  {/* Honeypot: hidden from sighted users and screen readers; bots that fill every field trip it. */}
+  <div class="cf-hp" aria-hidden="true">
+    <label for="cf-website">Website</label>
+    <input id="cf-website" name="website" type="text" aria-hidden="true" tabindex="-1" autocomplete="off" />
+  </div>
+
+  <p>
+    <button type="submit" id="cf-submit" class="btn">Send</button>
+    <span id="cf-status" class="theme" role="status" aria-live="polite"></span>
+  </p>
+</form>
+
+<style>
+  .cf-form { max-width: 640px; }
+  .cf-form label { font-weight: 700; }
+  .cf-form select,
+  .cf-form textarea { width: 100%; }
+  .cf-hp {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    var form = document.getElementById('cf-form');
+    if (!form) return;
+    var submit = document.getElementById('cf-submit');
+    var status = document.getElementById('cf-status');
+
+    var FIELD_MESSAGES = {
+      kind: 'Please choose a valid type.',
+      name: 'That name is too long.',
+      email: 'Please enter a valid email address (or leave it blank).',
+      message: 'Please enter a message between 10 and 5000 characters.',
+    };
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var payload = {
+        kind: document.getElementById('cf-kind').value,
+        name: document.getElementById('cf-name').value.trim(),
+        email: document.getElementById('cf-email').value.trim(),
+        message: document.getElementById('cf-message').value.trim(),
+        website: document.getElementById('cf-website').value,
+      };
+
+      if (payload.message.length < 10) {
+        status.textContent = FIELD_MESSAGES.message;
+        return;
+      }
+
+      submit.disabled = true;
+      status.textContent = 'Sending…';
+
+      fetch('/api/complaint', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then(function (r) {
+          if (r.status === 429) {
+            return r.json().catch(function () { return {}; }).then(function (d) {
+              var secs = d && d.retryAfterSeconds;
+              var wait = secs ? ' Please try again in about ' + Math.ceil(secs / 60) + ' minute(s).' : ' Please try again later.';
+              throw new Error('rate_limited:' + wait);
+            });
+          }
+          if (!r.ok) {
+            return r.json().catch(function () { return {}; }).then(function (d) {
+              throw new Error('invalid:' + (d && d.field ? d.field : ''));
+            });
+          }
+          return r.json().catch(function () { return {}; });
+        })
+        .then(function () {
+          submit.disabled = false;
+          status.textContent = 'Thanks — your message was sent.';
+          form.reset();
+        })
+        .catch(function (err) {
+          submit.disabled = false;
+          var msg = err && err.message ? err.message : '';
+          if (msg.indexOf('rate_limited:') === 0) {
+            status.textContent = 'You have sent a few messages already.' + msg.slice('rate_limited:'.length);
+          } else if (msg.indexOf('invalid:') === 0) {
+            var field = msg.slice('invalid:'.length);
+            status.textContent = FIELD_MESSAGES[field] || 'Please check your entry and try again.';
+          } else {
+            status.textContent = 'Something went wrong sending your message. Please try again.';
+          }
+        });
+    });
+  })();
+</script>
