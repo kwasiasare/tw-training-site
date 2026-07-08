@@ -3,7 +3,7 @@
 Voice alternates by lesson number: odd = female (Jenny), even = male (Guy).
 Usage: python build_one_video.py <deck.json>
 Outputs the mp4 into site/public/videos/<video filename from deck>."""
-import os, sys, json, time, subprocess
+import os, re, sys, json, time, subprocess, urllib.error
 from PIL import Image, ImageDraw, ImageFont
 import imageio_ffmpeg
 from azure_tts import synth, get_token, build_ssml
@@ -20,8 +20,18 @@ RATE = '-4%'
 # Opt-in AI avatar presenter mode (TW-134). Default OFF; only the exact value
 # 'corner' activates it - anything else is the existing (no-avatar) behavior.
 AVATAR_MODE = os.environ.get('AVATAR_MODE', '').lower()
-AVATAR_CHARACTER = os.environ.get('AVATAR_CHARACTER', 'lisa')
-AVATAR_STYLE = os.environ.get('AVATAR_STYLE', 'graceful-sitting')
+# Optional explicit overrides; when unset the avatar alternates with the voice
+# (odd lesson = female Lisa, even = male Max) - see main().
+AVATAR_CHARACTER = os.environ.get('AVATAR_CHARACTER')
+AVATAR_STYLE = os.environ.get('AVATAR_STYLE')
+# Each avatar needs its own corner crop of the 1920x1080 clip: Lisa is seated so
+# her upper body fills the center half; Max is standing so we crop tight to his
+# upper body to fill the corner at the same size. Tuned on the TW-134 prototype.
+AVATAR_CROPS = {
+    'lisa': 'crop=iw/2:ih:iw/4:0',
+    'max': 'crop=680:760:620:30',
+}
+AVATAR_CROP_DEFAULT = 'crop=iw/2:ih:iw/4:0'
 
 W, H = 1280, 720
 NAVY = (0x1F, 0x3A, 0x5F); ACCENT = (0x2E, 0x86, 0xC1); WHITE = (0xFF, 0xFF, 0xFF)
@@ -129,6 +139,16 @@ def main(deck_path):
     slides = deck['slides']
     lesson = int(deck.get('lesson', 1))
     voice = FEMALE if lesson % 2 == 1 else MALE
+    # Presenter pairs with the voice: odd lesson = female Lisa (seated), even =
+    # male Max (business). Explicit env overrides win; the crop follows the
+    # chosen character so an override keeps the right framing.
+    if lesson % 2 == 1:
+        avatar_char, avatar_style = 'lisa', 'graceful-sitting'
+    else:
+        avatar_char, avatar_style = 'max', 'business'
+    avatar_char = AVATAR_CHARACTER or avatar_char
+    avatar_style = AVATAR_STYLE or avatar_style
+    avatar_crop = AVATAR_CROPS.get(avatar_char, AVATAR_CROP_DEFAULT)
     course_title = (deck.get('courseTitle') or os.environ.get('COURSE_TITLE')
                      or os.environ.get('COURSE_SLUG', 'dami-ai-career').replace('-', ' ').title())
     label = f"{course_title}   |   Month {deck.get('month')}: {deck.get('monthTitle','')}   |   {deck.get('title','')}"
@@ -159,8 +179,23 @@ def main(deck_path):
                 continue
             ssml = build_ssml(s.get('narration', ' '), voice, rate=RATE)
             synthesis_id = azure_avatar._sanitize_id(f'{slug}-s{n}-{int(time.time())}')
-            jobs[n] = azure_avatar.submit_job(ssml, synthesis_id,
-                                               character=AVATAR_CHARACTER, style=AVATAR_STYLE)
+            # The S0 tier rate-limits the create-synthesis call (429 seen at
+            # ~2 back-to-back submits on the TW-134 prototype), so pace the
+            # submits and back off + retry on 429 instead of crashing (a crash
+            # here abandons already-submitted, already-billed jobs).
+            for attempt in range(6):
+                try:
+                    jobs[n] = azure_avatar.submit_job(ssml, synthesis_id,
+                                                       character=avatar_char, style=avatar_style)
+                    break
+                except urllib.error.HTTPError as e:
+                    if e.code != 429 or attempt == 5:
+                        raise
+                    m = re.search(r'retry after (\d+)', str(e.reason), re.IGNORECASE)
+                    wait = int(m.group(1)) + 2 if m else 32
+                    print(f'  slide {n}: submit rate-limited (429), retrying in {wait}s...')
+                    time.sleep(wait)
+            time.sleep(3)  # pace successive submits below the S0 call-rate cap
         # Phase B: wait for and download each submitted job.
         for n, synthesis_id in jobs.items():
             result_url = azure_avatar.wait_for_job(synthesis_id)
@@ -177,13 +212,18 @@ def main(deck_path):
             # NOTE: the avatar mp4 already carries the narration audio (from
             # batch synthesis), so we do NOT call synth() here - this both
             # guarantees lip-sync and avoids double-billing Azure TTS.
-            # chromakey similarity/blend, crop and overlay position below are
-            # starting values - tune them against real prototype output.
+            # chromakey/crop/overlay values tuned against the cse-m1-l01
+            # prototype: the Azure avatar's green matte is ~0x00B040, and
+            # similarity 0.15 keys the background cleanly while keeping the
+            # presenter solid (0.20+ starts ghosting her body; the original
+            # 0.28 keyed her out almost entirely). 360px bottom-right reads
+            # well and clears the footer on both navy-title and white slides.
+            # avatar_crop is per-character (Lisa seated vs Max standing).
             subprocess.run([FF, '-y', '-loop', '1', '-i', png, '-i', avatar_mp4,
                             '-filter_complex',
-                            "[1:v]chromakey=0x00B140:0.28:0.05,despill=type=green,"
-                            "crop=iw/2:ih:iw/4:0,scale=-2:320[av];"
-                            "[0:v][av]overlay=x=W-w-24:y=H-h-70:shortest=1,format=yuv420p[v]",
+                            f"[1:v]chromakey=0x00B040:0.15:0.05,despill=type=green,"
+                            f"{avatar_crop},scale=-2:360[av];"
+                            "[0:v][av]overlay=x=W-w-24:y=H-h-80:shortest=1,format=yuv420p[v]",
                             '-map', '[v]', '-map', '1:a', '-af', 'apad=pad_dur=0.6',
                             '-c:v', 'libx264', '-r', '25', '-c:a', 'aac', '-b:a', '192k',
                             '-shortest', seg], check=True,
