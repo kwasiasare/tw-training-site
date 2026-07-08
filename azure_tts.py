@@ -45,17 +45,21 @@ def get_token():
     return _read_with_retry(req, 30).decode('utf-8')
 
 
-def synth(text, voice, out_path, token=None, lang=None, rate='-4%'):
-    if token is None:
-        token = get_token()
+def build_ssml(text, voice, lang=None, rate='-4%'):
     if lang is None:
         lang = 'en-GB' if voice.startswith('en-GB') else 'en-US'
-    ssml = (
+    return (
         f"<speak version='1.0' xml:lang='{lang}'>"
         f"<voice xml:lang='{lang}' name='{voice}'>"
         f"<prosody rate='{rate}'>{html.escape(text)}</prosody>"
         f"</voice></speak>"
     )
+
+
+def synth(text, voice, out_path, token=None, lang=None, rate='-4%'):
+    if token is None:
+        token = get_token()
+    ssml = build_ssml(text, voice, lang=lang, rate=rate)
     url = f'https://{REGION}.tts.speech.microsoft.com/cognitiveservices/v1'
     req = urllib.request.Request(
         url, data=ssml.encode('utf-8'), method='POST',
