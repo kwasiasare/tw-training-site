@@ -3,10 +3,11 @@
 Voice alternates by lesson number: odd = female (Jenny), even = male (Guy).
 Usage: python build_one_video.py <deck.json>
 Outputs the mp4 into site/public/videos/<video filename from deck>."""
-import os, sys, json, subprocess
+import os, sys, json, time, subprocess
 from PIL import Image, ImageDraw, ImageFont
 import imageio_ffmpeg
-from azure_tts import synth, get_token
+from azure_tts import synth, get_token, build_ssml
+import azure_avatar
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 FF = imageio_ffmpeg.get_ffmpeg_exe()
@@ -15,6 +16,12 @@ SITE_VIDEOS = os.path.join(ROOT, 'course-materials', os.environ.get('COURSE_SLUG
 FEMALE = 'en-US-JennyNeural'
 MALE = 'en-US-GuyNeural'
 RATE = '-4%'
+
+# Opt-in AI avatar presenter mode (TW-134). Default OFF; only the exact value
+# 'corner' activates it - anything else is the existing (no-avatar) behavior.
+AVATAR_MODE = os.environ.get('AVATAR_MODE', '').lower()
+AVATAR_CHARACTER = os.environ.get('AVATAR_CHARACTER', 'lisa')
+AVATAR_STYLE = os.environ.get('AVATAR_STYLE', 'graceful-sitting')
 
 W, H = 1280, 720
 NAVY = (0x1F, 0x3A, 0x5F); ACCENT = (0x2E, 0x86, 0xC1); WHITE = (0xFF, 0xFF, 0xFF)
@@ -75,7 +82,7 @@ def footer(d, idx, total, label):
     d.text((W - 60 - d.textlength(s, font=font_small), H - 48), s, font=font_small, fill=GREY)
 
 
-def render_title(s, idx, total):
+def render_title(s, idx, total, course_title):
     img = Image.new('RGB', (W, H), NAVY); d = ImageDraw.Draw(img)
     d.rectangle([0, 300, W, 308], fill=ACCENT)
     t = s.get('title', '')
@@ -86,7 +93,7 @@ def render_title(s, idx, total):
         d.text(((W - d.textlength(ln, font=font_big)) / 2, ty), ln, font=font_big, fill=WHITE); ty += 72
     sub = s.get('sub', '')
     d.text(((W - d.textlength(sub, font=font_sub)) / 2, 330), sub, font=font_sub, fill=(0xCF, 0xE2, 0xF3))
-    foot = 'An instructor lesson  -  Maths to AI Course'
+    foot = f'An instructor lesson  -  {course_title}'
     d.text(((W - d.textlength(foot, font=font_small)) / 2, 640), foot, font=font_small, fill=(0xAE, 0xD6, 0xF1))
     return img
 
@@ -122,27 +129,73 @@ def main(deck_path):
     slides = deck['slides']
     lesson = int(deck.get('lesson', 1))
     voice = FEMALE if lesson % 2 == 1 else MALE
-    label = f"Maths -> AI   |   Month {deck.get('month')}: {deck.get('monthTitle','')}   |   {deck.get('title','')}"
+    course_title = (deck.get('courseTitle') or os.environ.get('COURSE_TITLE')
+                     or os.environ.get('COURSE_SLUG', 'dami-ai-career').replace('-', ' ').title())
+    label = f"{course_title}   |   Month {deck.get('month')}: {deck.get('monthTitle','')}   |   {deck.get('title','')}"
     slug = deck.get('slug') or os.path.splitext(os.path.basename(deck_path))[0].replace('.slides', '')
     video_name = deck.get('video') or f'{slug}.mp4'
+    if AVATAR_MODE == 'corner':
+        # Never clobber the published (non-avatar) video.
+        video_name = os.path.splitext(video_name)[0] + '.avatar.mp4'
 
     work = os.path.join(ROOT, 'videos', '_render', slug)
     os.makedirs(work, exist_ok=True)
     total = len(slides)
-    token = get_token()
+
+    token = None
+    if AVATAR_MODE == 'corner':
+        azure_avatar.require_config()
+    else:
+        token = get_token()
+
+    if AVATAR_MODE == 'corner':
+        # Phase A: submit all avatar jobs up front (skip any slide whose avatar
+        # clip already exists on disk, so an interrupted run can resume without
+        # re-paying for synthesis).
+        jobs = {}
+        for i, s in enumerate(slides, 1):
+            n = f'{i:02d}'
+            if os.path.exists(os.path.join(work, f'avatar_{n}.mp4')):
+                continue
+            ssml = build_ssml(s.get('narration', ' '), voice, rate=RATE)
+            synthesis_id = azure_avatar._sanitize_id(f'{slug}-s{n}-{int(time.time())}')
+            jobs[n] = azure_avatar.submit_job(ssml, synthesis_id,
+                                               character=AVATAR_CHARACTER, style=AVATAR_STYLE)
+        # Phase B: wait for and download each submitted job.
+        for n, synthesis_id in jobs.items():
+            result_url = azure_avatar.wait_for_job(synthesis_id)
+            azure_avatar.download_result(result_url, os.path.join(work, f'avatar_{n}.mp4'))
+
     segs = []
     for i, s in enumerate(slides, 1):
         n = f'{i:02d}'
-        img = render_title(s, i, total) if s.get('type') == 'title' else render_content(s, i, total, label)
+        img = render_title(s, i, total, course_title) if s.get('type') == 'title' else render_content(s, i, total, label)
         png = os.path.join(work, f'slide_{n}.png'); img.save(png)
-        wav = os.path.join(work, f'audio_{n}.wav')
-        synth(s.get('narration', ' '), voice, wav, token=token, rate=RATE)
         seg = os.path.join(work, f'seg_{n}.mp4')
-        subprocess.run([FF, '-y', '-loop', '1', '-i', png, '-i', wav,
-                        '-af', 'apad=pad_dur=0.6', '-c:v', 'libx264', '-tune', 'stillimage',
-                        '-pix_fmt', 'yuv420p', '-r', '25', '-c:a', 'aac', '-b:a', '192k',
-                        '-shortest', seg], check=True,
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if AVATAR_MODE == 'corner':
+            avatar_mp4 = os.path.join(work, f'avatar_{n}.mp4')
+            # NOTE: the avatar mp4 already carries the narration audio (from
+            # batch synthesis), so we do NOT call synth() here - this both
+            # guarantees lip-sync and avoids double-billing Azure TTS.
+            # chromakey similarity/blend, crop and overlay position below are
+            # starting values - tune them against real prototype output.
+            subprocess.run([FF, '-y', '-loop', '1', '-i', png, '-i', avatar_mp4,
+                            '-filter_complex',
+                            "[1:v]chromakey=0x00B140:0.28:0.05,despill=type=green,"
+                            "crop=iw/2:ih:iw/4:0,scale=-2:320[av];"
+                            "[0:v][av]overlay=x=W-w-24:y=H-h-70:shortest=1,format=yuv420p[v]",
+                            '-map', '[v]', '-map', '1:a', '-af', 'apad=pad_dur=0.6',
+                            '-c:v', 'libx264', '-r', '25', '-c:a', 'aac', '-b:a', '192k',
+                            '-shortest', seg], check=True,
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        else:
+            wav = os.path.join(work, f'audio_{n}.wav')
+            synth(s.get('narration', ' '), voice, wav, token=token, rate=RATE)
+            subprocess.run([FF, '-y', '-loop', '1', '-i', png, '-i', wav,
+                            '-af', 'apad=pad_dur=0.6', '-c:v', 'libx264', '-tune', 'stillimage',
+                            '-pix_fmt', 'yuv420p', '-r', '25', '-c:a', 'aac', '-b:a', '192k',
+                            '-shortest', seg], check=True,
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         segs.append(seg)
     listf = os.path.join(work, 'concat.txt')
     with open(listf, 'w') as f:
@@ -152,10 +205,14 @@ def main(deck_path):
     out = os.path.join(SITE_VIDEOS, video_name)
     subprocess.run([FF, '-y', '-f', 'concat', '-safe', '0', '-i', listf, '-c', 'copy', out],
                    check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    # cleanup work dir
-    for fn in os.listdir(work):
-        os.remove(os.path.join(work, fn))
-    os.rmdir(work)
+    if AVATAR_MODE != 'corner':
+        # cleanup work dir (avatar mode keeps its workdir around - both so a
+        # failed/interrupted run can resume via skip-if-exists, and so the
+        # paid avatar clips survive while the ffmpeg overlay/chromakey
+        # settings above get tuned against the prototype output)
+        for fn in os.listdir(work):
+            os.remove(os.path.join(work, fn))
+        os.rmdir(work)
     print(f'{slug}: {video_name}  ({os.path.getsize(out)/1024/1024:.1f} MB, {voice}, {total} slides)')
     return out
 
