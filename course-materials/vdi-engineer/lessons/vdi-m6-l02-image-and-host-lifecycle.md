@@ -102,6 +102,7 @@ resources:
   url: https://learn.microsoft.com/en-us/azure/virtual-machines/azure-compute-gallery
 - label: Windows Update for Business overview
   url: https://learn.microsoft.com/en-us/windows/deployment/update/waas-manage-updates-wufb
+video: vdi-m6-l02-image-and-host-lifecycle.mp4
 ---
 
 ## Two Philosophies, One Winner

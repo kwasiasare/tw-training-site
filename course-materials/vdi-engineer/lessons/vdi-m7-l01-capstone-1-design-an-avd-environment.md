@@ -103,6 +103,7 @@ resources:
   url: https://learn.microsoft.com/en-us/azure/virtual-desktop/autoscale-create-assign-scaling-plan
 - label: Understand and estimate costs for Azure Virtual Desktop
   url: https://learn.microsoft.com/en-us/azure/virtual-desktop/understand-estimate-costs
+video: vdi-m7-l01-capstone-1-design-an-avd-environment.mp4
 ---
 
 ## The Case Study

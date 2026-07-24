@@ -4,6 +4,7 @@
   "month": 2,
   "monthTitle": "The 2026 VDI Platform Landscape",
   "lesson": 3,
+  "video": "vdi-m2-l03-omnissa-horizon-overview.mp4",
   "summary": "Omnissa is the independent company formed when Broadcom spun the former VMware End-User Computing business out on its own, and Horizon is its flagship on-prem-capable VDI platform. You'll learn Horizon 8's core architecture — Connection Server, Unified Access Gateway, Instant Clones, App Volumes, and Dynamic Environment Manager (DEM) — how Horizon Cloud extends that architecture with cloud-hosted control, why the VMware-to-Omnissa transition matters for existing customers, and where the OCA-H certification (the current path, replacing the retired VCP-DTM) fits.",
   "objectives": [
     "Explain who Omnissa is and why it exists as an independent company rather than under VMware/Broadcom",

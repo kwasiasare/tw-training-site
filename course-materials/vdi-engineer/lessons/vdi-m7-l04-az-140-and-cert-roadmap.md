@@ -100,6 +100,7 @@ resources:
   url: https://www.citrix.com/training-and-certifications/
 - label: Omnissa Certified Administrator – Horizon (OCA-H) exam guide
   url: https://www.omnissa.com/oca-horizon-exam-guide/
+video: vdi-m7-l04-az-140-and-cert-roadmap.mp4
 ---
 
 ## Why Certify

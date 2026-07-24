@@ -106,6 +106,7 @@ resources:
   url: https://learn.microsoft.com/en-us/fslogix/troubleshooting-error-codes
 - label: Microsoft Entra Kerberos authentication for Azure Files
   url: https://learn.microsoft.com/en-us/azure/storage/files/storage-files-identity-auth-hybrid-identities-enable
+video: vdi-m5-l01-fslogix-deep-dive.mp4
 ---
 
 ## Why FSLogix Matters

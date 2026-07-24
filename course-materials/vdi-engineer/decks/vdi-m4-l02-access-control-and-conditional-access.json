@@ -4,6 +4,7 @@
   "month": 4,
   "monthTitle": "Identity & Security for Virtual Desktops",
   "lesson": 2,
+  "video": "vdi-m4-l02-access-control-and-conditional-access.mp4",
   "summary": "RBAC decides who can manage the AVD control plane; Conditional Access decides who even gets in. This lesson separates the two and shows how they interlock: the built-in Desktop Virtualization roles from Contributor down to User Session Operator, the data-plane Desktop Virtualization User role that actually grants app group access, and the Conditional Access cloud apps — Azure Virtual Desktop and Windows Cloud Login — that must both be targeted once single sign-on is enabled. You'll also cover MFA licensing, sign-in frequency behavior per app, the one app you must never add to an MFA policy, and the extra step Microsoft Entra joined session hosts need.",
   "objectives": [
     "Map each built-in Desktop Virtualization RBAC role to the operational tier it serves, from full control-plane management to helpdesk session operations",

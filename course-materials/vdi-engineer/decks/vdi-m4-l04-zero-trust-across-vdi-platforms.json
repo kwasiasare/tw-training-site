@@ -4,6 +4,7 @@
   "month": 4,
   "monthTitle": "Identity & Security for Virtual Desktops",
   "lesson": 4,
+  "video": "vdi-m4-l04-zero-trust-across-vdi-platforms.mp4",
   "summary": "The controls from Lessons 1 through 3 are Azure-specific implementations of something bigger: Zero Trust applied to end-user computing. This lesson steps back to the vendor-neutral picture — the same identity, endpoint, session/app, data, network, and infrastructure pillars used throughout this site's security content, now mapped across AVD, Citrix DaaS, and Omnissa Horizon. You'll see Citrix Workspace App Protection and Omnissa's Unified Access Gateway as the platform-specific equivalents of AVD's screen capture protection and Conditional Access, learn where session recording fits on each platform, and leave with a single cross-platform Zero Trust checklist you can apply to any VDI estate, not just the one you happen to run today.",
   "objectives": [
     "Apply the Zero Trust principles — verify explicitly, least-privilege access, assume breach — and six pillars to a VDI/EUC context specifically",

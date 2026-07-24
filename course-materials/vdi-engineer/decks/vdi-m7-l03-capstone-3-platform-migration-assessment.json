@@ -4,6 +4,7 @@
   "month": 7,
   "monthTitle": "Capstone Projects & Career Launch",
   "lesson": 3,
+  "video": "vdi-m7-l03-capstone-3-platform-migration-assessment.mp4",
   "summary": "Real EUC engineers are asked to make vendor-neutral recommendations, not just build one platform. In this capstone you assess a fictional 1,200-user logistics company running aging on-premises Citrix, and decide whether it should stay on Citrix DaaS, move fully to Azure Virtual Desktop, or split across platforms including Windows 365. You'll reuse the weighted scoring matrix from Module 2's platform-choice framework, sketch a TCO comparison, and produce a phased migration plan and a recommendation report — portfolio artifact #3, and the one that best proves you think like a platform-agnostic architect rather than a single-vendor specialist.",
   "objectives": [
     "Apply a weighted scoring matrix to compare competing VDI/DaaS platforms for a specific organization",

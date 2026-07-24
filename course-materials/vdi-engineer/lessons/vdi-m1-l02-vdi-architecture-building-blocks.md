@@ -100,6 +100,7 @@ resources:
   url: https://docs.citrix.com/en-us/citrix-daas
 - label: Omnissa Horizon 8 overview (TechZone)
   url: https://techzone.omnissa.com/resource/what-horizon-8
+video: vdi-m1-l02-vdi-architecture-building-blocks.mp4
 ---
 
 ## One Architecture, Many Logos

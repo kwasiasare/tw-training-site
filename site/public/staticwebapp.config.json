@@ -66,6 +66,8 @@
     { "route": "/topics/mle-m1-l02-linear-algebra-in-action-with-numpy*", "allowedRoles": ["anonymous", "authenticated"] },
     { "route": "/topics/mlo-m1-l01-setting-up-your-mlops-toolchain-and-workflow*", "allowedRoles": ["anonymous", "authenticated"] },
     { "route": "/topics/mlo-m1-l02-containerizing-a-machine-learning-model-with-doc*", "allowedRoles": ["anonymous", "authenticated"] },
+    { "route": "/topics/vdi-m1-l01-what-is-vdi-and-euc*", "allowedRoles": ["anonymous", "authenticated"] },
+    { "route": "/topics/vdi-m1-l02-vdi-architecture-building-blocks*", "allowedRoles": ["anonymous", "authenticated"] },
     { "route": "/topics/*", "allowedRoles": ["authenticated"] },
     {
       "route": "/videos/*",

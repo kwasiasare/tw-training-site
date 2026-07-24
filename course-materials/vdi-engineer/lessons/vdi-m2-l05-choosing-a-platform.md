@@ -112,6 +112,7 @@ resources:
   url: https://docs.citrix.com/en-us/citrix-daas/overview.html
 - label: What Is Horizon 8? (Omnissa Tech Zone)
   url: https://techzone.omnissa.com/resource/what-horizon-8
+video: vdi-m2-l05-choosing-a-platform.mp4
 ---
 
 ## From Landscape to Decision

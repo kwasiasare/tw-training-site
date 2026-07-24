@@ -4,6 +4,7 @@
   "month": 3,
   "monthTitle": "Azure Virtual Desktop Infrastructure: Plan, Deploy & Scale",
   "lesson": 4,
+  "video": "vdi-m3-l04-deploying-host-pools.mp4",
   "summary": "This lesson turns the architecture, networking, and image decisions from earlier in the module into an actual deployed AVD environment. You'll walk the Azure portal deployment flow field by field, then deploy the same host pool, application group, and workspace as Bicep resources (with a note on the Terraform azurerm equivalent), issue and manage registration tokens with Az.DesktopVirtualization PowerShell cmdlets, wire in Azure Virtual Desktop Insights at deploy time, and understand exactly where the session host update (preview) feature stands today versus the classic scripted replace pattern.",
   "objectives": [
     "Walk the Azure portal host pool creation flow and map each field to the architecture decisions from Lesson 1",

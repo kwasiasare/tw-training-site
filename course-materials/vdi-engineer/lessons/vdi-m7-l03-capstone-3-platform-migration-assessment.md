@@ -113,6 +113,7 @@ resources:
   url: https://learn.microsoft.com/en-us/windows-365/
 - label: Understand and estimate costs for Azure Virtual Desktop
   url: https://learn.microsoft.com/en-us/azure/virtual-desktop/understand-estimate-costs
+video: vdi-m7-l03-capstone-3-platform-migration-assessment.mp4
 ---
 
 ## The Case Study

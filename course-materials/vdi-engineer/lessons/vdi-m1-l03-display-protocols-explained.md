@@ -103,6 +103,7 @@ resources:
   url: https://www.citrix.com/glossary/what-is-hdx.html
 - label: Omnissa Horizon Blast Extreme display protocol (TechZone)
   url: https://techzone.omnissa.com/resource/omnissa-horizon-blast-extreme-display-protocol
+video: vdi-m1-l03-display-protocols-explained.mp4
 ---
 
 ## The Protocol Is the Product

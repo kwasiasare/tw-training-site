@@ -98,6 +98,7 @@ resources:
   url: https://learn.microsoft.com/en-us/universal-print/
 - label: Customize RDP properties for a host pool
   url: https://learn.microsoft.com/en-us/azure/virtual-desktop/customize-rdp-properties
+video: vdi-m5-l03-teams-multimedia-and-peripherals.mp4
 ---
 
 ## Why Real-Time Media Is a Special Case

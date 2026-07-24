@@ -4,6 +4,7 @@
   "month": 7,
   "monthTitle": "Capstone Projects & Career Launch",
   "lesson": 5,
+  "video": "vdi-m7-l05-resume-linkedin-and-interviews.mp4",
   "summary": "Three portfolio-grade capstones and an AZ-140 study plan prove you can do the work; this lesson makes sure a recruiter and a hiring manager actually see it. You'll translate the design doc, the build, and the migration assessment into quantified resume bullets, rewrite your LinkedIn profile to read like a VDI/EUC engineer's, target the right 2026 job titles, and rehearse the interview questions that come up again and again: the AVD connection flow, profile bloat, host pool sizing, and AVD versus Windows 365. The goal is simple — convert three capstones into interviews.",
   "objectives": [
     "Translate the three capstone artifacts into resume bullets that quantify scope and impact rather than list tasks",

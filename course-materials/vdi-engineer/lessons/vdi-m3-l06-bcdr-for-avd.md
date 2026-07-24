@@ -97,6 +97,7 @@ resources:
   url: https://learn.microsoft.com/en-us/fslogix/concepts-container-recovery-business-continuity
 - label: Azure Virtual Machines availability zones documentation
   url: https://learn.microsoft.com/en-us/azure/reliability/availability-zones-overview
+video: vdi-m3-l06-bcdr-for-avd.mp4
 ---
 
 ## What "BCDR" Actually Means for a Stateless Fleet
