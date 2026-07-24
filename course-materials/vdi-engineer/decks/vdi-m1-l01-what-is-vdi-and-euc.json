@@ -1,0 +1,220 @@
+{
+  "slug": "vdi-m1-l01-what-is-vdi-and-euc",
+  "title": "What Is VDI and End-User Computing?",
+  "month": 1,
+  "monthTitle": "VDI & EUC Foundations",
+  "lesson": 1,
+  "summary": "This opening lesson builds the vocabulary the rest of the course depends on. You'll learn how VDI, session-based computing (RDS), application virtualization, and DaaS are actually different from each other despite being used loosely as synonyms, trace the short history from Citrix WinFrame through Terminal Services to today's cloud-native platforms, and understand the concrete 2026 business drivers — hybrid work, data-egress control, contractor and BYOD access, regulated industries, and GPU/AI workstations — that make VDI and End-User Computing (EUC) one of the fastest-growing specializations inside IT operations.",
+  "objectives": [
+    "Distinguish VDI, session-based/RDS, application virtualization, and DaaS by what actually runs where",
+    "Trace the lineage from Citrix WinFrame through Windows Terminal Services to modern cloud DaaS in broad eras",
+    "Explain at least three concrete 2026 business drivers for adopting VDI or EUC",
+    "Identify which delivery model fits a given scenario based on isolation, cost, and compliance needs",
+    "Describe why regulated industries treat VDI as a data-control strategy, not just a remote-access convenience"
+  ],
+  "quiz": [
+    {
+      "q": "What is the defining architectural difference between VDI and session-based computing (RDS/Terminal Services)?",
+      "options": [
+        "VDI gives each user their own OS instance (a VM); RDS gives many users a shared OS instance on one server",
+        "VDI runs locally on the user's device; RDS always runs in the cloud",
+        "VDI is only for Windows; RDS is only for Linux",
+        "There is no real difference — they are marketing terms for the same technology"
+      ],
+      "answer": 0,
+      "why": "In VDI, every user is assigned an isolated virtual machine running its own OS kernel. In session-based/RDS computing, many users share sessions on a single shared Windows Server OS instance. That isolation boundary is the reason VDI costs more per user but tolerates a wider range of applications and compliance requirements."
+    },
+    {
+      "q": "Which statement best describes application virtualization as distinct from VDI or RDS?",
+      "options": [
+        "It delivers an entire virtual desktop OS to the user",
+        "It packages and streams individual applications to a user's existing device or session, without delivering a full desktop",
+        "It is a synonym for DaaS",
+        "It only works with browser-based applications"
+      ],
+      "answer": 1,
+      "why": "Application virtualization (historically App-V, today mostly MSIX app attach and RemoteApp/published apps) isolates and delivers individual applications rather than a whole desktop. It's often layered on top of VDI or RDS rather than being a competing delivery model."
+    },
+    {
+      "q": "What makes a platform 'DaaS' (Desktop-as-a-Service) rather than traditional on-premises VDI?",
+      "options": [
+        "DaaS desktops are always free of charge",
+        "DaaS removes local applications entirely",
+        "DaaS is cloud-hosted and consumed as a managed subscription service, with the vendor or cloud provider owning most of the underlying infrastructure",
+        "DaaS only supports Linux desktops"
+      ],
+      "answer": 2,
+      "why": "DaaS (Windows 365, Citrix DaaS, Omnissa Horizon Cloud) shifts infrastructure ownership and operational burden to a cloud provider or vendor, billed as a subscription — versus classic on-prem VDI, where the customer owns and operates the hypervisor, storage, and broker themselves."
+    },
+    {
+      "q": "Windows Terminal Server, the ancestor of today's Remote Desktop Services, was built using multi-user technology originally licensed from which company?",
+      "options": [
+        "Novell",
+        "VMware",
+        "IBM",
+        "Citrix (its MultiWin technology)"
+      ],
+      "answer": 3,
+      "why": "Citrix's WinFrame (1995) added multi-user session capability to Windows NT through its MultiWin technology. Microsoft licensed MultiWin and shipped it as Windows NT 4.0 Terminal Server Edition in 1998, which evolved into today's Remote Desktop Services (RDS)."
+    },
+    {
+      "q": "A hospital wants clinicians to access patient records from personal tablets without any patient data ever being stored on the device. Which 2026 VDI driver does this scenario primarily illustrate?",
+      "options": [
+        "Data-egress control for a regulated industry",
+        "GPU/AI workstation demand",
+        "Contractor onboarding speed",
+        "Reducing Windows licensing costs"
+      ],
+      "answer": 0,
+      "why": "Keeping data inside the datacenter and streaming only pixels to an unmanaged device is the core data-egress control use case that drives VDI adoption in healthcare, finance, and government — regardless of what device the clinician owns."
+    },
+    {
+      "q": "In two to four sentences, explain why VDI/DaaS is often the fastest way to onboard short-term contractors compared to shipping them a managed laptop, and name one specific EUC platform capability that makes this possible.",
+      "answer": "With VDI or DaaS, an admin can assign a contractor a virtual desktop or Cloud PC in minutes through an existing provisioning workflow, without procuring, imaging, shipping, or eventually recovering physical hardware — the contractor connects from whatever device they already have. A capability that makes this safe is that the desktop itself is centrally managed and disposable: for example, a non-persistent pooled host pool or a Windows 365 Cloud PC can be deprovisioned or reset the moment the engagement ends, instantly revoking access without a hardware return process.",
+      "why": "Speed of provisioning and speed of clean revocation are the two operational reasons VDI/DaaS beats physical-device onboarding for short-term and third-party access, and both rely on the desktop being centrally hosted rather than physically shipped."
+    }
+  ],
+  "resources": [
+    {
+      "label": "What is Azure Virtual Desktop? (Microsoft Learn)",
+      "url": "https://learn.microsoft.com/en-us/azure/virtual-desktop/overview"
+    },
+    {
+      "label": "What is Windows 365? (Microsoft Learn)",
+      "url": "https://learn.microsoft.com/en-us/windows-365/overview"
+    },
+    {
+      "label": "Citrix DaaS documentation",
+      "url": "https://docs.citrix.com/en-us/citrix-daas"
+    },
+    {
+      "label": "Omnissa Horizon 8 overview (TechZone)",
+      "url": "https://techzone.omnissa.com/resource/what-horizon-8"
+    },
+    {
+      "label": "Cloud Software Group (Citrix parent company)",
+      "url": "https://en.wikipedia.org/wiki/Cloud_Software_Group"
+    }
+  ],
+  "body_markdown": "## Four Words People Use Interchangeably (and Shouldn't)\n\nWalk into any IT organization and you'll hear \"VDI,\" \"virtual desktops,\" \"RDS,\" and \"DaaS\" used as if they're the same thing. They aren't, and the differences drive real decisions about cost, compliance, and user experience. This lesson gives you the vocabulary the rest of this course — and every conversation you'll have as an EUC engineer — depends on.\n\n### VDI (Virtual Desktop Infrastructure)\n\nIn true VDI, **each user gets their own virtual machine**, running its own copy of a desktop OS (typically Windows 10 or Windows 11 Enterprise). That VM is isolated at the kernel level from every other user's VM. This isolation is expensive — you're paying for a full OS instance, patching, and compute per user — but it buys you application compatibility (anything that runs on a real desktop OS runs here) and a strong compliance boundary, because one user's process, malware, or crash cannot touch another user's session.\n\n### Session-based computing (RDS / Terminal Services)\n\nHere, **many users share a single Windows Server OS instance**, each getting an isolated *session* rather than an isolated *machine*. This is dramatically cheaper per user — a single server can host dozens of sessions — but application compatibility is narrower (apps must tolerate multi-user execution), and a resource-hungry or crashing process can degrade the experience for everyone sharing that host. Azure Virtual Desktop's signature move is **Windows 11 Enterprise multi-session** — the only place you can legally run a multi-user Windows 11 client OS, blending session-based economics with a client OS experience.\n\n### Application virtualization\n\nThis delivers **individual applications**, not a whole desktop. The app is packaged, isolated from the underlying OS, and streamed or attached on demand — think MSIX app attach on Azure Virtual Desktop, or RemoteApp publishing. It's usually layered *on top of* VDI or RDS rather than competing with them: you might publish only Excel and a line-of-business app to a contractor instead of a full desktop.\n\n### DaaS (Desktop-as-a-Service)\n\nDaaS is not a different rendering technology — it's a **consumption and ownership model**. In classic on-premises VDI, you own and operate the hypervisor, the broker, the gateway, and the storage. In DaaS (Windows 365, Citrix DaaS, Omnissa Horizon Cloud), a vendor owns and operates most or all of that control plane, and you consume virtual desktops as a managed, often per-user-per-month subscription. Windows 365 pushes this furthest: it is genuinely SaaS, with fixed-price Cloud PCs and no infrastructure for you to size or patch.\n\n| Model | Isolation unit | Who owns infrastructure | Typical use |\n|---|---|---|---|\n| VDI | Dedicated VM per user | Customer (or cloud IaaS) | Regulated/compliance workloads, power users |\n| Session-based (RDS) | Shared OS, isolated session | Customer | Task workers, cost-sensitive fleets |\n| App virtualization | Isolated app package | Customer or vendor | Legacy app delivery, app conflicts |\n| DaaS | Dedicated or pooled VM | Vendor/cloud provider | Fast provisioning, low ops overhead |\n\n## A Short History, in Eras\n\nYou don't need trivia dates memorized, but you do need the shape of the story, because it explains why today's products look the way they do.\n\n1. **The multi-user era (mid-1990s).** Citrix WinFrame added multi-user session sharing to Windows NT through its MultiWin technology — the first practical way to put many users on one Windows server.\n2. **The Microsoft licensing era (late 1990s–2000s).** Microsoft licensed that multi-user technology and shipped it as Windows Terminal Server, which became Terminal Services and eventually **Remote Desktop Services (RDS)** — a first-party Microsoft product that Citrix then added value on top of (protocol acceleration, profile management, provisioning).\n3. **The hypervisor/VDI era (2000s–2010s).** VMware, and later Citrix XenDesktop, popularized *true* VDI: one VM per user, orchestrated by a connection broker, running on-premises hypervisors.\n4. **The cloud DaaS era (2019–today).** Microsoft launched Windows Virtual Desktop (now **Azure Virtual Desktop**) in 2019, followed by **Windows 365** Cloud PCs in 2021. Citrix and the former VMware Horizon business (now **Omnissa**, spun out independently in 2024) both shipped cloud control planes — Citrix DaaS and Horizon Cloud — while keeping on-premises options alive for regulated and latency-sensitive customers.\n\nThe throughline: each era pushed more of the operational burden (hardware, patching, broker infrastructure) off the customer and onto a vendor or cloud platform, while the fundamental problem — deliver a secure, consistent desktop to a device you may not control — never changed.\n\n## Why VDI and EUC Matter in 2026\n\nThe business case for VDI has shifted from \"remote access convenience\" to genuine strategic infrastructure. Five drivers show up in almost every real deployment you'll work on:\n\n- **Hybrid and distributed work.** Employees expect to work from home, the office, or a client site interchangeably, on whatever device is nearest, without IT re-imaging a laptop for every scenario.\n- **Security and data-egress control.** This is the big one for regulated industries. In VDI/DaaS, data never leaves the datacenter — only encrypted pixels, audio, and input events cross the network. A lost or compromised endpoint device exposes nothing, because nothing was ever stored on it. Financial services, healthcare, defense, and government all lean on this property specifically, not just remote access.\n- **Contractors and BYOD.** Standing up a Cloud PC or a pooled desktop for a short-term contractor takes minutes and is trivially revocable, versus procuring, imaging, shipping, and eventually recovering a physical laptop.\n- **Regulated industries and audit posture.** Centralizing desktops makes patching, logging, session recording, and access reviews consistent and auditable across the whole fleet, rather than trusting thousands of physically dispersed endpoints to stay compliant.\n- **GPU and AI workstation demand.** A newer driver: CAD, media production, and AI/ML development increasingly need GPU-backed compute that's expensive to put in every employee's hands as a physical workstation. GPU-enabled VDI (Azure NV-series, NVIDIA vGPU) lets organizations centralize that expensive hardware and allocate it on demand.\n\nAs you move through this course, keep coming back to this list. Every platform choice, every architecture decision, and every security control in later modules exists to serve one or more of these five drivers — and a good EUC engineer can always explain *which one* a given design decision serves.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "What Is VDI and End-User Computing?",
+      "sub": "The vocabulary and business case behind the whole course",
+      "narration": "Welcome to VDI and End User Computing Engineering. Before we touch a single portal or protocol, we need shared vocabulary, because the words VDI, RDS, application virtualization, and DaaS get used interchangeably in the real world even though they mean very different things architecturally. In this lesson we'll pin down each term precisely, walk through the short history that explains why today's products look the way they do, and cover the concrete business reasons organizations are investing in VDI and EUC in 2026."
+    },
+    {
+      "type": "content",
+      "title": "VDI: One VM Per User",
+      "bullets": [
+        "Each user gets a dedicated virtual machine",
+        "Full desktop OS, isolated at the kernel level",
+        "Broadest application compatibility",
+        "Strongest isolation boundary between users",
+        "Higher cost per user than shared models"
+      ],
+      "narration": "True VDI means every user is assigned their own virtual machine running its own copy of a desktop operating system, almost always Windows 11 Enterprise today. That isolation is expensive, because you're paying for a full OS instance per person, but it buys you two things: the widest possible application compatibility, since anything that runs on a real desktop OS runs here, and a hard isolation boundary, so one user's crash or malware cannot reach another user's session."
+    },
+    {
+      "type": "content",
+      "title": "Session-Based Computing: RDS",
+      "bullets": [
+        "Many users share one Windows Server OS instance",
+        "Isolated sessions, not isolated machines",
+        "Cheaper per user than VDI",
+        "Windows 11 Enterprise multi-session is the modern twist",
+        "A noisy app or crash can affect other users on the host"
+      ],
+      "narration": "Session-based computing, historically called Terminal Services and today Remote Desktop Services, puts many users on a single shared Windows Server operating system, each getting an isolated session rather than an isolated machine. It's dramatically cheaper per user, but application compatibility is narrower and a resource-hungry process can degrade things for everyone on that host. Azure Virtual Desktop's signature capability, Windows 11 Enterprise multi-session, blends this session-based economics with a genuine client OS experience."
+    },
+    {
+      "type": "content",
+      "title": "Application Virtualization",
+      "bullets": [
+        "Delivers individual apps, not a whole desktop",
+        "Packaged and streamed or attached on demand",
+        "Examples: MSIX app attach, RemoteApp publishing",
+        "Usually layered on top of VDI or RDS, not a replacement"
+      ],
+      "narration": "Application virtualization is a different axis entirely. Instead of delivering a full desktop, it packages and delivers individual applications, isolated from the underlying operating system. Think MSIX app attach or RemoteApp publishing on Azure Virtual Desktop. This is usually layered on top of VDI or RDS rather than competing with them. You might publish only a line of business app and Excel to a contractor instead of handing them an entire desktop."
+    },
+    {
+      "type": "content",
+      "title": "DaaS: A Consumption Model, Not a Technology",
+      "bullets": [
+        "Vendor owns and operates most of the control plane",
+        "Consumed as a managed, often per-user subscription",
+        "Windows 365 pushes this furthest: true SaaS Cloud PCs",
+        "Contrast with on-prem VDI, where you own the stack"
+      ],
+      "narration": "DaaS, Desktop as a Service, is not a different way of rendering a screen. It's a consumption and ownership model. In classic on-premises VDI, you own and operate the hypervisor, broker, gateway, and storage yourself. In DaaS platforms like Windows 365, Citrix DaaS, and Omnissa Horizon Cloud, a vendor owns and runs most or all of that control plane, and you consume desktops as a subscription. Windows 365 goes furthest, offering fixed-price Cloud PCs with zero infrastructure for you to size or patch."
+    },
+    {
+      "type": "content",
+      "title": "A Short History, in Eras",
+      "bullets": [
+        "Multi-user era: Citrix WinFrame adds session sharing to Windows NT",
+        "Microsoft licensing era: Terminal Server becomes RDS",
+        "Hypervisor VDI era: one VM per user goes mainstream",
+        "Cloud DaaS era: Azure Virtual Desktop (2019), Windows 365 (2021)"
+      ],
+      "narration": "You don't need exact dates memorized, but you do need the shape of the story. Citrix WinFrame first added multi-user session sharing to Windows NT. Microsoft then licensed that technology, and it grew into Terminal Services and eventually Remote Desktop Services. Next came the hypervisor VDI era, where one virtual machine per user went mainstream on-premises. And finally the cloud DaaS era we're in now, starting with Azure Virtual Desktop in 2019 and Windows 365 in 2021, with Citrix and Omnissa both shipping cloud control planes of their own."
+    },
+    {
+      "type": "content",
+      "title": "The 2026 Vendor Landscape, Briefly",
+      "bullets": [
+        "Omnissa: the former VMware End-User Computing business, spun out independently in 2024",
+        "Citrix: now under Cloud Software Group",
+        "Both still ship on-prem and cloud options side by side",
+        "Deep dive on all platforms comes in Module 2"
+      ],
+      "narration": "One naming note that trips people up: VMware's End User Computing business, including Horizon, was spun out as an independent company called Omnissa in 2024, later acquired by KKR. Citrix, meanwhile, operates under a parent company called Cloud Software Group. Both vendors still offer on-premises and cloud-delivered options side by side. We'll go deep on every platform's architecture in Module 2 — for now, just recognize the current names."
+    },
+    {
+      "type": "content",
+      "title": "Driver 1 and 2: Hybrid Work and Data Egress",
+      "bullets": [
+        "Hybrid work: one consistent desktop from any location or device",
+        "Data-egress control: only pixels cross the network, never data",
+        "A lost or stolen endpoint exposes nothing",
+        "This is THE core driver for regulated industries"
+      ],
+      "narration": "Now the business case. Hybrid work means employees expect a consistent desktop whether they're at home, in the office, or at a client site, without IT reimaging a laptop for every scenario. But the bigger driver is data egress control: in VDI and DaaS, data never leaves the datacenter, only encrypted pixels, audio, and input events cross the network. A lost or compromised device exposes nothing, because nothing was ever stored on it. That single property is why finance, healthcare, defense, and government treat VDI as core infrastructure, not just a remote access convenience."
+    },
+    {
+      "type": "content",
+      "title": "Driver 3 and 4: Contractors and Regulated Audit",
+      "bullets": [
+        "Contractor onboarding: minutes instead of shipping hardware",
+        "Instantly revocable at engagement end",
+        "Regulated industries: centralized patching, logging, session recording",
+        "Consistent, auditable access reviews across the fleet"
+      ],
+      "narration": "Standing up a virtual desktop or Cloud PC for a short-term contractor takes minutes through an existing provisioning workflow, with no hardware to procure, image, ship, or recover, and it's trivially revocable the moment the engagement ends. Regulated industries get a second benefit: centralizing desktops makes patching, logging, session recording, and access reviews consistent and auditable across the whole fleet, instead of trusting thousands of physically dispersed endpoints to individually stay compliant."
+    },
+    {
+      "type": "content",
+      "title": "Driver 5: GPU and AI Workstations",
+      "bullets": [
+        "CAD, media production, and AI/ML dev need GPU compute",
+        "Expensive to put GPU hardware on every desk",
+        "GPU-backed VDI centralizes and shares that hardware",
+        "Azure NV-series, NVIDIA vGPU licensing — covered in Module 2"
+      ],
+      "narration": "A newer and fast-growing driver is GPU and AI workstation demand. CAD, media production, and AI or machine learning development increasingly need GPU-backed compute that's expensive to put on every employee's desk as dedicated hardware. GPU-enabled VDI lets an organization centralize that expensive hardware in the datacenter or cloud and allocate it on demand, rather than buying a workstation-class GPU for every specialist. We'll cover the specific Azure GPU VM families and licensing considerations in Module 2."
+    },
+    {
+      "type": "content",
+      "title": "Recap and What's Next",
+      "bullets": [
+        "VDI, RDS, app virtualization, and DaaS are different axes, not synonyms",
+        "History explains today's product shapes",
+        "Five drivers: hybrid work, data egress, contractors, compliance, GPU/AI",
+        "Next lesson: the universal architecture every platform shares"
+      ],
+      "narration": "To recap: VDI, session-based RDS, application virtualization, and DaaS are different design axes, not interchangeable synonyms, and knowing which one you're talking about changes cost, compatibility, and compliance conversations. The short history explains why today's products look the way they do. And five concrete drivers, hybrid work, data egress control, contractor agility, regulated compliance, and GPU or AI workloads, are why organizations keep investing here in 2026. In the next lesson, we open up the box and look at the architecture every one of these platforms shares underneath its branding: the broker, the gateway, the session hosts, and the profile layer."
+    }
+  ]
+}

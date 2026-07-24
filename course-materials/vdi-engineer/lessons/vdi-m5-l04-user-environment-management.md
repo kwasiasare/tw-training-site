@@ -1,0 +1,144 @@
+---
+course: vdi-engineer
+title: 'User Environment Management: Policy, Personalization, and the Image-Bloat Trade-off'
+month: 5
+monthTitle: User Environments & App Delivery
+lesson: 4
+summary: FSLogix carries the profile and App Attach carries the applications, but something still has
+  to control Start menu layout, taskbar pins, language, and hundreds of other settings without baking
+  them permanently into the image. This lesson covers GPO vs Intune policy for session hosts, the category
+  of user environment management tools (Citrix WEM, Omnissa DEM), and the recurring trade-off between
+  putting a setting in the image versus applying it at login.
+objectives:
+- Compare Group Policy and Intune as policy mechanisms for Azure Virtual Desktop session hosts
+- Explain how Intune's settings catalog and ADMX ingestion apply to multi-session Windows
+- Manage Start menu and taskbar layout for shared, non-persistent session hosts
+- Describe Citrix WEM and Omnissa DEM as the category-equivalent user environment management tools on
+  their platforms
+- Reason through the trade-off between configuring a setting in the golden image versus applying it dynamically
+  at login
+quiz:
+- q: For an Azure Virtual Desktop host pool with session hosts that are Microsoft Entra joined only (no
+    on-premises AD, no hybrid join), which policy mechanism can you use?
+  options:
+  - Group Policy only, applied through a local GPO
+  - Neither — Entra-joined-only session hosts cannot be centrally managed at all
+  - Intune, since traditional on-premises Group Policy requires AD DS domain membership that Entra-joined-only
+    hosts don't have
+  - Only third-party tools; Microsoft provides no policy mechanism for Entra-joined hosts
+  answer: 2
+  why: Traditional Group Policy Objects are delivered through Active Directory Domain Services — a session
+    host has to be AD-joined (or hybrid Entra-joined) to receive them. Entra-joined-only session hosts
+    are managed through Intune instead, using the settings catalog and administrative templates (ADMX)
+    rather than classic GPOs.
+- q: What does Intune's settings catalog give you for Windows administrative template (ADMX-backed) policy
+    compared to classic Group Policy?
+  options:
+  - A completely different and much smaller set of settings with no relationship to ADMX
+  - Settings catalog only supports Microsoft-authored policies; custom ADMX import isn't possible
+  - Settings catalog requires an on-premises Configuration Manager connector to function
+  - The same category of granular settings, delivered to Entra-joined or hybrid-joined devices via MDM
+    instead of AD, with support for importing custom or non-Microsoft ADMX/ADML files
+  answer: 3
+  why: Intune's settings catalog includes built-in Administrative Templates (the same ADMX-backed settings
+    GPO uses) delivered over MDM, and it also supports importing custom or third-party ADMX/ADML files
+    (up to 20 files, each 1 MB or smaller) so you can bring non-Microsoft policy definitions into the
+    same management plane.
+- q: Which tool category do Citrix Workspace Environment Management (WEM) and Omnissa Dynamic Environment
+    Manager (DEM) both belong to, relative to what GPO/Intune policy and FSLogix profile containers already
+    do?
+  options:
+  - User environment management — applying personalization, resource optimization, and application/desktop
+    behavior settings dynamically at logon, layered alongside (not replacing) profile containers and OS-level
+    policy
+  - They are direct replacements for FSLogix and App Attach and should never be used alongside them
+  - They are identity providers competing directly with Microsoft Entra ID
+  - They only manage licensing, not any user-facing settings
+  answer: 0
+  why: 'WEM and DEM are user environment management (UEM) tools: they apply personalization and environmental
+    settings (drive mappings, printer assignment, application shortcuts, resource optimization) dynamically
+    at logon on their respective platforms, working alongside — not instead of — profile containers and
+    platform policy engines.'
+- q: A user complains their Start menu layout keeps resetting on a pooled, non-persistent host pool. What
+    is the most likely root cause?
+  options:
+  - Windows doesn't support Start menu customization on any AVD host pool
+  - Start menu layout and pins are part of the user profile; if FSLogix isn't correctly capturing/attaching
+    the profile (or a policy is force-resetting the layout on each session), personalization won't persist
+    across sessions
+  - The user needs local administrator rights to keep a custom Start layout
+  - Start menu state is stored only on the physical client device, never server-side
+  answer: 1
+  why: Start menu layout and taskbar pins live in the user profile. On non-persistent hosts, that state
+    only survives if FSLogix is correctly capturing and reattaching the profile at each sign-in, or if
+    you're deliberately managing a shared layout via policy — a misconfigured FSLogix container or a policy
+    that re-applies a default layout on every session are the usual suspects when personalization silently
+    resets.
+- q: When deciding whether a given setting belongs in the golden image versus being applied dynamically
+    at login (via policy or a UEM tool), which factor most strongly favors putting it in the image instead?
+  options:
+  - The setting needs to vary per user or per group
+  - The setting needs to be changed frequently without a new image build
+  - The setting is static, applies identically to every user, and rarely changes — baking it in avoids
+    repeated login-time processing overhead
+  - The organization wants centralized auditability of every setting change
+  answer: 2
+  why: Settings that are the same for every user and change infrequently are cheapest to bake into the
+    image — no per-login processing cost, no policy engine dependency. Settings that vary by user/group,
+    or that need to change without a full image rebuild and redeployment cycle, belong in policy or a
+    UEM tool applied at login instead.
+- q: In two to four sentences, describe the trade-off between 'image bloat' and 'policy at login' when
+    deciding where to configure a given user environment setting, and give one concrete example of a setting
+    that belongs on each side.
+  answer: Putting a setting in the golden image is fast at login (nothing to process or apply) but means
+    every change requires a new image build, test cycle, and rollout, and settings baked in apply uniformly
+    to everyone even if only some users need them. Applying a setting at login via policy or a UEM tool
+    is slower per-session (login-time processing) but lets you change or target settings per user/group
+    instantly without touching the image. A regional default time zone or a company-wide default wallpaper
+    is a good candidate for the image since it rarely changes and applies to everyone; a per-department
+    network drive mapping or a printer assignment that varies by office location is a better candidate
+    for login-time policy since it needs to vary by user and change without a rebuild.
+  why: The core trade-off is login-time cost and per-user flexibility versus image-rebuild overhead and
+    uniform application — settings that are static and universal favor the image, settings that vary or
+    change often favor login-time policy or UEM tooling.
+resources:
+- label: Use ADMX templates on Windows devices in Microsoft Intune
+  url: https://learn.microsoft.com/en-us/intune/device-configuration/settings-catalog/configure-admx-templates-windows
+- label: Import custom and third-party partner ADMX templates in Intune
+  url: https://learn.microsoft.com/en-us/intune/device-configuration/settings-catalog/import-custom-admx-templates
+- label: Omnissa Dynamic Environment Manager documentation
+  url: https://docs.omnissa.com/category/Dynamic_Environment_Manager
+- label: Citrix Workspace Environment Management service
+  url: https://docs.citrix.com/en-us/workspace-environment-management/service.html
+---
+
+## The Layer Between the Profile and the Image
+
+By now you have a golden image (Module 3) that's stable and app-light thanks to App Attach (Lesson 2), and FSLogix (Lesson 1) carrying each user's personal profile across sessions. There's still a gap: who controls the Start menu layout every new user starts with, the taskbar pins, the default language and region, the drive mappings that vary by department, the setting that says 'don't let users change the desktop background'? That's **user environment management** — the policy and personalization layer that sits between a static image and a dynamic profile.
+
+## Group Policy vs. Intune for Session Hosts
+
+The mechanism you use depends entirely on how your session hosts are joined:
+
+- **Active Directory Domain Services-joined or Microsoft Entra hybrid-joined hosts** can receive traditional **Group Policy Objects (GPOs)**, applied the same way they would be for physical domain-joined machines. This is the path most organizations with an existing AD estate already know.
+- **Microsoft Entra joined-only hosts** have no AD domain to pull GPOs from. They're managed through **Intune** instead, using the **settings catalog**, which includes built-in **Administrative Templates** — the same category of ADMX-backed settings GPO has always used, but delivered over MDM rather than AD. If you rely on custom or third-party ADMX/ADML files that aren't in Intune's built-in catalog, you can **import them directly** (up to 20 files, 1 MB each), so a move from GPO to Intune doesn't have to mean losing policy definitions you've built up over the years — just re-delivering them differently.
+
+Many organizations run a hybrid model during a transition: hybrid-joined hosts on GPO while new Entra-joined-only host pools move to Intune-delivered settings catalog policy. Whichever mechanism you use, apply session-host-specific policy through its own GPO/policy set or a dedicated Intune configuration profile scoped to the host pool's device group — don't reuse a policy set built for regular end-user laptops, since AVD hosts have different needs (for example, you generally don't want power-management policies designed for battery-powered laptops applying to always-on session hosts).
+
+## Start Menu and Taskbar for Shared Hosts
+
+Start menu layout and taskbar pins are part of the user profile, which means their behavior on a pooled host pool depends entirely on how well FSLogix is capturing and reattaching that profile. When users complain a custom layout 'keeps resetting,' the two usual suspects are a misconfigured or intermittently-failing FSLogix container (revisit Lesson 1's failure-mode diagnostics) or a policy that deliberately re-applies a default layout on every sign-in. If you want every user on a host pool to start from the same default layout but still allow personalization afterward, use a **Start menu layout XML** applied once (via policy, not re-applied every login) as the starting point, and let FSLogix carry any changes the user makes from there. If you want a fully locked, kiosk-style layout that never changes, that's a different, more restrictive policy path and you should be explicit with stakeholders about which behavior they're actually asking for — 'consistent starting point' and 'locked forever' are different requirements with different policy designs.
+
+## Language and Regional Settings
+
+Multi-session hosts serving users across regions need per-user language and regional settings, not a single image-wide default — a shared image typically ships with one base language pack, with per-user display language, keyboard layout, and regional format applied at login through policy or the user's own Windows settings (which then persist via the FSLogix profile). For larger multi-language estates, plan language pack installation into your image build pipeline (Module 3's Azure Image Builder step) rather than installing packs live on running session hosts, which is slow and inconsistent across a fleet.
+
+## The Vendor-Neutral Category: WEM and DEM
+
+GPO and Intune (or their Citrix/Omnissa platform equivalents) are OS-level policy engines. Sitting alongside them is a distinct product category — **user environment management (UEM)** — purpose-built for VDI personalization and logon-time optimization. **Citrix Workspace Environment Management (WEM)** and **Omnissa Dynamic Environment Manager (DEM)** are the category-defining tools on their respective platforms: both apply settings like drive mappings, printer assignment, application shortcuts, and environment personalization dynamically at logon, and both include resource optimization features (CPU/memory prioritization, logon acceleration) that go beyond what GPO or Intune policy alone addresses. They are not replacements for FSLogix/App Volumes-style profile or app containers — they're a complementary layer that handles the 'what does this specific user's desktop look like today' problem more dynamically and with better logon-time performance characteristics than GPO processing alone typically achieves. AVD-native deployments generally rely on GPO/Intune plus FSLogix for this role rather than adding a separate UEM product, but knowing WEM and DEM by name and function matters for any assessment or migration conversation involving a Citrix or Omnissa estate (Module 7's migration capstone).
+
+## The Recurring Trade-off: Image vs. Login-Time Policy
+
+Every setting you need to configure raises the same question: bake it into the golden image, or apply it dynamically at login? There's no universal right answer, but there is a reliable heuristic. Settings that are **static and apply identically to every user** — a default time zone, a corporate wallpaper, a baseline set of installed line-of-business tools that everyone needs — belong in the image. They cost nothing at login time, and they don't need per-user targeting. Settings that **vary by user or group, or that need to change without a full image rebuild** — a drive mapping that differs by department, a printer assignment tied to office location, a feature flag you're rolling out gradually — belong in policy or a UEM tool applied at login. The cost there is real but different: login-time processing overhead, and a dependency on the policy engine being healthy and reachable at sign-in.
+
+Get this trade-off wrong in either direction and you feel it operationally: over-index on baking things into the image and every small change becomes a full image build, test, and rollout cycle (Module 6 covers that lifecycle); over-index on login-time policy and you slow down every sign-in with processing that could have been static. The healthiest estates keep the image lean — OS, agents, apps via App Attach, and only genuinely universal static settings — and push everything else to policy, FSLogix, or a UEM tool, reassessing the split as the environment and its change frequency evolve.

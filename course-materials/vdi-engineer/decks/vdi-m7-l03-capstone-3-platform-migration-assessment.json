@@ -1,0 +1,182 @@
+{
+  "slug": "vdi-m7-l03-capstone-3-platform-migration-assessment",
+  "title": "Capstone 3: Multi-Platform VDI Migration Assessment",
+  "month": 7,
+  "monthTitle": "Capstone Projects & Career Launch",
+  "lesson": 3,
+  "summary": "Real EUC engineers are asked to make vendor-neutral recommendations, not just build one platform. In this capstone you assess a fictional 1,200-user logistics company running aging on-premises Citrix, and decide whether it should stay on Citrix DaaS, move fully to Azure Virtual Desktop, or split across platforms including Windows 365. You'll reuse the weighted scoring matrix from Module 2's platform-choice framework, sketch a TCO comparison, and produce a phased migration plan and a recommendation report — portfolio artifact #3, and the one that best proves you think like a platform-agnostic architect rather than a single-vendor specialist.",
+  "objectives": [
+    "Apply a weighted scoring matrix to compare competing VDI/DaaS platforms for a specific organization",
+    "Reason about existing licensing investment, persistence mix, and peripheral needs as first-class migration criteria, not afterthoughts",
+    "Sketch a directional TCO comparison across an on-prem refresh, a Citrix DaaS move, and an AVD/Windows 365 split",
+    "Design a phased migration plan that sequences the lowest-risk user population first",
+    "Write a vendor-neutral recommendation report that a non-technical executive could act on"
+  ],
+  "quiz": [
+    {
+      "q": "Solborne Logistics' 900 warehouse and dispatch staff use one kiosk-style app with almost no personalization. In the scoring matrix, which platform tends to score highest for this population specifically?",
+      "options": [
+        "Windows 365 personal Cloud PCs, because persistence is the priority",
+        "Whichever platform has the most colorful marketing",
+        "Azure Virtual Desktop pooled multi-session, because it's built for exactly this high-density, low-persistence, cost-sensitive pattern",
+        "None of the platforms — this population should stay on physical desktops"
+      ],
+      "answer": 2,
+      "why": "Pooled multi-session is the design pattern built for high-volume, low-customization task workers: many users share fewer hosts, which drives down cost per user. Windows 365's personal-only model is the wrong shape for this specific population, even though it may be the right choice elsewhere in the same organization."
+    },
+    {
+      "q": "Why does the scoring matrix include 'existing investment' as a weighted criterion rather than just picking the technically best platform?",
+      "options": [
+        "Existing investment should always be ignored in a good technical assessment",
+        "It's a marketing requirement, not an engineering one",
+        "Existing investment only matters for on-premises data centers, not cloud licensing",
+        "A live Citrix ELA with 18 months remaining, and years of in-house Citrix Director/scripting expertise, are real switching costs and real assets that change which option is actually cheapest and lowest-risk, not just which is newest"
+      ],
+      "answer": 3,
+      "why": "A defensible platform recommendation accounts for sunk costs that still carry value (remaining license term, staff expertise) as real inputs to switching cost and risk, not just raw technical merit. Ignoring existing investment produces a recommendation that looks good on a whiteboard but is expensive or risky to actually execute."
+    },
+    {
+      "q": "Why might the recommendation keep the 50-person GIS/route-optimization power-user group on Citrix DaaS with HDX 3D Pro rather than moving them to AVD in the first migration wave?",
+      "options": [
+        "Their peripheral and protocol needs are the most demanding and least proven in the new environment, so it's lower-risk to migrate the largest, most standardized population first and revisit the specialized GPU cohort once the pattern is validated",
+        "GPU workloads cannot run on Azure at all",
+        "Citrix is always technically superior for every workload",
+        "Power users should never be migrated under any circumstances"
+      ],
+      "answer": 0,
+      "why": "Phased migration plans sequence the lowest-risk, most-standardized population first to build confidence and de-risk the overall project, and leave the smallest, most specialized, highest-peripheral-complexity group for a later phase where the migration pattern has already been proven — not because the target platform can't technically support GPU workloads."
+    },
+    {
+      "q": "What is the primary purpose of a directional TCO sketch in a migration assessment like this one?",
+      "options": [
+        "To produce an exact, guaranteed final invoice for the CFO",
+        "To compare the order of magnitude of costs across options (avoided hardware refresh, licensing overlap, fixed vs. variable cloud opex) so the recommendation is grounded in economics, not just technical preference",
+        "To replace the need for any architecture discussion entirely",
+        "To prove that on-premises is always the cheapest option"
+      ],
+      "answer": 1,
+      "why": "A TCO sketch at this stage is directional, not a committed quote — its job is to show the relative shape of costs (e.g., an avoided six-figure hardware refresh, existing Microsoft licensing that already covers AVD access rights, Windows 365's fixed per-user pricing vs. AVD's variable compute) so the recommendation is defensible on economics, not just architecture."
+    },
+    {
+      "q": "Why does the recommendation put persistent analyst desktops on Windows 365 rather than a persistent AVD host pool?",
+      "options": [
+        "AVD cannot support persistent desktops",
+        "Windows 365 is always cheaper than AVD for every workload",
+        "Windows 365's fixed per-user, per-month pricing and simpler, SaaS-style management fit a population needing predictable, always-available personal desktops better than owning and autoscaling personal AVD hosts would",
+        "Persistent desktops are being eliminated in this migration entirely"
+      ],
+      "answer": 2,
+      "why": "AVD can absolutely run personal, persistent host pools — but Windows 365's SaaS model trades some flexibility for simpler management and predictable fixed pricing, which is a good fit for a population that needs reliable, always-there personal desktops without a team having to own the underlying host pool and autoscale logic themselves."
+    },
+    {
+      "q": "In three to five sentences, explain why this capstone's recommendation is a hybrid across three platforms rather than a single winner-take-all platform choice, and why that is a more credible answer than picking one platform for the whole company.",
+      "answer": "Solborne Logistics has three populations with genuinely different needs: high-density task workers, persistent knowledge workers, and a small GPU-dependent specialist group, and no single platform is the best fit for all three at once. A hybrid recommendation — AVD pooled for warehouse staff, Windows 365 for persistent analysts, and Citrix DaaS retained short-term for the GPU cohort — matches infrastructure to workload the same way the host-pool design in Capstone 1 did, rather than forcing a one-size-fits-all answer for cost or simplicity's sake. It's also more credible to a real hiring manager or client, because it shows the engineer weighed trade-offs per population instead of defaulting to whichever platform they personally know best. A forced single-platform answer would either overpay for GPU-capable infrastructure for task workers, or under-serve the GPU cohort's peripheral and protocol needs — both real risks a mixed recommendation avoids.",
+      "why": "A strong answer explicitly connects the hybrid recommendation to the three distinct personas' needs, echoes the 'match infrastructure to workload' principle from earlier in the course, and explains why forcing a single-platform answer would create real downside for at least one population."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Citrix DaaS overview",
+      "url": "https://docs.citrix.com/en-us/citrix-daas/overview.html"
+    },
+    {
+      "label": "Omnissa Horizon product documentation",
+      "url": "https://docs.omnissa.com/category/Horizon"
+    },
+    {
+      "label": "Windows 365 documentation",
+      "url": "https://learn.microsoft.com/en-us/windows-365/"
+    },
+    {
+      "label": "Understand and estimate costs for Azure Virtual Desktop",
+      "url": "https://learn.microsoft.com/en-us/azure/virtual-desktop/understand-estimate-costs"
+    }
+  ],
+  "body_markdown": "## The Case Study\n\nSolborne Logistics runs 1,200 users across three distribution hubs on an aging on-premises Citrix Virtual Apps and Desktops estate. The hardware is out of warranty and due for refresh in nine months — that deadline is what's forcing the decision, not enthusiasm for change. Three populations: 900 warehouse and dispatch staff on pooled, kiosk-style desktops running a single warehouse management app; 250 route-planning analysts and customer service staff on persistent desktops running Office and a line-of-business transportation management system; and 50 GIS and route-optimization power users running GPU-accelerated modeling software. Solborne has 18 months left on a Citrix enterprise license agreement and deep in-house Citrix Director and scripting expertise. Leadership wants a recommendation: stay on Citrix but move to Citrix DaaS on Azure, replatform fully to Azure Virtual Desktop, or split the estate across platforms.\n\nThis is the vendor-neutral capstone. There is no \"correct\" platform in the abstract — there's only the platform (or mix of platforms) that best fits Solborne's specific populations, existing investment, and constraints.\n\n## The Scoring Matrix\n\nReuse the decision framework from Module 2's platform-choice lesson: score each option against the same weighted criteria used there — **existing investment**, **cloud strategy alignment**, **persistent vs. pooled mix fit**, **protocol/peripheral needs**, **budget model** (fixed opex vs. variable), and **compliance/sovereignty**. Assign each criterion a weight from 1 to 5 based on how much it matters to Solborne specifically, score each platform option 1 to 5 against each criterion, multiply, and sum.\n\n| Criterion | Weight | Citrix DaaS (Azure) | Pure AVD | AVD + Windows 365 split |\n|---|---|---|---|---|\n| Existing investment (ELA, staff skill) | 5 | 5 | 2 | 3 |\n| Cloud strategy alignment | 4 | 3 | 5 | 5 |\n| Persistent/pooled mix fit | 5 | 4 | 3 | 5 |\n| Protocol/peripheral needs (GIS/GPU) | 4 | 5 | 3 | 4 |\n| Budget model fit | 3 | 3 | 3 | 5 |\n| Compliance/sovereignty | 3 | 4 | 4 | 4 |\n| **Weighted total** | | **98** | **78** | **103** |\n\nThe mixed option comes out ahead — not because any single platform \"wins,\" but because it lets each population land on the platform actually shaped for it.\n\n## The Recommendation\n\n**Migrate the 900 pooled warehouse and dispatch users to Azure Virtual Desktop** first. This population is the largest, the most standardized, and the lowest-risk to move — a single kiosk app on pooled multi-session hosts, and Solborne already owns the Microsoft licensing that covers AVD access rights. **Move the 250 persistent analysts to Windows 365.** Their need is a predictable, always-available personal desktop, and Windows 365's fixed per-user pricing and SaaS-simple management fit that better than owning and autoscaling a persistent AVD host pool would. **Keep the 50 GIS/GPU power users on Citrix DaaS on Azure for now**, preserving HDX 3D Pro's mature protocol handling for demanding peripherals, and revisit whether AVD's NV-series GPU SKUs and vGPU licensing are a clean fit once the rest of the migration has proven the pattern.\n\n## The TCO Sketch\n\nThis is directional, not a committed quote — its job is to ground the recommendation in economics. Three shapes of cost matter here: the **avoided hardware refresh** (a six-figure on-premises spend that disappears entirely if the pooled and persistent populations move to cloud platforms before the nine-month deadline); the **licensing overlap**, since Solborne's existing Microsoft 365 E3/E5 entitlements already cover AVD user access rights, reducing incremental licensing cost for that piece; and the **fixed-vs-variable opex trade-off**, where Windows 365's flat per-user, per-month price is easier to forecast for the persistent population than AVD's variable compute cost would be, while AVD's variable pricing is actually the better fit for the pooled population because autoscale lets that cost track real usage down to near-zero overnight.\n\n## The Migration Phasing Plan\n\n**Phase 0 — Pilot.** One hub, roughly 50 pooled users and 10 persistent users, to validate the FSLogix profile experience, network path, and user acceptance before committing further.\n\n**Phase 1 — Pooled rollout.** Move the remaining warehouse and dispatch population across all three hubs to AVD, in waves by hub, so any issue is contained to one site at a time.\n\n**Phase 2 — Persistent rollout.** Move the analyst population to Windows 365, coordinated with device refresh where it overlaps.\n\n**Phase 3 — Reassess the GPU cohort.** Once Phases 1 and 2 are stable, revisit whether the power-user group should move to AVD GPU SKUs or remain on Citrix DaaS long-term.\n\n**Phase 4 — Decommission.** Retire the on-premises Citrix hardware once the ELA term and hardware lease both allow it, avoiding early-termination costs.\n\n## The Deliverable\n\nPackage this as a recommendation report or short deck: executive summary, the scoring matrix table, the TCO sketch, the phased plan, and a brief risk register (the two most obvious risks here are GPU peripheral compatibility during Phase 3, and user resistance to losing a persistent desktop feel during the Phase 1 pooled migration). Write it for a non-technical executive audience — the technical justification lives in the appendix, but the front page should be a clear, confident recommendation they can act on.\n\n## Why a Scoring Matrix Beats a Gut Call\n\nIt would be faster to just recommend \"move everything to AVD\" or \"stay on Citrix\" from experience and skip the matrix entirely. Resist that instinct, both in this capstone and in a real job. A weighted scoring matrix does two things a gut call can't: it forces you to name the criteria that actually matter to *this* organization before you know which answer they point to, which guards against picking a platform first and rationalizing it afterward; and it gives a skeptical executive, or a skeptical interviewer, something concrete to push back on and debate, rather than just your word. If a stakeholder disagrees with the recommendation, the matrix gives you a productive conversation — \"you think peripheral needs should be weighted higher than budget model, let's talk about why\" — instead of a standoff. That's the difference between an opinion and an assessment, and it's exactly the kind of structured reasoning a hiring manager is listening for when they ask how you'd make a platform recommendation in an interview.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Capstone 3: Multi-Platform VDI Migration Assessment",
+      "sub": "A vendor-neutral recommendation for a 1,200-user logistics estate",
+      "narration": "This capstone is the vendor-neutral one. You're assessing a fictional logistics company running an aging on-premises Citrix estate, and you have to recommend whether it stays on Citrix, moves fully to Azure Virtual Desktop, or splits across platforms. There's no single correct platform in the abstract — only the platform, or mix of platforms, that fits this specific organization's populations and constraints."
+    },
+    {
+      "type": "content",
+      "title": "The Case Study",
+      "bullets": [
+        "Solborne Logistics: 1,200 users, on-prem Citrix, hardware refresh due in 9 months",
+        "900 pooled warehouse/dispatch, 250 persistent analysts, 50 GPU GIS users",
+        "18 months left on a Citrix ELA, deep in-house Citrix expertise",
+        "Decision: stay Citrix DaaS, go pure AVD, or split platforms"
+      ],
+      "narration": "Solborne Logistics has three populations that behave nothing like each other, an aging hardware refresh deadline forcing the decision, and real sunk investment in a Citrix license agreement and staff expertise. That combination is exactly what makes this a realistic assessment rather than a theoretical exercise — the right answer has to account for people and contracts, not just architecture diagrams."
+    },
+    {
+      "type": "content",
+      "title": "Reuse the Scoring Matrix",
+      "bullets": [
+        "Same weighted criteria from the Module 2 platform-choice framework",
+        "Existing investment, cloud strategy, persistent/pooled fit",
+        "Protocol/peripheral needs, budget model, compliance/sovereignty",
+        "Weight 1–5, score each platform 1–5, multiply and sum"
+      ],
+      "narration": "Don't build a new framework from scratch — reuse the weighted scoring matrix from the platform-choice lesson back in Module 2. Weight each criterion by how much it actually matters to Solborne, score Citrix DaaS, pure AVD, and a mixed AVD-plus-Windows-365 option against each one, and let the weighted totals guide, not dictate, the recommendation."
+    },
+    {
+      "type": "content",
+      "title": "The Matrix in Action",
+      "bullets": [
+        "Citrix DaaS wins on existing investment and GPU protocol maturity",
+        "Pure AVD wins on cloud strategy alignment",
+        "The mixed option wins overall — 103 vs 98 vs 78",
+        "No single platform is best for every population at once"
+      ],
+      "code": "Weighted totals:\nCitrix DaaS (Azure):        98\nPure AVD:                    78\nAVD + Windows 365 split:    103",
+      "narration": "Run the numbers and the mixed option comes out ahead, not because any one platform dominates, but because it lets each of Solborne's three populations land on the platform actually built for it. That's the core insight of a vendor-neutral assessment: the best answer is often not a single winner but a considered mix."
+    },
+    {
+      "type": "content",
+      "title": "The Recommendation",
+      "bullets": [
+        "900 pooled warehouse/dispatch → Azure Virtual Desktop, first wave",
+        "250 persistent analysts → Windows 365 (fixed opex, simple management)",
+        "50 GPU/GIS power users → stay on Citrix DaaS with HDX 3D Pro, for now",
+        "Reassess the GPU cohort after the rest of the pattern is proven"
+      ],
+      "narration": "The largest, most standardized population moves first, to AVD pooled multi-session, because it's the lowest-risk migration and the licensing is already in place. The persistent analysts move to Windows 365 for predictable, fixed-price, simple-to-manage personal desktops. The small, highest-risk GPU cohort stays on Citrix DaaS for now, preserving proven protocol and peripheral handling, with a planned reassessment once the rest of the migration has succeeded."
+    },
+    {
+      "type": "content",
+      "title": "The TCO Sketch",
+      "bullets": [
+        "Avoided six-figure on-premises hardware refresh",
+        "Existing M365 E3/E5 licensing already covers AVD access rights",
+        "Windows 365: fixed per-user opex, easy to forecast",
+        "AVD: variable compute, but autoscale tracks it to near-zero overnight"
+      ],
+      "narration": "The TCO sketch is directional, not a committed invoice. Its job is to show the shape of the economics: the hardware refresh that disappears entirely, licensing Solborne already owns that reduces incremental AVD cost, and the contrast between Windows 365's predictable flat pricing and AVD's variable compute cost — which is actually an advantage for the pooled population, because autoscale lets that cost shrink to nearly nothing overnight."
+    },
+    {
+      "type": "content",
+      "title": "The Phasing Plan",
+      "bullets": [
+        "Phase 0: Pilot — one hub, ~50 pooled + 10 persistent users",
+        "Phase 1: Pooled rollout across all hubs, wave by hub",
+        "Phase 2: Persistent analysts to Windows 365",
+        "Phase 3: Reassess GPU cohort; Phase 4: decommission on-prem"
+      ],
+      "narration": "Sequence the migration from lowest to highest risk. Pilot small, then roll out the standardized pooled population hub by hub so any issue stays contained. Move the persistent population next. Only after both of those are stable do you revisit the small, specialized GPU cohort — and only then decommission the on-premises hardware, once the license and lease terms actually allow it."
+    },
+    {
+      "type": "content",
+      "title": "Packaging the Recommendation Report",
+      "bullets": [
+        "Executive summary written for a non-technical audience",
+        "Scoring matrix table, TCO sketch, phased plan",
+        "A short risk register — name the two biggest risks honestly",
+        "Technical justification lives in the appendix, not the front page"
+      ],
+      "narration": "Package this as a report or short deck with a confident executive summary up front, the scoring matrix and TCO sketch as supporting evidence, the phased plan, and an honest risk register naming the GPU compatibility risk and the user-resistance risk during the pooled migration. Write the front page for the person who has to approve the budget, not the person who has to build it — that's portfolio artifact number three."
+    }
+  ]
+}

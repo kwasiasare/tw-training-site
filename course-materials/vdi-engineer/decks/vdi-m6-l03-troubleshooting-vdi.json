@@ -1,0 +1,204 @@
+{
+  "slug": "vdi-m6-l03-troubleshooting-vdi",
+  "title": "Troubleshooting VDI: A Connection-Chain Triage Method",
+  "month": 6,
+  "monthTitle": "Monitoring, Operations & Troubleshooting",
+  "lesson": 3,
+  "summary": "\"AVD is broken\" is not a diagnosis, it's a starting point. This lesson gives you a repeatable triage method that walks the connection chain in order — client, feed, authentication, gateway, session host, profile, in-session experience — so you can localize a failure to a specific hop instead of guessing. For each hop you'll get the exact tool or Log Analytics table to check, a walkthrough of FSLogix-specific triage, a comparison of AVD's own tooling against Citrix Director and the Omnissa Horizon Help Desk Tool, and a clear rule for when to self-resolve versus escalate to Microsoft or a platform vendor.",
+  "objectives": [
+    "Walk the AVD connection chain end to end and name the failure domain at each hop",
+    "Match each failure bucket to the specific tool, log, or Log Analytics table used to diagnose it",
+    "Triage the most common FSLogix profile-attach failures using the official logging locations",
+    "Compare Citrix Director and the Omnissa Horizon Help Desk Tool to AVD's own Insights-based tooling",
+    "Decide when to self-resolve, when to open a Microsoft support case, and when to escalate to platform vendor support"
+  ],
+  "quiz": [
+    {
+      "q": "A user reports they can't even see their desktop or app icons in the Remote Desktop client or web feed. Which hop in the connection chain does this point to?",
+      "options": [
+        "Session host performance",
+        "FSLogix profile attach",
+        "Feed/subscription",
+        "In-session graphics quality"
+      ],
+      "answer": 2,
+      "why": "If the icons never appear, the failure is upstream of authentication into a session — it's in workspace/app-group subscription (feed). Check WVDFeeds and WVDCheckpoints before assuming the session host or profile layer is involved."
+    },
+    {
+      "q": "Which table specifically records whether a session host successfully registered with the Azure Virtual Desktop service?",
+      "options": [
+        "WVDConnections",
+        "WVDCheckpoints",
+        "WVDManagement",
+        "WVDHostRegistrations"
+      ],
+      "answer": 3,
+      "why": "WVDHostRegistrations logs host-registration activity, including SessionHostName and CorrelationId, distinct from WVDConnections (user connection activity) and WVDManagement (admin/API activity)."
+    },
+    {
+      "q": "A user gets past sign-in but is stuck on a black screen right after entering credentials, correlating with FSLogix errors in the Windows Event Log. Which failure domain does this map to?",
+      "options": [
+        "Profile attach",
+        "Gateway routing",
+        "Authentication (identity provider)",
+        "Network transport codec negotiation"
+      ],
+      "answer": 0,
+      "why": "Credentials already succeeded (auth passed), so the failure is downstream of that — a profile container failing to attach or mount is a classic black-screen-after-login cause, and FSLogix event log correlation confirms it."
+    },
+    {
+      "q": "What is Citrix Director's rough functional equivalent when troubleshooting an AVD environment?",
+      "options": [
+        "Azure Compute Gallery",
+        "Azure Virtual Desktop Insights combined with the WVD Log Analytics tables",
+        "Microsoft Intune compliance policies",
+        "Microsoft Entra Conditional Access"
+      ],
+      "answer": 1,
+      "why": "Citrix Director is a real-time and historical monitoring/helpdesk console for a Citrix site. In the Microsoft stack, that same 'see live session state, diagnose, and support end users' role is filled by AVD Insights plus direct KQL queries against the WVD tables, not by a single named product."
+    },
+    {
+      "q": "In WVDErrors, a specific reproducible failure shows ServiceError == true. What should you do?",
+      "options": [
+        "Ignore it — the field is cosmetic and doesn't affect anything",
+        "Immediately rebuild the golden image, regardless of the error's source",
+        "Escalate to Microsoft support, including the CorrelationId for that event",
+        "Disable diagnostic settings so the error stops appearing"
+      ],
+      "answer": 2,
+      "why": "ServiceError == true means the error originates on Microsoft's service side rather than being admin-actionable. The documented path is to escalate to Microsoft support and supply the CorrelationId so they can trace the exact event server-side."
+    },
+    {
+      "q": "Describe, in order, the client-to-in-session triage chain a helpdesk engineer should mentally walk through when a user says \"AVD is broken,\" and name one tool or data source you'd check at three different hops.",
+      "answer": "The chain runs roughly: client app/feed (does the user see the workspace and app tiles? check the Remote Desktop client logs and the WVDFeeds/WVDCheckpoints tables) then authentication (did sign-in and Conditional Access succeed? check Microsoft Entra ID sign-in logs) then gateway/connection broker (did the service accept and route the connection? check WVDConnections and WVDErrors) then session host (is the VM healthy and registered? check WVDHostRegistrations and WVDAgentHealthStatus) then profile (did FSLogix attach correctly? check the FSLogix logs under C:\\\\ProgramData\\\\FSLogix\\\\Logs) then in-session experience (is performance, graphics, or redirection the problem? check WVDConnectionNetworkData round-trip time and session host performance counters). Naming any three consecutive or non-consecutive hops together with their matching tool is an acceptable answer.",
+      "why": "This restates the ordered triage model taught in the lesson: localize the failure to a specific hop before you start changing configuration, and use the tool that actually reports on that hop rather than the one that's most familiar."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Azure Virtual Desktop troubleshooting overview",
+      "url": "https://learn.microsoft.com/en-us/troubleshoot/azure/virtual-desktop/troubleshoot-set-up-overview"
+    },
+    {
+      "label": "FSLogix troubleshooting with logging and diagnostics",
+      "url": "https://learn.microsoft.com/en-us/fslogix/troubleshooting-events-logs-diagnostics"
+    },
+    {
+      "label": "FSLogix known issues",
+      "url": "https://learn.microsoft.com/en-us/fslogix/troubleshooting-known-issues"
+    },
+    {
+      "label": "Citrix Director overview",
+      "url": "https://docs.citrix.com/en-us/citrix-virtual-apps-desktops/director.html"
+    },
+    {
+      "label": "Using the Omnissa Horizon Help Desk Tool",
+      "url": "https://docs.omnissa.com/bundle/Horizon-AdministrationV2406/page/UsingHorizonHelpDeskToolinHorizonConsole.html"
+    }
+  ],
+  "body_markdown": "## \"It's Broken\" Is Not a Diagnosis\n\nEvery VDI helpdesk engineer has taken the ticket that just says \"AVD is broken\" or \"Citrix is down.\" That sentence tells you nothing actionable, because a virtual desktop connection is actually a chain of six or seven distinct systems, any one of which can fail independently while the rest work perfectly. The skill this lesson teaches isn't a list of fixes — it's a **method**: walk the chain in order, from the client outward to the in-session experience, and stop at the first hop that's actually broken. Everything downstream of a working hop is a waste of your time to investigate.\n\n## The Connection Chain, Hop by Hop\n\n**1. Client / feed.** Does the user even see their workspace and app tiles in the Remote Desktop client or the web client? If not, the failure is upstream of authentication into a session entirely — it's a **subscription/feed** problem. Check the Remote Desktop client's own logs (Windows client: `%LocalAppData%\\rdclientwpf`), and on the service side the `WVDFeeds` and `WVDCheckpoints` tables, which record whether the user's device successfully subscribed to the workspace.\n\n**2. Authentication.** Icons appear but sign-in fails, loops, or gets blocked. This is now an identity problem, not an AVD problem — check **Microsoft Entra ID sign-in logs** for Conditional Access denials, MFA failures, or risk-based blocks (this ties directly back to Module 4's identity and Conditional Access lessons).\n\n**3. Gateway / broker.** Sign-in succeeds but the connection itself never establishes, times out, or errors immediately. Query `WVDConnections` for the `State` progression (`Started` → `Connected` → `Completed`) and `WVDErrors` for anything with a matching `CorrelationId`. A connection that never reaches `Connected` usually means a broker or network path problem, not a session host problem.\n\n**4. Session host.** The connection reaches a host but the host itself is unhealthy — unregistered, agent not responding, or out of capacity. Check `WVDHostRegistrations` for registration failures and `WVDAgentHealthStatus` for `Status != \"Healthy\"` on the target host, plus basic VM health (is it even running, does it have free capacity, is it stuck mid-update from Lesson 2).\n\n**5. Profile (FSLogix).** The user reaches a session host and authenticates into Windows, but hits a **black screen**, an extremely slow logon, or lands in a **temporary/local profile** instead of their real one. This is almost always a profile container attach failure — see the dedicated section below.\n\n**6. In-session experience.** Everything above worked, but the session itself is laggy, pixelated, or drops audio/video. This is a **network and display protocol** problem — check `WVDConnectionNetworkData` for `EstRoundTripTimeInMs` and `EstAvailableBandwidthKBps`, session host performance counters (CPU, memory, disk queue length), and revisit the display protocol fundamentals from Module 1 (RDP Shortpath, codec choice, transport type in `WVDConnections.TransportType`).\n\nThe discipline is simple: **start at hop one and don't skip ahead.** A user who can't see their app tiles doesn't need you investigating session host CPU. A user who reaches a black screen after login almost certainly isn't a network problem, no matter how much the ticket description talks about \"slowness.\"\n\n## FSLogix Triage in Detail\n\nBecause profile-attach failures are one of the highest-volume ticket categories in any VDI environment, they deserve their own checklist:\n\n- **Confirm FSLogix is actually enabled** — after install, none of its features (Profile Containers, ODFC) are active until you configure them. A fresh, unconfigured install looks identical to a broken one from the user's perspective.\n- **Check storage reachability and capacity first.** FSLogix depends entirely on a remote storage provider (Azure Files or Azure NetApp Files). If the storage account is unreachable, throttled, or full, users fall back to a temporary or local profile — which looks like \"my settings are gone\" to the end user but is really a storage problem.\n- **Check network/DNS from the session host.** A session host that can't resolve or reach the UNC path hosting the VHD(X) containers will fail to attach the container, even if storage itself is healthy.\n- **Read the logs directly.** The primary log is `Profile_<timestamp>.log` under `C:\\ProgramData\\FSLogix\\Logs\\Profile` on the session host. For a structured collection, run the **FSLogix Support Tool** directly on the affected host and attach its output to any Microsoft support case.\n- **Watch for the Kerberos encryption change.** An April 2026 Windows Server update shifts the default Kerberos encryption type from RC4 to AES-SHA1; file shares hosting FSLogix containers that haven't been upgraded to support AES-SHA1 can start failing attach operations after that update lands. If profile failures spike right after a patch cycle, this is a fast thing to rule in or out.\n\n## AVD's Tooling vs. Citrix Director vs. the Omnissa Horizon Help Desk Tool\n\nIf you've supported Citrix or Horizon before, you'll instinctively look for a single console that shows live session state and lets you act on it. AVD doesn't ship one unified product with that name — the equivalent capability is **Azure Virtual Desktop Insights plus direct KQL queries** against the WVD tables from Lesson 1, which together give you the same live-plus-historical visibility.\n\n- **Citrix Director** is a web-based console for Citrix DaaS/Virtual Apps and Desktops sites: a real-time dashboard of session and logon status, historical data from the monitoring database, and the ability to shadow a user's session directly through Windows Remote Assistance from within the tool.\n- **Omnissa Horizon Help Desk Tool** (inside the Horizon Console) gives Horizon admins a comparable per-session view — session details, session processes, and guided troubleshooting actions for a specific user's desktop or app session.\n\nThe practical takeaway for a multi-platform EUC engineer: the *capability* (live session visibility, historical trend, and quick per-user drill-down) is universal across platforms, but where Citrix and Horizon bundle it into one purpose-built helpdesk console, on AVD you assemble the same picture from Insights workbooks and the KQL skills from Lesson 1.\n\n## When to Self-Resolve vs. Escalate\n\nUse this as a decision rule, not a guess: if `WVDErrors.ServiceError == false`, or the failure is clearly config/identity/storage-side (a Conditional Access policy, a full storage account, a mis-scoped RBAC role), it's yours to fix. If `ServiceError == true`, or you've isolated the failure to the AVD *service* itself (broker, gateway, feed) with no local misconfiguration to explain it, open a Microsoft support case and hand over the `CorrelationId` — that single field lets Microsoft trace the exact server-side event instead of reproducing your problem from scratch. For the vendor-neutral platforms, Citrix and Omnissa each have their own support paths gated by your subscription tier; know which path you're entitled to *before* an incident, not during one.\n\n## What You'd Actually Do\n\nWhen a ticket says \"AVD is broken\": ask what the user actually sees (no icons? stuck at login? black screen? slow?), map that answer to a hop in the chain above, pull the matching table or log for that hop only, and only widen the investigation if that hop turns out healthy. Keep the FSLogix checklist and the CorrelationId escalation habit as defaults — they resolve the majority of real-world tickets faster than jumping straight to \"let's rebuild the image.\"",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Troubleshooting VDI",
+      "sub": "A connection-chain triage method that actually scales",
+      "narration": "This lesson gives you a repeatable method for troubleshooting virtual desktop problems instead of a list of fixes to memorize. A ticket that says AVD is broken tells you nothing, because a connection is really a chain of six or seven independent systems. We'll walk that chain in order, match each hop to the tool that actually reports on it, go deep on FSLogix triage since profile problems are the highest volume ticket category, compare AVD's own tooling to Citrix Director and the Omnissa Horizon Help Desk Tool, and set a clear rule for when to escalate."
+    },
+    {
+      "type": "content",
+      "title": "The Method: Walk the Chain, Don't Skip Ahead",
+      "bullets": [
+        "A connection is a chain of independent systems, not one thing",
+        "Client and feed, authentication, gateway, host, profile, in-session",
+        "Localize the failure to one hop before you touch anything",
+        "Everything downstream of a healthy hop wastes your time",
+        "A black screen after login is rarely a network problem"
+      ],
+      "narration": "The core discipline here is simple. A virtual desktop connection is a chain: client and feed, authentication, gateway and broker, session host, profile, and finally the in-session experience. Any one of those can fail while the rest work perfectly. Your job is to localize the failure to a single hop before you start investigating or changing anything. If a user never sees their app tiles, session host CPU is irrelevant. If they hit a black screen right after logging in, it's almost never a network problem, no matter what the ticket says."
+    },
+    {
+      "type": "content",
+      "title": "Hop 1 and 2: Feed and Authentication",
+      "bullets": [
+        "No icons visible? It's a subscription/feed problem",
+        "Check client logs and the WVDFeeds, WVDCheckpoints tables",
+        "Icons appear but sign-in fails? Now it's identity, not AVD",
+        "Check Microsoft Entra ID sign-in logs for Conditional Access blocks",
+        "This ties directly back to Module 4's identity lessons"
+      ],
+      "narration": "If a user can't even see their workspace or app tiles, you're troubleshooting the feed, not the session. Check the Remote Desktop client's own logs and the WVDFeeds and WVDCheckpoints tables on the service side. If the icons appear but sign-in itself fails or loops, that's an identity problem, not an AVD problem. Go straight to Microsoft Entra ID sign-in logs and look for Conditional Access denials, MFA failures, or risk-based blocks, which connects directly back to what you learned in the identity and security module."
+    },
+    {
+      "type": "content",
+      "title": "Hop 3 and 4: Gateway and Session Host",
+      "bullets": [
+        "Sign-in succeeds but connection never establishes? Gateway or broker",
+        "Check WVDConnections State progression and WVDErrors",
+        "Connection reaches a host but it's unhealthy? Session host",
+        "Check WVDHostRegistrations and WVDAgentHealthStatus",
+        "Also check basic VM health and update-in-progress state"
+      ],
+      "narration": "When sign-in succeeds but the connection itself never establishes or times out, query WVDConnections for its state progression from Started to Connected to Completed, and cross reference WVDErrors on the same correlation ID. If the connection does reach a session host but that host is unhealthy, check WVDHostRegistrations for registration failures and WVDAgentHealthStatus for anything not reporting healthy, and don't forget to check whether that host is simply mid update from the previous lesson."
+    },
+    {
+      "type": "content",
+      "title": "Hop 5 and 6: Profile and In-Session Experience",
+      "bullets": [
+        "Black screen or stuck at logon after auth succeeds? Profile attach",
+        "Laggy, pixelated, dropped audio after everything else works? Network",
+        "Check WVDConnectionNetworkData round trip time for the latter",
+        "Check session host performance counters for CPU and disk queue",
+        "Revisit display protocol fundamentals from Module 1 if needed"
+      ],
+      "narration": "A black screen or extremely slow logon after credentials have already succeeded almost always points to an FSLogix profile container failing to attach. If everything above worked and the complaint is about lag, pixelation, or dropped audio and video, now you're looking at the in-session network and display protocol layer. Check WVDConnectionNetworkData for round trip time, session host performance counters for CPU and disk pressure, and revisit the protocol fundamentals from Module 1 if the transport type looks wrong."
+    },
+    {
+      "type": "content",
+      "title": "FSLogix Triage Checklist",
+      "bullets": [
+        "Confirm FSLogix is actually enabled, not just installed",
+        "Check storage reachability and capacity first",
+        "Check network and DNS resolution to the UNC path",
+        "Read Profile logs under C:\\\\ProgramData\\\\FSLogix\\\\Logs\\\\Profile",
+        "Watch for the April 2026 Kerberos AES-SHA1 change"
+      ],
+      "narration": "Because profile problems are so common, they deserve their own checklist. First confirm FSLogix is actually enabled, since a fresh unconfigured install looks identical to a broken one. Then check storage reachability and capacity, since a full or unreachable storage account is a frequent root cause disguised as a settings problem. Check DNS and network reachability to the UNC path next, then read the Profile log directly on the host. And watch for the April 2026 Windows Server change to Kerberos encryption defaults, which can break container attach on file shares that haven't been upgraded."
+    },
+    {
+      "type": "content",
+      "title": "AVD's Tooling vs. Citrix Director",
+      "bullets": [
+        "AVD has no single named helpdesk console product",
+        "The equivalent is Insights plus direct KQL against WVD tables",
+        "Citrix Director: live dashboard, historical data, session shadowing",
+        "Omnissa Horizon Help Desk Tool gives a similar per-session view",
+        "The capability is universal, the packaging differs by platform"
+      ],
+      "narration": "If you've supported Citrix or Horizon before, you'll look for one console that shows live session state and lets you act on it. AVD doesn't ship a single product with that name. The equivalent is Azure Virtual Desktop Insights combined with direct KQL queries against the WVD tables you learned in lesson one. Citrix Director gives you a real time dashboard, historical monitoring data, and the ability to shadow a user's session. The Omnissa Horizon Help Desk Tool gives Horizon admins a comparable per session view. The capability is the same across platforms, only the packaging differs."
+    },
+    {
+      "type": "content",
+      "title": "Self-Resolve or Escalate?",
+      "bullets": [
+        "WVDErrors ServiceError false, or clearly config-side: yours to fix",
+        "ServiceError true: escalate to Microsoft with the CorrelationId",
+        "That one field lets Microsoft trace the exact server-side event",
+        "Citrix and Omnissa each have their own subscription-gated support",
+        "Know your support path before an incident, not during one"
+      ],
+      "narration": "Use a clear rule instead of a guess. If WVDErrors shows ServiceError as false, or you've clearly isolated the failure to something config or identity side, it's yours to fix. If ServiceError is true, or you've ruled out every local cause and the failure sits inside the AVD service itself, open a Microsoft support case and hand over the CorrelationId, which lets Microsoft trace the exact event without you having to reproduce it from scratch. Citrix and Omnissa each gate support by your subscription tier, so know which path you're entitled to before an incident happens, not during one."
+    },
+    {
+      "type": "content",
+      "title": "What You'd Actually Do",
+      "bullets": [
+        "Ask what the user actually sees before touching anything",
+        "Map the symptom to exactly one hop in the chain",
+        "Pull only the table or log that reports on that hop",
+        "Widen the investigation only if that hop turns out healthy",
+        "Default to the FSLogix checklist and CorrelationId escalation"
+      ],
+      "narration": "When a ticket says AVD is broken, start by asking what the user actually sees. No icons, stuck at login, black screen, or just slow, each answer maps to exactly one hop in the chain. Pull only the table or log that reports on that specific hop, and only widen your investigation if that hop turns out to be healthy after all. Keep the FSLogix checklist and the correlation ID escalation habit as your defaults. Together they resolve the large majority of real world VDI tickets faster than jumping straight to rebuilding the image."
+    }
+  ]
+}

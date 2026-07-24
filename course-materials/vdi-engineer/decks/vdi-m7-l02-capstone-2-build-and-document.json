@@ -1,0 +1,199 @@
+{
+  "slug": "vdi-m7-l02-capstone-2-build-and-document",
+  "title": "Capstone 2: Build and Document a Scaled-Down AVD Environment",
+  "month": 7,
+  "monthTitle": "Capstone Projects & Career Launch",
+  "lesson": 2,
+  "summary": "A design document proves you can think; a working deployment proves you can build. In this capstone you deploy a scaled-down, single-pool version of an AVD environment in your own trial or dev subscription — Bicep-defined host pool and session hosts, FSLogix profiles on Azure Files, an autoscale scaling plan, and Azure Virtual Desktop Insights — then document the whole thing as a GitHub README with screenshots. You'll also learn to treat cost control as an engineering deliverable, not an afterthought: a budget alert before you deploy anything, and a full, verified teardown once you're done.",
+  "objectives": [
+    "Deploy an Azure Virtual Desktop host pool, workspace, and session hosts from Bicep",
+    "Configure FSLogix profile containers on Azure Files for the deployed host pool",
+    "Create and assign an autoscale scaling plan and enable Azure Virtual Desktop Insights",
+    "Set a Cost Management budget and alert before deploying billable resources",
+    "Fully and verifiably tear down every resource created, in the correct order",
+    "Document the build as a portfolio-grade GitHub README with screenshots and a cost/cleanup log"
+  ],
+  "quiz": [
+    {
+      "q": "Why should the budget alert in Azure Cost Management be created BEFORE deploying any session host VMs, not after?",
+      "options": [
+        "Azure requires a budget to exist before any resource can be created",
+        "It's a cheap safety net that costs nothing to set up and catches the most common failure mode of this exercise — forgetting a lab environment is still running and racking up charges",
+        "It automatically deletes resources when the budget is exceeded",
+        "It is only used for reporting after the subscription is closed"
+      ],
+      "answer": 1,
+      "why": "A budget with an alert threshold is free to configure and takes minutes, and it directly guards against the single most common way this kind of lab exercise turns into a surprise bill: leaving VMs, storage, or a workspace running after you've finished taking screenshots. It does not auto-delete anything — it only notifies."
+    },
+    {
+      "q": "Why does an idle, powered-on session host VM still cost money even if no user is signed in?",
+      "options": [
+        "Azure Virtual Desktop charges a flat per-user fee regardless of VM state",
+        "Idle VMs are always free for the first 30 days",
+        "Compute billing for a VM is based on the VM being allocated/running, not on whether a user session is active inside it — this is exactly why autoscale and Start VM on Connect exist",
+        "Only GPU VMs incur cost while idle"
+      ],
+      "answer": 2,
+      "why": "Azure bills compute by VM allocation state, not by user activity inside the VM. A powered-on session host with zero signed-in users still accrues the same hourly compute charge as one running at full session density, which is precisely the cost problem autoscale scaling plans and Start VM on Connect are designed to solve."
+    },
+    {
+      "q": "Why choose Azure Files Standard tier (rather than Premium) for the FSLogix share in this scaled-down lab build?",
+      "options": [
+        "Standard tier is required for FSLogix to work at all",
+        "Standard tier has better IOPS than Premium",
+        "FSLogix cannot use Premium file shares in Azure",
+        "Premium file shares bill for provisioned capacity regardless of how much is actually used, which is wasteful for a small, short-lived lab with only a couple of test profiles"
+      ],
+      "answer": 3,
+      "why": "Azure Files Premium is billed on the capacity you provision up front, not on actual usage, so it's efficient at scale but wasteful for a small lab share holding a couple of test profiles. Standard tier, billed closer to consumption, is the more cost-appropriate choice for a short-lived, low-volume demo."
+    },
+    {
+      "q": "In what order should teardown happen, and why does the storage account deletion matter?",
+      "options": [
+        "Capture your screenshots and confirm FSLogix worked BEFORE deleting the storage account, because deleting it irreversibly destroys the profile data you were demonstrating",
+        "Delete the resource group first, then worry about the rest",
+        "The order never matters because Azure recovers deleted storage automatically",
+        "Storage accounts cannot be deleted while a host pool exists"
+      ],
+      "answer": 0,
+      "why": "Deleting the storage account permanently removes the FSLogix profile containers along with it. Since the whole point of the exercise is to prove the profile solution worked, evidence (screenshots, a documented test) needs to be captured first — deletion is a one-way door with no recovery of that data."
+    },
+    {
+      "q": "What is the correct final step to guarantee every resource from this build has actually stopped billing?",
+      "options": [
+        "Trust that stopping the VMs is sufficient",
+        "Delete the resource group (which cascades to every resource inside it), then re-check Azure Cost Management's cost analysis a day later to confirm charges actually stopped",
+        "Rename the resource group to 'archived'",
+        "Simply close the browser tab"
+      ],
+      "answer": 1,
+      "why": "Deleting the resource group removes every resource created inside it in one action, which is more reliable than manually deleting each piece. But deletion and billing can lag slightly, so checking Cost Management's cost analysis a day later is the verification step that confirms the teardown actually worked, not just that a delete command was issued."
+    },
+    {
+      "q": "In two to four sentences, explain why a well-documented teardown log is actually a positive signal to include in your portfolio README, not something to leave out.",
+      "answer": "A teardown log shows a hiring manager that you understand cloud resources are billable and treat cost control as part of the engineering job, not an afterthought handled by someone else. It demonstrates the full lifecycle discipline of a real engineer: deploy, validate, document, and clean up responsibly, rather than just leaving lab resources running indefinitely. It also proves you know the Azure commands and order of operations needed to safely remove a live environment without losing evidence of your work. Including it turns what could look like a throwaway lab exercise into proof of production-minded habits.",
+      "why": "The strongest answers connect the teardown log to cost discipline and full lifecycle ownership as hireable traits, not just 'good practice for its own sake' — this is exactly the kind of judgment interviewers probe for."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Microsoft.DesktopVirtualization/hostPools (Bicep/ARM template reference)",
+      "url": "https://learn.microsoft.com/en-us/azure/templates/microsoft.desktopvirtualization/hostpools"
+    },
+    {
+      "label": "FSLogix documentation",
+      "url": "https://learn.microsoft.com/en-us/fslogix/"
+    },
+    {
+      "label": "Enable Insights to monitor Azure Virtual Desktop",
+      "url": "https://learn.microsoft.com/en-us/azure/virtual-desktop/insights"
+    },
+    {
+      "label": "Delete resource groups and resources",
+      "url": "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/delete-resource-group"
+    },
+    {
+      "label": "Understand and estimate costs for Azure Virtual Desktop",
+      "url": "https://learn.microsoft.com/en-us/azure/virtual-desktop/understand-estimate-costs"
+    }
+  ],
+  "body_markdown": "## The Goal\n\nCapstone 1 produced a design document. This capstone produces proof it's buildable. You'll deploy a scaled-down, single-pool slice of an AVD environment — small enough to run cheaply in a trial or pay-as-you-go subscription, but built with the same production patterns as the full design: infrastructure as code, FSLogix on Azure Files, autoscale, and monitoring. Then you'll document it as a GitHub README with screenshots, which becomes portfolio artifact #2.\n\n**The scaled-down target:** one pooled host pool, two session hosts on a small general-purpose SKU (D2s v5 is plenty), FSLogix profile containers on an Azure Files Standard share, an autoscale scaling plan that ramps up for a short test window and scales to zero the rest of the time, and Azure Virtual Desktop Insights wired to a Log Analytics workspace.\n\n## Cost Warning — Read This First\n\nBefore you deploy a single resource: **set a budget in Azure Cost Management with an alert threshold.** This costs nothing and takes five minutes, and it is the single cheapest insurance policy against the most common failure mode of this exercise — a lab environment left running after you've finished taking screenshots. Three specific things to know going in:\n\n- **A powered-on VM bills whether or not anyone is signed in.** Compute billing follows VM allocation state, not session activity — this is exactly why the autoscale schedule matters, not as a nice-to-have but as the primary cost control.\n- **Azure Files Premium bills for provisioned capacity, not usage.** For a two-user lab share, Standard tier is the appropriate, cheaper choice; save Premium for a real production sizing exercise.\n- **Log Analytics ingestion has a per-GB cost beyond any included allowance.** Keep diagnostic categories scoped to what you actually need for the Insights demo rather than turning on everything.\n\n## Step-by-Step Build\n\n**Step 0 — Prerequisites.** Confirm your subscription has quota for the VM SKU you're using, pick a resource group naming convention, and set the budget alert described above before anything else.\n\n**Step 1 — Author the Bicep.** Define a host pool, workspace, and application group using the `Microsoft.DesktopVirtualization/hostPools` and `.../workspaces` resource types, plus two session host VMs joined to Entra ID. Parameterize the VM size, host count, and region so the template is reusable.\n\n**Step 2 — Deploy and register.** Run `az deployment group create` against your resource group. Register the session hosts to the host pool (via registration token or the AVD agent extension in your Bicep), and confirm both hosts show as **Available** in the Azure portal.\n\n**Step 3 — Configure FSLogix.** Create the Azure Files Standard share, configure the FSLogix Profile Container settings (via registry or GPO-equivalent for Entra-joined hosts), and point it at the share. For a pure cloud-only lab without hybrid identity, a storage account key is an acceptable authentication method for this test build — just note clearly in your README that a production deployment would use Microsoft Entra Kerberos instead, and explain why.\n\n**Step 4 — Build the autoscale plan.** Create a scaling plan that ramps the pool up for a defined test window and scales pooled hosts down to zero outside it. Assign it to your host pool and confirm in the portal that a scale-down event actually fires.\n\n**Step 5 — Enable Insights.** Create (or reuse) a Log Analytics workspace, turn on diagnostic settings for the host pool and workspace, and confirm data starts flowing into the Insights workbook — this typically takes around 30 minutes to appear.\n\n**Step 6 — Validate and capture evidence.** Sign in as a test user, confirm the FSLogix profile loads correctly (check the profile disk in the storage account), confirm an autoscale event appears in Insights, and screenshot each checkpoint: the deployed host pool, a successful sign-in, the FSLogix container, the autoscale event, and the Insights workbook.\n\n## Cleanup — In This Order\n\n1. **Deallocate the session host VMs** as soon as you've captured what you need, if you want a short gap between finishing and full teardown.\n2. **Remove the session hosts from the host pool** in the AVD control plane.\n3. **Delete the storage account last of the data-bearing resources** — this permanently destroys the FSLogix profile data, so make sure your screenshots already prove it worked before you do this.\n4. **Delete the Log Analytics workspace**, noting that some workspaces have a short soft-delete/purge-protection window that can still show minor residual billing.\n5. **Delete the resource group** (`az group delete --name <rg> --yes`) to remove everything else transitively in one action, and confirm with `az group list` that it's gone.\n6. **Check Cost Management's cost analysis the next day** to verify charges actually stopped — this is the step people skip, and the step that actually confirms the teardown worked.\n\n## The Portfolio README\n\nStructure it like a real project: problem statement (what this scaled-down build demonstrates and how it maps to the Capstone 1 design), the architecture diagram, exact deployment commands with your parameterized Bicep, how you tested it, the screenshots from Step 6, a short cost note, and — this is the part many candidates skip and shouldn't — your teardown command log. A documented, disciplined teardown is not a footnote; it's evidence that you treat cloud resources as something you're responsible for end to end, which is exactly the habit a hiring manager wants to see.\n\n## Why This Build Matters More Than It Looks\n\nIt's tempting to treat this capstone as \"the same thing as Capstone 1, but clicking buttons.\" It isn't. A design document proves you can reason about an architecture; a working, torn-down-correctly deployment proves you can actually operate one, including the unglamorous parts nobody puts in a slide deck — quota limits that block a deployment until you request an increase, an autoscale plan that silently doesn't fire because a tag or a time zone was wrong, an FSLogix profile that fails to load the first time because a permission wasn't set. Debugging those small, real failures and writing down how you fixed them is worth more in an interview than a flawless first-try deployment, because it's proof you can troubleshoot under real conditions, not just follow a script. If something breaks during this build, keep it in the README rather than editing it out — \"here's what went wrong and how I diagnosed it\" is one of the strongest things you can put in front of a hiring manager.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Capstone 2: Build and Document a Scaled-Down AVD Environment",
+      "sub": "Bicep, FSLogix, autoscale, Insights — plus a real teardown",
+      "narration": "Your first capstone proved you can design. This one proves you can build. You'll deploy a small, single-pool slice of an Azure Virtual Desktop environment in your own subscription using Bicep, wire up FSLogix and autoscale, turn on monitoring, and then document the whole thing as a GitHub README. Just as important, you'll learn to treat cost control and cleanup as part of the engineering deliverable, not an afterthought."
+    },
+    {
+      "type": "content",
+      "title": "The Scaled-Down Target",
+      "bullets": [
+        "One pooled host pool, two session hosts (D2s v5)",
+        "FSLogix profile containers on Azure Files Standard",
+        "An autoscale scaling plan that scales to zero outside a test window",
+        "Azure Virtual Desktop Insights via a Log Analytics workspace"
+      ],
+      "narration": "You're not rebuilding the full 600-user design — you're building a small, honest slice of it that uses the same production patterns: infrastructure as code, FSLogix for profiles, autoscale for cost control, and Insights for observability. Two session hosts on a small SKU is plenty to prove every one of these pieces works end to end."
+    },
+    {
+      "type": "content",
+      "title": "Cost Warning: Read This Before You Deploy",
+      "bullets": [
+        "Set an Azure Cost Management budget + alert FIRST — it's free and takes minutes",
+        "A powered-on VM bills whether anyone is signed in or not",
+        "Azure Files Premium bills provisioned capacity, not usage — use Standard for this lab",
+        "Scope Log Analytics diagnostics to only what you need"
+      ],
+      "narration": "Before you deploy a single resource, set a budget with an alert threshold in Azure Cost Management. It costs nothing and it is the cheapest insurance against the most common way this exercise goes wrong: a lab left running after you're done. Remember that compute bills by VM allocation state, not by whether anyone's actually signed in — that's exactly why autoscale isn't optional here."
+    },
+    {
+      "type": "content",
+      "title": "Build Steps 1–3: Deploy and Register",
+      "bullets": [
+        "Bicep: hostPools, workspace, application group, two session host VMs",
+        "az deployment group create against your resource group",
+        "Confirm both hosts show Available in the portal",
+        "Configure FSLogix Profile Containers against the Azure Files share"
+      ],
+      "code": "az deployment group create \\\n  --resource-group rg-avd-capstone \\\n  --template-file main.bicep \\\n  --parameters hostCount=2 vmSize=Standard_D2s_v5",
+      "narration": "Define your host pool, workspace, application group, and two Entra-joined session hosts in Bicep, then deploy with az deployment group create. Confirm both hosts register successfully and show as Available. Then configure FSLogix Profile Containers to point at your Azure Files share — for this cloud-only lab, a storage account key is fine, but note in your README that production would use Microsoft Entra Kerberos instead."
+    },
+    {
+      "type": "content",
+      "title": "Build Steps 4–5: Autoscale and Insights",
+      "bullets": [
+        "Scaling plan: ramp up for a test window, scale to zero otherwise",
+        "Confirm a scale-down event actually fires in the portal",
+        "Create/attach a Log Analytics workspace",
+        "Enable diagnostics; data appears in Insights after roughly 30 minutes"
+      ],
+      "narration": "Build an autoscale scaling plan that ramps up for your test window and scales pooled hosts to zero the rest of the time, then confirm in the portal that a scale event actually fires — don't just trust the configuration. Then wire up a Log Analytics workspace, turn on diagnostics for the host pool and workspace, and give it about half an hour for data to start showing up in the Insights workbook."
+    },
+    {
+      "type": "content",
+      "title": "Step 6: Validate and Capture Evidence",
+      "bullets": [
+        "Sign in as a test user; confirm the FSLogix profile loads",
+        "Check the profile disk landed in the storage account",
+        "Confirm an autoscale event appears in Insights",
+        "Screenshot every checkpoint — this is your evidence"
+      ],
+      "narration": "Sign in as a test user and confirm the FSLogix profile actually loads, then check the storage account for the profile disk. Confirm the autoscale event you triggered shows up in Insights. Screenshot each of these checkpoints as you go — this evidence is what turns a working deployment into a documented, provable portfolio artifact."
+    },
+    {
+      "type": "content",
+      "title": "Cleanup, In Order",
+      "bullets": [
+        "Deallocate VMs once you have your screenshots",
+        "Delete the storage account LAST of the data resources (irreversible)",
+        "Delete the Log Analytics workspace",
+        "az group delete to remove everything else, then verify"
+      ],
+      "code": "az group delete --name rg-avd-capstone --yes --no-wait\naz group list --query \"[?name=='rg-avd-capstone']\"",
+      "narration": "Deallocate the VMs once you have what you need. Delete the storage account only after your FSLogix evidence is captured, because that deletion is irreversible and destroys the profile data you were demonstrating. Delete the Log Analytics workspace, then delete the whole resource group in one shot, and verify it's actually gone with az group list."
+    },
+    {
+      "type": "content",
+      "title": "Verify the Bill Actually Stopped",
+      "bullets": [
+        "Resource group deletion cascades — but check Cost Management the next day",
+        "This is the step most people skip",
+        "It's the step that actually proves teardown worked",
+        "A verified, documented teardown is evidence, not a footnote"
+      ],
+      "narration": "Deleting the resource group removes everything inside it, but deletion and billing can lag slightly, so check Cost Management's cost analysis the following day to confirm charges actually stopped. This is the step most people skip — and it's the step that actually proves your teardown worked, rather than just that you issued a delete command."
+    },
+    {
+      "type": "content",
+      "title": "The Portfolio README",
+      "bullets": [
+        "Problem statement tied back to the Capstone 1 design",
+        "Architecture diagram + exact deployment commands",
+        "Screenshots from validation",
+        "Cost note AND a teardown command log — that's a positive signal"
+      ],
+      "narration": "Write the README like a real project: the problem, the architecture, exact commands to reproduce the deployment, how you tested it, your screenshots, a short cost note, and your teardown log. Don't leave the teardown log out — it shows a hiring manager you treat cloud resources as something you own end to end, deploy through cleanup, which is exactly the habit that separates an engineer from someone who just clicked through a tutorial once."
+    }
+  ]
+}

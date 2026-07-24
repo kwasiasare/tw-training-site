@@ -1,0 +1,192 @@
+{
+  "slug": "vdi-m7-l05-resume-linkedin-and-interviews",
+  "title": "Resume, LinkedIn, and Interview Prep for VDI/EUC Roles",
+  "month": 7,
+  "monthTitle": "Capstone Projects & Career Launch",
+  "lesson": 5,
+  "summary": "Three portfolio-grade capstones and an AZ-140 study plan prove you can do the work; this lesson makes sure a recruiter and a hiring manager actually see it. You'll translate the design doc, the build, and the migration assessment into quantified resume bullets, rewrite your LinkedIn profile to read like a VDI/EUC engineer's, target the right 2026 job titles, and rehearse the interview questions that come up again and again: the AVD connection flow, profile bloat, host pool sizing, and AVD versus Windows 365. The goal is simple — convert three capstones into interviews.",
+  "objectives": [
+    "Translate the three capstone artifacts into resume bullets that quantify scope and impact rather than list tasks",
+    "Rewrite a LinkedIn headline, About section, and Featured strip to position for VDI/EUC engineering roles",
+    "Identify the realistic 2026 job titles this course's skill set maps to and use real postings to mirror language honestly",
+    "Give strong, structured answers to the interview questions that recur across VDI/EUC roles",
+    "Build a repeatable weekly job-search routine"
+  ],
+  "quiz": [
+    {
+      "q": "Which resume bullet best demonstrates capstone work rather than just listing a task?",
+      "options": [
+        "\"Designed a 600-user, three-persona Azure Virtual Desktop architecture — host pool topology, Entra ID + Conditional Access, FSLogix on Azure Files, autoscale, and BCDR — meeting a hard single-region data-residency requirement\"",
+        "\"Learned Azure Virtual Desktop and FSLogix\"",
+        "\"Familiar with virtual desktop infrastructure concepts\"",
+        "\"Completed an online course about VDI\""
+      ],
+      "answer": 0,
+      "why": "The strong bullet names the scope (600 users, three personas), the specific technologies, and the real constraint it satisfied. It reads as evidence of judgment and delivered work, where the others are vague activity statements with no measurable substance."
+    },
+    {
+      "q": "Why does a well-written LinkedIn headline for this role name specific tools rather than just the job title alone?",
+      "options": [
+        "Specific tools make the headline too long to read",
+        "Recruiters search LinkedIn by keyword, so a headline like 'VDI/EUC Engineer | Azure Virtual Desktop, FSLogix, Windows 365' is both findable in search and immediately legible to a human skimming results",
+        "LinkedIn hides headlines that mention specific products",
+        "Job titles alone always rank higher than keyword-rich headlines"
+      ],
+      "answer": 1,
+      "why": "Recruiter search and LinkedIn's own ranking both weight keyword relevance heavily. A headline naming the target role plus the specific platforms and tools you can demonstrate is both search-findable and instantly meaningful to a human reader, unlike a bare job title."
+    },
+    {
+      "q": "Which of these is a realistic, verifiable 2026 job title for someone with this course's skill set, based on real job-board listings?",
+      "options": [
+        "Chief Virtualization Officer",
+        "Metaverse Desktop Specialist",
+        "Azure Virtual Desktop Engineer / Administrator",
+        "Quantum Desktop Architect"
+      ],
+      "answer": 2,
+      "why": "Job boards including Indeed, ZipRecruiter, and Dice actively post roles under titles like Azure Virtual Desktop Engineer/Administrator, VDI Engineer, and EUC Engineer, reflecting genuine hiring demand. The other options are not established, real-world job titles in this field."
+    },
+    {
+      "q": "In an interview, what's the strongest way to answer 'walk me through the AVD connection flow'?",
+      "options": [
+        "Say 'it just connects' and move on",
+        "List every Azure region where AVD is available",
+        "Describe how to install the Citrix Workspace app instead",
+        "Trace it step by step: client authenticates to the feed, the broker assigns a session, the gateway makes a reverse connection to the session host (no inbound ports needed), the host authenticates the user, and the FSLogix profile loads"
+      ],
+      "answer": 3,
+      "why": "A precise, step-by-step trace of the connection chain — feed, broker, reverse-connect gateway, host authentication, profile load — demonstrates real architectural understanding of exactly the mechanism (no inbound ports opened on the session host) that AVD is built around, which is what the question is actually probing for."
+    },
+    {
+      "q": "How should you answer 'how do you size a host pool' to sound like an engineer rather than someone reciting a formula?",
+      "options": [
+        "Start from persona-based vCPU/RAM/IOPS ratios, pilot with real users, then tune using Azure Virtual Desktop Insights data, and re-validate after major application changes",
+        "State a single universal vCPU:user ratio that applies to every workload",
+        "Say host pool sizing is not something engineers need to think about",
+        "Always size for the theoretical maximum number of users at once"
+      ],
+      "answer": 0,
+      "why": "Sizing is a starting estimate refined with real data, not a fixed formula: begin from persona-based ratios, validate with a pilot, tune using actual Insights telemetry, and revisit sizing when applications change. That iterative, data-driven answer is what distinguishes an engineer from someone who memorized one ratio."
+    },
+    {
+      "q": "In two to four sentences, write a LinkedIn About opening that positions a career-changer for a VDI/EUC Engineer role using their three capstones.",
+      "answer": "I'm a VDI/EUC engineer focused on designing and building virtual desktop environments that fit the people who actually use them. I recently designed a 600-user, three-persona Azure Virtual Desktop architecture meeting a strict data-residency requirement, built and documented a working AVD environment end to end with Bicep, FSLogix, and autoscale, and produced a weighted-scoring migration assessment recommending a hybrid Citrix/AVD/Windows 365 strategy for a 1,200-user estate. I'm studying for AZ-140 and looking for a VDI Engineer, EUC Engineer, or Azure Virtual Desktop role where I can keep building environments people actually enjoy using. My design docs, repo, and migration report are linked below.",
+      "why": "A strong About opens with a clear positioning line, proves it with three specific, scoped capstone summaries rather than vague claims, states the certification trajectory and target roles, and points to evidence — exactly the pattern that turns a profile view into a recruiter message."
+    }
+  ],
+  "resources": [
+    {
+      "label": "LinkedIn: Featured section (showcase work on your profile)",
+      "url": "https://www.linkedin.com/help/linkedin/answer/a522537"
+    },
+    {
+      "label": "Microsoft Certified: Azure Virtual Desktop Specialty (AZ-140 certification page)",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/azure-virtual-desktop-specialty/"
+    },
+    {
+      "label": "Microsoft Learn training catalog (free, role-based)",
+      "url": "https://learn.microsoft.com/en-us/training/"
+    },
+    {
+      "label": "Windows 365 documentation",
+      "url": "https://learn.microsoft.com/en-us/windows-365/"
+    }
+  ],
+  "body_markdown": "## From Three Artifacts to a Job Search\n\nYou now have a design document, a working deployment, and a migration assessment — three things most candidates applying for the same role don't have. The gap between having them and getting interviews is presentation: a resume that quantifies what you built, a LinkedIn profile that surfaces it, and rehearsed answers that prove you understand it rather than just performed it once. This lesson closes that gap.\n\n## Resume Bullets That Quantify Impact\n\nTranslate each capstone with the same formula: **what you built + the specific technology + the scope or constraint it satisfied.**\n\n- *Capstone 1:* \"Designed a 600-user, three-persona Azure Virtual Desktop architecture — host pool topology, Entra ID and Conditional Access, FSLogix on Azure Files, autoscale, and BCDR — meeting a hard single-region data-residency requirement.\"\n- *Capstone 2:* \"Deployed and documented a production-pattern AVD environment with Bicep, FSLogix profile containers, and autoscale scaling plans, with Azure Virtual Desktop Insights enabled for observability.\"\n- *Capstone 3:* \"Produced a weighted-scoring migration assessment recommending a hybrid Citrix DaaS / Azure Virtual Desktop / Windows 365 platform strategy for a 1,200-user logistics estate, with a phased migration plan and TCO sketch.\"\n\nNotice none of these say \"learned\" or \"familiar with.\" Each names a scope (600 users, 1,200-user estate), the real technologies, and what the work actually satisfied or recommended. That's the difference between a task list and evidence of engineering judgment.\n\n## LinkedIn Positioning\n\n**Headline.** Name the role, your edge, and the platforms: *\"VDI/EUC Engineer | Azure Virtual Desktop, FSLogix, Windows 365 | AZ-140 in progress.\"* This is both keyword-searchable and instantly legible.\n\n**About.** Open with one positioning line, then summarize your three capstones in specific, scoped language, state your certification trajectory, name your target roles, and point to your evidence. (The short-answer question in this lesson's quiz is exactly this exercise — write yours for real.)\n\n**Featured.** Link the design document, the GitHub repo from Capstone 2 (Bicep, README, screenshots), and the migration report. This is the section a recruiter actually clicks.\n\n**Skills.** Add the terms that match both AZ-140 and real job descriptions — Azure Virtual Desktop, FSLogix, Conditional Access, Windows 365, Citrix DaaS, host pool autoscaling — and pin the ones most relevant to your target role.\n\n## Target Titles and the 2026 Market\n\nThis course's skill set maps to more than one job title, and job boards including Indeed, ZipRecruiter, and Dice actively post under several of them: **VDI Engineer**, **EUC Engineer** / **End-User Computing Engineer**, **Azure Virtual Desktop Engineer** or **Administrator**, **Virtual Desktop Engineer**, **Desktop Virtualization Engineer** or **Architect**, and roles branded **Cloud Desktop Engineer** or **Digital Workplace Engineer**. Read ten real postings for your target title and note which tools come up repeatedly — many currently ask for AVD and Windows 365 together, and a growing number ask for AVD alongside Citrix DaaS in the same posting, which is exactly the cross-platform grounding this course was built to give you. Mirror that real, recurring language in your profile and resume, honestly — only for tools you can actually speak to.\n\nTwo market notes worth carrying into interviews: hybrid work is sustaining steady demand for VDI/EUC roles rather than shrinking it, and GPU-backed VDI for CAD, media, and AI/ML development work is a growing niche within postings, echoing what you covered in Module 2's platform landscape lesson. Employers increasingly value engineers comfortable across more than one platform rather than single-vendor specialists — which is precisely the shape of this course, and worth saying directly in an interview.\n\n## Common Interview Questions, Answered Well\n\n**\"Walk me through the AVD connection flow.\"** Trace it step by step: the client authenticates against the feed/web service, the broker (Microsoft's control plane) assigns the session, the gateway makes a reverse connection out to the chosen session host — meaning no inbound ports are ever opened on that host — the host authenticates the user, and finally the FSLogix profile loads. Naming the reverse-connect detail specifically is what signals real architectural understanding.\n\n**\"What's profile bloat, and how do you prevent it?\"** Profile bloat is a FSLogix (or any profile-container) disk growing from things like browser caches, Teams local data, and OneDrive sync state accumulating inside the user profile. Prevent it with tuned exclusions, redirections.xml redirecting the worst offenders out of the container, ODFC split containers where appropriate, and periodic monitoring rather than letting it grow unmanaged.\n\n**\"How do you size a host pool?\"** Start from persona-based vCPU, RAM, and IOPS ratios — not one universal number — pilot with real users, tune using actual Azure Virtual Desktop Insights telemetry, and re-validate whenever the application mix changes materially. That's the same reasoning Capstone 1 walked through directly.\n\n**\"AVD versus Windows 365 — when do you pick which?\"** AVD is PaaS: you own and configure the session hosts, which buys flexibility and pooled multi-session cost efficiency, at the cost of more to manage. Windows 365 is SaaS: fixed per-user pricing, personal-only, much simpler to operate, and a better fit when predictability and low management overhead matter more than flexibility. Capstone 3's recommendation for Solborne Logistics is a live example of reasoning through exactly this trade-off.\n\n## A Weekly Routine\n\nMomentum beats a single sprint. Each week: apply to five to ten well-matched roles with language tailored to that posting, send a handful of specific outreach messages (not mass boilerplate) to recruiters or engineers at target companies, extend one capstone slightly so your Featured section keeps improving, and track everything — role, company, date, status — in a simple sheet so you follow up deliberately. The three capstones got you noticed; the routine is what turns that into an offer.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Resume, LinkedIn, and Interview Prep",
+      "sub": "Turn three capstones into interviews",
+      "narration": "You now have three things most candidates for the same role don't: a design document, a working deployment, and a migration assessment. This lesson closes the gap between having that work and actually getting interviews — a resume that quantifies it, a LinkedIn profile that surfaces it, and rehearsed answers to the questions that come up again and again in VDI and EUC interviews."
+    },
+    {
+      "type": "content",
+      "title": "Resume Bullets: Formula and Examples",
+      "bullets": [
+        "What you built + the technology + the scope or constraint",
+        "Capstone 1: 600-user, three-persona AVD design meeting a residency requirement",
+        "Capstone 2: deployed + documented AVD build with Bicep, FSLogix, autoscale",
+        "Capstone 3: weighted migration assessment for a 1,200-user estate"
+      ],
+      "narration": "Every bullet follows the same formula: what you built, the specific technology, and the scope or constraint it satisfied. Never learned or familiar with — always a scoped, concrete claim. A 600-user architecture meeting a real data-residency requirement is a fundamentally different sentence than learned Azure Virtual Desktop, and it reads that way to a hiring manager too."
+    },
+    {
+      "type": "content",
+      "title": "Rewrite the Top of Your LinkedIn Profile",
+      "bullets": [
+        "Headline: role + edge + tools — keyword-rich AND legible",
+        "About: positioning line, three capstones, cert trajectory, target roles",
+        "Featured: link the design doc, GitHub repo, and migration report",
+        "Skills: AVD, FSLogix, Conditional Access, Windows 365, Citrix DaaS — pinned"
+      ],
+      "narration": "Your headline should name the role you want plus the specific platforms you can demonstrate, because recruiters search by keyword and skim by eyeball at the same time. Your About should open with one positioning line, prove it with your three capstones in specific language, and point to evidence. Featured is where you actually link that evidence, and it's the section recruiters click first."
+    },
+    {
+      "type": "content",
+      "title": "Target Titles for This Skill Set",
+      "bullets": [
+        "VDI Engineer, EUC Engineer, End-User Computing Engineer",
+        "Azure Virtual Desktop Engineer/Administrator",
+        "Desktop Virtualization Engineer/Architect",
+        "Cloud Desktop Engineer, Digital Workplace Engineer"
+      ],
+      "narration": "This skill set maps to several real, active job titles across major job boards. Read ten real postings under your target title and notice which tools recur — a growing number now ask for AVD alongside Windows 365, or AVD alongside Citrix DaaS in the same posting, which is exactly the cross-platform depth this course was built to give you."
+    },
+    {
+      "type": "content",
+      "title": "2026 Market Notes",
+      "bullets": [
+        "Hybrid work is sustaining, not shrinking, VDI/EUC demand",
+        "GPU-backed VDI for CAD/media/AI work is a growing niche",
+        "Employers increasingly want cross-platform engineers",
+        "Single-vendor specialists are less differentiated than they used to be"
+      ],
+      "narration": "Two things worth saying directly in an interview: hybrid work continues to sustain steady demand for these roles rather than reducing it, and GPU-backed VDI for CAD, media, and AI development work is a growing niche worth mentioning if it's relevant to you. Employers increasingly value engineers who are comfortable across more than one platform, which is precisely the shape of what you just finished building."
+    },
+    {
+      "type": "content",
+      "title": "Interview: The Connection Flow",
+      "bullets": [
+        "Client authenticates to the feed/web service",
+        "Broker assigns the session",
+        "Gateway reverse-connects to the host — no inbound ports opened",
+        "Host authenticates the user; FSLogix profile loads"
+      ],
+      "narration": "Trace the connection flow precisely: the client authenticates to the feed, the broker assigns the session, the gateway makes a reverse connection out to the chosen session host so no inbound ports are ever opened on it, the host authenticates the user, and the FSLogix profile loads last. Naming the reverse-connect detail specifically is what separates a real architectural answer from a surface-level one."
+    },
+    {
+      "type": "content",
+      "title": "Interview: Profile Bloat and Host Pool Sizing",
+      "bullets": [
+        "Profile bloat: browser cache, Teams data, OneDrive sync filling the container",
+        "Prevent with exclusions, redirections.xml, ODFC split, monitoring",
+        "Sizing: persona-based ratios, pilot, tune with Insights data",
+        "Re-validate sizing whenever the app mix changes"
+      ],
+      "narration": "Profile bloat comes from things like browser caches and Teams data accumulating inside the container, and you prevent it with tuned exclusions and redirections rather than letting it grow unmanaged. Host pool sizing starts from persona-based ratios, gets validated with a real pilot, and gets tuned using actual Insights telemetry — not a single universal number you apply everywhere."
+    },
+    {
+      "type": "content",
+      "title": "Interview: AVD vs Windows 365",
+      "bullets": [
+        "AVD: PaaS, you own the hosts, pooled multi-session cost efficiency",
+        "Windows 365: SaaS, fixed per-user price, personal-only, simple to run",
+        "Pick based on predictability needs vs flexibility needs",
+        "Capstone 3 is a live example of reasoning through this exact trade-off"
+      ],
+      "narration": "AVD trades more management responsibility for flexibility and pooled cost efficiency. Windows 365 trades some of that flexibility for predictable, fixed pricing and much simpler operations, and it's personal-only. Reference your Capstone 3 recommendation directly here — you already reasoned through this exact trade-off for a real, if fictional, organization."
+    },
+    {
+      "type": "content",
+      "title": "Run a Weekly Routine",
+      "bullets": [
+        "Apply to 5–10 well-matched roles with tailored language",
+        "Send a handful of specific, non-generic outreach messages",
+        "Extend one capstone slightly each week",
+        "Track everything in a simple sheet and follow up deliberately"
+      ],
+      "narration": "Momentum beats a single sprint. Each week, apply to a handful of well-matched roles with language tailored to the posting, send specific outreach rather than mass messages, extend one of your capstones slightly so your portfolio keeps improving, and track it all so you follow up deliberately. The three capstones got you noticed. This routine is what turns that into an offer."
+    }
+  ]
+}
