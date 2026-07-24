@@ -4,6 +4,7 @@
   "month": 2,
   "monthTitle": "The 2026 VDI Platform Landscape",
   "lesson": 4,
+  "video": "vdi-m2-l04-gpu-workloads-and-other-players.mp4",
   "summary": "Not every virtual desktop is a call-center kiosk — CAD engineers, video editors, and AI/ML developers need real GPU horsepower delivered remotely. This lesson covers GPU VDI fundamentals: use cases, Azure's NV-family GPU VMs (including the NVv4-to-NVadsA10v5 migration every architect should know about in 2026), and NVIDIA vGPU licensing concepts. It closes with a fast, accurate survey of players beyond the big three: Amazon WorkSpaces Family, Dizzion's Frame platform (the 2023 Nutanix spin-out you must name correctly), Kasm Workspaces, and the open-source Apache Guacamole.",
   "objectives": [
     "Identify at least three real-world use cases that require GPU-accelerated virtual desktops",

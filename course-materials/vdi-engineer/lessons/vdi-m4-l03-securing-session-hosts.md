@@ -100,6 +100,7 @@ resources:
   url: https://learn.microsoft.com/en-us/azure/virtual-desktop/screen-capture-protection
 - label: Customize Remote Desktop Protocol (RDP) properties for a host pool
   url: https://learn.microsoft.com/en-us/azure/virtual-desktop/customize-rdp-properties
+video: vdi-m4-l03-securing-session-hosts.mp4
 ---
 
 ## A Different Kind of Endpoint

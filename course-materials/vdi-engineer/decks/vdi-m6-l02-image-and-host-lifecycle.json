@@ -4,6 +4,7 @@
   "month": 6,
   "monthTitle": "Monitoring, Operations & Troubleshooting",
   "lesson": 2,
+  "video": "vdi-m6-l02-image-and-host-lifecycle.mp4",
   "summary": "Keeping session hosts patched at scale is a lifecycle problem, not a per-VM chore. This lesson covers the two competing patching philosophies — patch the running host versus rebuild from a versioned golden image — and lands firmly on why Microsoft designs AVD around the second. You'll walk through Azure Compute Gallery image versioning cadence, the session host update feature's batch-based drain-and-replace mechanics, and the Scheduled Agent Updates feature that governs when the AVD agent itself updates. You'll finish knowing how a rolling update actually behaves in production, including the gotchas that catch teams off guard the first time they run one.",
   "objectives": [
     "Compare golden-image patching against in-place per-host patching and state when each is appropriate",

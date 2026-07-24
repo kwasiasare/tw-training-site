@@ -4,6 +4,7 @@
   "month": 1,
   "monthTitle": "VDI & EUC Foundations",
   "lesson": 1,
+  "video": "vdi-m1-l01-what-is-vdi-and-euc.mp4",
   "summary": "This opening lesson builds the vocabulary the rest of the course depends on. You'll learn how VDI, session-based computing (RDS), application virtualization, and DaaS are actually different from each other despite being used loosely as synonyms, trace the short history from Citrix WinFrame through Terminal Services to today's cloud-native platforms, and understand the concrete 2026 business drivers — hybrid work, data-egress control, contractor and BYOD access, regulated industries, and GPU/AI workstations — that make VDI and End-User Computing (EUC) one of the fastest-growing specializations inside IT operations.",
   "objectives": [
     "Distinguish VDI, session-based/RDS, application virtualization, and DaaS by what actually runs where",

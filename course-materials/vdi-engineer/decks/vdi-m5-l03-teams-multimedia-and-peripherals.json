@@ -4,6 +4,7 @@
   "month": 5,
   "monthTitle": "User Environments & App Delivery",
   "lesson": 3,
+  "video": "vdi-m5-l03-teams-multimedia-and-peripherals.mp4",
   "summary": "Real-time media and peripherals are where VDI user experience is won or lost. This lesson covers how Microsoft Teams media optimization works on AVD in 2026 — SlimCore versus the older WebRTC Redirector Service — plus multimedia redirection, camera and audio redirection, cloud-based printing with Universal Print, and scanner/USB handling, closing with a pre-go-live test checklist.",
   "objectives": [
     "Explain how Teams calling and meeting media is redirected to the local device on Azure Virtual Desktop",

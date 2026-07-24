@@ -100,6 +100,7 @@ resources:
   url: https://docs.omnissa.com/category/App_Volumes
 - label: Citrix Workspace Environment Management service
   url: https://docs.citrix.com/en-us/workspace-environment-management/service.html
+video: vdi-m5-l02-app-delivery-and-app-attach.mp4
 ---
 
 ## The Problem: Fat Images Don't Scale

@@ -4,6 +4,7 @@
   "month": 3,
   "monthTitle": "Azure Virtual Desktop Infrastructure: Plan, Deploy & Scale",
   "lesson": 3,
+  "video": "vdi-m3-l03-session-hosts-and-golden-images.mp4",
   "summary": "This lesson covers the two things that determine whether your session hosts are fast, secure, and maintainable: how you size the VM, and how you build and version the image it boots from. You'll learn to size VMs by workload class, choose between Windows 11 Enterprise multi-session and single-session editions, build a golden image the right way, version it through Azure Compute Gallery, automate the build with Azure Image Builder, and make informed choices about Trusted Launch and disk type.",
   "objectives": [
     "Size session host VM SKUs appropriately for light, medium, and heavy workload classes",

@@ -111,6 +111,7 @@ resources:
   url: https://learn.microsoft.com/en-us/azure/virtual-machines/trusted-launch
 - label: Supported virtual machine sizes for Azure Virtual Desktop
   url: https://learn.microsoft.com/en-us/azure/virtual-desktop/prerequisites
+video: vdi-m3-l03-session-hosts-and-golden-images.mp4
 ---
 
 ## Two Decisions That Shape Everything Else

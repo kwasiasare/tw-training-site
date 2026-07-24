@@ -97,6 +97,7 @@ resources:
   url: https://learn.microsoft.com/en-us/azure/virtual-desktop/authentication
 - label: Understand scope for Azure RBAC
   url: https://learn.microsoft.com/en-us/azure/role-based-access-control/scope-overview
+video: vdi-m4-l02-access-control-and-conditional-access.mp4
 ---
 
 ## Two Different Questions, Two Different Systems

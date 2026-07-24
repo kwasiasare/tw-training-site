@@ -4,6 +4,7 @@
   "month": 1,
   "monthTitle": "VDI & EUC Foundations",
   "lesson": 4,
+  "video": "vdi-m1-l04-persistent-vs-nonpersistent-and-profiles.mp4",
   "summary": "Whether a virtual desktop is persistent or non-persistent is one of the first and most consequential decisions in any VDI design — it drives storage cost, patching strategy, and how badly you need profile tooling. This lesson defines pooled vs. personal/dedicated desktops, explains why non-persistent pools are unusable without a profile solution, and surveys the three tools you'll actually deploy: Microsoft FSLogix, Citrix Profile Management, and Omnissa Dynamic Environment Manager (DEM) — including the difference between legacy folder redirection and modern container-based profiles.",
   "objectives": [
     "Define pooled/non-persistent and personal/dedicated desktop models and their trade-offs",

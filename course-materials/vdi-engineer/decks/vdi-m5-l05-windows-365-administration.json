@@ -4,6 +4,7 @@
   "month": 5,
   "monthTitle": "User Environments & App Delivery",
   "lesson": 5,
+  "video": "vdi-m5-l05-windows-365-administration.mp4",
   "summary": "Windows 365 trades AVD's infrastructure control for a fixed-price, Intune-first Cloud PC. This lesson covers provisioning policies, the choice between Microsoft-hosted network and Azure network connections, day-to-day Cloud PC lifecycle operations (restore points, resize), the current state of Windows 365 Boot, Switch, and Frontline, and when a customer should actually be on Windows 365 instead of AVD.",
   "objectives": [
     "Build a Windows 365 provisioning policy and explain what each configuration choice controls",

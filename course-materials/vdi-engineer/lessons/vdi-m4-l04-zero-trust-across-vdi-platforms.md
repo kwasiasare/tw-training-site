@@ -108,6 +108,7 @@ resources:
   url: https://learn.microsoft.com/en-us/azure/virtual-desktop/private-link-overview
 - label: Azure Virtual Desktop identities and authentication
   url: https://learn.microsoft.com/en-us/azure/virtual-desktop/authentication
+video: vdi-m4-l04-zero-trust-across-vdi-platforms.mp4
 ---
 
 ## What the Last Three Lessons Were Really Teaching

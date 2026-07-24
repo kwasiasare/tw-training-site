@@ -108,6 +108,7 @@ resources:
   url: https://learn.microsoft.com/en-us/azure/virtual-desktop/autoscale-scenarios
 - label: Reservations for Azure Virtual Machines
   url: https://learn.microsoft.com/en-us/azure/cost-management-billing/reservations/save-compute-costs-reservations
+video: vdi-m3-l05-autoscale-and-cost-optimization.mp4
 ---
 
 ## Why This Is Where the Money Is

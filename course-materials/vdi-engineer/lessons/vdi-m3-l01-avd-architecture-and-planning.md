@@ -109,6 +109,7 @@ resources:
   url: https://learn.microsoft.com/en-us/azure/virtual-desktop/preferred-application-group-type
 - label: Azure Virtual Desktop FAQ
   url: https://learn.microsoft.com/en-us/azure/virtual-desktop/faq
+video: vdi-m3-l01-avd-architecture-and-planning.mp4
 ---
 
 ## Why This Lesson Exists

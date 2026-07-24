@@ -4,6 +4,7 @@
   "month": 4,
   "monthTitle": "Identity & Security for Virtual Desktops",
   "lesson": 3,
+  "video": "vdi-m4-l03-securing-session-hosts.mp4",
   "summary": "Session hosts are shared, frequently rebuilt, multi-user machines, and they take different hardening tooling than a single-user laptop. This lesson covers what Intune actually supports on Windows 11 Enterprise multi-session — device versus user configuration, the settings-catalog-only rule, and the enrollment gotchas that break it — how to onboard ephemeral pooled hosts to Microsoft Defender for Endpoint without flooding the console with duplicate devices, screen capture protection and watermarking for data-loss scenarios, locking down RDP device and clipboard redirection, and using Azure Firewall to control egress from session hosts that need surprisingly little outbound access.",
   "objectives": [
     "Distinguish device-based from user-based Intune configuration on Windows 11 Enterprise multi-session and identify which profile types are supported",

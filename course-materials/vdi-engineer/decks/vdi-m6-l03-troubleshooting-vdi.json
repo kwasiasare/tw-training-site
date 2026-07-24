@@ -4,6 +4,7 @@
   "month": 6,
   "monthTitle": "Monitoring, Operations & Troubleshooting",
   "lesson": 3,
+  "video": "vdi-m6-l03-troubleshooting-vdi.mp4",
   "summary": "\"AVD is broken\" is not a diagnosis, it's a starting point. This lesson gives you a repeatable triage method that walks the connection chain in order — client, feed, authentication, gateway, session host, profile, in-session experience — so you can localize a failure to a specific hop instead of guessing. For each hop you'll get the exact tool or Log Analytics table to check, a walkthrough of FSLogix-specific triage, a comparison of AVD's own tooling against Citrix Director and the Omnissa Horizon Help Desk Tool, and a clear rule for when to self-resolve versus escalate to Microsoft or a platform vendor.",
   "objectives": [
     "Walk the AVD connection chain end to end and name the failure domain at each hop",

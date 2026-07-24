@@ -96,6 +96,7 @@ resources:
   url: https://docs.citrix.com/en-us/citrix-virtual-apps-desktops/director.html
 - label: Using the Omnissa Horizon Help Desk Tool
   url: https://docs.omnissa.com/bundle/Horizon-AdministrationV2406/page/UsingHorizonHelpDeskToolinHorizonConsole.html
+video: vdi-m6-l03-troubleshooting-vdi.mp4
 ---
 
 ## "It's Broken" Is Not a Diagnosis

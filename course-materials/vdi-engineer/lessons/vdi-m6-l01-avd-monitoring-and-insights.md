@@ -91,6 +91,7 @@ resources:
   url: https://learn.microsoft.com/en-us/azure/azure-monitor/agents/azure-monitor-agent-overview
 - label: Log alerts in Azure Monitor
   url: https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-log
+video: vdi-m6-l01-avd-monitoring-and-insights.mp4
 ---
 
 ## Why Monitoring Gets Its Own AZ-140 Domain

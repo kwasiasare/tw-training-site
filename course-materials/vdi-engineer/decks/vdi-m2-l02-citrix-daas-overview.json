@@ -4,6 +4,7 @@
   "month": 2,
   "monthTitle": "The 2026 VDI Platform Landscape",
   "lesson": 2,
+  "video": "vdi-m2-l02-citrix-daas-overview.mp4",
   "summary": "Citrix, now under Cloud Software Group, remains the deepest and most mature virtualization platform in enterprise EUC — and today it's delivered as Citrix DaaS: a cloud-hosted control plane (Citrix Cloud) paired with your own on-prem or cloud resource locations. You'll learn the core architecture — Cloud Connectors, resource locations, Delivery Groups, Machine Creation Services, StoreFront/Workspace, and Director — understand why Citrix's protocol maturity and peripheral support still win enterprise deals, and see where the CCA-V certification path fits.",
   "objectives": [
     "Describe the Citrix DaaS control-plane vs. resource-location split and why it removes the need for on-prem Delivery Controllers",

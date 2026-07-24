@@ -101,6 +101,7 @@ resources:
   url: https://learn.microsoft.com/en-us/training/
 - label: Windows 365 documentation
   url: https://learn.microsoft.com/en-us/windows-365/
+video: vdi-m7-l05-resume-linkedin-and-interviews.mp4
 ---
 
 ## From Three Artifacts to a Job Search

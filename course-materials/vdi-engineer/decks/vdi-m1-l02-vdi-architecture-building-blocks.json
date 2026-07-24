@@ -4,6 +4,7 @@
   "month": 1,
   "monthTitle": "VDI & EUC Foundations",
   "lesson": 2,
+  "video": "vdi-m1-l02-vdi-architecture-building-blocks.mp4",
   "summary": "Strip away the vendor branding and every VDI or DaaS platform — Azure Virtual Desktop, Citrix DaaS, Omnissa Horizon, Windows 365 — is built from the same five parts: a control plane/broker, a gateway/access layer, session hosts, golden images, and a profile layer. This lesson walks the full connection flow from user click to desktop pixels, defines each building block in vendor-neutral terms, and explains the difference between agent-based and agentless host registration so you can recognize the same architecture no matter which product's console you're looking at.",
   "objectives": [
     "Name the five universal building blocks present in every VDI/DaaS platform",

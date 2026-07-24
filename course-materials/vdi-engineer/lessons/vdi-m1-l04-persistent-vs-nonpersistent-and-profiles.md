@@ -110,6 +110,7 @@ resources:
   url: https://learn.microsoft.com/en-us/azure/virtual-desktop/host-pool-overview
 - label: Omnissa Dynamic Environment Manager (DEM)
   url: https://www.omnissa.com/products/dynamic-environment-manager/
+video: vdi-m1-l04-persistent-vs-nonpersistent-and-profiles.mp4
 ---
 
 ## The Decision That Shapes Everything Else

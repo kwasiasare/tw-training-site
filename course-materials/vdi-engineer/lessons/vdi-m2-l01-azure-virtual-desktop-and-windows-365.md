@@ -103,6 +103,7 @@ resources:
   url: https://learn.microsoft.com/en-us/windows-365/enterprise/introduction-windows-365-frontline
 - label: What's new in Windows 365 Enterprise (Microsoft Learn)
   url: https://learn.microsoft.com/en-us/windows-365/enterprise/whats-new
+video: vdi-m2-l01-azure-virtual-desktop-and-windows-365.mp4
 ---
 
 ## Two Microsoft Platforms, One Very Different Bet

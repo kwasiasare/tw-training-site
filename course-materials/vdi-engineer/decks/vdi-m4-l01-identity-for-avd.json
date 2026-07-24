@@ -4,6 +4,7 @@
   "month": 4,
   "monthTitle": "Identity & Security for Virtual Desktops",
   "lesson": 1,
+  "video": "vdi-m4-l01-identity-for-avd.mp4",
   "summary": "Every AVD security decision starts with one question: what identity backs your session hosts? This lesson maps the three supported join types — Microsoft Entra joined, Microsoft Entra hybrid joined, and Microsoft Entra Domain Services — to what they unlock and what they block, especially single sign-on. You'll learn why on-premises-only identities are never supported, how hybrid UPN/SID mismatches break sign-in, and how to wire FSLogix profile containers to Azure Files using Microsoft Entra Kerberos so profiles load without a domain controller in sight. You'll finish by enabling Microsoft Entra authentication for RDP — the mechanism behind AVD's recommended single sign-on experience — and know the licensing you need before you start.",
   "objectives": [
     "Differentiate Microsoft Entra joined, Microsoft Entra hybrid joined, and Microsoft Entra Domain Services session hosts and identify which support Microsoft Entra single sign-on",

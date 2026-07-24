@@ -4,6 +4,7 @@
   "month": 3,
   "monthTitle": "Azure Virtual Desktop Infrastructure: Plan, Deploy & Scale",
   "lesson": 6,
+  "video": "vdi-m3-l06-bcdr-for-avd.mp4",
   "summary": "This closing lesson of Module 3 answers what business continuity and disaster recovery actually mean for a fleet of mostly-disposable session hosts. You'll learn how availability zones protect the compute layer, the precise rule for what to back up versus what to rebuild from a golden image, how Azure Files redundancy tiers protect FSLogix profile storage, and how to choose between active-active and active-passive host pool DR patterns based on recovery time objectives.",
   "objectives": [
     "Explain how availability zones and availability sets protect session hosts differently, for both pooled and personal host pools",

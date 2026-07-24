@@ -4,6 +4,7 @@
   "month": 5,
   "monthTitle": "User Environments & App Delivery",
   "lesson": 1,
+  "video": "vdi-m5-l01-fslogix-deep-dive.mp4",
   "summary": "FSLogix is the profile layer that makes non-persistent AVD and Windows 365 desktops feel personal. This lesson goes deep on the two container types, the critical VHDLocations-vs-Cloud-Cache decision, how to wire Azure Files to Entra-joined hosts with Microsoft Entra Kerberos, sizing and exclusion tuning, and how to read FSLogix's status/reason/error codes when a profile won't attach.",
   "objectives": [
     "Explain the difference between a Profile Container and an Office Container (ODFC) and when to use each",

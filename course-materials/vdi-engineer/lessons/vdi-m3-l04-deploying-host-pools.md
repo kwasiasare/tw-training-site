@@ -109,6 +109,7 @@ resources:
   url: https://learn.microsoft.com/en-us/azure/virtual-desktop/session-host-update
 - label: Azure Virtual Desktop Insights
   url: https://learn.microsoft.com/en-us/azure/virtual-desktop/insights
+video: vdi-m3-l04-deploying-host-pools.mp4
 ---
 
 ## From Design to a Working Host Pool

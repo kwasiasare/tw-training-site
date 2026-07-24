@@ -4,6 +4,7 @@
   "month": 6,
   "monthTitle": "Monitoring, Operations & Troubleshooting",
   "lesson": 1,
+  "video": "vdi-m6-l01-avd-monitoring-and-insights.mp4",
   "summary": "Before you can operate an Azure Virtual Desktop estate at scale you need eyes on it, and that starts with Azure Virtual Desktop Insights. This lesson walks through the full monitoring data path: enabling diagnostic settings on host pools and workspaces, wiring session hosts to a Log Analytics workspace through the Azure Monitor Agent and a data collection rule, and understanding the family of WVD-prefixed tables that carry connection, error, checkpoint, host-registration, agent-health, and network telemetry. You'll write real KQL queries against verified table and column names to find connection failures, track round-trip time, and calculate session duration, then set up log alerts so problems surface before users complain.",
   "objectives": [
     "Explain what Azure Virtual Desktop Insights is built on and what data sources feed it",

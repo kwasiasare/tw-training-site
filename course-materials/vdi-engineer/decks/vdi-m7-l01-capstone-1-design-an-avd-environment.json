@@ -4,6 +4,7 @@
   "month": 7,
   "monthTitle": "Capstone Projects & Career Launch",
   "lesson": 1,
+  "video": "vdi-m7-l01-capstone-1-design-an-avd-environment.mp4",
   "summary": "This capstone turns Modules 3 through 6 into your first portfolio artifact: a full architecture design document for a realistic organization. You take a case study — a 600-user insurance and actuarial firm with three distinct personas and a hard data-residency constraint — and produce the design a client would actually pay for: host pool topology, identity, networking, FSLogix profile strategy, autoscale, and BCDR. A worked reference solution walks through one defensible answer so you can compare your reasoning against a professional's, not just check a box.",
   "objectives": [
     "Translate a business case study (user counts, personas, a compliance constraint) into host pool topology decisions",

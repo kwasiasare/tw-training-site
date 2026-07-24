@@ -96,6 +96,7 @@ resources:
   url: https://learn.microsoft.com/en-us/azure/virtual-desktop/autoscale-scenarios
 - label: Enable Insights to monitor Azure Virtual Desktop
   url: https://learn.microsoft.com/en-us/azure/virtual-desktop/insights
+video: vdi-m6-l04-day-2-operations-and-dex.mp4
 ---
 
 ## Day One Ends, Day Two Never Does

@@ -37,6 +37,8 @@ const FREE_PREVIEW = new Set([
   'mle-m1-l02-linear-algebra-in-action-with-numpy',
   'mlo-m1-l01-setting-up-your-mlops-toolchain-and-workflow',
   'mlo-m1-l02-containerizing-a-machine-learning-model-with-doc',
+  'vdi-m1-l01-what-is-vdi-and-euc',
+  'vdi-m1-l02-vdi-architecture-building-blocks',
 ]);
 
 const SLUG_RE = /^[a-z0-9-]+$/i;

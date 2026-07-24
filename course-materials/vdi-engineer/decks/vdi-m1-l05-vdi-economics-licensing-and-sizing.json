@@ -4,6 +4,7 @@
   "month": 1,
   "monthTitle": "VDI & EUC Foundations",
   "lesson": 5,
+  "video": "vdi-m1-l05-vdi-economics-licensing-and-sizing.mp4",
   "summary": "This closing lesson of Module 1 gives you the economic literacy every EUC engineer needs before touching a budget conversation. You'll learn the real cost drivers behind a VDI deployment (compute, storage, egress, licensing), how Windows and platform licensing actually works for VDI (per-user entitlements via Microsoft 365/Windows Enterprise E3+, Citrix and Omnissa subscription models), the density and sizing basics (vCPU-to-user ratios, RAM, IOPS) that determine how many users a host can serve, and how to frame an on-premises vs. cloud TCO conversation honestly.",
   "objectives": [
     "List the four major cost drivers in a VDI deployment and explain what makes each one variable vs. fixed",
