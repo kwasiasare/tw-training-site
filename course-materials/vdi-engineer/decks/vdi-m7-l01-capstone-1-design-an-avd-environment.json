@@ -1,0 +1,192 @@
+{
+  "slug": "vdi-m7-l01-capstone-1-design-an-avd-environment",
+  "title": "Capstone 1: Design an Azure Virtual Desktop Environment",
+  "month": 7,
+  "monthTitle": "Capstone Projects & Career Launch",
+  "lesson": 1,
+  "summary": "This capstone turns Modules 3 through 6 into your first portfolio artifact: a full architecture design document for a realistic organization. You take a case study — a 600-user insurance and actuarial firm with three distinct personas and a hard data-residency constraint — and produce the design a client would actually pay for: host pool topology, identity, networking, FSLogix profile strategy, autoscale, and BCDR. A worked reference solution walks through one defensible answer so you can compare your reasoning against a professional's, not just check a box.",
+  "objectives": [
+    "Translate a business case study (user counts, personas, a compliance constraint) into host pool topology decisions",
+    "Design an identity and networking approach for Azure Virtual Desktop that satisfies a stated data-residency requirement",
+    "Specify an FSLogix profile strategy and autoscale plan matched to each persona's usage pattern",
+    "Define a BCDR approach that correctly distinguishes stateless session hosts from stateful profile data",
+    "Produce a portfolio-grade architecture design document that a hiring manager could evaluate on its own"
+  ],
+  "quiz": [
+    {
+      "q": "Bramwell Mutual's 420 claims processors run the same two line-of-business apps all day with almost no personalization. Which host pool pattern fits them best?",
+      "options": [
+        "Pooled, multi-session host pool with a lean FSLogix profile and an aggressive autoscale schedule",
+        "Personal (1:1) GPU-backed hosts",
+        "No host pool at all — publish RemoteApps from each user's own laptop",
+        "A single personal desktop shared by rotating shifts"
+      ],
+      "answer": 0,
+      "why": "High-volume, low-customization task workers are the textbook case for pooled multi-session: many users share a smaller number of session hosts, density keeps compute cost down, and a lean FSLogix profile (not a full persistent disk) is enough since there's little to personalize."
+    },
+    {
+      "q": "The regulator requires policyholder data to stay in a single Azure region. Which architecture decision does this constraint most directly shape?",
+      "options": [
+        "The choice of display protocol",
+        "The BCDR design — specifically whether FSLogix profile data can be replicated cross-region",
+        "The naming convention for host pools",
+        "Whether users authenticate with a username and password"
+      ],
+      "answer": 1,
+      "why": "A single-region data-residency requirement rules out the usual cross-region profile replication or geo-redundant storage pattern for FSLogix data. The BCDR plan has to get its resilience from in-region mechanisms — availability zones and zone-redundant storage — instead, and say explicitly why cross-region replication is off the table."
+    },
+    {
+      "q": "Why does the design use Microsoft Entra Kerberos rather than a traditional AD DS setup for FSLogix authentication to Azure Files?",
+      "options": [
+        "Entra Kerberos is required for RDP Shortpath to work at all",
+        "It disables Conditional Access",
+        "It lets an Entra-joined-only environment authenticate to the Azure Files share for profile containers without standing up or maintaining Active Directory Domain Services or Entra Domain Services",
+        "It is the only supported way to autoscale a host pool"
+      ],
+      "answer": 2,
+      "why": "Microsoft Entra Kerberos lets Entra-joined devices get Kerberos tickets for Azure Files without any domain controller in the picture, which keeps a cloud-first, Entra ID-only identity design clean and reduces infrastructure the team has to run and secure."
+    },
+    {
+      "q": "The 50-user power-user pool runs GPU-accelerated modeling software and has bursty, unscheduled usage. Which combination is the better fit than a scheduled autoscale plan?",
+      "options": [
+        "Pooled multi-session hosts with a fixed nightly shutdown schedule",
+        "No autoscale of any kind, and no personal assignment",
+        "Sharing one GPU VM across all 50 users simultaneously",
+        "Personal (1:1) GPU-backed VMs with Start VM on Connect, so a VM only runs (and bills) when its assigned user actually connects"
+      ],
+      "answer": 3,
+      "why": "Personal assignment preserves per-user state and licensing on a GPU-backed SKU, while Start VM on Connect avoids paying for expensive GPU compute around the clock for usage that doesn't follow a predictable schedule — a scheduled scaling plan would either waste money idling GPUs or fail bursty users."
+    },
+    {
+      "q": "Why are pooled session hosts described as 'stateless' in the BCDR section of the design doc?",
+      "options": [
+        "Because a pooled host holds no durable user data itself — its OS disk is disposable, and the durable state (the user profile) lives separately in FSLogix on Azure Files — so DR for the host is 'redeploy from the golden image', not 'restore a backup'",
+        "Because they never need Windows Update",
+        "Because they cannot join a domain or Entra ID",
+        "Because they never run more than one session"
+      ],
+      "answer": 0,
+      "why": "The whole point of separating profile from host in a VDI design is that the host becomes disposable: if a pooled session host is lost, you rebuild it from the versioned image in Azure Compute Gallery in minutes, while the thing users actually care about — their profile and files — survives independently in the FSLogix store."
+    },
+    {
+      "q": "In three to five sentences, explain why this design uses three separate host pools instead of one host pool sized for all 600 users.",
+      "answer": "The three personas have fundamentally different resource, persistence, and cost profiles: claims processors need high density and minimal persistence, actuaries need more RAM and a closer-to-persistent profile experience for heavy Excel and Power BI work, and the data-science team needs dedicated GPU hardware with 1:1 assignment. A single host pool forces one VM SKU, one autoscale schedule, and one assignment type on everyone, which would either starve the power users of GPU access or waste money running GPU-class VMs for task workers who don't need them. Separate host pools also let each pool have its own Conditional Access scope, autoscale plan, and FSLogix configuration tuned to that persona's actual usage pattern. This is the same reasoning that drives persona-based sizing throughout the AVD planning modules: match the infrastructure to the workload, not the other way around.",
+      "why": "A strong answer ties the split directly to the three personas' different resource needs, assignment type (pooled vs personal), and cost/autoscale requirements, and recognizes that a one-size-fits-all pool would be both under- and over-provisioned for different users at the same time."
+    }
+  ],
+  "resources": [
+    {
+      "label": "Azure Virtual Desktop documentation (overview)",
+      "url": "https://learn.microsoft.com/en-us/azure/virtual-desktop/overview"
+    },
+    {
+      "label": "FSLogix documentation",
+      "url": "https://learn.microsoft.com/en-us/fslogix/"
+    },
+    {
+      "label": "Create and assign an autoscale scaling plan for Azure Virtual Desktop",
+      "url": "https://learn.microsoft.com/en-us/azure/virtual-desktop/autoscale-create-assign-scaling-plan"
+    },
+    {
+      "label": "Understand and estimate costs for Azure Virtual Desktop",
+      "url": "https://learn.microsoft.com/en-us/azure/virtual-desktop/understand-estimate-costs"
+    }
+  ],
+  "body_markdown": "## The Case Study\n\nBramwell Mutual is a 600-user regional insurance and actuarial firm. Leadership has approved a move off aging on-premises Remote Desktop Session Host servers onto Azure Virtual Desktop, and you're the engineer writing the design document that the infrastructure team will actually build from. Three details make this a real design problem instead of a generic tutorial.\n\n**Three personas, three very different needs.** 420 claims processors and policy administrators run two line-of-business web apps all day, use almost no personalization, and need to be productive within seconds of logging on. 130 actuaries and financial analysts build heavy Excel workbooks and Power BI models, run multiple monitors, and need a session that feels close to \"their own desktop\" even though it's shared infrastructure. 50 actuarial modeling and data-science staff run GPU-accelerated Monte Carlo simulation software that simply will not run acceptably without a real GPU.\n\n**A hard compliance constraint.** The state insurance regulator requires that policyholder data never leave a single Azure region, and requires SOC 2 Type II-auditable session activity logging retained for one year. This isn't a nice-to-have — it rules out some of the \"obvious\" cross-region resilience patterns you might otherwise reach for.\n\n## The Deliverable\n\nYour design document needs six sections, each with a decision and a one- or two-sentence justification: **host pool topology**, **identity**, **networking**, **FSLogix and profiles**, **autoscale**, and **BCDR**. Below is a worked reference solution for each — one defensible answer, not the only correct one. Compare your own reasoning against it; where you diverge, you should be able to explain why your choice is better for this specific case study.\n\n## Host Pool Topology\n\nThree host pools, matched to the three personas. **Host Pool 1 (Claims & Admin)** is pooled, multi-session, Windows 11 Enterprise multi-session, on a general-purpose SKU like D4s v5, sized for roughly six concurrent users per host at peak. **Host Pool 2 (Actuaries)** is also pooled multi-session but on a heavier SKU (D8s v5) with a lower session density — closer to three users per host — because Excel and Power BI models are memory- and CPU-hungry. **Host Pool 3 (Data Science)** is personal (1:1) assignment on a GPU-backed SKU such as the NVadsA10 v5 family, because Monte Carlo simulation workloads need dedicated GPU access that can't be shared across sessions the way office productivity apps can.\n\n## Identity and Networking\n\nEntra ID join across all three pools — no on-premises Active Directory to stand up or maintain, and it keeps the identity model consistent with a cloud-first Zero Trust posture. Conditional Access policies target the Azure Virtual Desktop and Windows Cloud Login cloud apps and require a compliant device plus MFA. On the network side, a single VNet lives in the mandated region, with dedicated subnets per host pool. Private Link fronts both the AVD workspace/feed and the FSLogix storage account so neither has a public endpoint, and RDP Shortpath for managed networks is enabled since users connect from corporate-issued, VPN-connected devices. Azure Firewall restricts egress to the specific service tags AVD and Windows Update actually require — nothing else gets out.\n\n## FSLogix and Profiles\n\nProfile Containers on Azure Files Premium, authenticated with Microsoft Entra Kerberos. The actuary and data-science pools get slightly larger provisioned share sizes and tuned exclusions (browser cache, Teams local cache) because their working sets are bigger; the claims pool gets a leaner, more aggressively excluded profile since those users touch far fewer files. Cloud Cache isn't needed here — it exists mainly to support multi-region redundancy, and the region constraint takes that option off the table anyway.\n\n## Autoscale\n\nThree separate scaling plans, not one shared plan. The claims pool ramps up before the 7am shift and down after 6pm on weekdays, with a small minimum host count overnight for late-shift claims work. The actuary pool follows a similar shape but with a longer ramp-down buffer, since analysts' sessions tend to run long and an aggressive drain would interrupt in-progress work. The data-science pool uses Start VM on Connect instead of a scheduled plan entirely — usage is bursty and unscheduled, so a GPU VM should only power on, and bill, when its assigned user actually connects.\n\n## BCDR\n\nThis is where the data-residency constraint bites hardest. Pooled session hosts (Pools 1 and 2) are stateless — their OS disks are disposable, and their golden image is versioned in Azure Compute Gallery, so \"disaster recovery for a host\" just means redeploying from the latest image. Both pools spread hosts across availability zones for resilience within the region. FSLogix profile data is the durable asset, and it's protected with zone-redundant storage and in-region snapshot backups — explicitly **not** cross-region replication, because the regulator forbids the data leaving the region at all. The design doc should say this out loud: the trade-off is that a full regional outage is an accepted risk here, in exchange for regulatory compliance, and that trade-off should be a conscious, documented decision rather than an accident.\n\n## Packaging It as a Portfolio Artifact\n\nWrite the final document as a Markdown or PDF file with one clean architecture diagram — three host pools branching from a shared identity and network spine is the easiest way to draw it — plus an assumptions-and-trade-offs section and a rough order-of-magnitude cost estimate built from the Azure pricing calculator. This becomes portfolio artifact #1. Capstone 2 builds a working, scaled-down slice of exactly this design so you have both the document and the proof it's buildable.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Capstone 1: Design an AVD Environment",
+      "sub": "A 600-user, three-persona architecture design document",
+      "narration": "Welcome to the first capstone of the career module. You're going to design an Azure Virtual Desktop environment for a realistic 600-user insurance and actuarial firm, with three very different user groups and a hard data-residency constraint. By the end you'll have a portfolio-grade architecture design document, and a worked reference solution to check your reasoning against."
+    },
+    {
+      "type": "content",
+      "title": "The Case Study",
+      "bullets": [
+        "Bramwell Mutual: 600 users, moving off on-prem RDS",
+        "420 claims processors, 130 actuaries, 50 GPU data-science staff",
+        "Regulator: policyholder data must stay in one Azure region",
+        "SOC 2 Type II session logging, one-year retention"
+      ],
+      "narration": "Meet Bramwell Mutual. Six hundred users need to move off aging on-premises session host servers onto Azure Virtual Desktop. Three personas have very different needs: high-volume claims processors, heavier actuaries running Excel and Power BI, and a small GPU-hungry data-science team. On top of that, the state insurance regulator requires policyholder data to stay in a single Azure region, with a full year of auditable session logging. That constraint is going to shape almost every decision that follows."
+    },
+    {
+      "type": "content",
+      "title": "The Deliverable",
+      "bullets": [
+        "Six sections: host pools, identity, networking, FSLogix, autoscale, BCDR",
+        "Each decision needs a one-to-two-sentence justification",
+        "Compare against a worked reference solution",
+        "Where you diverge, explain why your choice fits this case better"
+      ],
+      "narration": "Your design document needs six sections, and each decision needs a short justification, not just a choice. We'll walk through a worked reference solution for each section. Treat it as one defensible answer, not the only correct one — if your design differs, you should be able to say exactly why it's a better fit for Bramwell Mutual specifically."
+    },
+    {
+      "type": "content",
+      "title": "Host Pool Topology: Three Pools, Not One",
+      "bullets": [
+        "Pool 1 — Claims: pooled, multi-session, D4s v5, ~6 users/host",
+        "Pool 2 — Actuaries: pooled, multi-session, D8s v5, ~3 users/host",
+        "Pool 3 — Data science: personal, GPU SKU (NVadsA10 v5), 1:1",
+        "Match infrastructure to persona, not the other way around"
+      ],
+      "narration": "Three host pools, matched to the three personas. Claims processors get a general-purpose SKU at high density because they run the same two apps all day with little customization. Actuaries get a heavier SKU at lower density because Excel and Power BI models need more memory and CPU per user. The data-science team gets personal, one-to-one GPU-backed VMs, because Monte Carlo simulation workloads need dedicated GPU access that simply cannot be shared across concurrent sessions."
+    },
+    {
+      "type": "content",
+      "title": "Identity and Networking",
+      "bullets": [
+        "Entra ID join across all pools — no on-prem AD to run",
+        "Conditional Access: compliant device + MFA on AVD cloud apps",
+        "Private Link for the AVD feed and the FSLogix storage account",
+        "RDP Shortpath (managed) + Azure Firewall egress restricted to AVD tags"
+      ],
+      "narration": "Identity stays cloud-first: Entra ID join everywhere, with Conditional Access requiring a compliant device and MFA scoped to the Azure Virtual Desktop and Windows Cloud Login apps. On the network side, Private Link removes public endpoints from both the AVD feed and the FSLogix storage account, RDP Shortpath serves managed corporate devices, and Azure Firewall locks egress down to exactly the service tags AVD needs — nothing else gets out of that VNet."
+    },
+    {
+      "type": "content",
+      "title": "FSLogix: One Size Does Not Fit All",
+      "bullets": [
+        "Profile Containers on Azure Files Premium",
+        "Authentication via Microsoft Entra Kerberos — no domain controller needed",
+        "Actuary/data-science pools: larger shares, tuned exclusions",
+        "Claims pool: lean profile, aggressive exclusions"
+      ],
+      "narration": "FSLogix Profile Containers sit on Azure Files Premium, authenticated with Microsoft Entra Kerberos, which lets an Entra-joined-only environment reach the file share without ever standing up Active Directory Domain Services. The actuary and data-science pools get bigger provisioned shares and exclusions tuned for their heavier working sets, while the claims pool stays lean, because there's simply less to persist for that persona."
+    },
+    {
+      "type": "content",
+      "title": "Autoscale: Three Plans, Not One",
+      "bullets": [
+        "Claims: ramps 7am–6pm weekdays, small overnight minimum",
+        "Actuaries: similar shape, longer drain buffer for long sessions",
+        "Data science: Start VM on Connect, not a schedule at all",
+        "GPU VMs only bill when their user actually connects"
+      ],
+      "narration": "Each pool gets its own scaling plan because each persona's usage pattern is different. Claims follows a predictable shift pattern. Actuaries need a gentler drain so long-running work isn't interrupted. The data-science pool skips scheduled autoscale entirely and uses Start VM on Connect instead, so an expensive GPU VM only powers on, and only bills, the moment its assigned user actually connects."
+    },
+    {
+      "type": "content",
+      "title": "BCDR: Where the Region Constraint Bites",
+      "bullets": [
+        "Pooled hosts are stateless — DR means redeploy from the golden image",
+        "Azure Compute Gallery holds the versioned image",
+        "Availability zones spread hosts within the region",
+        "Profile data: zone-redundant storage + in-region backups, NOT cross-region"
+      ],
+      "narration": "Session hosts in the pooled pools are stateless — if one is lost, you just redeploy it from the versioned golden image in Azure Compute Gallery. The durable asset is the FSLogix profile data, and here the regulator's constraint really matters: instead of the usual cross-region replication pattern, resilience comes from availability zones and in-region backups only. That trade-off — accepting regional-outage risk in exchange for regulatory compliance — needs to be written down explicitly, not left implicit."
+    },
+    {
+      "type": "content",
+      "title": "Packaging Portfolio Artifact #1",
+      "bullets": [
+        "One architecture diagram: three pools off a shared identity/network spine",
+        "Assumptions and trade-offs section",
+        "Rough cost estimate from the Azure pricing calculator",
+        "Sets up Capstone 2: build a scaled-down slice of this exact design"
+      ],
+      "narration": "Package the finished document as a clean Markdown or PDF file with one architecture diagram, an assumptions-and-trade-offs section, and a rough cost estimate from the Azure pricing calculator. That's portfolio artifact number one. In the next capstone, you'll build and document a scaled-down, working slice of exactly this design, so you end up with both the paper design and proof it actually deploys."
+    }
+  ]
+}

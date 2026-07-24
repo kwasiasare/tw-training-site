@@ -1,0 +1,164 @@
+---
+course: vdi-engineer
+title: 'Azure Virtual Desktop vs. Windows 365: PaaS Flexibility vs. SaaS Simplicity'
+month: 2
+monthTitle: The 2026 VDI Platform Landscape
+lesson: 1
+summary: 'This lesson draws the line every Microsoft-stack EUC engineer needs to draw cleanly: Azure Virtual
+  Desktop (AVD) is a PaaS you architect and operate, while Windows 365 Cloud PC is a SaaS you provision
+  and hand to a user. You''ll compare their ownership models, session types, licensing shapes, and pricing
+  predictability, then survey Windows 365''s delivery modes — Boot, Switch, and Frontline — at a high
+  level so you can recognize them in a customer conversation before Module 5 goes deep on administering
+  them.'
+objectives:
+- Explain the fundamental service-model difference between AVD (PaaS) and Windows 365 (SaaS)
+- Contrast pooled multi-session AVD desktops with Windows 365's personal-only Cloud PC model
+- Describe how licensing and pricing predictability differ between the two platforms
+- Identify at least three scenarios where AVD is the better fit and three where Windows 365 wins
+- Summarize what Windows 365 Boot, Switch, and Frontline each do at a high level
+- Recognize Windows 11 Enterprise multi-session as the OS unique to AVD pooled desktops
+quiz:
+- q: Which statement best captures the core architectural difference between Azure Virtual Desktop and
+    Windows 365?
+  options:
+  - AVD only supports Windows 10; Windows 365 only supports Windows 11
+  - AVD is a PaaS where the customer owns and manages the session hosts inside their own Azure subscription;
+    Windows 365 is a SaaS where Microsoft manages the Cloud PC's underlying infrastructure end to end
+  - AVD is on-premises only; Windows 365 is cloud only
+  - There is no meaningful difference — they are the same service with different marketing names
+  answer: 1
+  why: 'AVD gives you a control plane managed by Microsoft but session hosts that live as VMs in your
+    own subscription — you patch, size, and image them. Windows 365 abstracts all of that away: you buy
+    a per-user Cloud PC SKU and Microsoft runs the infrastructure behind it, exposed to you mainly through
+    Intune.'
+- q: A customer needs pooled, multi-session desktops shared across shift workers to minimize per-user
+    compute cost. Which platform natively supports this session model?
+  options:
+  - Windows 365 Cloud PC, because it is always the cheaper option
+  - Neither platform supports multiple users sharing one desktop
+  - Azure Virtual Desktop, because it supports pooled host pools running Windows 11 Enterprise multi-session
+  - Windows 365 Frontline, because it is licensed per virtual machine
+  answer: 2
+  why: AVD is the only one of the two with a true pooled, multi-session desktop model — multiple users
+    share session hosts running Windows 11 Enterprise multi-session, an OS SKU that does not exist outside
+    AVD. Windows 365 Cloud PCs (outside Frontline's shared mode) are always personal, one-to-one desktops.
+- q: Why is Windows 365 often described as offering more predictable cost than AVD?
+  options:
+  - Windows 365 has no licensing requirements at all
+  - AVD cannot be metered or billed
+  - Windows 365 desktops never need to be resized, so cost never changes
+  - Windows 365 uses a fixed, per-user, per-month price that bundles compute, storage, and the Cloud PC
+    license into one SKU
+  answer: 3
+  why: Windows 365's defining pitch is a flat per-user, per-month price for a given Cloud PC size — you
+    know your bill before the month starts. AVD's cost is consumption-based across compute, storage, and
+    networking, which is more flexible and can be cheaper at scale but requires active cost management
+    (covered in Module 3).
+- q: Which Windows 365 capability lets a user boot a physical device (or thin client) directly into their
+    Cloud PC instead of a local Windows desktop?
+  options:
+  - Windows 365 Boot
+  - Windows 365 Switch
+  - Windows 365 Frontline
+  - Windows 365 Link
+  answer: 0
+  why: Windows 365 Boot signs a device directly into a user's Cloud PC at startup, bypassing the local
+    Windows desktop entirely — well suited to shared or kiosk-style hardware. Switch lets a user toggle
+    between their local desktop and Cloud PC using Task View; Frontline is a licensing/session model for
+    shift-based shared access.
+- q: A regulated customer wants engineers to keep full administrative control over the OS image, patch
+    cadence, and networking of their virtual desktops, and is comfortable managing that complexity in
+    exchange for flexibility. Which platform better fits this requirement, and why?
+  options:
+  - Windows 365, because SaaS is always more secure
+  - AVD, because as a PaaS it exposes the session host VM, image pipeline, and networking configuration
+    directly to the customer's own Azure subscription and admins
+  - Neither platform allows any customer control
+  - Windows 365 Frontline specifically, because it is the only mode with admin control
+  answer: 1
+  why: 'AVD''s PaaS model is exactly the fit when a customer wants deep control: they own the golden image,
+    the Azure Compute Gallery, the VNet, and the patch cadence. Windows 365 deliberately trades that control
+    away for simplicity, which is the wrong trade for a customer that needs fine-grained infrastructure
+    ownership.'
+- q: In three to five sentences, describe a realistic scenario where a single organization would deploy
+    BOTH Azure Virtual Desktop and Windows 365 side by side rather than choosing only one.
+  answer: A mid-size company might run AVD pooled host pools with Windows 11 Enterprise multi-session
+    for its call-center and shift-based staff, where dense, cost-optimized multi-user desktops make sense
+    and IT already has Azure and networking expertise. The same company could issue Windows 365 Cloud
+    PCs to executives, remote contractors, or M&A-acquired staff who need a fast, predictably priced,
+    personal desktop with minimal IT setup and Intune-only management. Some may also use Windows 365 Frontline
+    for warehouse kiosks that need Boot-style dedicated sign-in. This mixed model lets IT match each user
+    population to the platform that fits its session type, budget model, and management overhead instead
+    of forcing everyone onto one platform.
+  why: AVD and Windows 365 are not mutually exclusive — most real Microsoft-stack EUC estates run both,
+    matching pooled/PaaS AVD to cost-sensitive multi-session populations and SaaS Windows 365 to users
+    who need simplicity, personal desktops, or predictable per-user billing. This mirrors the decision
+    framework built out fully in Lesson 5.
+resources:
+- label: What is Azure Virtual Desktop? (Microsoft Learn)
+  url: https://learn.microsoft.com/en-us/azure/virtual-desktop/overview
+- label: Windows 365 documentation (Microsoft Learn)
+  url: https://learn.microsoft.com/en-us/windows-365/
+- label: What is Windows 365 Frontline? (Microsoft Learn)
+  url: https://learn.microsoft.com/en-us/windows-365/enterprise/introduction-windows-365-frontline
+- label: What's new in Windows 365 Enterprise (Microsoft Learn)
+  url: https://learn.microsoft.com/en-us/windows-365/enterprise/whats-new
+---
+
+## Two Microsoft Platforms, One Very Different Bet
+
+Microsoft sells two very different answers to "give my users a Windows desktop in the cloud": **Azure Virtual Desktop (AVD)** and **Windows 365**. They are built on overlapping technology — both ultimately deliver a Windows session over RDP-family protocols, both integrate with Microsoft Entra ID and Intune, both can run Windows 11 — but they make opposite bets on who owns the complexity. AVD bets that you *want* control and are willing to operate infrastructure for it. Windows 365 bets that you want a desktop the way you buy a Microsoft 365 mailbox: as a fixed-price SaaS SKU you provision and stop thinking about.
+
+Getting this distinction right is the single most common conversation a VDI/EUC engineer has with a customer or stakeholder, so this lesson builds the comparison cleanly before Module 3 goes deep on AVD infrastructure and Module 5 goes deep on Windows 365 administration.
+
+## Azure Virtual Desktop: PaaS You Architect
+
+AVD is a **platform-as-a-service**. Microsoft manages the control plane — the broker that matches users to sessions, the web/gateway endpoints, the diagnostics pipeline — but you, the customer, own everything downstream of that: the **session host virtual machines**, which live as ordinary Azure VMs inside your own subscription and resource group.
+
+That ownership means you are responsible for, and get to customize:
+
+- **The OS image** — including **Windows 11 Enterprise multi-session**, an OS SKU that exists *only* for AVD and allows many users to share one VM's compute simultaneously (a genuine architectural difference from Windows 365, which never multiplexes users onto one instance outside Frontline's shared mode).
+- **Networking** — your VNet, your egress path, your Private Link and RDP Shortpath configuration (Module 3).
+- **Sizing and scaling** — VM SKU choice, autoscale plans, GPU options (Lesson 4 of this module).
+- **Patching and image lifecycle** — Azure Compute Gallery versioning, your own cadence.
+
+Session types in AVD split into **pooled** (many users share a set of interchangeable multi-session hosts; non-persistent by default, cheapest per-user cost) and **personal/dedicated** (one VM assigned permanently to one user; behaves like a traditional persistent desktop). Both run inside host pools that you deploy, size, and monitor.
+
+## Windows 365: SaaS You Provision
+
+Windows 365 Cloud PC removes almost all of that. You buy a **Cloud PC license** (a fixed SKU defined by vCPU/RAM/storage, e.g., 4 vCPU / 16 GB / 128 GB) for a named user, and Microsoft provisions and runs the underlying VM for you — you never see or manage an Azure subscription hosting it (in the standard **Microsoft-hosted network** option; the **Azure Network Connection**, or ANC, option lets you inject the Cloud PC into your own VNet for the networking control that some customers still need, without handing you the VM itself).
+
+Critically, Windows 365 Cloud PCs are **always personal** — one Cloud PC, one user, persistent, full state retained between sessions. There is no pooled, multi-session Windows 365 desktop for a general population; the closest thing is **Frontline**, which lets a *license pool* be shared by shift-based users who are never signed in simultaneously, not concurrent-use multiplexing on one VM.
+
+Management for Windows 365 flows almost entirely through **Microsoft Intune** — provisioning policies, resize actions, restore points — which Module 5 covers in administrator depth.
+
+## Windows 365's Delivery Modes at a Glance
+
+Three named capabilities show up repeatedly in Windows 365 conversations. At this stage you only need to recognize them; Module 5 covers administering them:
+
+| Capability | What it does |
+|---|---|
+| **Windows 365 Boot** | Signs a physical device (including shared/kiosk hardware) directly into a user's Cloud PC at device startup, bypassing the local Windows desktop |
+| **Windows 365 Switch** | Lets a user toggle fluidly between their local Windows desktop and their Cloud PC using Windows 11 Task View, as if it were another virtual desktop |
+| **Windows 365 Frontline** | A licensing and session model for shift-based or task workers, offering *dedicated* mode (a Cloud PC held for a worker during their shift) and *shared* mode (a pool of Cloud PCs drawn from a smaller license pool than the user count) |
+
+## Licensing and Cost Shape
+
+The cost *model*, not just the cost amount, is the real decision driver:
+
+- **Windows 365**: a flat **per-user, per-month price** per Cloud PC size. You know your bill in advance; there is no consumption variability to manage. This is attractive to finance teams and to IT organizations without deep cloud cost-management maturity.
+- **AVD**: **consumption-based** across compute (VMs, which you can stop/deallocate or autoscale), storage (OS disks, FSLogix profile storage), and networking egress. This can be materially cheaper at scale — especially with pooled multi-session density and autoscale — but requires active cost engineering, which Module 3 Lesson 5 covers.
+
+Both platforms layer on top of **existing Windows/Microsoft 365 entitlements** — Windows 365 requires its own per-user Cloud PC license; AVD requires a qualifying Windows/Microsoft 365 license (typically E3/E5 or equivalent) plus the Azure infrastructure spend itself, a distinction fully unpacked in Module 1 Lesson 5's licensing lesson.
+
+## When Each One Wins
+
+**AVD tends to win when:** the population needs pooled multi-session economics (call centers, education labs, task workers at scale); the organization has existing Azure/networking expertise and wants infrastructure control; workloads need GPU, custom images, or complex network topology; or cost optimization at scale matters more than administrative simplicity.
+
+**Windows 365 tends to win when:** users need a **personal**, persistent desktop with minimal setup; IT wants Intune-only management with no Azure subscription to operate; billing predictability is a hard requirement; or the rollout needs to happen fast — contractors, M&A onboarding, BYOD replacement — without a networking or imaging project attached.
+
+Most real Microsoft-stack estates run **both**, matched to population — exactly the mixed-platform thinking Lesson 5's decision framework will formalize, and that Module 5 Lesson 5 revisits with full Windows 365 administrative depth.
+
+## What's Next
+
+You now have the Microsoft-native half of the 2026 VDI landscape. The next three lessons widen the lens to the platforms your customers may already have standing estates on — Citrix DaaS and Omnissa Horizon — plus the GPU and niche-vendor space, before Lesson 5 gives you the scoring framework to choose between all of them.

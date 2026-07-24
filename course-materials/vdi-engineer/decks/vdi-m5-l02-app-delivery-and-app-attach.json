@@ -1,0 +1,207 @@
+{
+  "slug": "vdi-m5-l02-app-delivery-and-app-attach",
+  "title": "App Delivery and App Attach",
+  "month": 5,
+  "monthTitle": "User Environments & App Delivery",
+  "lesson": 2,
+  "summary": "Session hosts get simpler and cheaper to maintain when you stop installing applications on them. This lesson covers App Attach, Azure Virtual Desktop's current dynamic application delivery feature — how it evolved from the earlier MSIX-only app attach, the package formats and disk image types it supports in 2026, how registration and identity work, and how it compares to Citrix App Layering and Omnissa App Volumes.",
+  "objectives": [
+    "Explain what App Attach is and how it differs from installing applications directly on session host images",
+    "Describe how today's App Attach differs from the legacy MSIX-only app attach feature, including supported package types",
+    "Choose between VHDX and CimFS disk images for an App Attach deployment and justify the choice",
+    "Configure the identity and file-share prerequisites App Attach needs to mount application images at sign-in",
+    "Compare App Attach to Citrix App Layering and Omnissa App Volumes as category-equivalent solutions"
+  ],
+  "quiz": [
+    {
+      "q": "What is the core benefit App Attach provides over installing applications directly into the session host golden image?",
+      "options": [
+        "Applications are dynamically attached to a user's session without being locally installed, so images stay smaller and easier to maintain, and per-user/per-group access control is possible",
+        "It removes the need for any golden image at all",
+        "It automatically converts any Win32 installer into a supported package with no packaging step",
+        "It eliminates the need for licensing individual applications"
+      ],
+      "answer": 0,
+      "why": "App Attach mounts application packages from a file share into a user's session dynamically, so the app never has to be baked into the image. That keeps images smaller and lets you assign different applications to different users or groups on the same host pool without maintaining separate images per app combination."
+    },
+    {
+      "q": "Which application package formats does App Attach in Azure Virtual Desktop support today?",
+      "options": [
+        "Only MSIX — Appx and App-V were dropped when app attach was renamed",
+        "MSIX and MSIX bundle, Appx and Appx bundle, and App-V",
+        "Only traditional MSI installers",
+        "Only App-V, since MSIX support was removed in 2025"
+      ],
+      "answer": 1,
+      "why": "App Attach's current scope is broader than the legacy 'MSIX app attach' name implied — it supports MSIX/MSIX bundle, Appx/Appx bundle, and Microsoft Application Virtualization (App-V) packages, all delivered through the same dynamic-attach mechanism."
+    },
+    {
+      "q": "Your session hosts run Windows 11 exclusively. Which disk image type does Microsoft recommend for App Attach application images, and why?",
+      "options": [
+        "VHD, because it's the most broadly compatible legacy format",
+        "VHDX always, because CimFS is deprecated",
+        "CimFS, because it mounts and unmounts faster and uses less CPU/memory than VHDX, and is only recommended when hosts run Windows 11",
+        "It doesn't matter — all formats perform identically"
+      ],
+      "answer": 2,
+      "why": "CimFS (Composite Image File System) mounts and unmounts significantly faster than VHDX and consumes less CPU and memory, but Microsoft only recommends it when session hosts run Windows 11. VHD is explicitly not recommended for new deployments; VHDX remains the fallback for mixed or non-Windows-11 estates."
+    },
+    {
+      "q": "Which identity provider is explicitly NOT supported for use with App Attach in Azure Virtual Desktop?",
+      "options": [
+        "Microsoft Entra ID",
+        "Active Directory Domain Services (AD DS)",
+        "Microsoft Entra hybrid join",
+        "Microsoft Entra Domain Services"
+      ],
+      "answer": 3,
+      "why": "App Attach's supported identity providers are Microsoft Entra ID and Active Directory Domain Services (which covers Entra-joined and hybrid/AD DS-joined session hosts). Microsoft Entra Domain Services is explicitly listed as not supported for App Attach."
+    },
+    {
+      "q": "How does App Attach compare to Citrix App Layering and Omnissa App Volumes as a category?",
+      "options": [
+        "All three solve the same problem — decoupling applications from the base image and delivering them dynamically at logon/session time — but each uses its own packaging format and management plane tied to its own platform",
+        "Citrix App Layering and Omnissa App Volumes were both discontinued in favor of App Attach",
+        "App Attach only works with Citrix DaaS, not native AVD",
+        "Omnissa App Volumes and App Attach share the same package format, so packages are directly portable between them"
+      ],
+      "answer": 0,
+      "why": "App Attach (AVD), Citrix App Layering, and Omnissa App Volumes are category-equivalent: each decouples application delivery from the golden image so apps can be assigned per-user/group and updated independently of a maintenance window. They are not interchangeable — each has its own packaging format and only works within its own platform's control plane."
+    },
+    {
+      "q": "In two to four sentences, explain what changed between the legacy 'MSIX app attach' terminology and today's 'App Attach' feature in Azure Virtual Desktop, and why that distinction matters when writing documentation or answering exam questions.",
+      "answer": "The legacy 'MSIX app attach' name reflected a feature that only supported MSIX-format packages. Today's 'App Attach' is the current, broader terminology for the same dynamic-attach mechanism, but it now supports MSIX, Appx, and App-V packages, and adds CimFS as a faster disk image option alongside VHDX. The distinction matters because conflating the two can lead you to under-scope a design (assuming only MSIX is supported) or use outdated terminology in documentation and exam answers — AZ-140 and current Microsoft Learn content use 'App Attach' as the umbrella term.",
+      "why": "Precision matters here because the feature's supported package types genuinely expanded, not just the name — a design or exam answer that says 'MSIX app attach only supports MSIX' is now incomplete."
+    }
+  ],
+  "resources": [
+    {
+      "label": "App Attach in Azure Virtual Desktop (overview)",
+      "url": "https://learn.microsoft.com/en-us/azure/virtual-desktop/app-attach-overview"
+    },
+    {
+      "label": "Add and manage App Attach applications",
+      "url": "https://learn.microsoft.com/en-us/azure/virtual-desktop/app-attach-setup"
+    },
+    {
+      "label": "What is MSIX?",
+      "url": "https://learn.microsoft.com/en-us/windows/msix/overview"
+    },
+    {
+      "label": "Omnissa App Volumes documentation",
+      "url": "https://docs.omnissa.com/category/App_Volumes"
+    },
+    {
+      "label": "Citrix Workspace Environment Management service",
+      "url": "https://docs.citrix.com/en-us/workspace-environment-management/service.html"
+    }
+  ],
+  "body_markdown": "## The Problem: Fat Images Don't Scale\n\nEvery application you install directly into a golden image adds build time, patch surface, and testing burden, and it means every user of that image gets every app whether they need it or not. Once you're managing more than a handful of applications across multiple host pools with different user populations, image sprawl becomes the dominant maintenance cost in your VDI estate. **App Attach** is Azure Virtual Desktop's answer: applications are dynamically attached to a user's session from a package stored on a file share, mounted at sign-in (or on first launch), and never locally installed on the session host or baked into the image.\n\n## From 'MSIX App Attach' to 'App Attach'\n\nIf you've read older AVD material, you've seen this feature called **MSIX app attach**. That name matched the original scope: MSIX-format packages only. The feature has since broadened, and Microsoft's current documentation and terminology is simply **App Attach** — the umbrella name for dynamically attaching application packages to a session, regardless of package format. Today, App Attach supports three package types:\n\n| Package type | File formats |\n|---|---|\n| MSIX and MSIX bundle | `.msix`, `.msixbundle` |\n| Appx and Appx bundle | `.appx`, `.appxbundle` |\n| App-V | `.appv` |\n\nMSIX is a superset of the older Appx format — same containerized model, more enterprise features. App-V support means organizations with an existing App-V catalog can bring virtualized Win32 applications into the same delivery mechanism without repackaging everything as MSIX on day one. When you see 'MSIX app attach' in an older document or a vendor blog, treat it as the predecessor terminology for what App Attach now does more broadly — don't assume the feature is MSIX-only, and don't use the old name in new documentation.\n\n## How a User Gets an Application\n\nThree conditions must all be true at sign-in for a user to receive an App Attach application:\n\n1. The application is **assigned to the host pool** — this lets you keep GPU- or resource-intensive applications restricted to host pools with the right hardware.\n2. The user can **sign in to the host pool** through a Desktop or RemoteApp application group (for RemoteApp specifically, the application also needs to be added to that application group).\n3. The application is **assigned to the user**, directly or via a group.\n\nApplications are marked **active** or **inactive** — inactive packages are simply skipped at sign-in, which gives you a clean way to stage or retire an app without deleting it. Registration — the step that actually makes the app usable — can happen two ways: **on-demand**, where only partial registration happens at sign-in and full registration is deferred until first launch (the default and recommended setting, since it doesn't add to sign-in time), or **log on blocking**, where every assigned app is fully registered during sign-in, which is more predictable at launch but slows sign-in as the number of assigned apps grows.\n\n## Disk Image Types: CimFS vs VHDX\n\nApplication images are built as either **Composite Image File System (CimFS)** or **VHDX** (VHD is supported but explicitly not recommended). CimFS is the newer, faster option: it mounts and unmounts significantly quicker than VHDX and uses noticeably less CPU and memory under load, based on Microsoft's own published comparison. The catch is that CimFS is only recommended when your session hosts run **Windows 11** — for mixed-OS estates or hosts still on Windows 10 multi-session, VHDX remains the safe default. A CimFS image isn't a single file — it's a `.cim` metadata file plus companion `objectid_` and `region_` files that hold the actual application data, so treat the whole set as one unit when you copy or version images.\n\nWhen you ship a new application version, you have two update strategies: **side-by-side**, where you create a new application entry pointing at the new image and assign it independently (both versions can run concurrently across the estate), or **in-place**, where you update the existing application object to point at a new image with a different version number, and users pick up the new version at next sign-in without a maintenance window. Either way, don't delete an old image until you're certain no user session still references it.\n\n## Identity and File Share Requirements\n\nApp Attach supports **Microsoft Entra ID** and **Active Directory Domain Services** as identity providers — **Microsoft Entra Domain Services is not supported**. This is a common trap: a customer running Microsoft Entra Domain Services for other reasons cannot rely on it for App Attach's file-share access and needs Entra ID or AD DS instead.\n\nThe package file share itself is almost always Azure Files, chosen for its compatibility with both identity models and reasonable cost. For Entra-joined session hosts, you assign the **Reader and Data Access** RBAC role to both the Azure Virtual Desktop and Azure Virtual Desktop ARM Provider service principals on the storage account. Because that grants those service principals broad access to the storage account's data, Microsoft's guidance is to dedicate that storage account to App Attach images only — don't co-locate FSLogix profiles or other data on the same account. For AD DS-joined hosts, you instead assign the **Storage File Data SMB Share Reader** role and configure matching NTFS permissions for each session host's computer object.\n\nOn performance: budget for roughly one steady-state IOP per 1 GB image per session host, with a burst to around ten IOPs during boot/sign-in, and expect roughly 400 ms of tolerable latency headroom — keep the file share in the same Azure region as your session hosts, and exclude the (read-only) application images from antivirus scanning to avoid unnecessary I/O.\n\n## The Vendor-Neutral Picture: App Layering and App Volumes\n\nApp Attach isn't unique to AVD as a *category* of solution — it's Microsoft's implementation of a pattern every major EUC platform offers. **Citrix App Layering** (Citrix DaaS / Cloud Software Group) and **Omnissa App Volumes** (Omnissa Horizon) solve the identical problem — decouple applications from the base image, assign per-user or per-group, update independently — but each uses its own packaging format, its own management console, and only works within its own platform. None of the three are interoperable: an App Attach MSIX package doesn't run through App Volumes' delivery mechanism and vice versa. When you're advising a customer on platform choice (Module 2), 'do they already have a mature App Volumes or App Layering catalog' is a legitimate switching-cost question, distinct from which platform is technically 'better' at application delivery.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "App Delivery and App Attach",
+      "sub": "Keeping golden images thin by delivering applications dynamically",
+      "narration": "In this lesson we tackle application delivery in Azure Virtual Desktop. We'll go deep on App Attach, the current feature for dynamically attaching applications to a session without installing them on the image, cover how it evolved from the older MSIX-only app attach, walk through the disk image and identity requirements, and place it next to Citrix App Layering and Omnissa App Volumes as category-equivalent solutions."
+    },
+    {
+      "type": "content",
+      "title": "The Problem: Fat Images Don't Scale",
+      "bullets": [
+        "Every installed app adds build time and patch surface to the image",
+        "Every user of an image gets every app, needed or not",
+        "Image sprawl becomes the dominant maintenance cost at scale",
+        "App Attach decouples applications from the image entirely"
+      ],
+      "narration": "Installing applications directly into a golden image feels simple until you're managing more than a handful of apps across multiple host pools with different user populations. Every app adds build time, patch surface, and testing burden, and every user of that image gets every app whether they need it or not. App Attach exists to break that coupling."
+    },
+    {
+      "type": "content",
+      "title": "From MSIX App Attach to App Attach",
+      "bullets": [
+        "Legacy name: MSIX app attach, MSIX packages only",
+        "Current name: App Attach, the broader umbrella term",
+        "Now supports MSIX, Appx, and App-V packages",
+        "Don't assume MSIX-only when you see the old terminology"
+      ],
+      "narration": "If you've read older material you'll have seen this called MSIX app attach, which matched its original scope of MSIX packages only. Today it's simply App Attach, and the scope has genuinely broadened to support MSIX, Appx, and App-V packages. When you see the old name in a document or exam question, don't assume the feature is still MSIX-only — that's outdated."
+    },
+    {
+      "type": "content",
+      "title": "How a User Gets an App",
+      "bullets": [
+        "Application must be assigned to the host pool",
+        "User must be able to sign in via a Desktop or RemoteApp group",
+        "Application must be assigned to the user or their group",
+        "All three conditions must be true at once"
+      ],
+      "narration": "Three conditions all have to be true for a user to get an App Attach application. The app has to be assigned to the host pool. The user has to be able to sign in through a Desktop or RemoteApp application group, and for RemoteApp specifically the app needs to be added to that group too. And the app has to be assigned to the user, directly or through a group membership."
+    },
+    {
+      "type": "content",
+      "title": "Registration: On-Demand vs Log On Blocking",
+      "bullets": [
+        "On-demand: partial registration at sign-in, full on first launch",
+        "On-demand is the default and recommended setting",
+        "Log on blocking: full registration during sign-in for every app",
+        "More assigned apps under log on blocking means slower sign-in"
+      ],
+      "narration": "Registration is what actually makes an attached app usable. On-demand registration only partially registers apps at sign-in and finishes the job when the user actually launches the app — it's the default because it doesn't slow down sign-in. Log on blocking fully registers every assigned app during sign-in itself, which is more predictable but scales badly as you assign more apps to a user."
+    },
+    {
+      "type": "content",
+      "title": "Disk Images: CimFS vs VHDX",
+      "bullets": [
+        "CimFS: faster mount/unmount, lower CPU and memory",
+        "CimFS is only recommended on Windows 11 session hosts",
+        "VHDX remains the safe default for mixed or older OS estates",
+        "VHD is supported but explicitly not recommended"
+      ],
+      "narration": "You have a choice of disk image format for your application packages. CimFS mounts and unmounts noticeably faster than VHDX and uses less CPU and memory, but Microsoft only recommends it when your session hosts are running Windows 11. If you have a mixed estate or hosts still on Windows 10 multi-session, stick with VHDX. VHD itself is supported but explicitly discouraged for new deployments."
+    },
+    {
+      "type": "content",
+      "title": "Updating an Application",
+      "bullets": [
+        "Side-by-side: new app entry, new image, both versions can coexist",
+        "In-place: update the existing app to a new image and version",
+        "In-place updates apply at the user's next sign-in, no maintenance window",
+        "Don't delete an old image until no session still references it"
+      ],
+      "narration": "When you ship a new version of an application, side-by-side creates a whole new application entry pointing at the new image, so old and new versions can run concurrently. In-place updates the existing application object to a new image and version number, and users pick it up automatically at their next sign-in with no maintenance window required. Either way, don't delete the old image until you're sure nothing still depends on it."
+    },
+    {
+      "type": "content",
+      "title": "Identity: Entra ID and AD DS, Not Entra Domain Services",
+      "bullets": [
+        "Supported: Microsoft Entra ID and Active Directory Domain Services",
+        "NOT supported: Microsoft Entra Domain Services",
+        "Entra-joined hosts: Reader and Data Access RBAC role on storage",
+        "Dedicate the storage account to App Attach images only"
+      ],
+      "narration": "App Attach supports Microsoft Entra ID and Active Directory Domain Services as identity providers, but explicitly not Microsoft Entra Domain Services — a common trap if you're already using Entra Domain Services elsewhere. For Entra-joined hosts, you grant the Reader and Data Access RBAC role to the Azure Virtual Desktop service principals, and because that grants broad access, dedicate that storage account to App Attach images only, not shared with FSLogix or anything else."
+    },
+    {
+      "type": "content",
+      "title": "Sizing the File Share",
+      "bullets": [
+        "Roughly one steady-state IOP per 1 GB image per host",
+        "Boot and sign-in can burst to around ten IOPs",
+        "Keep the file share in the same region as session hosts",
+        "Exclude read-only application images from antivirus scanning"
+      ],
+      "narration": "Plan your file share performance around roughly one steady-state IOP per one gigabyte image per session host, with bursts up to around ten IOPs during boot and sign-in. Keep the share in the same Azure region as your hosts to minimize latency, and exclude the application images from antivirus scanning since they're read-only and scanning them just adds unnecessary I/O."
+    },
+    {
+      "type": "content",
+      "title": "The Category: App Layering and App Volumes",
+      "bullets": [
+        "Citrix App Layering and Omnissa App Volumes solve the same problem",
+        "Same goal: decouple apps from the image, assign per-user/group",
+        "Different packaging formats, different management planes",
+        "None of the three are interoperable with each other"
+      ],
+      "narration": "App Attach isn't a unique idea, it's Microsoft's implementation of a pattern every major platform has. Citrix App Layering and Omnissa App Volumes solve exactly the same problem for their own platforms — decoupling applications from the base image and assigning them per user or group. None of the three are interoperable with each other, so when a customer already has a mature App Volumes or App Layering catalog, that's a real switching-cost question for the platform-choice conversation. Next lesson, we bring Teams and peripherals into the session."
+    }
+  ]
+}

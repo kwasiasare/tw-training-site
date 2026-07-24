@@ -208,5 +208,48 @@
         "model quantization"
       ]
     }
+  },
+  {
+    "slug": "vdi-engineer",
+    "title": "VDI & End-User Computing Engineer: Azure Virtual Desktop, Windows 365 & Multi-Platform VDI",
+    "summary": "A project-based course that takes working IT professionals from VDI fundamentals to production-grade virtual desktop engineering. You'll master the vendor-neutral core every EUC engineer needs — architecture, display protocols, profile management, licensing, and platform selection across Azure Virtu",
+    "targetProfile": {
+      "role": "VDI / End-User Computing (EUC) Engineer",
+      "level": "mid",
+      "skills": [
+        "azure virtual desktop",
+        "windows 365",
+        "vdi architecture",
+        "display protocols",
+        "rdp shortpath",
+        "fslogix",
+        "profile management",
+        "msix app attach",
+        "citrix daas",
+        "citrix hdx",
+        "omnissa horizon",
+        "blast extreme",
+        "instant clones",
+        "host pools",
+        "golden images",
+        "azure compute gallery",
+        "autoscale",
+        "entra id",
+        "conditional access",
+        "intune",
+        "azure files",
+        "azure networking",
+        "gpu virtualization",
+        "azure monitor",
+        "kql",
+        "powershell",
+        "bcdr",
+        "digital employee experience",
+        "vdi migration",
+        "az-140",
+        "cca-v",
+        "oca-h"
+      ]
+    }
   }
 ]

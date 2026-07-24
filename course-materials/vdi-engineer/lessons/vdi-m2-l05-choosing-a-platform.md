@@ -1,0 +1,166 @@
+---
+course: vdi-engineer
+title: 'Choosing a VDI Platform: A Decision Framework and Scoring Matrix'
+month: 2
+monthTitle: The 2026 VDI Platform Landscape
+lesson: 5
+summary: 'This lesson turns everything Module 2 has covered — AVD, Windows 365, Citrix DaaS, Omnissa Horizon,
+  GPU VDI, and the smaller players — into a repeatable decision framework. You''ll learn the six criteria
+  that actually drive real-world platform choices: existing investments, cloud strategy, persistent-vs-pooled
+  mix, protocol/peripheral needs, budget model, and compliance/sovereignty. You''ll build a scoring matrix
+  you can apply to any customer scenario, and you''ll reuse this exact framework in the Module 7 migration-assessment
+  capstone.'
+objectives:
+- Name the six criteria of the platform-choice decision framework and explain what each one evaluates
+- Apply the framework to a given customer scenario and justify a recommended platform
+- Explain why 'existing investments' and 'cloud strategy' can pull a decision in opposite directions and
+  how to reconcile them
+- Distinguish opex-fixed (Windows 365-style) from opex-variable (AVD-style) budget models and when each
+  suits a customer
+- Build a simple weighted scoring matrix comparing at least three platforms against a customer's stated
+  requirements
+- Recognize that most real organizations run a mixed-platform estate rather than a single winner-take-all
+  platform
+quiz:
+- q: Which of the following is one of the six decision-framework criteria for choosing a VDI platform,
+    as taught in this lesson?
+  options:
+  - The alphabetical order of the vendor's name
+  - Existing investments (current licensing, skills, and infrastructure already in place)
+  - Which platform has the most colorful marketing website
+  - The number of employees at the vendor's headquarters
+  answer: 1
+  why: Existing investments — licensing already owned, admin skills already trained, infrastructure already
+    deployed — is one of the six real-world criteria. Switching platforms has real switching costs, so
+    what an organization already has in place is a legitimate and often decisive input to the decision.
+- q: A customer has heavily invested in an on-prem VMware/Nutanix hypervisor estate and specialized USB
+    medical-imaging peripherals, but is also under a top-down mandate to 'go all-in on Azure.' How should
+    a VDI engineer reconcile these two pulls?
+  options:
+  - Ignore the peripheral requirement entirely and default to Windows 365
+  - Tell the customer no compromise is possible and the project must be canceled
+  - 'Recognize the tension explicitly: weigh existing investments (favoring Omnissa Horizon or Citrix
+    for peripheral/hypervisor fit) against cloud strategy (favoring AVD), and present the trade-off with
+    a recommendation rather than silently picking one side'
+  - Assume the mandate always wins and no other criteria matter
+  answer: 2
+  why: Existing investments and cloud strategy are two of the six criteria precisely because they can
+    conflict. A good VDI engineer surfaces the tension explicitly — for example, a hybrid approach keeping
+    specialized peripheral workloads on Horizon/Citrix while migrating standard office workloads to AVD
+    — rather than silently defaulting to one criterion or refusing to engage with the trade-off.
+- q: What is the key difference between an 'opex-fixed' and an 'opex-variable' budget model in the context
+    of this framework?
+  options:
+  - Opex-fixed models never actually cost anything
+  - Opex-variable models are always illegal for enterprise budgets
+  - There is no practical difference between the two models
+  - Opex-fixed (like Windows 365's flat per-user pricing) gives predictable monthly cost regardless of
+    usage; opex-variable (like AVD's consumption-based billing) scales cost with actual compute/storage/network
+    usage, which can be cheaper at scale but requires active cost management
+  answer: 3
+  why: 'This maps directly to the AVD-vs-Windows 365 cost comparison from Lesson 1: fixed models trade
+    flexibility for budget predictability, while variable models trade predictability for the potential
+    of lower cost at scale (with the burden of active cost management). Matching a customer''s finance
+    maturity and risk tolerance to the right model is part of the decision framework.'
+- q: A regulated healthcare customer has strict data-residency requirements limiting where patient data
+    can be processed or stored. Which decision-framework criterion most directly addresses this constraint?
+  options:
+  - Compliance and sovereignty
+  - Protocol/peripheral needs
+  - Budget model
+  - Persistent vs. pooled mix
+  answer: 0
+  why: Compliance and sovereignty is the criterion that captures data-residency, regulatory, and industry-specific
+    constraints — it directly shapes which cloud regions, hosting models, and even which vendors (based
+    on where their infrastructure and support operations are located) are viable options.
+- q: Why does the lesson emphasize that 'most real organizations run a mixed-platform estate' rather than
+    picking one winner?
+  options:
+  - Because running multiple platforms is always cheaper than running one
+  - Because different user populations within the same organization often have different session-type,
+    budget, protocol, and compliance needs, so the framework is usually applied per population rather
+    than once for the whole company
+  - Because vendors require customers to use at least two platforms by contract
+  - Because a single platform can never support more than 100 users
+  answer: 1
+  why: The framework criteria — persistent vs. pooled mix, protocol/peripheral needs, budget model, and
+    others — often produce different answers for different user populations (executives vs. call-center
+    staff vs. CAD engineers, for example) within the same organization. Applying the framework per population,
+    rather than expecting one platform to win outright, reflects how these decisions actually play out
+    in practice.
+- q: In three to five sentences, describe how you would build a simple weighted scoring matrix to compare
+    AVD, Citrix DaaS, and Omnissa Horizon for a specific customer, using the six framework criteria.
+  answer: First, list the six criteria (existing investments, cloud strategy, persistent-vs-pooled mix,
+    protocol/peripheral needs, budget model, compliance/sovereignty) as rows and the three platforms as
+    columns. Second, assign each criterion a weight reflecting how much it matters to this specific customer
+    (for example, weight compliance heavily for a regulated customer, or weight existing investments heavily
+    for a company with a large sunk Citrix estate). Third, score each platform 1-5 against each criterion
+    based on how well it satisfies that specific customer's stated requirement, not on a generic industry
+    opinion. Finally, multiply each score by its weight, sum the columns, and use the resulting totals
+    as a structured starting point for a recommendation — while still sanity-checking the result against
+    qualitative factors the matrix might miss, like team skill gaps or a pending merger.
+  why: 'This is exactly the deliverable format expected in the Module 7 Lesson 3 migration-assessment
+    capstone: a weighted scoring matrix tailored to a specific customer''s stated requirements, not a
+    generic ''platform X is always best'' ranking, used as a structured input to a written recommendation
+    rather than a mechanical final answer.'
+resources:
+- label: What is Azure Virtual Desktop? (Microsoft Learn)
+  url: https://learn.microsoft.com/en-us/azure/virtual-desktop/overview
+- label: Windows 365 documentation (Microsoft Learn)
+  url: https://learn.microsoft.com/en-us/windows-365/
+- label: Citrix DaaS overview (Citrix docs)
+  url: https://docs.citrix.com/en-us/citrix-daas/overview.html
+- label: What Is Horizon 8? (Omnissa Tech Zone)
+  url: https://techzone.omnissa.com/resource/what-horizon-8
+---
+
+## From Landscape to Decision
+
+Module 2 has given you accurate, current mental models for the whole 2026 VDI field: AVD and Windows 365 (Lesson 1), Citrix DaaS (Lesson 2), Omnissa Horizon (Lesson 3), and GPU workloads plus the smaller players (Lesson 4). Knowing the platforms is necessary but not sufficient — the actual job of a VDI/EUC engineer is regularly to **recommend one**, or a mix, for a real organization with real constraints. This lesson gives you the framework to do that defensibly, and you'll reuse it directly in the Module 7 Lesson 3 migration-assessment capstone.
+
+## The Six Criteria
+
+### 1. Existing Investments
+What licensing, skills, and infrastructure does the organization already have? A company with a mature Citrix estate, trained Citrix admins, and existing hardware peripherals has real switching costs that a clean "best platform" ranking ignores. Existing investment doesn't mean "never change platforms," but it does mean the bar for change should be higher than a marginal feature difference.
+
+### 2. Cloud Strategy
+What is the organization's broader cloud direction — Azure-first, AWS-first, multi-cloud, or cloud-averse/on-prem-committed? A company standardizing on Azure for everything else has a strong pull toward AVD and Windows 365 simply for operational and billing consistency, independent of any feature comparison.
+
+### 3. Persistent vs. Pooled Mix
+What's the actual shape of the user population? Task workers and call-center staff who can share pooled, non-persistent desktops have very different platform-fit than power users or developers who need dedicated, persistent, highly customized machines. This criterion often produces *different* answers for different populations within the same company — which is exactly why mixed-platform estates are the norm, not the exception.
+
+### 4. Protocol and Peripheral Needs
+What does the actual end-user hardware and workflow require? Specialized USB peripherals, high-DPI multi-monitor CAD work, or challenging WAN conditions favor platforms with the deepest protocol maturity (historically Citrix HDX, though RDP Shortpath and Omnissa Blast Extreme have both closed much of the historical gap — Module 1 Lesson 3 covered the protocol fundamentals this criterion draws on).
+
+### 5. Budget Model
+Does the organization want **predictable, fixed** per-user cost (Windows 365's model) or is it comfortable managing **variable, consumption-based** cost in exchange for potential savings at scale (AVD's model, and to a large extent Citrix DaaS and Horizon Cloud's consumption elements)? This is as much a finance-team and risk-tolerance question as a technical one.
+
+### 6. Compliance and Sovereignty
+Are there data-residency, industry-regulatory (healthcare, finance, government), or geopolitical constraints on where data and compute can live? This can eliminate options outright — for example, a strict data-residency requirement may rule out a vendor without an in-region hosting option, regardless of how well it scores on every other criterion.
+
+## Building the Scoring Matrix
+
+A practical scoring matrix has platforms as columns, the six criteria as rows, and two numbers per cell: a **weight** (how much this criterion matters to *this* customer, not in general) and a **score** (1–5, how well this platform satisfies that criterion for *this* customer). Multiply weight by score per cell, sum each column, and the totals give you a structured, defensible starting point:
+
+| Criterion | Weight (1-5) | AVD | Citrix DaaS | Omnissa Horizon |
+|---|---|---|---|---|
+| Existing investments | e.g., 4 | score | score | score |
+| Cloud strategy | e.g., 5 | score | score | score |
+| Persistent/pooled mix | e.g., 3 | score | score | score |
+| Protocol/peripheral needs | e.g., 2 | score | score | score |
+| Budget model | e.g., 3 | score | score | score |
+| Compliance/sovereignty | e.g., 5 | score | score | score |
+
+The matrix is a **decision aid, not a decision-maker** — always sanity-check the numeric outcome against qualitative factors it can't capture: a looming merger, a key admin's skill gaps, or a vendor relationship the customer values. A recommendation deck that shows the matrix *and* explains a judgment call that overrides it is more credible than one that hides behind the numbers.
+
+## Why Mixed-Platform Is the Normal Outcome
+
+Because criteria 3 and 4 (session mix and protocol/peripheral needs) vary by **user population**, not just by company, the framework is best applied **per population** rather than once for an entire organization. A single enterprise might land on AVD pooled host pools for call-center staff, Windows 365 for executives and contractors, and Horizon or Citrix retained for a CAD/engineering team with legacy peripheral dependencies. Recognizing and recommending this kind of mixed outcome — rather than forcing an artificial single-platform answer — is usually the more sophisticated, more defensible recommendation, and it's exactly the shape of deliverable expected in the Module 7 capstones.
+
+## A Worked Mini-Example
+
+Suppose a 400-person insurance company is Azure-first for everything else, has no existing Citrix or VMware footprint, runs a mix of standard office staff and a 30-person claims-adjuster team that uses a specialized document-imaging peripheral, and operates under state insurance data-residency rules. Running the framework: existing investments score low weight (nothing to protect), cloud strategy scores heavily toward AVD/Windows 365, the office-staff population favors pooled AVD or Windows 365 for cost, the claims-adjuster peripheral need pulls toward whichever platform's protocol best supports that specific device (worth a proof-of-concept test rather than assumption), budget model depends on whether finance wants fixed or variable spend, and compliance narrows the field to whichever platform can guarantee in-region hosting. The likely recommendation: AVD or Windows 365 for the general population, with a targeted proof-of-concept for the claims-adjuster peripheral before committing that subset to the same platform. This is the level of concrete, criteria-by-criteria reasoning your Module 7 capstone deliverable should demonstrate — not just a platform name, but the trail of evidence behind it.
+
+## What's Next
+
+Module 2 is complete: you can now name, describe, and choose between every major VDI platform in the 2026 market. Module 3 goes deep on AVD infrastructure specifically — architecture, networking, session hosts, deployment, autoscale, and BCDR — mapped directly to AZ-140's largest exam domain.
