@@ -1,0 +1,161 @@
+---
+course: vdi-engineer
+title: GPU Virtual Desktops and the Rest of the 2026 VDI Field
+month: 2
+monthTitle: The 2026 VDI Platform Landscape
+lesson: 4
+summary: 'Not every virtual desktop is a call-center kiosk — CAD engineers, video editors, and AI/ML developers
+  need real GPU horsepower delivered remotely. This lesson covers GPU VDI fundamentals: use cases, Azure''s
+  NV-family GPU VMs (including the NVv4-to-NVadsA10v5 migration every architect should know about in 2026),
+  and NVIDIA vGPU licensing concepts. It closes with a fast, accurate survey of players beyond the big
+  three: Amazon WorkSpaces Family, Dizzion''s Frame platform (the 2023 Nutanix spin-out you must name
+  correctly), Kasm Workspaces, and the open-source Apache Guacamole.'
+objectives:
+- Identify at least three real-world use cases that require GPU-accelerated virtual desktops
+- Explain the difference between Azure's older NVv4-series and current NVadsA10v5-series GPU VMs, including
+  the 2026 retirement timeline
+- Describe what NVIDIA vGPU licensing controls and why it matters for GPU VDI cost planning
+- Correctly state Frame's current ownership and product name (Dizzion Frame, following the 2023 Nutanix
+  spin-out)
+- Describe Amazon WorkSpaces Family's Personal and Pools session models
+- Distinguish Kasm Workspaces (containerized, commercial) from Apache Guacamole (protocol gateway, open
+  source)
+quiz:
+- q: Which of the following is a realistic driver for deploying GPU-accelerated virtual desktops rather
+    than standard CPU-only session hosts?
+  options:
+  - CAD/engineering design, video/media editing, and AI/ML development workloads that require hardware-accelerated
+    rendering or compute
+  - GPU desktops are always cheaper than CPU-only desktops
+  - GPU desktops are required for all Microsoft Office workloads
+  - GPU acceleration is only relevant for gaming, not enterprise use cases
+  answer: 0
+  why: 'GPU VDI exists to serve workloads that genuinely need hardware acceleration: CAD/3D design tools,
+    video and media production, and AI/ML development (model training/inference, data science notebooks).
+    GPU session hosts cost meaningfully more than CPU-only hosts, so they''re deployed selectively for
+    these workloads, not by default.'
+- q: An architect is designing new AVD GPU session hosts in the second half of 2026 and is deciding between
+    the NVv4-series and NVadsA10v5-series VM sizes. What should they know?
+  options:
+  - NVv4-series and NVadsA10v5-series are identical and interchangeable with no planning needed
+  - NVv4-series VMs are retiring (September 30, 2026) and Microsoft recommends migrating to NVadsA10v5-series
+    (or NVv710v5-series) ahead of that date, so new deployments should target the current series
+  - NVadsA10v5-series has been retired in favor of NVv4-series
+  - GPU VM series never get retired on Azure
+  answer: 1
+  why: Microsoft has announced NVv4-series retirement effective September 30, 2026, with NVadsA10v5-series
+    (NVIDIA A10 GPUs) and NVv710v5-series as the recommended migration targets. Any new GPU VDI deployment
+    being planned in 2026 should target the current, non-retiring series rather than building on a VM
+    family already scheduled for retirement.
+- q: What does NVIDIA vGPU licensing primarily govern in a GPU VDI deployment?
+  options:
+  - The physical temperature of the GPU hardware
+  - Network bandwidth between the client and session host
+  - How a physical GPU's resources are partitioned and licensed for use as a virtual workstation for a
+    single user or shared across multiple concurrent users/sessions
+  - Whether Windows Update can run on the session host
+  answer: 2
+  why: NVIDIA vGPU licensing (via a GRID license, in Azure's case bundled with the qualifying VM SKU)
+    governs how a physical GPU's compute and frame buffer are partitioned — for example, a fraction of
+    a GPU as a virtual workstation for one user, or shared concurrent access for multiple sessions running
+    lighter graphics workloads. Getting this wrong leads to either under-licensed non-compliance or over-provisioned
+    cost.
+- q: A colleague refers to a legacy DaaS platform simply as 'Frame' and says it is 'part of Nutanix.'
+    What is the accurate correction?
+  options:
+  - The correction is unnecessary — Frame is still part of Nutanix in 2026
+  - Frame no longer exists in any form
+  - Frame was acquired by Citrix, not Dizzion
+  - 'Frame is now Dizzion Frame: Nutanix sold/spun Frame out in 2023, and it merged into Dizzion, an independent
+    DaaS provider, where it now powers Dizzion''s Cloud PC and DaaS offerings'
+  answer: 3
+  why: Nutanix sold Frame in 2023; it spun out and merged with Dizzion, an independent DaaS company (backed
+    by LLR Partners, which also backs Dizzion). The platform is now correctly referred to as Dizzion Frame,
+    not a Nutanix product — an important correction to make since outdated 'Nutanix Frame' references
+    are still common online.
+- q: Which pairing correctly distinguishes Kasm Workspaces from Apache Guacamole?
+  options:
+  - Kasm Workspaces is a commercial platform delivering containerized desktops, apps, and secure browsers
+    via the web; Apache Guacamole is a clientless, open-source protocol gateway (RDP/VNC/SSH) commonly
+    embedded inside other tools, including as a component Kasm itself can use for SSH connectivity
+  - Both are proprietary, closed-source commercial products with identical feature sets
+  - Apache Guacamole is a commercial product owned by Kasm Technologies
+  - Kasm Workspaces cannot be accessed through a web browser
+  answer: 0
+  why: Kasm Workspaces (Kasm Technologies) is a commercial platform built around containerized desktop/app/browser
+    delivery over the web. Apache Guacamole is a free, open-source, clientless remote-desktop gateway
+    supporting RDP, VNC, and SSH, maintained by the Apache Software Foundation — and it's commonly used
+    as a building block inside other products, including for SSH connectivity within Kasm itself.
+- q: In two to four sentences, explain why a VDI engineer should default to Azure's current-generation
+    GPU VM series (like NVadsA10v5) rather than an older series when scoping a new AVD deployment in 2026,
+    even if the older series appears cheaper in a quick price comparison.
+  answer: Choosing a VM series scheduled for retirement (like NVv4-series, retiring September 30, 2026)
+    creates a forced, unplanned migration project shortly after go-live, disrupting users and burning
+    engineering time that could have been avoided by starting on the current series. A lower sticker price
+    on a soon-to-be-retired series doesn't account for the migration cost, testing effort, and potential
+    downtime of moving workloads later, so the true lifecycle cost of the older series is usually higher
+    than it first appears. Defaulting to the currently supported, non-retiring series (NVadsA10v5 or newer)
+    avoids that hidden cost and keeps the deployment on Microsoft's active support and driver-update path.
+  why: 'This is a general lifecycle-planning principle every infrastructure engineer needs, not just a
+    GPU-VDI-specific fact: always check a cloud resource''s retirement/deprecation timeline before basing
+    a new deployment on it, because the cheapest option today can be the most expensive option once a
+    forced migration is factored in.'
+resources:
+- label: NV-family GPU VM sizes (Microsoft Learn)
+  url: https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/nv-family
+- label: NVadsA10v5-series (Microsoft Learn)
+  url: https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/nvadsa10v5-series
+- label: Amazon WorkSpaces Family (AWS)
+  url: https://aws.amazon.com/workspaces-family/
+- label: Dizzion Frame support and documentation
+  url: https://support.dizzion.com/hc/en-us/categories/23914355700365-Frame
+- label: Kasm Workspaces documentation
+  url: https://www.kasmweb.com/docs/latest/guide/system_architecture.html
+---
+
+## Why Some Desktops Need a GPU
+
+Everything covered so far in this module — AVD, Windows 365, Citrix DaaS, Omnissa Horizon — can run happily on CPU-only session hosts for office productivity, browser-based work, and line-of-business apps. But a meaningful slice of the VDI market exists specifically because some workloads **cannot** run acceptably without hardware graphics or compute acceleration:
+
+- **CAD and engineering design** — SolidWorks, AutoCAD, Revit, and similar tools that render complex 3D models and need real-time viewport manipulation.
+- **Media and video production** — Adobe Premiere Pro, DaVinci Resolve, After Effects, where GPU-accelerated encode/decode and effects rendering are the difference between usable and unusable.
+- **AI/ML development** — data scientists and ML engineers running training or inference workloads, GPU-accelerated notebooks, or local model development that benefits from remote GPU compute without shipping physical workstations.
+
+GPU session hosts cost substantially more than CPU-only hosts, so these are deployed **selectively**, for the specific user populations that need them — a decision the Lesson 5 scoring framework will help you formalize.
+
+## Azure GPU VM Series for AVD
+
+Within the Azure/AVD world (Module 3 covers session host sizing broadly), GPU-capable session hosts draw from Azure's **NV-family** of GPU-accelerated VM sizes. As of 2026, this is an area architects must actively track rather than assume: **NVv4-series VMs (AMD Radeon Instinct MI25 GPUs) are scheduled for retirement on September 30, 2026**, with Microsoft directing customers to migrate to **NVadsA10v5-series** (NVIDIA A10 GPUs, partitionable from 1/6th of a GPU up to a full GPU) or the newer **NVv710v5-series** ahead of that date. AVD also supports **NCasT4_v3** and legacy **NVv3** for specific workload profiles, but for any *new* GPU VDI deployment scoped in or after 2026, **NVadsA10v5 should be the default starting point** — building new capacity on a series already scheduled for retirement creates an unnecessary, forced migration project shortly after go-live.
+
+## NVIDIA vGPU Licensing, Conceptually
+
+GPU VMs on Azure typically come bundled with an **NVIDIA GRID license** as part of the VM SKU, which governs how the physical GPU is partitioned and used: as a dedicated **virtual workstation** for a single power user (full or partial GPU), or as **shared concurrent access** across multiple lighter sessions. You don't need to become a licensing specialist for this course, but you do need the concept: GPU capacity planning isn't just "add a GPU VM," it's choosing the right partition size and license mode for the workload, which directly drives both user experience and cost. Module 3's autoscale and cost-optimization lesson revisits GPU cost management with AVD-specific tooling.
+
+## The Rest of the Field: Smaller and Adjacent Players
+
+Beyond the big three platforms this module has covered, a working EUC engineer should be able to correctly name and briefly characterize several other players that come up in real conversations:
+
+**Amazon WorkSpaces Family** — AWS's DaaS offering, structured around **WorkSpaces Personal** (persistent, one-to-one desktops, similar in spirit to Windows 365 Cloud PC) and **WorkSpaces Pools** (non-persistent, shared desktop pools, similar in spirit to AVD pooled host pools). Note for currency: AWS has announced WorkSpaces Pools will stop accepting new customers from mid-2026, with existing customers supported into 2027 — a useful data point if you're advising a customer currently evaluating AWS as a VDI platform.
+
+**Dizzion Frame** — this is the corrected, current name for what many still call simply "Frame" or, incorrectly, "Nutanix Frame." Frame was Nutanix's browser-first, multi-cloud DaaS product; in 2023 **Nutanix sold/spun Frame out, and it merged into Dizzion**, an independent DaaS provider. The platform now runs as **Dizzion Frame**, powering Dizzion's own DaaS and Cloud PC offerings, and retains its original multi-cloud flexibility (Azure, AWS, GCP, and Nutanix Cloud Infrastructure as deployment targets). If you see "Nutanix Frame" in older material, treat it as outdated branding.
+
+**Kasm Workspaces** — a commercial platform (Kasm Technologies) delivering **containerized** desktops, applications, and secure browser isolation through a web interface — popular for security-focused browser isolation and lightweight app delivery use cases rather than full persistent Windows desktops.
+
+**Apache Guacamole** — a free, **open-source**, clientless remote-desktop gateway supporting RDP, VNC, and SSH through nothing but a browser, maintained by the Apache Software Foundation. It's frequently used as a lightweight building block inside other tools (Kasm itself uses Guacamole for SSH connectivity) rather than as a full enterprise VDI platform on its own.
+
+## A Quick Comparison Table
+
+When a customer asks "who else is out there besides Microsoft, Citrix, and Omnissa," this table is a useful mental snapshot to have ready:
+
+| Player | Model | Session type | Where it fits |
+|---|---|---|---|
+| Amazon WorkSpaces Family | Cloud DaaS (AWS-native) | Personal + Pools | AWS-committed shops wanting a native option |
+| Dizzion Frame | Managed multi-cloud DaaS | Both, vendor-managed | Customers wanting a fully outsourced DaaS operator across clouds |
+| Kasm Workspaces | Commercial, containerized | Ephemeral, container-based | Browser isolation, dev/test environments, lightweight app delivery |
+| Apache Guacamole | Open-source protocol gateway | N/A (a gateway, not a full platform) | Low-cost remote access into existing RDP/VNC/SSH targets, or as a building block inside another product |
+
+Notice that only the first two are genuinely comparable to AVD, Windows 365, Citrix DaaS, or Horizon as full desktop-delivery platforms; Kasm and Guacamole solve narrower problems and are more often complements to, rather than replacements for, a full VDI platform. Keeping this distinction straight will save you from over-promising what a lightweight tool like Guacamole can do in an enterprise-scale desktop rollout.
+
+## What's Next
+
+You now have accurate, current names and mental models for the full 2026 VDI landscape — the big three, the GPU specialty case, and the smaller/adjacent players. Lesson 5 turns all of this into a practical **decision framework and scoring matrix** you'll use to choose between platforms for a given customer, and reuse directly in the Module 7 capstone projects.

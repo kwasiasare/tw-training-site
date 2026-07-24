@@ -429,9 +429,9 @@ test('selectLessons: system prompt carries the lesson catalog and the FAQ topic 
 
 // --- listLessonMeta() (api/src/shared/lessons.js, TW-117) ---
 
-test('listLessonMeta: returns all 326 real lessons with id/course/title', () => {
+test('listLessonMeta: returns all 360 real lessons with id/course/title', () => {
   const meta = listLessonMeta();
-  assert.equal(meta.length, 326);
+  assert.equal(meta.length, 360);
   for (const m of meta) {
     assert.equal(typeof m.id, 'string');
     assert.equal(typeof m.course, 'string');

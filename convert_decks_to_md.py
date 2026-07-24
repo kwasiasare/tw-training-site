@@ -36,10 +36,15 @@ for path in sorted(glob.glob(os.path.join(DECKS, '*.json'))):
             'lesson': int(deck['lesson']),
             'summary': deck['summary'],
             'objectives': deck.get('objectives', []),
-            'video': deck.get('video', f'{slug}.mp4'),
             'quiz': quiz,
             'resources': deck.get('resources', []),
         }
+        # Video is optional in the content schema (z.string().optional()); only
+        # emit the key when the deck actually has one. A fabricated filename
+        # (e.g. slug + '.mp4') would point VideoEmbed at a file that doesn't
+        # exist instead of showing the graceful "coming soon" placeholder.
+        if deck.get('video'):
+            fm['video'] = deck['video']
         body = deck.get('body_markdown', '').strip()
         front = yaml.safe_dump(fm, sort_keys=False, allow_unicode=True, width=100).strip()
         md = f'---\n{front}\n---\n\n{body}\n'

@@ -147,6 +147,14 @@ export const COURSES: Course[] = [
     sample: 'cse-m1-l01-zero-trust-foundations-and-the-security-stack',
     accent: '#0891b2',
   },
+  {
+    slug: 'vdi-engineer',
+    title: 'VDI & End-User Computing Engineer: Azure Virtual Desktop, Windows 365 & Multi-Platform VDI',
+    tagline: 'IT professionals — sysadmins, helpdesk tier 2/3, M365/Azure administrators — who want to move into a VDI / End-User Computing Engineer role. Assumes basic Windows administration and some Azure familiarity; prepares you for AZ-140 (Microsoft Certified: Azure Virtual Desktop Specialty) and gives you the cross-platform grounding for Citrix CCA-V and Omnissa OCA-H paths.',
+    blurb: 'A project-based course that takes working IT professionals from VDI fundamentals to production-grade virtual desktop engineering. You\'ll master the vendor-neutral core every EUC engineer needs — architecture, display protocols, profile management, licensing, and platform selection across Azure Virtual Desktop, Windows 365, Citrix DaaS, and Omnissa Horizon — then go deep on Azure Virtual Desktop mapped to all four AZ-140 exam domains: planning and deploying host pools, images, and autoscaling; securing access with Entra ID and Conditional Access; delivering user environments with FSLogix and app attach; and monitoring, maintaining, and troubleshooting at scale. You finish with portfolio-grade capstones: a full AVD design-and-build and a multi-platform migration assessment hiring managers actually ask for.',
+    sample: 'vdi-m1-l01-what-is-vdi-and-euc',
+    accent: '#4f46e5',
+  },
 ];
 
 export function getCourse(slug: string): Course | undefined {

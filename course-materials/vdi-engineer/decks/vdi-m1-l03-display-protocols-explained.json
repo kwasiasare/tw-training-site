@@ -1,0 +1,205 @@
+{
+  "slug": "vdi-m1-l03-display-protocols-explained",
+  "title": "Display Protocols Explained: RDP, HDX, Blast Extreme, and Legacy PCoIP",
+  "month": 1,
+  "monthTitle": "VDI & EUC Foundations",
+  "lesson": 3,
+  "summary": "The display protocol is the single biggest factor in whether a virtual desktop feels instant or feels like a bad video call. This lesson breaks down the four protocols you'll encounter as an EUC engineer — Microsoft's RDP with RDP Shortpath, Citrix HDX built on the ICA protocol, Omnissa's Blast Extreme, and the now-legacy PCoIP — covering how each moves pixels, why TCP-only transport hurts real-time interactivity, what codecs like H.264 and HEVC trade off, and the latency and bandwidth budgets that separate a usable session from an unusable one.",
+  "objectives": [
+    "Explain what a display protocol actually does and why it dominates perceived VDI performance",
+    "Compare RDP with RDP Shortpath, Citrix HDX/ICA, and Omnissa Blast Extreme by transport and codec approach",
+    "Explain why UDP-based transport improves interactivity compared to pure TCP",
+    "State the current status of PCoIP and what it means for platform selection in 2026",
+    "Describe the latency and bandwidth factors that determine whether a session feels usable",
+    "Identify which protocol characteristics matter most for a given workload (task work vs. graphics-heavy)"
+  ],
+  "quiz": [
+    {
+      "q": "Why does a pure TCP-based connection generally feel worse for interactive VDI sessions than a UDP-based one?",
+      "options": [
+        "TCP cannot carry encrypted traffic",
+        "TCP only works on wired networks",
+        "TCP's reliable, in-order delivery and congestion control introduce retransmission delay that shows up as input lag under network loss or jitter, while UDP-based transports can tolerate some loss and prioritize timeliness over perfect delivery",
+        "TCP cannot be used at all for remote desktop protocols"
+      ],
+      "answer": 2,
+      "why": "TCP guarantees ordered, reliable delivery, which is great for file transfer but means a single lost packet stalls everything behind it until it's retransmitted. Real-time interactive protocols favor UDP-based transports (RDP Shortpath, Citrix EDT/HDX, Blast Extreme over UDP) that can drop or adapt around loss without stalling the whole stream, keeping input and screen updates feeling responsive."
+    },
+    {
+      "q": "What is RDP Shortpath's function within Azure Virtual Desktop and Windows 365?",
+      "options": [
+        "It replaces RDP entirely with a new protocol",
+        "It is a VPN product sold separately from AVD",
+        "It only works for RemoteApp, not full desktops",
+        "It establishes a UDP-based transport between the client and session host (via managed network or public network STUN/TURN) to reduce latency, falling back to TCP-based reverse connect if it cannot be established"
+      ],
+      "answer": 3,
+      "why": "RDP Shortpath adds a UDP-based transport option on top of standard RDP. It tries a direct or STUN/TURN-relayed UDP path first for better latency and throughput, and falls back to the TCP-based reverse connect transport when a UDP path can't be established — it doesn't replace RDP, it augments it."
+    },
+    {
+      "q": "Citrix HDX is built on top of which underlying remoting protocol?",
+      "options": [
+        "ICA (Independent Computing Architecture)",
+        "RDP",
+        "PCoIP",
+        "Blast Extreme"
+      ],
+      "answer": 0,
+      "why": "HDX is Citrix's marketing and technology umbrella built on top of ICA, the Independent Computing Architecture protocol. HDX adds intelligent redirection, adaptive compression, and (via Enlightened Data Transport, EDT) UDP-based adaptive transport on top of the core ICA remoting protocol."
+    },
+    {
+      "q": "As of 2026, what is the status of the PCoIP protocol and its main commercial product line?",
+      "options": [
+        "PCoIP is being aggressively expanded as HP's flagship remote desktop protocol",
+        "HP announced it will stop selling HP Anyware (its PCoIP-based product) and Trusted Zero Clients from May 2026, with support ending in October 2026 (legacy Teradici Desktop Access contracts run to 2029), and Omnissa is also ending PCoIP support in Horizon — PCoIP should be treated as legacy",
+        "PCoIP was renamed Blast Extreme in 2024",
+        "PCoIP is now the default protocol for Azure Virtual Desktop"
+      ],
+      "answer": 1,
+      "why": "In April 2026, HP announced it would stop selling HP Anyware and PCoIP-based Trusted Zero Clients from May 7, 2026, with support for those products ending on October 31, 2026 — only legacy Teradici Desktop Access customers retain support until October 31, 2029. Omnissa has also moved to end PCoIP support within Horizon. Any 2026-current architecture should treat PCoIP as a legacy protocol being phased out, not a forward-looking choice."
+    },
+    {
+      "q": "Which factor most directly determines whether typing and mouse movement in a VDI session feel instantaneous versus laggy?",
+      "options": [
+        "The total storage capacity of the session host",
+        "The number of monitors connected to the session host",
+        "Round-trip network latency between client and session host, along with the protocol's ability to prioritize input/screen-update responsiveness over raw throughput",
+        "The Windows edition running on the golden image"
+      ],
+      "answer": 2,
+      "why": "Interactivity is dominated by round-trip latency and how well the protocol prioritizes responsiveness — high bandwidth alone doesn't fix a session that has to wait 300ms for every keystroke to round-trip. This is why protocol designers focus so heavily on transport (UDP-based paths) and adaptive prioritization rather than just raw compression ratio."
+    },
+    {
+      "q": "In three to five sentences, explain why an EUC engineer designing for a graphics-intensive CAD workload would care about codec choice (H.264/AVC vs. HEVC) and give one concrete trade-off between the two.",
+      "answer": "Codec choice determines how efficiently the protocol compresses the screen content that has to be sent over the network every frame, which directly affects both bandwidth consumption and the visual quality a user perceives at a given bitrate — critical for CAD workloads with complex, fast-changing 3D graphics. H.264/AVC is broadly compatible and has the widest hardware decode support across client devices, while HEVC (H.265) generally compresses more efficiently at the same visual quality, meaning lower bandwidth or better fidelity for the same link, but requires HEVC decode support on the client device and more encode overhead on the session host's GPU. An engineer sizing a GPU-backed host pool for CAD users would weigh HEVC's bandwidth savings against client device compatibility and the extra encode load on the host GPU.",
+      "why": "Codec selection is a direct trade-off between bandwidth efficiency, visual fidelity, client compatibility, and host-side encode cost, and it matters most precisely for graphics-heavy workloads like CAD where screen content changes constantly and at high detail."
+    }
+  ],
+  "resources": [
+    {
+      "label": "RDP Shortpath (Microsoft Learn)",
+      "url": "https://learn.microsoft.com/en-us/azure/virtual-desktop/rdp-shortpath"
+    },
+    {
+      "label": "Citrix HDX documentation",
+      "url": "https://docs.citrix.com/en-us/citrix-workspace-app-for-windows/hdx.html"
+    },
+    {
+      "label": "What is HDX? (Citrix glossary)",
+      "url": "https://www.citrix.com/glossary/what-is-hdx.html"
+    },
+    {
+      "label": "Omnissa Horizon Blast Extreme display protocol (TechZone)",
+      "url": "https://techzone.omnissa.com/resource/omnissa-horizon-blast-extreme-display-protocol"
+    }
+  ],
+  "body_markdown": "## The Protocol Is the Product\n\nAsk any long-time VDI admin what actually determines whether users complain, and the answer is almost never CPU or storage — it's the display protocol. Everything else in the stack can be perfectly sized and still produce a session that feels sluggish if the protocol is fighting a bad network path. This lesson covers the four protocols you need fluent working knowledge of: **RDP** (with RDP Shortpath), **Citrix HDX** (built on ICA), **Omnissa Blast Extreme**, and legacy **PCoIP** — plus the transport and codec concepts that explain why they behave the way they do.\n\n## TCP vs. UDP: Why Transport Choice Comes First\n\nBefore comparing protocols, you need the transport-layer distinction underneath all of them.\n\n- **TCP** guarantees reliable, in-order delivery. If a packet is lost, TCP stalls and retransmits before delivering anything after it. That's exactly right for a file download, and exactly wrong for real-time interactivity: on a lossy or high-latency link, that stall shows up to the user as the mouse pointer freezing or keystrokes lagging behind.\n- **UDP** has no such guarantee — packets can arrive out of order or simply be dropped, with no automatic retransmission. On its own that sounds worse, but for real-time display protocols it's an advantage: the protocol can decide *which* frame to prioritize and simply skip a stale one rather than stalling the whole session waiting for a retransmit.\n\nEvery serious remote display protocol built in the last decade layers an adaptive, congestion-aware scheme on top of UDP to get reliability where it matters (input events, security handshakes) without full TCP-style stalling. That's exactly what RDP Shortpath, Citrix's Enlightened Data Transport (EDT), and Blast Extreme's UDP mode all do.\n\n## RDP and RDP Shortpath\n\nStandard RDP begins every connection as a TCP-based **reverse connect transport** — this is what lets Azure Virtual Desktop and Windows 365 avoid opening any inbound ports on session hosts, since the host and client both connect outward to the service. On top of that baseline, **RDP Shortpath** attempts to establish a parallel UDP-based path for better latency and throughput:\n\n- **RDP Shortpath for managed networks** — a direct UDP connection over a private link such as ExpressRoute or a site-to-site VPN, either via a listener port (default UDP 3390) or via STUN if no inbound port is opened.\n- **RDP Shortpath for public networks** — a direct UDP connection over the internet using STUN, falling back to a relayed connection via TURN if a direct path can't be established through NAT/firewalls.\n\nIf neither UDP path succeeds, the session simply continues over the original TCP reverse-connect transport — Shortpath is a performance upgrade, not a hard requirement, which is why it fails gracefully.\n\n## Citrix HDX, Built on ICA\n\n**ICA (Independent Computing Architecture)** is Citrix's original remoting protocol, dating back to WinFrame. **HDX** is the modern technology and marketing umbrella Citrix builds on top of ICA — it's not a separate protocol so much as ICA plus a large set of optimizations: intelligent redirection (deciding what to process locally vs. remotely, such as multimedia or browser content), adaptive compression, and data de-duplication. The transport-layer piece that matters most for interactivity is **Enlightened Data Transport (EDT)**, a UDP-based adaptive transport used for ICA connections — analogous in purpose to RDP Shortpath, giving Citrix sessions a responsive UDP path with a TCP-based fallback. Citrix also offers multiple encryption options for ICA traffic depending on deployment (Secure HDX/AES-256, HDX Direct with TLS/DTLS), which matters when you're designing for regulated environments.\n\n## Omnissa Blast Extreme\n\n**Blast Extreme** is Omnissa's protocol for Horizon, engineered to work well across a wide range of devices, networks, and media types. Its defining characteristics:\n\n- Can run over **either TCP or UDP**, and will use UDP when available for better performance under adverse network conditions\n- Uses **H.264/AVC by default** for video compression, with **HEVC (H.265)** available as an option for better compression efficiency where client hardware supports it\n- Designed to scale across CPU cores efficiently and to take advantage of hardware encode/decode on both server and client where present\n\nBlast Extreme is the protocol you'll configure for every Horizon deployment going forward — it fully superseded PCoIP as Omnissa's primary protocol, and PCoIP support is now being phased out of the platform entirely.\n\n## PCoIP: Now a Legacy Protocol\n\nPCoIP (PC-over-IP) was developed by Teradici (acquired by HP in 2021) and was historically the default protocol for VMware Horizon before Blast Extreme matured. As of 2026, treat PCoIP as **legacy, not a forward-looking option**: HP announced it will stop selling its PCoIP-based **HP Anyware** product and Trusted Zero Client hardware from May 7, 2026, with support for both ending on October 31, 2026 (only legacy Teradici Desktop Access contracts retain support through October 31, 2029). Omnissa has correspondingly moved to end PCoIP support within Horizon itself. If you inherit an environment still configured for PCoIP, your job is a migration plan to Blast Extreme (or another current protocol) on a timeline that respects the October 2026 support cutoff — not a reason to design new deployments around it.\n\n## Codecs: What H.264 and HEVC Actually Trade Off\n\nAll of these protocols ultimately have to compress a constantly-changing screen image into a video-like stream, and the codec choice affects both bandwidth and visual quality:\n\n- **H.264/AVC** is the universal baseline — broadly compatible, hardware-decodable on essentially every client device, a safe default.\n- **HEVC (H.265)** generally compresses more efficiently at the same visual quality (or delivers better quality at the same bitrate), which matters for bandwidth-constrained links or high-resolution/high-frame-rate graphical workloads — but it requires HEVC decode support on the client and adds encode overhead on the host, usually offloaded to a GPU where available.\n\nA general-purpose task-worker fleet is fine on H.264. A GPU-backed pool serving CAD or media professionals is exactly where the HEVC trade-off starts to matter.\n\n## Latency and Bandwidth: What \"Usable\" Actually Means\n\nTwo numbers govern whether a session feels good:\n\n- **Round-trip latency** is what interactivity actually depends on — every keystroke and mouse movement has to travel to the host and the resulting screen update has to come back. High latency (from long geographic distance, satellite links, or an overloaded network path) makes a session feel sluggish no matter how much bandwidth is available. As a rule of thumb, aim to keep round-trip latency low enough that input feels immediate; anything creeping toward a few hundred milliseconds becomes noticeably frustrating for interactive work.\n- **Bandwidth** determines how much detail and motion the protocol can push through per second. A single office productivity session typically needs a modest, sub-megabit-to-low-single-digit-megabit budget; add video calls, multimedia redirection, or high-frame-rate 3D graphics and that budget climbs substantially — which is exactly why Module 3's networking lesson and Module 5's Teams/multimedia lesson both come back to bandwidth planning per workload type.\n\nAs an EUC engineer, your protocol decisions are never made in a vacuum — they're made against a specific network path and a specific workload. The rest of this course will keep returning to that pairing: protocol capability plus real network conditions equals the experience your users actually get.",
+  "slides": [
+    {
+      "type": "title",
+      "title": "Display Protocols Explained",
+      "sub": "RDP, HDX, Blast Extreme, and legacy PCoIP",
+      "narration": "If there's one thing that determines whether users love or hate their virtual desktop, it's the display protocol. In this lesson we'll cover the four protocols every EUC engineer needs fluent knowledge of: Microsoft's RDP with RDP Shortpath, Citrix HDX built on the ICA protocol, Omnissa's Blast Extreme, and the now legacy PCoIP. We'll also cover the transport and codec concepts underneath all of them, and the latency and bandwidth budgets that separate a great session from an unusable one."
+    },
+    {
+      "type": "content",
+      "title": "Why Transport Choice Comes First",
+      "bullets": [
+        "TCP: reliable, ordered delivery, but stalls on packet loss",
+        "A single lost TCP packet delays everything behind it",
+        "UDP: no delivery guarantee, but no stalling either",
+        "Modern protocols layer adaptive reliability on top of UDP"
+      ],
+      "narration": "Before comparing protocols, you need to understand the transport layer underneath all of them. TCP guarantees reliable, in order delivery, which is perfect for a file download and exactly wrong for real time interactivity, because a single lost packet stalls everything behind it until it's retransmitted. UDP has no such guarantee, but that's actually an advantage here: the protocol can prioritize a fresh frame and skip a stale one instead of stalling. Every serious display protocol built in the last decade layers adaptive reliability on top of UDP to get the best of both worlds."
+    },
+    {
+      "type": "content",
+      "title": "RDP and RDP Shortpath",
+      "bullets": [
+        "Baseline: TCP-based reverse connect transport",
+        "No inbound ports needed on session hosts",
+        "Shortpath adds a UDP path for managed networks",
+        "Shortpath adds a UDP path for public networks via STUN/TURN",
+        "Falls back gracefully to TCP if UDP can't be established"
+      ],
+      "narration": "Standard RDP begins every connection over a TCP based reverse connect transport, which is what lets Azure Virtual Desktop avoid opening any inbound ports on session hosts. RDP Shortpath adds a parallel UDP path on top of that baseline: for managed networks like ExpressRoute or VPN, and for public internet connections using STUN and TURN. If neither UDP path can be established, the session simply continues over the original TCP transport. Shortpath is a performance upgrade, not a hard requirement, which is exactly why it fails gracefully."
+    },
+    {
+      "type": "content",
+      "title": "Citrix HDX, Built on ICA",
+      "bullets": [
+        "ICA: Citrix's original remoting protocol, since WinFrame",
+        "HDX: the technology umbrella built on top of ICA",
+        "Intelligent redirection, adaptive compression, deduplication",
+        "EDT: Enlightened Data Transport, the UDP-based adaptive layer"
+      ],
+      "narration": "ICA, the Independent Computing Architecture, is Citrix's original remoting protocol, dating all the way back to WinFrame. HDX is the modern technology and marketing umbrella Citrix builds on top of ICA: intelligent redirection, adaptive compression, and data de-duplication. The transport piece that matters most for interactivity is Enlightened Data Transport, or EDT, a UDP based adaptive transport used for ICA connections, playing the same role RDP Shortpath plays for Microsoft's protocol."
+    },
+    {
+      "type": "content",
+      "title": "Omnissa Blast Extreme",
+      "bullets": [
+        "Can run over either TCP or UDP",
+        "Uses UDP when available for better performance",
+        "H.264/AVC by default, HEVC optional",
+        "Fully superseded PCoIP as Omnissa's primary protocol"
+      ],
+      "narration": "Blast Extreme is Omnissa's protocol for Horizon, engineered to work well across a wide range of devices and networks. It can run over either TCP or UDP, using UDP when available for better performance under adverse conditions. It defaults to H.264 for video compression, with HEVC available as an option where client hardware supports it. Blast Extreme has fully superseded PCoIP as Omnissa's primary protocol, which brings us to PCoIP's current status."
+    },
+    {
+      "type": "content",
+      "title": "PCoIP: Now a Legacy Protocol",
+      "bullets": [
+        "Developed by Teradici, acquired by HP in 2021",
+        "HP stops selling HP Anyware and Trusted Zero Clients from May 2026",
+        "Support ends October 31, 2026 (Teradici Desktop Access legacy: 2029)",
+        "Omnissa is also ending PCoIP support in Horizon"
+      ],
+      "narration": "PCoIP was developed by Teradici, acquired by HP in 2021, and was historically the default protocol for VMware Horizon before Blast Extreme matured. As of 2026 you should treat PCoIP as legacy. HP announced it will stop selling its PCoIP based HP Anyware product and Trusted Zero Client hardware starting May 7, 2026, with support ending October 31, 2026; only legacy Teradici Desktop Access contracts run to October 31, 2029. Omnissa has correspondingly moved to end PCoIP support within Horizon itself. If you inherit a PCoIP environment, your job is a migration plan, not a reason to design new deployments around it."
+    },
+    {
+      "type": "content",
+      "title": "Codecs: H.264 vs. HEVC",
+      "bullets": [
+        "H.264/AVC: universal baseline, broad hardware decode support",
+        "HEVC (H.265): more efficient compression at the same quality",
+        "HEVC needs client decode support and more host GPU encode work",
+        "Matters most for GPU-backed, graphics-heavy workloads"
+      ],
+      "narration": "All these protocols have to compress a constantly changing screen into a video-like stream, and codec choice affects both bandwidth and quality. H.264 is the universal baseline, broadly compatible and hardware decodable on nearly every client device. HEVC generally compresses more efficiently at the same visual quality, which matters on bandwidth constrained links or high resolution graphical workloads, but it requires HEVC decode support on the client and adds encode overhead on the host, usually offloaded to a GPU. A general task worker fleet is fine on H.264; a GPU-backed pool serving CAD or media professionals is exactly where that trade-off starts to matter."
+    },
+    {
+      "type": "content",
+      "title": "Latency: The Number That Determines Feel",
+      "bullets": [
+        "Round-trip latency governs interactivity, not bandwidth",
+        "Every keystroke and mouse move round-trips to the host",
+        "High latency feels sluggish regardless of available bandwidth",
+        "Distance, satellite links, and congestion all add latency"
+      ],
+      "narration": "Round trip latency is what interactivity actually depends on. Every keystroke and mouse movement has to travel to the host, and the resulting screen update has to come back, so high latency from long geographic distance, satellite links, or an overloaded network path makes a session feel sluggish no matter how much bandwidth is available. This is why protocol engineers spend so much effort on transport and prioritization rather than just raw compression ratio."
+    },
+    {
+      "type": "content",
+      "title": "Bandwidth: Sizing the Pipe",
+      "bullets": [
+        "Determines how much detail and motion can be pushed per second",
+        "Office productivity: modest, low single-digit Mbps typical",
+        "Video calls and multimedia redirection raise the budget substantially",
+        "High frame-rate 3D graphics raise it further still"
+      ],
+      "narration": "Bandwidth determines how much detail and motion the protocol can push through per second. A single office productivity session typically needs a fairly modest budget, but add video calls, multimedia redirection, or high frame rate 3D graphics and that budget climbs substantially. We'll come back to concrete bandwidth planning per workload type in Module 3's networking lesson and Module 5's Teams and multimedia lesson."
+    },
+    {
+      "type": "content",
+      "title": "Recap and What's Next",
+      "bullets": [
+        "Protocol choice dominates perceived VDI performance",
+        "UDP-based adaptive transport beats pure TCP for interactivity",
+        "PCoIP is legacy in 2026 — plan migrations, don't design around it",
+        "Next lesson: persistent vs. non-persistent desktops and profiles"
+      ],
+      "narration": "The display protocol is the single biggest factor in whether a virtual desktop feels instant or feels frustrating. UDP based adaptive transport, whether it's RDP Shortpath, Citrix EDT, or Blast Extreme over UDP, consistently beats pure TCP for interactivity, and PCoIP should now be treated strictly as a legacy protocol on its way out. In the next lesson we shift from how pixels move to how user identity and personalization survive on pooled, disposable desktops: persistent versus non-persistent hosts and the profile tooling that makes non-persistent desktops feel personal."
+    }
+  ]
+}
