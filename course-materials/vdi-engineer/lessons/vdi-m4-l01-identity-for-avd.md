@@ -100,6 +100,7 @@ resources:
   url: https://learn.microsoft.com/en-us/fslogix/how-to-configure-profile-container-entra-id-hybrid
 - label: Deploy Microsoft Entra joined VMs in Azure Virtual Desktop
   url: https://learn.microsoft.com/en-us/azure/virtual-desktop/deploy-azure-ad-joined-vm
+video: vdi-m4-l01-identity-for-avd.mp4
 ---
 
 ## Why Identity Comes Before Everything Else

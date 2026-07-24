@@ -112,6 +112,7 @@ resources:
   url: https://learn.microsoft.com/en-us/azure/virtual-desktop/private-link-overview
 - label: Remote Desktop Protocol (RDP) bandwidth requirements
   url: https://learn.microsoft.com/en-us/azure/virtual-desktop/rdp-bandwidth
+video: vdi-m3-l02-avd-networking.mp4
 ---
 
 ## Why Networking Is Not an Afterthought

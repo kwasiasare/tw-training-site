@@ -4,6 +4,7 @@
   "month": 2,
   "monthTitle": "The 2026 VDI Platform Landscape",
   "lesson": 1,
+  "video": "vdi-m2-l01-azure-virtual-desktop-and-windows-365.mp4",
   "summary": "This lesson draws the line every Microsoft-stack EUC engineer needs to draw cleanly: Azure Virtual Desktop (AVD) is a PaaS you architect and operate, while Windows 365 Cloud PC is a SaaS you provision and hand to a user. You'll compare their ownership models, session types, licensing shapes, and pricing predictability, then survey Windows 365's delivery modes — Boot, Switch, and Frontline — at a high level so you can recognize them in a customer conversation before Module 5 goes deep on administering them.",
   "objectives": [
     "Explain the fundamental service-model difference between AVD (PaaS) and Windows 365 (SaaS)",

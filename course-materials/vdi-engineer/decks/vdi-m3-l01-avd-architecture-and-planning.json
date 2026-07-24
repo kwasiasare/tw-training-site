@@ -4,6 +4,7 @@
   "month": 3,
   "monthTitle": "Azure Virtual Desktop Infrastructure: Plan, Deploy & Scale",
   "lesson": 1,
+  "video": "vdi-m3-l01-avd-architecture-and-planning.mp4",
   "summary": "This lesson builds the architectural mental model for everything else in this module. You'll learn exactly what Microsoft manages versus what you manage in Azure Virtual Desktop, why reverse connect means you never open an inbound port to a session host, and how host pools, application groups, and workspaces fit together to publish desktops and apps to users. You'll also learn the personal-vs-pooled decision, validation vs production host pools, and the practical service limits that shape how you design at scale — the foundation for AZ-140 Domain 1.",
   "objectives": [
     "Draw the line between the Microsoft-managed AVD control plane and the customer-managed session host layer",

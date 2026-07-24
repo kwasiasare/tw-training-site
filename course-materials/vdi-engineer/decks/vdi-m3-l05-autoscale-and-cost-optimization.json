@@ -4,6 +4,7 @@
   "month": 3,
   "monthTitle": "Azure Virtual Desktop Infrastructure: Plan, Deploy & Scale",
   "lesson": 5,
+  "video": "vdi-m3-l05-autoscale-and-cost-optimization.mp4",
   "summary": "Session host compute is the biggest controllable cost in most AVD deployments. This lesson covers autoscale scaling plans for both pooled and personal host pools, Start VM on Connect, the generally available hibernation feature for personal host pools, drain mode as the manual control underneath all of this automation, an ongoing right-sizing discipline, and how Reserved Instances or Savings Plans combine with autoscale to build a real cost-per-user model.",
   "objectives": [
     "Explain how autoscale scaling plans differ for pooled versus personal host pools",

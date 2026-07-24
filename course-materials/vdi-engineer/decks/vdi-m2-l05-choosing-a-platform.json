@@ -4,6 +4,7 @@
   "month": 2,
   "monthTitle": "The 2026 VDI Platform Landscape",
   "lesson": 5,
+  "video": "vdi-m2-l05-choosing-a-platform.mp4",
   "summary": "This lesson turns everything Module 2 has covered — AVD, Windows 365, Citrix DaaS, Omnissa Horizon, GPU VDI, and the smaller players — into a repeatable decision framework. You'll learn the six criteria that actually drive real-world platform choices: existing investments, cloud strategy, persistent-vs-pooled mix, protocol/peripheral needs, budget model, and compliance/sovereignty. You'll build a scoring matrix you can apply to any customer scenario, and you'll reuse this exact framework in the Module 7 migration-assessment capstone.",
   "objectives": [
     "Name the six criteria of the platform-choice decision framework and explain what each one evaluates",

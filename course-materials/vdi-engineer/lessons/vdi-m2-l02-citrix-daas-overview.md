@@ -104,6 +104,7 @@ resources:
   url: https://docs.citrix.com/en-us/citrix-daas/install-configure/resource-location.html
 - label: Citrix Tech Zone — reference architectures
   url: https://community.citrix.com/tech-zone/design/reference-architectures/csp-cvads/
+video: vdi-m2-l02-citrix-daas-overview.mp4
 ---
 
 ## Citrix in 2026: Still the Deep End of the Pool

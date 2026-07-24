@@ -4,6 +4,7 @@
   "month": 7,
   "monthTitle": "Capstone Projects & Career Launch",
   "lesson": 2,
+  "video": "vdi-m7-l02-capstone-2-build-and-document.mp4",
   "summary": "A design document proves you can think; a working deployment proves you can build. In this capstone you deploy a scaled-down, single-pool version of an AVD environment in your own trial or dev subscription — Bicep-defined host pool and session hosts, FSLogix profiles on Azure Files, an autoscale scaling plan, and Azure Virtual Desktop Insights — then document the whole thing as a GitHub README with screenshots. You'll also learn to treat cost control as an engineering deliverable, not an afterthought: a budget alert before you deploy anything, and a full, verified teardown once you're done.",
   "objectives": [
     "Deploy an Azure Virtual Desktop host pool, workspace, and session hosts from Bicep",

@@ -4,6 +4,7 @@
   "month": 3,
   "monthTitle": "Azure Virtual Desktop Infrastructure: Plan, Deploy & Scale",
   "lesson": 2,
+  "video": "vdi-m3-l02-avd-networking.mp4",
   "summary": "Session hosts live in your virtual network, so networking design decisions directly shape user experience and security posture. This lesson covers how to design a VNet and subnet for AVD, the exact outbound connectivity a session host needs (service tags and required FQDNs), how RDP Shortpath establishes a direct UDP path for managed and public networks, when to use Private Link instead of public endpoints, and how to plan bandwidth and hybrid connectivity for real workloads.",
   "objectives": [
     "Design a VNet and subnet layout for AVD session hosts that supports growth and hybrid connectivity",

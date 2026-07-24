@@ -98,6 +98,7 @@ resources:
   url: https://techzone.omnissa.com/resource/what-horizon-8
 - label: Cloud Software Group (Citrix parent company)
   url: https://en.wikipedia.org/wiki/Cloud_Software_Group
+video: vdi-m1-l01-what-is-vdi-and-euc.mp4
 ---
 
 ## Four Words People Use Interchangeably (and Shouldn't)

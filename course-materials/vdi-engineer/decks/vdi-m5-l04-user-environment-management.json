@@ -4,6 +4,7 @@
   "month": 5,
   "monthTitle": "User Environments & App Delivery",
   "lesson": 4,
+  "video": "vdi-m5-l04-user-environment-management.mp4",
   "summary": "FSLogix carries the profile and App Attach carries the applications, but something still has to control Start menu layout, taskbar pins, language, and hundreds of other settings without baking them permanently into the image. This lesson covers GPO vs Intune policy for session hosts, the category of user environment management tools (Citrix WEM, Omnissa DEM), and the recurring trade-off between putting a setting in the image versus applying it at login.",
   "objectives": [
     "Compare Group Policy and Intune as policy mechanisms for Azure Virtual Desktop session hosts",

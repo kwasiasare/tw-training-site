@@ -107,6 +107,7 @@ resources:
   url: https://www.omnissa.com/products/horizon-8/
 - label: Evaluation Guide for Horizon 8 (Omnissa Tech Zone)
   url: https://techzone.omnissa.com/resource/evaluation-guide-horizon-8
+video: vdi-m2-l03-omnissa-horizon-overview.mp4
 ---
 
 ## From VMware EUC to Omnissa

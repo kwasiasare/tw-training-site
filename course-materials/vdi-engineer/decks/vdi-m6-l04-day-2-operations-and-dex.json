@@ -4,6 +4,7 @@
   "month": 6,
   "monthTitle": "Monitoring, Operations & Troubleshooting",
   "lesson": 4,
+  "video": "vdi-m6-l04-day-2-operations-and-dex.mp4",
   "summary": "Getting a VDI platform live is day one. Running it well for the next three years is day two, and it's a completely different discipline: recurring capacity and cost reviews, a category of tooling called digital employee experience (DEX) that measures what users actually feel rather than what infrastructure reports, runbooks that don't depend on one person's memory, and service-level objectives that give you an honest answer to \"is the platform healthy.\" This closing lesson of Module 6 ties infrastructure monitoring, image lifecycle, and troubleshooting from the rest of the module into an operating rhythm you can actually run.",
   "objectives": [
     "Run a recurring capacity and cost review cadence for an AVD estate",

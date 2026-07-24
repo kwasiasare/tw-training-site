@@ -4,6 +4,7 @@
   "month": 1,
   "monthTitle": "VDI & EUC Foundations",
   "lesson": 3,
+  "video": "vdi-m1-l03-display-protocols-explained.mp4",
   "summary": "The display protocol is the single biggest factor in whether a virtual desktop feels instant or feels like a bad video call. This lesson breaks down the four protocols you'll encounter as an EUC engineer — Microsoft's RDP with RDP Shortpath, Citrix HDX built on the ICA protocol, Omnissa's Blast Extreme, and the now-legacy PCoIP — covering how each moves pixels, why TCP-only transport hurts real-time interactivity, what codecs like H.264 and HEVC trade off, and the latency and bandwidth budgets that separate a usable session from an unusable one.",
   "objectives": [
     "Explain what a display protocol actually does and why it dominates perceived VDI performance",

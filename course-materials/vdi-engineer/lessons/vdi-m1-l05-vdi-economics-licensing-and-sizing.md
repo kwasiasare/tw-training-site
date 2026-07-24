@@ -111,6 +111,7 @@ resources:
   url: https://azure.microsoft.com/en-us/pricing/details/virtual-desktop/
 - label: FSLogix prerequisites and licensing notes (Microsoft Learn)
   url: https://learn.microsoft.com/en-us/fslogix/overview-prerequisites
+video: vdi-m1-l05-vdi-economics-licensing-and-sizing.mp4
 ---
 
 ## Why This Lesson Matters Beyond the Technology

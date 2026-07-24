@@ -102,6 +102,7 @@ resources:
   url: https://learn.microsoft.com/en-us/windows-365/enterprise/introduction-windows-365-frontline
 - label: What's new in Windows 365 Enterprise
   url: https://learn.microsoft.com/en-us/windows-365/enterprise/whats-new
+video: vdi-m5-l05-windows-365-administration.mp4
 ---
 
 ## Administering a SaaS Desktop

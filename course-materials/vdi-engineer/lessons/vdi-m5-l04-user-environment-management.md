@@ -110,6 +110,7 @@ resources:
   url: https://docs.omnissa.com/category/Dynamic_Environment_Manager
 - label: Citrix Workspace Environment Management service
   url: https://docs.citrix.com/en-us/workspace-environment-management/service.html
+video: vdi-m5-l04-user-environment-management.mp4
 ---
 
 ## The Layer Between the Profile and the Image

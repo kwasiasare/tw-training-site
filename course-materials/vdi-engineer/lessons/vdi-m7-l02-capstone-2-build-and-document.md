@@ -103,6 +103,7 @@ resources:
   url: https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/delete-resource-group
 - label: Understand and estimate costs for Azure Virtual Desktop
   url: https://learn.microsoft.com/en-us/azure/virtual-desktop/understand-estimate-costs
+video: vdi-m7-l02-capstone-2-build-and-document.mp4
 ---
 
 ## The Goal

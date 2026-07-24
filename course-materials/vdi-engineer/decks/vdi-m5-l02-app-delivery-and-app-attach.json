@@ -4,6 +4,7 @@
   "month": 5,
   "monthTitle": "User Environments & App Delivery",
   "lesson": 2,
+  "video": "vdi-m5-l02-app-delivery-and-app-attach.mp4",
   "summary": "Session hosts get simpler and cheaper to maintain when you stop installing applications on them. This lesson covers App Attach, Azure Virtual Desktop's current dynamic application delivery feature — how it evolved from the earlier MSIX-only app attach, the package formats and disk image types it supports in 2026, how registration and identity work, and how it compares to Citrix App Layering and Omnissa App Volumes.",
   "objectives": [
     "Explain what App Attach is and how it differs from installing applications directly on session host images",

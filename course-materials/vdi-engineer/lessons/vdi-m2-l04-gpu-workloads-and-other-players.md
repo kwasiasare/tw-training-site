@@ -111,6 +111,7 @@ resources:
   url: https://support.dizzion.com/hc/en-us/categories/23914355700365-Frame
 - label: Kasm Workspaces documentation
   url: https://www.kasmweb.com/docs/latest/guide/system_architecture.html
+video: vdi-m2-l04-gpu-workloads-and-other-players.mp4
 ---
 
 ## Why Some Desktops Need a GPU

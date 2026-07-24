@@ -4,6 +4,7 @@
   "month": 7,
   "monthTitle": "Capstone Projects & Career Launch",
   "lesson": 4,
+  "video": "vdi-m7-l04-az-140-and-cert-roadmap.mp4",
   "summary": "Three capstones prove you can do the work; a certification proves it to someone who's never seen your GitHub. This lesson maps AZ-140, Microsoft Certified: Azure Virtual Desktop Specialty, directly onto Modules 3 through 6 of this course, walks through the verified 2026 exam logistics, and is honest about what Microsoft does and doesn't publish. Then it builds your wider certification roadmap across CCA-V, OCA-H, and adjacent credentials like MD-102, so you leave with a sequenced plan rather than a pile of exam codes.",
   "objectives": [
     "Map AZ-140's four skills-measured domains to the specific modules of this course that prepared you for each",
