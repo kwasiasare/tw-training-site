@@ -51,6 +51,7 @@ export type Course = {
   title: string;
   tagline: string;
   blurb: string;
+  cardBlurb: string; // short benefit-led description for the homepage catalog tile, ≤90 chars
   sample: string; // a representative lesson slug
   accent: string;
 };
@@ -62,6 +63,7 @@ export const COURSES: Course[] = [
     tagline: 'Turn cloud, DevOps & security skills into an applied GenAI role.',
     blurb:
       'A deliverable-driven roadmap: direct API fluency, retrieval-augmented generation, agents & orchestration, and production engineering — leaning into your security edge.',
+    cardBlurb: 'Turn cloud, DevOps & security experience into an applied GenAI engineering role.',
     sample: 'g1-l01-how-llms-behave',
     accent: '#0ea5e9',
   },
@@ -71,6 +73,7 @@ export const COURSES: Course[] = [
     tagline: 'From zero PC experience to a job-ready IT support technician in six months.',
     blurb:
       'A hands-on, 60-lesson path built around CompTIA A+, Network+, Microsoft MD-102 and MS-102: PC hardware, networking, Windows support, the helpdesk craft (ITIL & ticketing), modern endpoint management, and AI tools for resolving real endpoint problems.',
+    cardBlurb: 'From zero PC experience to a job-ready Tier 2 IT support technician in six months.',
     sample: 'hd4-l04-troubleshooting-methodology',
     accent: '#16a34a',
   },
@@ -80,6 +83,7 @@ export const COURSES: Course[] = [
     tagline: 'Step up from Tier 2 to senior escalation and endpoint engineering.',
     blurb:
       'An advanced follow-on for working technicians: deep root-cause analysis, PowerShell & Microsoft Graph automation at scale, advanced endpoint security & identity, and AIOps with agentic automation for modern endpoint operations.',
+    cardBlurb: 'Step up from Tier 2 to senior escalation and advanced endpoint engineering.',
     sample: 'ht4-l05-building-an-ai-triage-agent',
     accent: '#db2777',
   },
@@ -88,6 +92,7 @@ export const COURSES: Course[] = [
     title: 'Data Scientist Career Accelerator: From Python to Production Insights',
     tagline: 'Aspiring data scientists, analysts, or developers with basic computer literacy who want to transition into a data science role through hands-on, portfolio-building work.',
     blurb: 'A project-based course that takes you from programming and statistics fundamentals to building, evaluating, and communicating machine learning models. You\'ll work with real datasets to build a portfolio of analyses, dashboards, and end-to-end ML projects that prove you\'re ready for a data scientist role.',
+    cardBlurb: 'Go from Python basics to production ML models and a portfolio that gets interviews.',
     sample: 'dsc-m1-l01-python-essentials-for-data-work',
     accent: '#7c3aed',
   },
@@ -96,6 +101,7 @@ export const COURSES: Course[] = [
     title: 'AI Application Developer: Build and Ship LLM-Powered Apps',
     tagline: 'Aspiring AI Application Developers with basic programming exposure who want to build and deploy real LLM-powered applications and land a job in the field.',
     blurb: 'A hands-on, project-based course that takes you from Python foundations to deploying production-ready AI applications using LLMs, RAG pipelines, autonomous agents, and vector databases. You\'ll build a portfolio of real apps culminating in a deployed capstone project.',
+    cardBlurb: 'Build and ship real LLM apps — RAG, agents and vector databases — up to a deployed capstone.',
     sample: 'aad-m1-l01-python-essentials-for-ai-developers',
     accent: '#7c3aed',
   },
@@ -104,6 +110,7 @@ export const COURSES: Course[] = [
     title: 'AI Product Management: From Fundamentals to Shipping AI Products',
     tagline: 'Aspiring and transitioning product managers, technical PMs, founders, and analysts who want to lead AI/LLM products and need practical, portfolio-building experience to land an AI Product Manager role.',
     blurb: 'A hands-on, project-based course that prepares you to lead AI and LLM-powered products end to end. You\'ll build AI literacy, master LLM capabilities and limits, craft product strategy and roadmaps, design evaluation frameworks and prompts, manage cross-functional stakeholders, and define metrics that prove impact. By the end, you\'ll have a portfolio-ready AI product spec, roadmap, eval suite, and launch plan.',
+    cardBlurb: 'Learn to lead AI products end to end: strategy, roadmaps, evals, prompts and launch.',
     sample: 'apm-m1-l01-how-modern-ai-works-a-no-math-mental-model-for-p',
     accent: '#7c3aed',
   },
@@ -112,6 +119,7 @@ export const COURSES: Course[] = [
     title: 'Machine Learning Engineer Bootcamp: From Fundamentals to Production',
     tagline: 'Aspiring Machine Learning Engineers with basic programming exposure who want to bridge résumé gaps and become job-ready for ML engineering roles.',
     blurb: 'A project-based course that builds the practical skills needed to land a Machine Learning Engineer role, covering Python, math foundations, ML algorithms, PyTorch, feature engineering, model training and evaluation, and production-ready data pipelines. Learners build a portfolio of hands-on projects culminating in an end-to-end ML system.',
+    cardBlurb: 'Master Python, PyTorch and ML pipelines to become a job-ready ML engineer.',
     sample: 'mle-m1-l01-python-for-ml-numpy-pandas-and-clean-code',
     accent: '#7c3aed',
   },
@@ -120,6 +128,7 @@ export const COURSES: Course[] = [
     title: 'Agentic AI Engineer: Building Production-Ready LLM Agents',
     tagline: 'Python developers and ML practitioners who want to transition into building, orchestrating, and deploying autonomous LLM-powered agents in production.',
     blurb: 'A hands-on, project-based course that takes you from Python-driven LLM API calls to deploying sophisticated multi-agent systems with planning, memory, RAG, and orchestration using LangGraph. You\'ll build a portfolio of working agents culminating in a deployed capstone application.',
+    cardBlurb: 'Design, build and deploy production-ready autonomous LLM agents with LangGraph.',
     sample: 'age-m1-l01-calling-llm-apis-in-python-completions-chat-and-',
     accent: '#7c3aed',
   },
@@ -128,6 +137,7 @@ export const COURSES: Course[] = [
     title: 'MLOps Engineering: From Models to Production',
     tagline: 'Data scientists, software engineers, and DevOps practitioners who want to transition into an MLOps Engineer role and need practical skills in deploying, automating, and monitoring machine learning systems — including LLMs — in production.',
     blurb: 'A hands-on, project-based course that takes you from containerizing ML workloads to building fully automated, monitored, and cloud-deployed machine learning pipelines — including serving large language models efficiently on GPUs. You\'ll master Docker, Kubernetes, CI/CD, MLflow, infrastructure as code, production monitoring, and modern LLMOps (vLLM, quantization, KServe, GPU-aware scaling) while building a portfolio of deployable systems.',
+    cardBlurb: 'Deploy, automate and monitor ML in production — Docker, Kubernetes, CI/CD and LLMOps.',
     sample: 'mlo-m1-l01-setting-up-your-mlops-toolchain-and-workflow',
     accent: '#7c3aed',
   },
@@ -136,6 +146,7 @@ export const COURSES: Course[] = [
     title: 'Junior Digital Marketing & Social Media Assistant Bootcamp',
     tagline: 'Aspiring marketers, career changers, and recent graduates with little to no professional experience who want an entry-level digital marketing or social media role.',
     blurb: 'A hands-on, project-based course that builds the practical skills needed to launch a career as a digital marketing and social media assistant. Learners will run real ad campaigns, create engaging content, analyze performance data, and assemble a job-ready portfolio across paid ads, SEO, social media, and email marketing.',
+    cardBlurb: 'Run real campaigns across paid ads, SEO, social and email to land your first marketing role.',
     sample: 'dm-m1-l01-the-digital-marketing-landscape-the-assistant-ro',
     accent: '#7c3aed',
   },
@@ -144,6 +155,7 @@ export const COURSES: Course[] = [
     title: 'Cloud Security Engineer & M365 Security Architect: Zero Trust to SOC Automation',
     tagline: 'From M365 admin to senior security architect: Zero Trust, XDR, Purview, Sentinel & SOC automation.',
     blurb: 'A project-based course that bridges the gap between intermediate M365 administration (MD-102/MS-102) and senior security architecture (SC-500). You\'ll design Zero Trust identity perimeters with Entra ID, unify endpoint security with Intune and Defender for Endpoint, govern data and AI with Microsoft Purview, run a cloud SIEM/SOAR with Microsoft Sentinel and KQL, and automate it all with PowerShell, the Microsoft Graph API, and Logic Apps. You finish by building the three portfolio-grade projects hiring managers look for.',
+    cardBlurb: 'From M365 admin to security architect: Zero Trust, XDR, Sentinel and SOC automation.',
     sample: 'cse-m1-l01-zero-trust-foundations-and-the-security-stack',
     accent: '#0891b2',
   },
@@ -152,6 +164,7 @@ export const COURSES: Course[] = [
     title: 'VDI & End-User Computing Engineer: Azure Virtual Desktop, Windows 365 & Multi-Platform VDI',
     tagline: 'IT professionals — sysadmins, helpdesk tier 2/3, M365/Azure administrators — who want to move into a VDI / End-User Computing Engineer role. Assumes basic Windows administration and some Azure familiarity; prepares you for AZ-140 (Microsoft Certified: Azure Virtual Desktop Specialty) and gives you the cross-platform grounding for Citrix CCA-V and Omnissa OCA-H paths.',
     blurb: 'A project-based course that takes working IT professionals from VDI fundamentals to production-grade virtual desktop engineering. You\'ll master the vendor-neutral core every EUC engineer needs — architecture, display protocols, profile management, licensing, and platform selection across Azure Virtual Desktop, Windows 365, Citrix DaaS, and Omnissa Horizon — then go deep on Azure Virtual Desktop mapped to all four AZ-140 exam domains: planning and deploying host pools, images, and autoscaling; securing access with Entra ID and Conditional Access; delivering user environments with FSLogix and app attach; and monitoring, maintaining, and troubleshooting at scale. You finish with portfolio-grade capstones: a full AVD design-and-build and a multi-platform migration assessment hiring managers actually ask for.',
+    cardBlurb: 'Become a VDI & EUC engineer: Azure Virtual Desktop, Windows 365 and AZ-140 prep.',
     sample: 'vdi-m1-l01-what-is-vdi-and-euc',
     accent: '#4f46e5',
   },
