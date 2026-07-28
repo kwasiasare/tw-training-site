@@ -23,10 +23,11 @@ const lessonIndex = topics
 <BaseLayout>
   <section class="hero">
     <div class="container">
-      <h1>Project-based courses to your first AI role.</h1>
+      <h1>Project-based courses to your first IT role.</h1>
       <p>
-        Self-study courses built around what employers actually want: shipped projects.
-        In-depth notes, interactive quizzes, instructor videos, and a portfolio you can show.
+        Self-study courses built around what employers actually want: shipped projects. Every
+        course ends with a portfolio-ready capstone, with résumé and LinkedIn coaching to make you
+        job-ready.
       </p>
       <a class="btn" href="#courses">Browse the courses</a>
     </div>
@@ -35,7 +36,7 @@ const lessonIndex = topics
   <section class="block" id="courses">
     <div class="container">
       <h2 class="section-title">Courses</h2>
-      <p class="section-sub">Pick the path that matches where you're starting from.</p>
+      <p class="section-sub">Pick the path that matches where you're starting from. Every lesson includes an instructor video, in-depth notes, and an interactive quiz.</p>
       <div class="course-grid">
         {COURSES.map((c) => {
           const mods = courseModules(topics, c.slug);
@@ -66,22 +67,6 @@ const lessonIndex = topics
         aria-label="Search lessons"
       />
       <div id="search-results" class="search-results" hidden></div>
-    </div>
-  </section>
-
-  <section class="block">
-    <div class="container">
-      <h2 class="section-title">How it works</h2>
-      <p class="section-sub">
-        Each course is a sequence of short lessons grouped into modules. Every lesson has a
-        video, in-depth notes, and an interactive quiz. {totalLessons} lessons across {COURSES.length} courses.
-      </p>
-      <div class="grid cols-2">
-        <div class="card"><h3>1. Learn</h3><p class="theme">Watch the lesson video and read the in-depth notes.</p></div>
-        <div class="card"><h3>2. Check</h3><p class="theme">Take the interactive quiz — instant feedback, no answer key.</p></div>
-        <div class="card"><h3>3. Build</h3><p class="theme">Do the exercises and the module deliverable. Push to GitHub.</p></div>
-        <div class="card"><h3>4. Ship</h3><p class="theme">Deploy, document, and present your work to land the role.</p></div>
-      </div>
     </div>
   </section>
 
