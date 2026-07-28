@@ -3,7 +3,7 @@
 
 export const SITE = {
   title: 'AI Career Courses',
-  tagline: 'Project-based courses that take you to your first AI role.',
+  tagline: 'Project-based courses that take you to your first IT role.',
   // Where instructor videos are served from in production (Cloudflare R2).
   // Override at build time with PUBLIC_VIDEO_CDN_BASE. Falls back to local /videos in dev.
   videoCdnBase: import.meta.env.PUBLIC_VIDEO_CDN_BASE ?? '/videos',
