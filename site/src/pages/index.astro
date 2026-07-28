@@ -32,7 +32,28 @@ const lessonIndex = topics
     </div>
   </section>
 
-  <section class="block" id="search">
+  <section class="block" id="courses">
+    <div class="container">
+      <h2 class="section-title">Courses</h2>
+      <p class="section-sub">Pick the path that matches where you're starting from.</p>
+      <div class="course-grid">
+        {COURSES.map((c) => {
+          const mods = courseModules(topics, c.slug);
+          const count = courseLessonCount(topics, c.slug);
+          return (
+            <a class="course-tile" href={`/courses/${c.slug}/`} style={`--accent:${c.accent}`}>
+              <span class="course-tile-meta" aria-hidden="true">{count} lessons &middot; {mods.length} modules</span>
+              <h3>{c.title}</h3>
+              <p class="course-tile-tagline">{c.cardBlurb}</p>
+              <span class="course-tile-cta" aria-hidden="true">View course &rarr;</span>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+
+  <section class="block soft" id="search">
     <div class="container">
       <h2 class="section-title">Find a lesson</h2>
       <p class="section-sub">Search across all {totalLessons} lessons in every course.</p>
@@ -48,7 +69,7 @@ const lessonIndex = topics
     </div>
   </section>
 
-  <section class="block soft">
+  <section class="block">
     <div class="container">
       <h2 class="section-title">How it works</h2>
       <p class="section-sub">
@@ -60,34 +81,6 @@ const lessonIndex = topics
         <div class="card"><h3>2. Check</h3><p class="theme">Take the interactive quiz — instant feedback, no answer key.</p></div>
         <div class="card"><h3>3. Build</h3><p class="theme">Do the exercises and the module deliverable. Push to GitHub.</p></div>
         <div class="card"><h3>4. Ship</h3><p class="theme">Deploy, document, and present your work to land the role.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="block" id="courses">
-    <div class="container">
-      <h2 class="section-title">Courses</h2>
-      <p class="section-sub">Pick the path that matches where you're starting from.</p>
-      <div class="grid cols-2">
-        {COURSES.map((c) => {
-          const mods = courseModules(topics, c.slug);
-          const count = courseLessonCount(topics, c.slug);
-          return (
-            <div class="card course-card" style={`--accent:${c.accent}`}>
-              <span class="badge" style={`background:${c.accent}`}>{count} lessons · {mods.length} modules</span>
-              <h3>{c.title}</h3>
-              <p class="theme">{c.blurb}</p>
-              <ul class="topic-list">
-                {mods.map((m) => (
-                  <li class="has-video"><span class="lz">{String(m.month).padStart(2, '0')}</span>{m.monthTitle}</li>
-                ))}
-              </ul>
-              <p style="margin-top:16px">
-                <a class="btn" href={`/courses/${c.slug}/`}>View course &rarr;</a>
-              </p>
-            </div>
-          );
-        })}
       </div>
     </div>
   </section>
