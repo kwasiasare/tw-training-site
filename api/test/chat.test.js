@@ -297,7 +297,6 @@ function withFakeAnthropic(createImpl, run) {
       if (prevSdkCache) require.cache[sdkId] = prevSdkCache; else delete require.cache[sdkId];
       if (prevChatCache) require.cache[chatSharedId] = prevChatCache; else delete require.cache[chatSharedId];
       delete require.cache[claudeClientId];
-    delete require.cache[claudeClientId];
       if (prevApiKey === undefined) delete process.env.ANTHROPIC_API_KEY; else process.env.ANTHROPIC_API_KEY = prevApiKey;
     });
 }

@@ -21,7 +21,8 @@ and the local LLM is discontinued.** Direct `ANTHROPIC_API_KEY` calls returned
 sonnet-5 / opus-4-8; on Foundry these are deployment names). The local-LLM
 gateway and AWS Bedrock engine chain (TW-137) were removed; the two-stage
 design, grounding rules, site_help FAQ path and off-topic decline are unchanged.
-References below to the internal local LLM are historical.
+References below to the internal local LLM, and to a direct `ANTHROPIC_API_KEY`
+provisioned in Functions app settings, are historical.
 
 One revision made during implementation planning: the model tier originally
 recommended in this document (`claude-opus-4-8` throughout) was revised to a
