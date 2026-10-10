@@ -5,7 +5,7 @@ R2 bucket and analyses them with Claude. This guide wires the backend so the fea
 can be turned on. The Phase 1 code is already deployed but **flagged off**.
 
 ## 0. Prerequisites (already done)
-- `ANTHROPIC_API_KEY` is set in the prod SWA app settings.
+- Claude is configured in the prod SWA app settings: `ANTHROPIC_FOUNDRY_RESOURCE` + `ANTHROPIC_FOUNDRY_API_KEY` (Microsoft Foundry, TW-140), or `ANTHROPIC_API_KEY` as the direct-API fallback.
 - `R2_ACCOUNT_ID` is set (shared with the videos bucket).
 
 ## 1. Create the private bucket `tw-resumes`

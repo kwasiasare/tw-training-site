@@ -11,6 +11,18 @@ shipped 2026-07-06, riding the same flag as Phase 1 (no new flag was needed —
 it extends the existing Stage-1 classifier with a `site_help` status, grounded
 in a new curated `api/src/shared/faq.json`, still zero live-data reads).
 
+**Update 2026-10-09 (TW-140): Claude is now served from Microsoft Foundry,
+and the local LLM is discontinued.** Direct `ANTHROPIC_API_KEY` calls returned
+401 in production, so all Claude calls (chat, tutor, advisor, grader) go through
+`api/src/shared/claudeClient.js`: Foundry (`@anthropic-ai/foundry-sdk`, resource
+`kasare-5989-resource`) when `ANTHROPIC_FOUNDRY_RESOURCE` (or `_BASE_URL`) and
+`ANTHROPIC_FOUNDRY_API_KEY` are set, else the direct API. Models are env-driven
+(`CLAUDE_MODEL_SELECT` / `_ANSWER` / `_TUTOR`, defaulting to haiku-4-5 /
+sonnet-5 / opus-4-8; on Foundry these are deployment names). The local-LLM
+gateway and AWS Bedrock engine chain (TW-137) were removed; the two-stage
+design, grounding rules, site_help FAQ path and off-topic decline are unchanged.
+References below to the internal local LLM are historical.
+
 One revision made during implementation planning: the model tier originally
 recommended in this document (`claude-opus-4-8` throughout) was revised to a
 two-stage routing — `claude-haiku-4-5` for intent classification/lesson

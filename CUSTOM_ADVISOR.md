@@ -75,7 +75,7 @@ off-topic content, quiz answers correct, lessons map to the intended role.
 ## Generation pipeline ops
 
 - Manual: **Actions → Generate course → Run workflow** (slug, role, skills, modules, lessons/module).
-- Repo **secrets** required: `ANTHROPIC_API_KEY`, `AZURE_SPEECH_KEY/REGION`, `R2_*`.
+- Repo **secrets** required (generation workflow, direct API): `ANTHROPIC_API_KEY`, `AZURE_SPEECH_KEY/REGION`, `R2_*`.
 - One-time GitHub setting: **Allow GitHub Actions to create and approve pull requests** (else the Action
   pushes the branch but can't open the PR).
 - **Cost/time:** rendering is slow + costs Azure TTS per lesson; keep courses modest (default 4×4 = 16).
@@ -87,6 +87,6 @@ off-topic content, quiz answers correct, lessons map to the intended role.
 
 ## Config (prod SWA app settings)
 
-`ANTHROPIC_API_KEY`, `R2_ACCOUNT_ID`, `RESUME_R2_ACCESS_KEY_ID`, `RESUME_R2_SECRET_ACCESS_KEY`,
+`ANTHROPIC_FOUNDRY_RESOURCE` + `ANTHROPIC_FOUNDRY_API_KEY` (Claude via Microsoft Foundry, TW-140; `ANTHROPIC_API_KEY` is the direct-API fallback; optional `CLAUDE_MODEL_TUTOR`), `R2_ACCOUNT_ID`, `RESUME_R2_ACCESS_KEY_ID`, `RESUME_R2_SECRET_ACCESS_KEY`,
 `RESUME_R2_BUCKET` (+ the shared `R2_*` for video signing). Feature flag: GitHub variable
 `PUBLIC_CUSTOM_ADVISOR_ENABLED=true`. See `HOWTO_Resume_Storage.md`.

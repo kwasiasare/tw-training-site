@@ -6,16 +6,7 @@
 // modest max_tokens to keep latency low (~3-10s) and avoid starving the host.
 // Model: claude-opus-4-8 (project default).
 
-const Anthropic = require('@anthropic-ai/sdk');
-
-let client;
-function getClient() {
-  if (client) return client;
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error('ANTHROPIC_API_KEY is not set');
-  client = new Anthropic({ apiKey });
-  return client;
-}
+const { getClaudeClient, tutorModel } = require('./claudeClient');
 
 const MAX_TOKENS = 800;
 const MAX_HISTORY = 8; // last N turns kept; bounds prompt size + cost
@@ -74,8 +65,8 @@ async function answerLessonQuestion({ lesson, courseTitle, messages }) {
     throw err;
   }
 
-  const res = await getClient().messages.create({
-    model: 'claude-opus-4-8',
+  const res = await getClaudeClient().messages.create({
+    model: tutorModel(),
     max_tokens: MAX_TOKENS,
     system: systemPrompt(lesson, courseTitle),
     output_config: { effort: 'low' },

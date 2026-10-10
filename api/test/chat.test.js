@@ -246,7 +246,9 @@ test('answerCourseQuestion: an empty/whitespace-only Stage 2 reply throws with e
   require.cache[sdkId] = {
     id: sdkId, filename: sdkId, loaded: true, exports: FakeAnthropic, children: [], paths: [],
   };
+  const claudeClientId = path.join(SHARED_DIR, 'claudeClient.js');
   delete require.cache[chatSharedId];
+  delete require.cache[claudeClientId]; // factory caches the client; force a fresh one built from the fake SDK
   process.env.ANTHROPIC_API_KEY = 'test-key';
 
   try {
@@ -258,6 +260,7 @@ test('answerCourseQuestion: an empty/whitespace-only Stage 2 reply throws with e
   } finally {
     if (prevSdkCache) require.cache[sdkId] = prevSdkCache; else delete require.cache[sdkId];
     if (prevChatCache) require.cache[chatSharedId] = prevChatCache; else delete require.cache[chatSharedId];
+    delete require.cache[claudeClientId];
     if (prevApiKey === undefined) delete process.env.ANTHROPIC_API_KEY; else process.env.ANTHROPIC_API_KEY = prevApiKey;
   }
 });
@@ -283,7 +286,9 @@ function withFakeAnthropic(createImpl, run) {
   require.cache[sdkId] = {
     id: sdkId, filename: sdkId, loaded: true, exports: FakeAnthropic, children: [], paths: [],
   };
+  const claudeClientId = path.join(SHARED_DIR, 'claudeClient.js');
   delete require.cache[chatSharedId];
+  delete require.cache[claudeClientId]; // factory caches the client; force a fresh one built from the fake SDK
   process.env.ANTHROPIC_API_KEY = 'test-key';
 
   return Promise.resolve()
@@ -291,6 +296,8 @@ function withFakeAnthropic(createImpl, run) {
     .finally(() => {
       if (prevSdkCache) require.cache[sdkId] = prevSdkCache; else delete require.cache[sdkId];
       if (prevChatCache) require.cache[chatSharedId] = prevChatCache; else delete require.cache[chatSharedId];
+      delete require.cache[claudeClientId];
+    delete require.cache[claudeClientId];
       if (prevApiKey === undefined) delete process.env.ANTHROPIC_API_KEY; else process.env.ANTHROPIC_API_KEY = prevApiKey;
     });
 }

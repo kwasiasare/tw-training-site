@@ -6,16 +6,7 @@
 // managed Function, so it uses low effort + small max_tokens to stay fast.
 // Model: claude-opus-4-8 (project default).
 
-const Anthropic = require('@anthropic-ai/sdk');
-
-let client;
-function getClient() {
-  if (client) return client;
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error('ANTHROPIC_API_KEY is not set');
-  client = new Anthropic({ apiKey });
-  return client;
-}
+const { getClaudeClient, tutorModel } = require('./claudeClient');
 
 // structured-outputs limits: no min/max bounds — keep to objects/arrays/strings/enums.
 const GRADE_SCHEMA = {
@@ -57,8 +48,8 @@ async function gradeAnswer({ question, referenceAnswer, why, learnerAnswer }) {
     'Grade the learner answer against the reference. Return the JSON verdict.',
   ].join('\n');
 
-  const res = await getClient().messages.create({
-    model: 'claude-opus-4-8',
+  const res = await getClaudeClient().messages.create({
+    model: tutorModel(),
     max_tokens: 500,
     system: SYSTEM,
     output_config: { format: { type: 'json_schema', schema: GRADE_SCHEMA }, effort: 'low' },
