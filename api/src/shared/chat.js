@@ -30,21 +30,10 @@
 //
 // claude-opus-4-8 is deliberately NOT used anywhere in this module.
 
-const Anthropic = require('@anthropic-ai/sdk');
+const { getClaudeClient, selectModel, answerModel } = require('./claudeClient');
 const { getLesson, listLessonMeta } = require('./lessons');
 const { getFaqJson, listFaqTopics } = require('./faq');
 
-let client;
-function getClient() {
-  if (client) return client;
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error('ANTHROPIC_API_KEY is not set');
-  client = new Anthropic({ apiKey });
-  return client;
-}
-
-const SELECT_MODEL = 'claude-haiku-4-5';
-const ANSWER_MODEL = 'claude-sonnet-5';
 const SELECT_MAX_TOKENS = 300;
 const ANSWER_MAX_TOKENS = 800;
 
@@ -126,8 +115,8 @@ async function selectLessons({ messages }) {
   let res;
   try {
     // Preferred path: schema-enforced structured output.
-    res = await getClient().messages.create({
-      model: SELECT_MODEL,
+    res = await getClaudeClient().messages.create({
+      model: selectModel(),
       max_tokens: SELECT_MAX_TOKENS,
       system: [{ type: 'text', text: SELECT_INSTRUCTIONS }, catalogBlock, faqTopicsBlock],
       output_config: { format: { type: 'json_schema', schema: SELECT_SCHEMA } },
@@ -137,8 +126,8 @@ async function selectLessons({ messages }) {
     // The installed SDK/API rejected `format` for this model (or some other
     // transient error) — fall back to prompt-instructed JSON-only output and
     // parse defensively below rather than letting the request fail.
-    res = await getClient().messages.create({
-      model: SELECT_MODEL,
+    res = await getClaudeClient().messages.create({
+      model: selectModel(),
       max_tokens: SELECT_MAX_TOKENS,
       system: [{ type: 'text', text: SELECT_INSTRUCTIONS + SELECT_JSON_ONLY_SUFFIX }, catalogBlock, faqTopicsBlock],
       messages,
@@ -232,8 +221,8 @@ function stage2System(lessons) {
 // never supplies lesson content. Returns { reply } or throws an Error with
 // .code = 'refusal' (same pattern as tutor.js/grader.js).
 async function answerCourseQuestion({ lessons, messages }) {
-  const res = await getClient().messages.create({
-    model: ANSWER_MODEL,
+  const res = await getClaudeClient().messages.create({
+    model: answerModel(),
     max_tokens: ANSWER_MAX_TOKENS,
     system: stage2System(lessons),
     output_config: { effort: 'low' },
@@ -292,8 +281,8 @@ function siteHelpSystem() {
 // add a mis-selection failure mode for no real savings. Same refusal contract
 // as answerCourseQuestion: returns { reply } or throws with .code = 'refusal'.
 async function answerSiteHelpQuestion({ messages }) {
-  const res = await getClient().messages.create({
-    model: ANSWER_MODEL,
+  const res = await getClaudeClient().messages.create({
+    model: answerModel(),
     max_tokens: SITE_HELP_ANSWER_MAX_TOKENS,
     system: siteHelpSystem(),
     output_config: { effort: 'low' },

@@ -8,9 +8,8 @@
     "test": "node --test \"test/*.test.js\""
   },
   "dependencies": {
+    "@anthropic-ai/foundry-sdk": "^0.5.4",
     "@anthropic-ai/sdk": "^0.105.0",
-    "@aws-sdk/client-bedrock-agent-runtime": "^3.1094.0",
-    "@aws-sdk/client-bedrock-runtime": "^3.1094.0",
     "@aws-sdk/client-s3": "^3.726.0",
     "@aws-sdk/s3-request-presigner": "^3.726.0",
     "@azure/cosmos": "^4.1.1",

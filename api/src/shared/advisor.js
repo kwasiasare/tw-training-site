@@ -5,16 +5,7 @@
 // our course catalog, and returns a validated structured analysis via the
 // structured-outputs JSON-schema format. Model: claude-opus-4-8 (project default).
 
-const Anthropic = require('@anthropic-ai/sdk');
-
-let client;
-function getClient() {
-  if (client) return client;
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error('ANTHROPIC_API_KEY is not set');
-  client = new Anthropic({ apiKey });
-  return client;
-}
+const { getClaudeClient, tutorModel } = require('./claudeClient');
 
 // JSON schema the model must satisfy. Note structured-outputs limits: no
 // min/maxLength, numeric bounds, or recursion — keep it to objects/arrays/strings.
@@ -79,8 +70,8 @@ async function analyzeResume({ pdfBase64, questionnaire, catalogText }) {
   // extended thinking keeps the call ~10-20s (vs ~130s at default high effort,
   // which starved the Functions host). Structured output already constrains the
   // result, so deep thinking isn't needed for this analysis.
-  const res = await getClient().messages.create({
-    model: 'claude-opus-4-8',
+  const res = await getClaudeClient().messages.create({
+    model: tutorModel(),
     max_tokens: 4000,
     system: SYSTEM,
     output_config: { format: { type: 'json_schema', schema: ANALYSIS_SCHEMA }, effort: 'low' },
