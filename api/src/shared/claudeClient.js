@@ -15,6 +15,10 @@
 const Anthropic = require('@anthropic-ai/sdk');
 const AnthropicFoundry = require('@anthropic-ai/foundry-sdk');
 
+// Process-lifetime cache. That is the right scope here: SWA restarts the
+// Functions host whenever an app setting changes, so a new process re-reads
+// the settings; and a construction that throws caches nothing, so a config
+// error is re-evaluated on the next request rather than pinned forever.
 let client;
 
 function envStr(name) {
@@ -30,11 +34,24 @@ function claudeProvider() {
   return null;
 }
 
+// Names of Foundry settings that are missing when Foundry is only PARTIALLY
+// configured (one half present, the other absent). Empty when Foundry is fully
+// configured or not configured at all. Setting NAMES only — never values.
+function missingFoundrySettings() {
+  const hasEndpoint = Boolean(envStr('ANTHROPIC_FOUNDRY_RESOURCE') || envStr('ANTHROPIC_FOUNDRY_BASE_URL'));
+  const hasKey = Boolean(envStr('ANTHROPIC_FOUNDRY_API_KEY'));
+  if (hasEndpoint === hasKey) return [];
+  return hasEndpoint ? ['ANTHROPIC_FOUNDRY_API_KEY'] : ['ANTHROPIC_FOUNDRY_RESOURCE (or ANTHROPIC_FOUNDRY_BASE_URL)'];
+}
+
 function getClaudeClient() {
   if (client) return client;
   const provider = claudeProvider();
+  const missing = missingFoundrySettings();
   if (provider === 'foundry') {
     const opts = { apiKey: envStr('ANTHROPIC_FOUNDRY_API_KEY') };
+    // The SDK treats baseURL and resource as mutually exclusive, so pass
+    // exactly one: an explicit base URL wins over the resource name.
     const baseURL = envStr('ANTHROPIC_FOUNDRY_BASE_URL');
     if (baseURL) opts.baseURL = baseURL;
     else opts.resource = envStr('ANTHROPIC_FOUNDRY_RESOURCE');
@@ -47,6 +64,12 @@ function getClaudeClient() {
       'and ANTHROPIC_FOUNDRY_API_KEY for Microsoft Foundry, or ANTHROPIC_API_KEY for the direct API',
     );
   }
+  // One structured line per process so App Insights `traces` shows WHICH
+  // backend answered, and flags a half-configured Foundry that silently fell
+  // back to the direct key. Setting names only — never a value, never a URL.
+  const init = { event: 'claude_client_init', provider };
+  if (missing.length) init.foundryMissing = missing;
+  (missing.length ? console.warn : console.log)(JSON.stringify(init));
   return client;
 }
 

@@ -88,6 +88,40 @@ test('claudeClient: a Foundry resource without its key (or a key without an endp
   });
 });
 
+test('claudeClient: init log names the provider and any missing Foundry setting, and leaks no values', async () => {
+  const captured = [];
+  const prevLog = console.log;
+  const prevWarn = console.warn;
+  console.log = (line) => captured.push(['log', line]);
+  console.warn = (line) => captured.push(['warn', line]);
+  try {
+    // Fully configured Foundry: one info line, provider only.
+    await withFakes({ ANTHROPIC_FOUNDRY_RESOURCE: 'kasare-5989-resource', ANTHROPIC_FOUNDRY_API_KEY: 'super-secret-value' }, () => text('x'), (ctx) => {
+      const cc = require(path.join(SHARED_DIR, 'claudeClient.js'));
+      cc.getClaudeClient();
+      cc.getClaudeClient(); // cached: no second line
+      assert.equal(captured.length, 1);
+      assert.equal(captured[0][0], 'log');
+      assert.deepEqual(JSON.parse(captured[0][1]), { event: 'claude_client_init', provider: 'foundry' });
+    });
+    captured.length = 0;
+    // Half-configured Foundry (resource, no key) falling back to direct: a
+    // warning naming the missing setting, with neither key value present.
+    await withFakes({ ANTHROPIC_FOUNDRY_RESOURCE: 'kasare-5989-resource', ANTHROPIC_API_KEY: 'direct-secret-value' }, () => text('x'), () => {
+      require(path.join(SHARED_DIR, 'claudeClient.js')).getClaudeClient();
+      assert.equal(captured.length, 1);
+      assert.equal(captured[0][0], 'warn');
+      assert.deepEqual(JSON.parse(captured[0][1]), {
+        event: 'claude_client_init', provider: 'direct', foundryMissing: ['ANTHROPIC_FOUNDRY_API_KEY'],
+      });
+      assert.doesNotMatch(captured[0][1], /secret-value/);
+    });
+  } finally {
+    console.log = prevLog;
+    console.warn = prevWarn;
+  }
+});
+
 test('claudeClient: no configuration throws a clear error that leaks no values', async () => {
   await withFakes({ ANTHROPIC_FOUNDRY_API_KEY: 'super-secret-value' }, () => text('x'), () => {
     const { getClaudeClient } = require(path.join(SHARED_DIR, 'claudeClient.js'));
